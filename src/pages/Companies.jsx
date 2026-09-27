@@ -32,7 +32,7 @@ export function getCompanyRelationshipStatus(comp) {
       case 'in_attesa_risposta':
         return { key: 'in_attesa_risposta', label: 'In attesa risposta', emoji: '🔄', color: '#00e5ff', bg: 'rgba(0, 229, 255, 0.15)', border: 'rgba(0, 229, 255, 0.45)' }
       case 'lavoro_concluso':
-        return { key: 'lavoro_concluso', label: 'Lavoro concluso', emoji: '✅', color: '#00ffaa', bg: 'rgba(0, 255, 170, 0.15)', border: 'rgba(0, 255, 170, 0.4)' }
+        return { key: 'lavoro_concluso', label: 'Lavoro concluso', emoji: '✅', color: '#c084fc', bg: 'transparent', border: 'transparent' }
       case 'rifiutato':
         return { key: 'rifiutato', label: 'Rifiutato all\'ultimo', emoji: '❌', color: '#ff4444', bg: 'rgba(255, 68, 68, 0.15)', border: 'rgba(255, 68, 68, 0.45)' }
       case 'interrotto':
@@ -59,7 +59,7 @@ export function getCompanyRelationshipStatus(comp) {
     return { key: 'in_attesa_risposta', label: 'In attesa risposta', emoji: '🔄', color: '#00e5ff', bg: 'rgba(0, 229, 255, 0.15)', border: 'rgba(0, 229, 255, 0.45)' }
   }
 
-  return { key: 'lavoro_concluso', label: 'Lavoro concluso', emoji: '✅', color: '#00ffaa', bg: 'rgba(0, 255, 170, 0.15)', border: 'rgba(0, 255, 170, 0.4)' }
+  return { key: 'lavoro_concluso', label: 'Lavoro concluso', emoji: '✅', color: '#c084fc', bg: 'transparent', border: 'transparent' }
 }
 
 // ── Acronimo B.A.N.T. stile Brand Logo DADO con rilevamento dinamico parametri mancanti ──
@@ -653,7 +653,7 @@ export default function Companies() {
                             {/* Badge Stato Qualificazione B.A.N.T. */}
                             {bant.isComplete ? (
                               <span
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold font-mono bg-[#00ffaa]/15 text-[#00ffaa] border border-[#00ffaa]/40"
+                                className="inline-flex items-center gap-1 text-[11px] font-bold font-mono text-[#c084fc]"
                                 title="Tutti i 4 parametri B.A.N.T. sono stati identificati con successo"
                               >
                                 <span>🟢</span>
@@ -677,11 +677,13 @@ export default function Companies() {
 
                             {/* Badge Stato Relazione & Pagamento (Emoticon + 2 parole chiare) */}
                             <span
-                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-bold rounded"
+                              className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${
+                                relStatus.key === 'lavoro_concluso' ? 'px-0 py-0' : 'px-2.5 py-0.5 rounded'
+                              }`}
                               style={{
                                 backgroundColor: relStatus.bg,
                                 color: relStatus.color,
-                                border: `1px solid ${relStatus.border}`,
+                                border: relStatus.border === 'transparent' ? 'none' : `1px solid ${relStatus.border}`,
                                 fontFamily: '"Space Mono", monospace',
                               }}
                               title={`Stato attuale: ${relStatus.label}`}
@@ -764,7 +766,7 @@ export default function Companies() {
                             </span>
                             <span>•</span>
                             <span
-                              className="px-2 py-0.5 bg-[#007a50]/40 text-[#00ffaa] text-[11px] font-bold"
+                              className="text-[11px] font-bold text-[#c084fc]"
                               style={{ fontFamily: '"Space Mono", monospace' }}
                             >
                               ⏱️ {comp.workSchedule?.scheduleType}
@@ -908,7 +910,7 @@ export default function Companies() {
                               </span>
                             </div>
                             {bant.isComplete ? (
-                              <span className="text-[11px] font-mono text-[#00ffaa] bg-[#00ffaa]/15 px-2.5 py-0.5 rounded border border-[#00ffaa]/30 font-bold">
+                              <span className="text-[11px] font-mono text-[#c084fc] font-bold">
                                 🟢 4/4 Parametri Rilevati • Lead Qualificato
                               </span>
                             ) : (
