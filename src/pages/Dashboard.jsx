@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Database, Sparkles, X, ArrowRight, Calendar as CalendarIcon, Clock, FileText, Paperclip } from 'lucide-react'
 import CameraShutter from '../components/CameraShutter'
+import { getCurrentWeekDays, getCurrentMonthName, getTodayIso, getTomorrowIso, getCurrentWeekSundayIso, formatDayLong } from '../utils/dateUtils'
 
 function KpiCard({
   label,
@@ -549,15 +550,33 @@ const WEEK_SCHEDULE_DATA = {
     ],
     notes: 'Setup riprese matrimonio Villa Cora ore 15:00. Attrezzatura completa con drone autorizzato.',
     files: []
+  },
+  '2026-09-28': {
+    dayName: 'Lunedì 28 Settembre 2026 (Oggi)',
+    tag: 'Oggi • Riprese & Montaggio',
+    events: [
+      { time: '09:30', company: 'Alpha Studio Milano', title: 'Briefing nuova campagna ADV moda e approvazione moodboard FW26.', category: 'Pre-Prod' },
+      { time: '14:30', company: 'Officine Meccaniche Riva', title: 'Consegna prima bozza montaggio spot video corporate e revisione cliente.', category: 'Post-Prod' },
+      { time: '17:00', company: 'Solaris Green Energy', title: 'Call allineamento preventivo corporate e approvazione piano riprese.', category: 'Commerciale' }
+    ],
+    notes: 'Briefing con Alpha Studio Milano per nuova campagna autunno moda e verifica consegna bozza Riva.',
+    files: [
+      { name: 'Moodboard_Alpha_FW26.pdf', size: '4.8 MB', date: '28 Set 2026' }
+    ]
   }
 }
 
 function getDaySchedule(dateIso) {
+  const dynamicName = formatDayLong(dateIso)
+  const isToday = dateIso === getTodayIso()
   const base = WEEK_SCHEDULE_DATA[dateIso] || {
-    dayName: 'Programma Giornata',
-    tag: 'Attività',
-    events: [],
-    notes: '',
+    dayName: dynamicName || 'Programma Giornata',
+    tag: isToday ? 'Oggi • Attività' : 'Attività Programmate',
+    events: [
+      { time: '09:30', company: 'DADO Creative Studio', title: 'Pianificazione attività e revisione progetti in corso.', category: 'Produzione' },
+      { time: '15:00', company: 'Gestione Clienti', title: 'Follow-up e controllo avanzamento produzioni video.', category: 'Commerciale' }
+    ],
+    notes: 'Giornata di produzione e coordinamento commesse.',
     files: []
   }
   try {
@@ -584,6 +603,13 @@ export default function Dashboard() {
   const [aiLoading, setAiLoading] = useState(false)
   const [selectedCalendarDay, setSelectedCalendarDay] = useState(null)
   const [activeOutputTab, setActiveOutputTab] = useState('auto') // 'day' | 'ai' | 'auto'
+
+  // Calcolo dinamico settimana e mese corrente
+  const currentWeekDays = useMemo(() => getCurrentWeekDays(), [])
+  const currentMonthName = useMemo(() => getCurrentMonthName(), [])
+  const todayIso = useMemo(() => getTodayIso(), [])
+  const tomorrowIso = useMemo(() => getTomorrowIso(), [])
+  const sundayIso = useMemo(() => getCurrentWeekSundayIso(), [])
 
   // Modalità Focus Allargata per Ask OpenAI & Automazione Obiettivo
   const [isAiFocusMode, setIsAiFocusMode] = useState(false)
@@ -740,20 +766,13 @@ export default function Dashboard() {
                 </Link>
                 <div className="px-2 py-1.5 rounded-md bg-white flex items-center gap-1 border border-black/10 shadow-sm">
                   <span className="text-[9px] font-mono font-bold text-slate-500 mr-1">WEEK:</span>
-                  {[
-                    { letter: 'L', date: '2026-09-21' },
-                    { letter: 'M', date: '2026-09-22' },
-                    { letter: 'M', date: '2026-09-23' },
-                    { letter: 'G', date: '2026-09-24' },
-                    { letter: 'V', date: '2026-09-25', isToday: true },
-                    { letter: 'S', date: '2026-09-26' },
-                    { letter: 'D', date: '2026-09-27', isSunday: true },
-                  ].map((d) => (
+                  {currentWeekDays.map((d) => (
                     <span
                       key={d.date}
                       className={`w-4 h-4 flex items-center justify-center rounded text-[10px] font-black font-mono leading-none ${
                         d.isToday ? 'bg-[#00c853] text-white' : d.isSunday ? 'text-[#ff6f43] bg-orange-50' : 'text-slate-700'
                       }`}
+                      title={d.name}
                     >
                       {d.letter}
                     </span>
@@ -800,25 +819,17 @@ export default function Dashboard() {
                         color: '#111111',
                       }}
                     >
-                      SETTEMBRE
+                      {currentMonthName}
                     </span>
                   </div>
 
-                  {/* 7 Caselle Giorni: solo prima lettera (L M M G V S D) */}
+                  {/* 7 Caselle Giorni: solo prima lettera (L M M G V S D) con segna giorno dinamico */}
                   <div className="grid grid-cols-7 gap-1 mt-1 flex-1 items-stretch">
-                    {[
-                      { letter: 'L', name: 'Lunedì 21', date: '2026-09-21', day: 'lun' },
-                      { letter: 'M', name: 'Martedì 22', date: '2026-09-22', day: 'mar' },
-                      { letter: 'M', name: 'Mercoledì 23', date: '2026-09-23', day: 'mer' },
-                      { letter: 'G', name: 'Giovedì 24', date: '2026-09-24', day: 'gio' },
-                      { letter: 'V', name: 'Venerdì 25 (Oggi)', date: '2026-09-25', day: 'today', isToday: true },
-                      { letter: 'S', name: 'Sabato 26', date: '2026-09-26', day: 'tomorrow' },
-                      { letter: 'D', name: 'Domenica 27', date: '2026-09-27', day: 'sunday', isSunday: true },
-                    ].map((d) => {
+                    {currentWeekDays.map((d) => {
                       const isSelected = selectedCalendarDay?.date === d.date
                       return (
                         <button
-                          key={d.day}
+                          key={d.date}
                           type="button"
                           onClick={() => {
                             if (isSelected) {
@@ -834,7 +845,7 @@ export default function Dashboard() {
                               : d.isSunday
                               ? 'border-[#ff6f43]/40 bg-orange-50/40 hover:bg-orange-50 hover:border-[#ff6f43]'
                               : d.isToday
-                              ? 'border-[#00c853]/40 bg-emerald-50/50 hover:bg-emerald-50'
+                              ? 'border-[#00c853]/60 bg-emerald-50/80 hover:bg-emerald-100 ring-1 ring-[#00c853]'
                               : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                           title={`Clicca per visualizzare gli impegni di ${d.name} nell'output della dashboard`}
@@ -843,7 +854,7 @@ export default function Dashboard() {
                             className="text-base font-black leading-none block"
                             style={{
                               fontFamily: '"Goldman", sans-serif',
-                              color: d.isSunday ? '#ff6f43' : isSelected ? '#007a50' : '#334155',
+                              color: d.isSunday ? '#ff6f43' : isSelected ? '#007a50' : d.isToday ? '#007a50' : '#334155',
                             }}
                           >
                             {d.letter}
@@ -1001,7 +1012,7 @@ export default function Dashboard() {
                       transform: 'skewX(-20deg)',
                       borderRadius: '8px',
                     }}
-                    title="Apri Today (Venerdì 25 Set) nel Calendario"
+                    title={`Apri Today (${todayIso}) nel Calendario`}
                   >
                     <span
                       style={{
@@ -1024,9 +1035,9 @@ export default function Dashboard() {
                 {/* 2. Domani — Cliccabile collegato a Calendar */}
                 <div className="w-full flex justify-end">
                   <Link
-                    to="/calendar?date=2026-09-26&day=tomorrow"
+                    to={`/calendar?date=${tomorrowIso}&day=tomorrow`}
                     className="bg-white rounded-full px-4 py-0.5 w-full flex items-center justify-end shadow-sm hover:scale-[1.02] transition-transform block"
-                    title="Apri Domani (Sabato 26 Set) nel Calendario"
+                    title={`Apri Domani (${tomorrowIso}) nel Calendario`}
                   >
                     <span
                       style={{
@@ -1047,9 +1058,9 @@ export default function Dashboard() {
                 {/* 3. Sunday: Cliccabile collegato a Calendar, con punta arrow calibrata, 'y' a 0,2 cm dall'inclinazione con gambo inclinato e visibile al 100% */}
                 <div className="w-full flex justify-end">
                   <Link
-                    to="/calendar?date=2026-09-27&day=sunday"
+                    to={`/calendar?date=${sundayIso}&day=sunday`}
                     className="w-full h-[33px] relative flex items-center justify-end shadow-sm overflow-visible block hover:opacity-90 transition-opacity"
-                    title="Apri Sunday (Domenica 27 Set) nel Calendario"
+                    title={`Apri Sunday (${sundayIso}) nel Calendario`}
                   >
                     {/* Sfondo Freccia Viola sfumata con clip-path a punta */}
                     <div

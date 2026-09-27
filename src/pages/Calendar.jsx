@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { getTodayIso, getTomorrowIso, getCurrentWeekSundayIso } from '../utils/dateUtils'
 import {
   Calendar as CalendarIcon,
   Paperclip,
@@ -53,8 +54,15 @@ const INITIAL_CALENDAR_DATA = {
 
 export default function Calendar() {
   const [searchParams] = useSearchParams()
-  // Data di riferimento (default 25 Settembre 2026)
-  const [currentDate, setCurrentDate] = useState(new Date('2026-09-25T10:00:00'))
+  // Data di riferimento dinamica (se query param date=YYYY-MM-DD usa quella, altrimenti usa oggi)
+  const [currentDate, setCurrentDate] = useState(() => {
+    const dParam = searchParams.get('date')
+    if (dParam && /^\d{4}-\d{2}-\d{2}$/.test(dParam)) {
+      const parsed = new Date(`${dParam}T10:00:00`)
+      if (!isNaN(parsed.getTime())) return parsed
+    }
+    return new Date()
+  })
   const [highlightedDayIso, setHighlightedDayIso] = useState(null)
 
   // Database locale persistente
@@ -79,7 +87,7 @@ export default function Calendar() {
   const [selectedDayModal, setSelectedDayModal] = useState(null)
   const [editingNote, setEditingNote] = useState('')
 
-  // Calcola i 7 giorni della settimana corrente (da Lunedì a Domenica)
+  // Calcola i 7 giorni della settimana corrente (da Lunedì a Domenica) con isToday dinamico
   const currentWeekDays = useMemo(() => {
     const d = new Date(currentDate)
     const dayOfWeek = d.getDay()
@@ -88,6 +96,8 @@ export default function Calendar() {
     const monday = new Date(d)
     monday.setDate(d.getDate() + diffToMonday)
     monday.setHours(0, 0, 0, 0)
+
+    const todayIso = getTodayIso()
 
     const days = []
     for (let i = 0; i < 7; i++) {
@@ -102,7 +112,7 @@ export default function Calendar() {
         year: dayDate.getFullYear(),
         shortName: DAY_NAMES_SHORT[i],
         longName: DAY_NAMES_LONG[i],
-        isToday: iso === '2026-09-25',
+        isToday: iso === todayIso,
       })
     }
     return days
@@ -129,7 +139,8 @@ export default function Calendar() {
   }
 
   function handleToday() {
-    setCurrentDate(new Date('2026-09-25T10:00:00'))
+    setCurrentDate(new Date())
+    setHighlightedDayIso(getTodayIso())
   }
 
   // Cambio mese
@@ -158,20 +169,12 @@ export default function Calendar() {
     if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
       targetIso = dateParam
     } else if (dayParam) {
-      if (dayParam === 'today' || dayParam === 'oggi' || dayParam === 'ven' || dayParam === 'friday') {
-        targetIso = '2026-09-25'
-      } else if (dayParam === 'tomorrow' || dayParam === 'domani' || dayParam === 'sab' || dayParam === 'saturday') {
-        targetIso = '2026-09-26'
-      } else if (dayParam === 'sunday' || dayParam === 'domenica' || dayParam === 'dom') {
-        targetIso = '2026-09-27'
-      } else if (dayParam === 'monday' || dayParam === 'lunedi' || dayParam === 'lunedì' || dayParam === 'lun') {
-        targetIso = '2026-09-28'
-      } else if (dayParam === 'mar' || dayParam === 'martedi' || dayParam === 'martedì' || dayParam === 'tuesday') {
-        targetIso = '2026-09-22'
-      } else if (dayParam === 'mer' || dayParam === 'mercoledi' || dayParam === 'mercoledì' || dayParam === 'wednesday') {
-        targetIso = '2026-09-23'
-      } else if (dayParam === 'gio' || dayParam === 'giovedi' || dayParam === 'giovedì' || dayParam === 'thursday') {
-        targetIso = '2026-09-24'
+      if (dayParam === 'today' || dayParam === 'oggi') {
+        targetIso = getTodayIso()
+      } else if (dayParam === 'tomorrow' || dayParam === 'domani') {
+        targetIso = getTomorrowIso()
+      } else if (dayParam === 'sunday' || dayParam === 'domenica') {
+        targetIso = getCurrentWeekSundayIso()
       }
     }
 
@@ -190,7 +193,7 @@ export default function Calendar() {
         year: targetDateObj.getFullYear(),
         shortName: DAY_NAMES_SHORT[dayIndex],
         longName: DAY_NAMES_LONG[dayIndex],
-        isToday: targetIso === '2026-09-25',
+        isToday: targetIso === getTodayIso(),
       }
 
       setHighlightedDayIso(targetIso)
@@ -260,7 +263,7 @@ export default function Calendar() {
 
   // Navigazione giorno successivo (+1) o precedente (-1) con tastiera o pulsanti
   function navigateDay(direction) {
-    const currentIso = selectedDayModal?.iso || highlightedDayIso || '2026-09-25'
+    const currentIso = selectedDayModal?.iso || highlightedDayIso || getTodayIso()
     const [year, month, day] = currentIso.split('-').map(Number)
     const targetDate = new Date(year, month - 1, day)
     targetDate.setDate(targetDate.getDate() + direction)
@@ -282,7 +285,7 @@ export default function Calendar() {
       year: targetDate.getFullYear(),
       shortName: DAY_NAMES_SHORT[dayIndex],
       longName: DAY_NAMES_LONG[dayIndex],
-      isToday: nextIso === '2026-09-25',
+      isToday: nextIso === getTodayIso(),
     }
 
     // Se il giorno è al di fuori della settimana corrente visualizzata, sposta la settimana
