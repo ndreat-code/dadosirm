@@ -103,36 +103,42 @@ function getAuthenticatedClient() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// ROOT STATUS ENDPOINT
+// SERVIZIO STATICO FRONTEND REACT COMPILATO (DIST)
 // ─────────────────────────────────────────────────────────────
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>DADO CRM - Backend API</title>
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #0f172a; color: #f8fafc; }
-          .card { background: #1e293b; padding: 2rem; border-radius: 12px; border: 1px solid #334155; text-align: center; max-width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-          h1 { margin-top: 0; font-size: 1.5rem; color: #38bdf8; }
-          p { color: #94a3b8; line-height: 1.5; }
-          .btn { display: inline-block; margin-top: 1.5rem; padding: 0.75rem 1.5rem; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.2s; }
-          .btn:hover { background: #1d4ed8; }
-          .badge { display: inline-block; padding: 0.25rem 0.75rem; background: #065f46; color: #34d399; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; margin-bottom: 1rem; }
-        </style>
-      </head>
-      <body>
-        <div class="card">
-          <div class="badge">● Server API Online (Porta 3001)</div>
-          <h1>DADO CRM Backend</h1>
-          <p>Il server delle API e del database è attivo e funzionante correttamente.</p>
-          <p>Per utilizzare l'applicazione CRM completa, accedi all'interfaccia principale:</p>
-          <a class="btn" href="http://localhost:3000">Apri DADO CRM (localhost:3000) &rarr;</a>
-        </div>
-      </body>
-    </html>
-  `)
-})
+const distPath = path.join(rootDir, 'dist')
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath))
+} else {
+  // ROOT STATUS ENDPOINT DI FALLBACK SE DIST NON È COMPILATO
+  app.get('/', (req, res) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>DADO CRM - Backend API</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #0f172a; color: #f8fafc; }
+            .card { background: #1e293b; padding: 2rem; border-radius: 12px; border: 1px solid #334155; text-align: center; max-width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+            h1 { margin-top: 0; font-size: 1.5rem; color: #38bdf8; }
+            p { color: #94a3b8; line-height: 1.5; }
+            .btn { display: inline-block; margin-top: 1.5rem; padding: 0.75rem 1.5rem; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.2s; }
+            .btn:hover { background: #1d4ed8; }
+            .badge { display: inline-block; padding: 0.25rem 0.75rem; background: #065f46; color: #34d399; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; margin-bottom: 1rem; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="badge">● Server API Online (Porta 3001)</div>
+            <h1>DADO CRM Backend</h1>
+            <p>Il server delle API e del database è attivo e funzionante correttamente.</p>
+            <p>Per utilizzare l'applicazione CRM completa, accedi all'interfaccia principale:</p>
+            <a class="btn" href="http://localhost:3000">Apri DADO CRM (localhost:3000) &rarr;</a>
+          </div>
+        </body>
+      </html>
+    `)
+  })
+}
 
 // ─────────────────────────────────────────────────────────────
 // ENDPOINT CRM
@@ -1291,6 +1297,18 @@ app.get('/api/pipeline/status', (req, res) => {
 app.post('/api/pipeline/run', async (req, res) => {
   const result = await executePipelineSweep()
   res.json(result)
+})
+
+// Fallback per Single Page Application (React Router)
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/oauth2callback')) {
+    return res.status(404).json({ error: 'Endpoint non trovato' })
+  }
+  const indexPath = path.join(distPath, 'index.html')
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath)
+  }
+  res.status(404).send('DADO CRM in preparazione. Esegui npm run build prima di avviare.')
 })
 
 // ─────────────────────────────────────────────────────────────
