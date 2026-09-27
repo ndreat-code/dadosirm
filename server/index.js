@@ -1299,8 +1299,8 @@ app.post('/api/pipeline/run', async (req, res) => {
   res.json(result)
 })
 
-// Fallback per Single Page Application (React Router)
-app.get('*', (req, res) => {
+// Fallback per Single Page Application (React Router - compatibile Express 5)
+app.use((req, res) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/oauth2callback')) {
     return res.status(404).json({ error: 'Endpoint non trovato' })
   }
