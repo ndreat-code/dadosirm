@@ -61,7 +61,7 @@
         "isResolved": "Risolto",
         "resolution": "Intervista spostata nella sala controllo insonorizzata con finestra vetrata panoramica sui macchinari + applicazione di voice-isolation neurale in post-produzione. Resa audio limpida."
       },
-      "lastContact": "2026-09-27T22:42:19.625Z",
+      "lastContact": "2026-09-27T22:59:20.277Z",
       "bant": {
         "budget": "€ 9.200",
         "need": "Shooting video corporate stabilimento con drone 4K HDR",
@@ -129,7 +129,7 @@
         "isResolved": "Risolto",
         "resolution": "Riorganizzata la timeline di ripresa anticipando le scene a terra con i tecnici e le interviste; riprese aeree completate nel tardo pomeriggio quando il vento è sceso a 8 nodi."
       },
-      "lastContact": "2026-09-27T22:35:19.818Z",
+      "lastContact": "2026-09-27T22:56:19.826Z",
       "bant": {
         "budget": "€ 14.500.",
         "authority": "Elena Fontana (Direzione Marketing)",
@@ -197,7 +197,7 @@
         "isResolved": "Risolto",
         "resolution": "Impiegato il tempo d'attesa per calibrare al millimetro i contrasti luce con la controfigura e scattare gli accessori secondari; nessun minuto perso sul set effettivo."
       },
-      "lastContact": "2026-09-27T22:43:19.726Z",
+      "lastContact": "2026-09-27T22:54:20.315Z",
       "bant": {
         "authority": "Chiara Rossi (Studio Lead)",
         "need": "Test set luci e calibrazione monitor Atomos Ninja",
@@ -389,7 +389,7 @@
         "isResolved": "Risolto",
         "resolution": "Piano pioggia concordato attivato in meno di 3 minuti con coperture antipioggia ermetiche e spostamento delle luci nel loggiato interno rinascimentale, sfruttando l'atmosfera per inquadrature suggestive."
       },
-      "lastContact": "2026-09-27T22:40:19.714Z",
+      "lastContact": "2026-09-27T22:58:19.796Z",
       "bant": {
         "budget": "€ 6.000",
         "authority": "Giorgio Villa (Event Director)",
@@ -1103,6 +1103,294 @@
     }
   ],
   "emails": [
+    {
+      "id": "sim-1790549959212-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T22:59:19.212Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790549899211-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T22:58:19.211Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790549839210-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T22:57:19.210Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790549779209-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T22:56:19.209Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790549719208-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T22:55:19.208Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790549659206-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T22:54:19.206Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790549599206-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T22:53:19.206Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790549539204-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T22:52:19.204Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790549479202-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T22:51:19.202Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790549419202-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T22:50:19.202Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790549359200-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T22:49:19.200Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790549299198-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T22:48:19.198Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790549239197-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T22:47:19.197Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790549179196-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T22:46:19.196Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790549119194-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T22:45:19.194Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790549059193-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T22:44:19.193Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
     {
       "id": "sim-1790548999191-4",
       "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
