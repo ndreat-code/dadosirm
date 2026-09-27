@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/earlyaccess/nicomoji.css');
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #111111;
+  color: #f5f5f0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer utilities {
+  .text-dado-yellow { color: #d4f000; }
+  .text-dado-green  { color: #1db88a; }
+  .text-dado-purple { color: #c840f0; }
+  .text-dado-orange { color: #ff6b35; }
+  .text-dado-teal   { color: #00c896; }
+
+  /* Nasconde completamente la barra di scorrimento su Mac e tutti i browser */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+}
