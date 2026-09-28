@@ -271,11 +271,11 @@ export default function Calendar() {
   const endDay = twoWeeksDays[13]
   const currentMonthName = MONTH_NAMES[realTimeNow.getMonth()]?.toUpperCase()
 
-  // Render di una settimana (7 caselle orizzontali ingrandite del 25%, edge-to-edge)
+  // Render di una settimana nel reticolo (7 colonne continue con linee divisorie laterali)
   function renderWeekRow(weekDays) {
     return (
-      <div className="flex items-stretch justify-start gap-2.5 w-full min-w-max">
-        {weekDays.map((day) => {
+      <div className="flex items-stretch w-full min-w-max">
+        {weekDays.map((day, idx) => {
           const dayData = getCalendarDayData(day.iso)
           const events = dayData?.events || []
           const hasEvents = events.length > 0
@@ -284,6 +284,13 @@ export default function Calendar() {
           const isHighlighted = highlightedDayIso === day.iso
           const dayLineColor = commitmentCadenceMap[day.iso]
 
+          // Linea divisoria laterale tra un giorno e l'altro:
+          // Se il giorno ha impegni, linea fine (2.5px) colorata con la successione del brand DADO (Verde, Rosso, Ciano, Giallo)
+          // Se non ha impegni, linea divisoria fine neutra
+          const lateralBorder = dayLineColor
+            ? `2.5px solid ${dayLineColor}`
+            : '1px solid #e2e8f0'
+
           return (
             <div
               key={day.iso}
@@ -291,34 +298,25 @@ export default function Calendar() {
                 setHighlightedDayIso(day.iso)
                 openDayEditor(day)
               }}
-              className={`p-2.5 flex flex-col justify-between cursor-pointer transition-all bg-white relative overflow-hidden select-none flex-1 ${
+              className={`p-3 flex flex-col justify-between cursor-pointer transition-colors relative select-none flex-1 ${
                 isHighlighted
-                  ? 'ring-2 ring-[#0284c7] shadow-sm'
-                  : 'hover:border-slate-300 hover:shadow-xs'
+                  ? 'bg-sky-50/60'
+                  : isToday
+                  ? 'bg-[#f8fafc] hover:bg-slate-100/60'
+                  : 'bg-white hover:bg-slate-50'
               }`}
               style={{
                 minWidth: '7.5cm',
-                minHeight: '5.0cm',
-                height: '5.0cm',
-                border: '1.5px solid #e2e8f0',
-                borderRadius: '10px',
-                backgroundColor: isToday ? '#fcfdfd' : '#ffffff',
+                minHeight: '5.2cm',
+                height: '5.2cm',
+                // Niente riquadro per ciascun giorno! Solo linea divisoria laterale
+                borderLeft: idx > 0 ? lateralBorder : (dayLineColor ? `2.5px solid ${dayLineColor}` : 'none'),
               }}
               title={`Clicca per gestire dettagli (${day.shortName} ${day.dayNum})`}
             >
-              {/* 1. Linea fine colorata: successione colori brand DADO per giorni con impegni consecutivi */}
-              <div
-                className="w-full rounded-full mb-1.5 transition-colors flex-shrink-0"
-                style={{
-                  height: '2.5px',
-                  backgroundColor: dayLineColor || '#f1f5f9',
-                  opacity: dayLineColor ? 1 : 0.35,
-                }}
-              />
-
-              {/* 2. Intestazione Giorno: Nome e Data (+2pt font, pulito senza icone né riquadri) */}
-              <div className="flex items-center justify-between pb-1 border-b border-slate-100 flex-shrink-0">
-                <span className="text-[13px] font-bold tracking-wider uppercase text-slate-500">
+              {/* 1. Intestazione Giorno: Nome e Data (+2pt font, pulito senza icone né riquadri) */}
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 flex-shrink-0">
+                <span className="text-[13px] font-bold tracking-wider uppercase text-slate-500 font-switzer">
                   {day.shortName}
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -335,8 +333,8 @@ export default function Calendar() {
                 </div>
               </div>
 
-              {/* 3. Contenuto impegni: testo pulito, +2pt font, NO icone, NO riquadri colorati */}
-              <div className="flex-1 overflow-y-auto pt-1 flex flex-col justify-between text-left pr-0.5">
+              {/* 2. Contenuto impegni: massimo spazio a disposizione, +2pt font, NO icone, NO riquadri colorati */}
+              <div className="flex-1 overflow-y-auto pt-1.5 flex flex-col justify-between text-left pr-0.5">
                 {hasEvents ? (
                   events.map((ev, evIdx) => (
                     <div
@@ -346,7 +344,7 @@ export default function Calendar() {
                       }`}
                     >
                       <div>
-                        {/* Orario e Nome Azienda (+2pt font, niente riquadri colorati né icone) */}
+                        {/* Orario e Nome Azienda (+2pt font, testo diretto) */}
                         <div className="flex items-baseline justify-between gap-1 mb-0.5">
                           <span className="font-mono font-bold text-[12px] text-slate-900 tracking-tight whitespace-nowrap">
                             {ev.time}
@@ -363,7 +361,7 @@ export default function Calendar() {
                       </div>
 
                       {/* Dettagli partecipanti, location e note (senza icone) */}
-                      <div className="pt-1 border-t border-slate-100 flex flex-col gap-0.5 text-[10.5px] text-slate-600">
+                      <div className="pt-1.5 border-t border-slate-100 flex flex-col gap-0.5 text-[10.5px] text-slate-600">
                         <div className="flex items-center justify-between gap-1">
                           <span className="truncate max-w-[50%] font-medium">
                             {ev.people || ev.attendees || 'Team DADO'}
@@ -389,7 +387,7 @@ export default function Calendar() {
                   </div>
                 ) : (
                   <div className="h-full flex items-center justify-center text-[11px] text-slate-300">
-                    {/* Nessun impegno - pulito e professionale */}
+                    {/* Spazio pulito nel reticolo */}
                   </div>
                 )}
               </div>
@@ -408,17 +406,20 @@ export default function Calendar() {
         className="h-full flex-1 bg-white rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden text-slate-800 p-2 sm:p-2.5"
       >
 
-        {/* ── GRIGLIA BISETTIMANALE SCROLLABILE ORIZZONTALMENTE CON ROTELLINA DEL MOUSE ── */}
+        {/* ── RETICOLO BISETTIMANALE CONTINUO: DIVISORI LATERALI COLORATI E SCORREVOLE A ROTELLINA ── */}
         <div
           ref={scrollContainerRef}
           className="flex-1 w-full overflow-x-auto overflow-y-hidden select-none pb-2"
           style={{ scrollBehavior: 'smooth' }}
         >
-          <div className="flex flex-col gap-2.5 w-full min-w-max">
-            {/* Settimana 1 (7 giorni) */}
+          <div className="w-full min-w-max border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-xs flex flex-col">
+            {/* Settimana 1 (7 colonne continue) */}
             {renderWeekRow(week1Days)}
 
-            {/* Settimana 2 (7 giorni) */}
+            {/* Linea orizzontale fine tra settimana 1 e 2 */}
+            <div className="w-full border-t border-slate-200 flex-shrink-0" />
+
+            {/* Settimana 2 (7 colonne continue) */}
             {renderWeekRow(week2Days)}
           </div>
         </div>
