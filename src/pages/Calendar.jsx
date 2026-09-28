@@ -24,6 +24,10 @@ const MONTH_NAMES = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
   'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
 ]
+const MONTH_NAMES_SHORT = [
+  'GEN', 'FEB', 'MAR', 'APR', 'MAG', 'GIU',
+  'LUG', 'AGO', 'SET', 'OTT', 'NOV', 'DIC'
+]
 const DAY_NAMES_SHORT = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM']
 const DAY_NAMES_LONG = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
 
@@ -383,33 +387,33 @@ export default function Calendar() {
 
         </div>
 
-        {/* ── BARRA DI NAVIGAZIONE IN FONDO COMPATTA: DAL AL (SENZA ANNO E SENZA MESE CORRENTE) ── */}
-        <div className="flex items-center justify-center pt-2 pb-2 select-none">
-          <div className="bg-[#e5e7eb] border border-slate-300 rounded-2xl flex items-stretch shadow-sm overflow-hidden h-[52px]">
+        {/* ── BARRA DI NAVIGAZIONE IN FONDO INGRANDITA: MESI A 3 LETTERE E FRECCE PROPORZIONALMENTE PIÙ GRANDI ── */}
+        <div className="flex items-center justify-center pt-2 pb-3 select-none">
+          <div className="bg-[#e5e7eb] border-2 border-slate-300 rounded-2xl flex items-stretch shadow-md overflow-hidden h-[66px]">
             
-            {/* Freccia Sinistra (Riquadro Grigio stretto, Freccia Nera Grande) */}
+            {/* Freccia Sinistra (Riquadro Grigio, Freccia Nera Molto Più Grande) */}
             <button
               onClick={handlePrevTwoWeeks}
-              className="w-14 sm:w-16 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group border-r border-slate-300"
+              className="w-20 sm:w-24 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group border-r-2 border-slate-300"
               title="Due settimane precedenti"
             >
-              <ChevronLeft className="w-8 h-8 text-black group-hover:-translate-x-1 transition-transform stroke-[3]" />
+              <ChevronLeft size={42} strokeWidth={3.2} className="text-black group-hover:-translate-x-1 transition-transform" />
             </button>
 
-            {/* Display Centrale Ristretto: Testo più grande "DAL 28 SET AL 11 OTTOBRE" (senza 2026 e senza scritta mese corrente) */}
-            <div className="bg-[#f3f4f6] px-5 sm:px-7 flex items-center justify-center text-center">
-              <span className="text-base sm:text-[17px] font-black font-mono text-slate-900 tracking-wide uppercase whitespace-nowrap">
-                DAL {startDay.dayNum} {MONTH_NAMES[startDay.monthNum]?.slice(0, 3).toUpperCase()} AL {endDay.dayNum} {MONTH_NAMES[endDay.monthNum]?.toUpperCase()}
+            {/* Display Centrale: Mesi a 3 lettere con testo grande e ben proporzionato */}
+            <div className="bg-[#f3f4f6] px-8 sm:px-12 flex items-center justify-center text-center">
+              <span className="text-lg sm:text-[21px] font-black font-mono text-slate-900 tracking-wider uppercase whitespace-nowrap">
+                DAL {startDay.dayNum} {MONTH_NAMES_SHORT[startDay.monthNum]} AL {endDay.dayNum} {MONTH_NAMES_SHORT[endDay.monthNum]}
               </span>
             </div>
 
-            {/* Freccia Destra (Riquadro Grigio stretto, Freccia Nera Grande) */}
+            {/* Freccia Destra (Riquadro Grigio, Freccia Nera Molto Più Grande) */}
             <button
               onClick={handleNextTwoWeeks}
-              className="w-14 sm:w-16 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group border-l border-slate-300"
+              className="w-20 sm:w-24 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group border-l-2 border-slate-300"
               title="Due settimane successive"
             >
-              <ChevronRight className="w-8 h-8 text-black group-hover:translate-x-1 transition-transform stroke-[3]" />
+              <ChevronRight size={42} strokeWidth={3.2} className="text-black group-hover:translate-x-1 transition-transform" />
             </button>
 
           </div>
