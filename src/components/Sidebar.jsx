@@ -63,7 +63,13 @@ function DadoLogo() {
   )
 }
 
-function AnimatedDashboardIcon({ isDifferentSection, isClicked }) {
+function AnimatedDashboardIcon({ isDifferentSection, isSnappingHome, isClicked }) {
+  const getTileClass = (swapClass) => {
+    if (isSnappingHome) return 'tile-snap-home'
+    if (isDifferentSection) return swapClass
+    return 'transition-transform duration-300'
+  }
+
   return (
     <svg
       width="28"
@@ -83,7 +89,7 @@ function AnimatedDashboardIcon({ isDifferentSection, isClicked }) {
         x="3"
         y="3"
         rx="1.5"
-        className={isDifferentSection ? 'animate-tile-1' : 'transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5'}
+        className={`${getTileClass('animate-tile-swap-1')} ${!isDifferentSection && !isSnappingHome ? 'group-hover:-translate-x-0.5 group-hover:-translate-y-0.5' : ''}`}
         style={{ transformOrigin: 'center' }}
       />
       {/* Riquadro 2 (in alto a destra) */}
@@ -93,7 +99,7 @@ function AnimatedDashboardIcon({ isDifferentSection, isClicked }) {
         x="14"
         y="3"
         rx="1.5"
-        className={isDifferentSection ? 'animate-tile-2' : 'transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5'}
+        className={`${getTileClass('animate-tile-swap-2')} ${!isDifferentSection && !isSnappingHome ? 'group-hover:translate-x-0.5 group-hover:-translate-y-0.5' : ''}`}
         style={{ transformOrigin: 'center' }}
       />
       {/* Riquadro 3 (in basso a destra) */}
@@ -103,7 +109,7 @@ function AnimatedDashboardIcon({ isDifferentSection, isClicked }) {
         x="14"
         y="12"
         rx="1.5"
-        className={isDifferentSection ? 'animate-tile-3' : 'transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5'}
+        className={`${getTileClass('animate-tile-swap-3')} ${!isDifferentSection && !isSnappingHome ? 'group-hover:translate-x-0.5 group-hover:translate-y-0.5' : ''}`}
         style={{ transformOrigin: 'center' }}
       />
       {/* Riquadro 4 (in basso a sinistra) */}
@@ -113,7 +119,7 @@ function AnimatedDashboardIcon({ isDifferentSection, isClicked }) {
         x="3"
         y="16"
         rx="1.5"
-        className={isDifferentSection ? 'animate-tile-4' : 'transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5'}
+        className={`${getTileClass('animate-tile-swap-4')} ${!isDifferentSection && !isSnappingHome ? 'group-hover:-translate-x-0.5 group-hover:translate-y-0.5' : ''}`}
         style={{ transformOrigin: 'center' }}
       />
     </svg>
@@ -127,6 +133,7 @@ export default function Sidebar() {
   const [isAiFocus, setIsAiFocus] = useState(false)
   const [isSettingsSpinning, setIsSettingsSpinning] = useState(false)
   const [isDashboardClicked, setIsDashboardClicked] = useState(false)
+  const [isSnappingHome, setIsSnappingHome] = useState(false)
 
   function handleSettingsClick() {
     setIsSettingsSpinning(true)
@@ -137,6 +144,12 @@ export default function Sidebar() {
 
   function handleDashboardClick() {
     setIsDashboardClicked(true)
+    if (isDifferentSection) {
+      setIsSnappingHome(true)
+      setTimeout(() => {
+        setIsSnappingHome(false)
+      }, 600)
+    }
     setTimeout(() => {
       setIsDashboardClicked(false)
     }, 450)
@@ -183,7 +196,11 @@ export default function Sidebar() {
         }}
         title={isDifferentSection ? 'Torna alla Dashboard' : 'Dashboard'}
       >
-        <AnimatedDashboardIcon isDifferentSection={isDifferentSection} isClicked={isDashboardClicked} />
+        <AnimatedDashboardIcon
+          isDifferentSection={isDifferentSection}
+          isSnappingHome={isSnappingHome}
+          isClicked={isDashboardClicked}
+        />
       </NavLink>
 
       {/* Menu di navigazione — Voci Companies, Activities, etc. ulteriormente distaccate (gap-8) */}

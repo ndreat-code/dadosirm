@@ -48,35 +48,46 @@ body {
   animation: spin-fast 0.7s cubic-bezier(0.12, 0.8, 0.25, 1.25) forwards;
 }
 
-@keyframes tile-dance-1 {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(-2px, -2px) scale(0.94); }
-  50% { transform: translate(0, -1.5px); }
-  75% { transform: translate(-1.5px, 0); }
+/* Interscambio completo e dinamico dei 4 riquadri dell'icona Dashboard */
+@keyframes tile-swap-1 {
+  0% { transform: translate(0px, 0px); }
+  25% { transform: translate(11px, 0px); }
+  50% { transform: translate(11px, 9px); }
+  75% { transform: translate(0px, 13px); }
+  100% { transform: translate(0px, 0px); }
 }
 
-@keyframes tile-dance-2 {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(2px, -1.5px) scale(1.06); }
-  50% { transform: translate(1px, -2px); }
-  75% { transform: translate(2px, 0); }
+@keyframes tile-swap-2 {
+  0% { transform: translate(0px, 0px); }
+  25% { transform: translate(0px, 9px); }
+  50% { transform: translate(-11px, 13px); }
+  75% { transform: translate(-11px, 0px); }
+  100% { transform: translate(0px, 0px); }
 }
 
-@keyframes tile-dance-3 {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(2px, 2px) scale(0.94); }
-  50% { transform: translate(0, 2px); }
-  75% { transform: translate(1.5px, 1px); }
+@keyframes tile-swap-3 {
+  0% { transform: translate(0px, 0px); }
+  25% { transform: translate(-11px, 4px); }
+  50% { transform: translate(-11px, -9px); }
+  75% { transform: translate(0px, -9px); }
+  100% { transform: translate(0px, 0px); }
 }
 
-@keyframes tile-dance-4 {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(-2px, 1.5px) scale(1.06); }
-  50% { transform: translate(-1px, 2px); }
-  75% { transform: translate(-2px, 0); }
+@keyframes tile-swap-4 {
+  0% { transform: translate(0px, 0px); }
+  25% { transform: translate(0px, -13px); }
+  50% { transform: translate(11px, -13px); }
+  75% { transform: translate(11px, 0px); }
+  100% { transform: translate(0px, 0px); }
 }
 
-.animate-tile-1 { animation: tile-dance-1 2.2s ease-in-out infinite; }
-.animate-tile-2 { animation: tile-dance-2 2.2s ease-in-out infinite 0.28s; }
-.animate-tile-3 { animation: tile-dance-3 2.2s ease-in-out infinite 0.56s; }
-.animate-tile-4 { animation: tile-dance-4 2.2s ease-in-out infinite 0.84s; }
+.animate-tile-swap-1 { animation: tile-swap-1 3.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; }
+.animate-tile-swap-2 { animation: tile-swap-2 3.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; }
+.animate-tile-swap-3 { animation: tile-swap-3 3.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; }
+.animate-tile-swap-4 { animation: tile-swap-4 3.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; }
+
+/* Transizione di ritorno immediato nelle posizioni di partenza al clic */
+.tile-snap-home {
+  transform: translate(0px, 0px) !important;
+  transition: transform 0.55s cubic-bezier(0.18, 0.9, 0.3, 1.25) !important;
+}

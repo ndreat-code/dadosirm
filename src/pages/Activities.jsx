@@ -488,8 +488,7 @@ export default function Activities() {
               </h1>
 
               <p style={{ marginTop: '4px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 600, letterSpacing: '-0.02em' }}>
-                <span style={{ color: '#00e5ff' }}>Production pipeline & </span>
-                <span style={{ color: '#00e575' }}>next actions</span>
+                <span style={{ color: '#00e5ff' }}>Production pipeline</span>
               </p>
             </div>
 
