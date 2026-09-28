@@ -1,6 +1,102 @@
 {
   "companies": [
     {
+      "id": "comp-1790554320431",
+      "name": "Fashion Brand Milano",
+      "domain": "fashionbrand.it",
+      "industry": "Produzione Audiovisiva & B2B",
+      "status": "In trattativa",
+      "relationshipStatus": "in_attesa_risposta",
+      "contactPerson": {
+        "name": "Matteo Colombo",
+        "role": "Ing. Marco Riva (Managing Director)"
+      },
+      "contact": {
+        "email": "m.colombo@fashionbrand.it",
+        "directEmail": "m.colombo@fashionbrand.it",
+        "phone": "",
+        "mobile": ""
+      },
+      "firstContact": {
+        "date": "2026-09-28",
+        "channel": "Inbound Gmail Automatico",
+        "notes": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato."
+      },
+      "requestedMaterials": [
+        "Produzione contenuti audiovisivi"
+      ],
+      "contract": {
+        "code": "DADO-INB-0431",
+        "fileName": "Richiesta_Preventivo_Inbound.pdf",
+        "digitalFormat": "PDF Preventivo",
+        "status": "In elaborazione"
+      },
+      "workSchedule": {
+        "scheduleType": "Entro 1 settimana",
+        "datesFormatted": "Entro 1 settimana",
+        "recentDate": "2026-09-28"
+      },
+      "compensation": {
+        "amount": 5000,
+        "status": "In attesa preventivo"
+      },
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "lastContact": "2026-09-28T00:14:00.605Z"
+    },
+    {
+      "id": "comp-1790554140763",
+      "name": "NextMedia Agency",
+      "domain": "nextmedia.agency",
+      "industry": "Produzione Audiovisiva & B2B",
+      "status": "In trattativa",
+      "relationshipStatus": "in_attesa_risposta",
+      "contactPerson": {
+        "name": "Sara Moretti",
+        "role": "Referente aziendale"
+      },
+      "contact": {
+        "email": "s.moretti@nextmedia.agency",
+        "directEmail": "s.moretti@nextmedia.agency",
+        "phone": "",
+        "mobile": ""
+      },
+      "firstContact": {
+        "date": "2026-09-28",
+        "channel": "Inbound Gmail Automatico",
+        "notes": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato."
+      },
+      "requestedMaterials": [
+        "Shooting video corporate stabilimento con drone 4K"
+      ],
+      "contract": {
+        "code": "DADO-INB-0763",
+        "fileName": "Richiesta_Preventivo_Inbound.pdf",
+        "digitalFormat": "PDF Preventivo",
+        "status": "In elaborazione"
+      },
+      "workSchedule": {
+        "scheduleType": "Entro 1 settimana",
+        "datesFormatted": "Entro 1 settimana",
+        "recentDate": "2026-09-28"
+      },
+      "compensation": {
+        "amount": 5000,
+        "status": "In attesa preventivo"
+      },
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "lastContact": "2026-09-28T00:13:00.436Z"
+    },
+    {
       "id": "comp-3",
       "name": "Officine Meccaniche Riva",
       "domain": "officineriva.it",
@@ -61,11 +157,12 @@
         "isResolved": "Risolto",
         "resolution": "Intervista spostata nella sala controllo insonorizzata con finestra vetrata panoramica sui macchinari + applicazione di voice-isolation neurale in post-produzione. Resa audio limpida."
       },
-      "lastContact": "2026-09-27T22:59:20.277Z",
+      "lastContact": "2026-09-28T00:11:00.723Z",
       "bant": {
         "budget": "€ 9.200",
-        "need": "Shooting video corporate stabilimento con drone 4K HDR",
-        "timeline": "Urgente entro 3 giorni"
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana",
+        "authority": "Referente aziendale"
       }
     },
     {
@@ -129,11 +226,11 @@
         "isResolved": "Risolto",
         "resolution": "Riorganizzata la timeline di ripresa anticipando le scene a terra con i tecnici e le interviste; riprese aeree completate nel tardo pomeriggio quando il vento è sceso a 8 nodi."
       },
-      "lastContact": "2026-09-27T22:56:19.826Z",
+      "lastContact": "2026-09-28T00:08:03.520Z",
       "bant": {
         "budget": "€ 14.500.",
-        "authority": "Elena Fontana (Direzione Marketing)",
-        "need": "Revisione storyboard e montaggio spot TV",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
         "timeline": "Entro 1 settimana"
       }
     },
@@ -197,11 +294,11 @@
         "isResolved": "Risolto",
         "resolution": "Impiegato il tempo d'attesa per calibrare al millimetro i contrasti luce con la controfigura e scattare gli accessori secondari; nessun minuto perso sul set effettivo."
       },
-      "lastContact": "2026-09-27T22:54:20.315Z",
+      "lastContact": "2026-09-28T00:17:00.593Z",
       "bant": {
-        "authority": "Chiara Rossi (Studio Lead)",
-        "need": "Test set luci e calibrazione monitor Atomos Ninja",
-        "timeline": "Nell'arco di 1 mese"
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
       }
     },
     {
@@ -389,7 +486,7 @@
         "isResolved": "Risolto",
         "resolution": "Piano pioggia concordato attivato in meno di 3 minuti con coperture antipioggia ermetiche e spostamento delle luci nel loggiato interno rinascimentale, sfruttando l'atmosfera per inquadrature suggestive."
       },
-      "lastContact": "2026-09-27T22:58:19.796Z",
+      "lastContact": "2026-09-28T00:04:10.707Z",
       "bant": {
         "budget": "€ 6.000",
         "authority": "Giorgio Villa (Event Director)",
@@ -708,6 +805,86 @@
   ],
   "opportunities": [
     {
+      "id": "opp-1790554500410-448",
+      "company": "Alpha Studio Milano",
+      "title": "Verifica disponibilità e conferma call per Alpha Studio Milano",
+      "value": 5000,
+      "stage": "Qualificato BANT",
+      "probability": 60,
+      "expectedCloseDate": "2026-10-12",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "source": "Pipeline Background"
+    },
+    {
+      "id": "opp-1790554320431-454",
+      "company": "Fashion Brand Milano",
+      "title": "Archiviazione trattativa e riscontro cordiale a Fashion Brand Milano",
+      "value": 5000,
+      "stage": "Qualificato BANT",
+      "probability": 60,
+      "expectedCloseDate": "2026-10-12",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "source": "Pipeline Background"
+    },
+    {
+      "id": "opp-1790554260723-308",
+      "company": "Officine Meccaniche Riva",
+      "title": "Avvio produzione e piano riprese con Officine Meccaniche Riva",
+      "value": 9200,
+      "stage": "Accordo Chiuso",
+      "probability": 100,
+      "expectedCloseDate": "2026-10-12",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "source": "Pipeline Background"
+    },
+    {
+      "id": "opp-1790554140763-539",
+      "company": "NextMedia Agency",
+      "title": "Invio portfolio e presentazione commerciale a NextMedia Agency",
+      "value": 5000,
+      "stage": "Qualificato BANT",
+      "probability": 60,
+      "expectedCloseDate": "2026-10-12",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "source": "Pipeline Background"
+    },
+    {
+      "id": "opp-1790554083521-146",
+      "company": "Solaris Green Energy",
+      "title": "Predisporre bozza preventivo dettagliato per Solaris Green Energy",
+      "value": 14500,
+      "stage": "Qualificato BANT",
+      "probability": 60,
+      "expectedCloseDate": "2026-10-12",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "source": "Pipeline Background"
+    },
+    {
       "id": "opp-1790548459627-631",
       "company": "Alpha Studio Milano",
       "title": "Sopralluogo studio per calibrazione monitor e luci",
@@ -853,6 +1030,156 @@
     }
   ],
   "nextActions": [
+    {
+      "id": "act-1790554500409-835",
+      "company": "Alpha Studio Milano",
+      "title": "Verifica disponibilità e conferma call per Alpha Studio Milano",
+      "type": "commercial",
+      "date": "2026-09-28",
+      "time": "11:00",
+      "period": "Oggi",
+      "due": "today",
+      "priority": "urgent_3d",
+      "completed": false,
+      "status": "pending",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "source": "gmail_llm_pipeline",
+      "notes": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato. [From: Chiara Rossi <c.rossi@alphastudiomilano.com>]",
+      "checklist": [
+        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
+        "Controllo impegni a calendario e slot liberi completato",
+        "Email automatica inviata con successo (Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica))",
+        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
+      ],
+      "draftId": "draft-1790554500409-404",
+      "emailStatus": "auto_sent",
+      "emailSubject": "Disponibilità a calendario per incontro - DADO Creative Studio"
+    },
+    {
+      "id": "act-1790554320431-474",
+      "company": "Fashion Brand Milano",
+      "title": "Archiviazione trattativa e riscontro cordiale a Fashion Brand Milano",
+      "type": "postprod",
+      "date": "2026-09-28",
+      "time": "11:00",
+      "period": "In settimana",
+      "due": "upcoming",
+      "priority": "week_1",
+      "completed": false,
+      "status": "pending",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "source": "gmail_llm_pipeline",
+      "notes": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato. [From: Matteo Colombo <m.colombo@fashionbrand.it>]",
+      "checklist": [
+        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
+        "Controllo impegni a calendario e slot liberi completato",
+        "Email automatica inviata con successo (Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM))",
+        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
+      ],
+      "draftId": "draft-1790554320431-482",
+      "emailStatus": "auto_sent",
+      "emailSubject": "Riscontro proposta e ringraziamenti - DADO Creative Studio"
+    },
+    {
+      "id": "act-1790554260723-928",
+      "company": "Officine Meccaniche Riva",
+      "title": "Avvio produzione e piano riprese con Officine Meccaniche Riva",
+      "type": "postprod",
+      "date": "2026-09-28",
+      "time": "11:00",
+      "period": "In settimana",
+      "due": "upcoming",
+      "priority": "week_1",
+      "completed": false,
+      "status": "pending",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "source": "gmail_llm_pipeline",
+      "notes": "Richiesta rilevata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K. Budget: € 9.200. [From: Ing. Marco Riva <marco.riva@officineriva.it>]",
+      "checklist": [
+        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
+        "Controllo impegni a calendario e slot liberi completato",
+        "Email automatica inviata con successo (Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato))",
+        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
+      ],
+      "draftId": "draft-1790554260723-424",
+      "emailStatus": "auto_sent",
+      "emailSubject": "Conferma accordo e avvio produzione - DADO Creative Studio"
+    },
+    {
+      "id": "act-1790554140763-489",
+      "company": "NextMedia Agency",
+      "title": "Invio portfolio e presentazione commerciale a NextMedia Agency",
+      "type": "postprod",
+      "date": "2026-09-28",
+      "time": "11:00",
+      "period": "In settimana",
+      "due": "upcoming",
+      "priority": "week_1",
+      "completed": false,
+      "status": "pending",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "source": "gmail_llm_pipeline",
+      "notes": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato. [From: Sara Moretti <s.moretti@nextmedia.agency>]",
+      "checklist": [
+        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
+        "Controllo impegni a calendario e slot liberi completato",
+        "Email automatica inviata con successo (Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione)",
+        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
+      ],
+      "draftId": "draft-1790554140763-199",
+      "emailStatus": "auto_sent",
+      "emailSubject": "Presentazione servizi video e collaborazioni - DADO Creative Studio"
+    },
+    {
+      "id": "act-1790554083520-169",
+      "company": "Solaris Green Energy",
+      "title": "Predisporre bozza preventivo dettagliato per Solaris Green Energy",
+      "type": "postprod",
+      "date": "2026-09-28",
+      "time": "11:00",
+      "period": "In settimana",
+      "due": "upcoming",
+      "priority": "week_1",
+      "completed": false,
+      "status": "pending",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "source": "gmail_llm_pipeline",
+      "notes": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500.. [From: Elena Fontana <e.fontana@solarisgreen.eu>]",
+      "checklist": [
+        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
+        "Controllo impegni a calendario e slot liberi completato",
+        "Revisionare bozza email salvata nelle Bozze prima dell'invio",
+        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
+      ],
+      "draftId": "draft-1790554083520-298",
+      "emailStatus": "draft_saved",
+      "emailSubject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali"
+    },
     {
       "id": "act-1790544428466-999",
       "company": "Alpha Studio Milano",
@@ -1103,6 +1430,1338 @@
     }
   ],
   "emails": [
+    {
+      "id": "sim-1790554619903-2",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci",
+      "snippet": "Ciao DADO team, potremmo fare una video call o incontro Lunedì alle 10:00?......",
+      "body": "Ciao DADO team, vorremmo concordare una video call o appuntamento in studio per Lunedì mattina alle ore 10:00 per discutere i test fondale e la calibrazione monitor Atomos Ninja. Ci confermate se siete liberi a calendario?",
+      "date": "2026-09-28T00:16:59.903Z",
+      "aiSummary": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790554559902-2",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci",
+      "snippet": "Ciao DADO team, potremmo fare una video call o incontro Lunedì alle 10:00?......",
+      "body": "Ciao DADO team, vorremmo concordare una video call o appuntamento in studio per Lunedì mattina alle ore 10:00 per discutere i test fondale e la calibrazione monitor Atomos Ninja. Ci confermate se siete liberi a calendario?",
+      "date": "2026-09-28T00:15:59.902Z",
+      "aiSummary": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790554499902-2",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci",
+      "snippet": "Ciao DADO team, potremmo fare una video call o incontro Lunedì alle 10:00?......",
+      "body": "Ciao DADO team, vorremmo concordare una video call o appuntamento in studio per Lunedì mattina alle ore 10:00 per discutere i test fondale e la calibrazione monitor Atomos Ninja. Ci confermate se siete liberi a calendario?",
+      "date": "2026-09-28T00:14:59.902Z",
+      "aiSummary": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790554439900-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T00:13:59.900Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790554379899-3",
+      "from": "Sara Moretti <s.moretti@nextmedia.agency>",
+      "senderEmail": "s.moretti@nextmedia.agency",
+      "company": "NextMedia Agency",
+      "subject": "Richiesta info servizi video, showreel e opportunità di collaborazione",
+      "snippet": "Buongiorno DADO Studio, vi scriviamo per richiedere maggiori informazioni sui vostri servizi video e showreel......",
+      "body": "Buongiorno DADO Studio, siamo una nuova agenzia di comunicazione e seguiamo diversi brand moda e lifestyle. Vi scriviamo per richiedere maggiori informazioni sui vostri servizi di produzione video corporate, disponibilità drone e per proporvi una collaborazione continuativa (collab). Potete inviarci il vostro showreel aggiornato?",
+      "date": "2026-09-28T00:12:59.899Z",
+      "aiSummary": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790554319898-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T00:11:59.898Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790554259896-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e approvazione budget deliberato",
+      "snippet": "Buongiorno team Dado, vi confermiamo che il consiglio ha deliberato il preventivo di € 9.200......",
+      "body": "Buongiorno team Dado, vi confermiamo con piacere che il consiglio ha deliberato e approvato il preventivo di € 9.200 per lo shooting corporate e le riprese drone indoor. Attendiamo vostra conferma per avvio produzione e dettagli logistici.",
+      "date": "2026-09-28T00:10:59.896Z",
+      "aiSummary": "Richiesta rilevata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790554199896-3",
+      "from": "Sara Moretti <s.moretti@nextmedia.agency>",
+      "senderEmail": "s.moretti@nextmedia.agency",
+      "company": "NextMedia Agency",
+      "subject": "Richiesta info servizi video, showreel e opportunità di collaborazione",
+      "snippet": "Buongiorno DADO Studio, vi scriviamo per richiedere maggiori informazioni sui vostri servizi video e showreel......",
+      "body": "Buongiorno DADO Studio, siamo una nuova agenzia di comunicazione e seguiamo diversi brand moda e lifestyle. Vi scriviamo per richiedere maggiori informazioni sui vostri servizi di produzione video corporate, disponibilità drone e per proporvi una collaborazione continuativa (collab). Potete inviarci il vostro showreel aggiornato?",
+      "date": "2026-09-28T00:09:59.896Z",
+      "aiSummary": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790554139895-3",
+      "from": "Sara Moretti <s.moretti@nextmedia.agency>",
+      "senderEmail": "s.moretti@nextmedia.agency",
+      "company": "NextMedia Agency",
+      "subject": "Richiesta info servizi video, showreel e opportunità di collaborazione",
+      "snippet": "Buongiorno DADO Studio, vi scriviamo per richiedere maggiori informazioni sui vostri servizi video e showreel......",
+      "body": "Buongiorno DADO Studio, siamo una nuova agenzia di comunicazione e seguiamo diversi brand moda e lifestyle. Vi scriviamo per richiedere maggiori informazioni sui vostri servizi di produzione video corporate, disponibilità drone e per proporvi una collaborazione continuativa (collab). Potete inviarci il vostro showreel aggiornato?",
+      "date": "2026-09-28T00:08:59.895Z",
+      "aiSummary": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790554082896-4",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.",
+      "date": "2026-09-28T00:08:02.896Z",
+      "aiSummary": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790554030082-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-28T00:07:10.082Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790553970080-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-28T00:06:10.080Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790553910079-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-28T00:05:10.079Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790553850079-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-28T00:04:10.079Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790553790077-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-28T00:03:10.077Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790553730076-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-28T00:02:10.076Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790553670075-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-28T00:01:10.075Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790553610074-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-28T00:00:10.074Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790553550074-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:59:10.074Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790553490072-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:58:10.072Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790553430072-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:57:10.072Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790553370070-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:56:10.070Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790553310068-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:55:10.068Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790553250068-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:54:10.068Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790553190067-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:53:10.067Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790553130066-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:52:10.066Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790553070064-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:51:10.064Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790553010063-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:50:10.063Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790552950062-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:49:10.062Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790552890062-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:48:10.062Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790552830060-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:47:10.060Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790552770059-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:46:10.059Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790552710058-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:45:10.058Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790552650057-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:44:10.057Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790552299252-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:38:19.252Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790552239251-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:37:19.251Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790552179250-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:36:19.250Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790552119248-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:35:19.248Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790552059247-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:34:19.247Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790551999246-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:33:19.246Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790551939244-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:32:19.244Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790551879243-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:31:19.243Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790551819242-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:30:19.242Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790551759241-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:29:19.241Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790551699240-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:28:19.240Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790551677655-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:27:57.655Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790551639239-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:27:19.239Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790551579238-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:26:19.238Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790551519238-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:25:19.238Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790551459237-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:24:19.237Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790551399236-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:23:19.236Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790551339234-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:22:19.234Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790551279233-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:21:19.233Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790551219233-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:20:19.233Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790551159232-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:19:19.232Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790551099233-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:18:19.233Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790551039231-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:17:19.231Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790550979230-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:16:19.230Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790550919229-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:15:19.229Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790550859227-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:14:19.227Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790550799227-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:13:19.227Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790550739226-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:12:19.226Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790550679225-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:11:19.225Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790550619223-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:10:19.223Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790550559223-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:09:19.223Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790550499221-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:08:19.221Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790550439220-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:07:19.220Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790550379219-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:06:19.219Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790550319218-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:05:19.218Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790550259218-4",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
+      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
+      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
+      "date": "2026-09-27T23:04:19.218Z",
+      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Chiara Rossi (Studio Lead)",
+        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "timeline": "Nell'arco di 1 mese"
+      },
+      "priority": "month_1"
+    },
+    {
+      "id": "sim-1790550199216-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e integrazione drone 4K",
+      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
+      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
+      "date": "2026-09-27T23:03:19.216Z",
+      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente da verificare",
+        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790550139215-3",
+      "from": "Giorgio Villa <giorgio.villa@vogueevents.it>",
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "company": "Vogue Events & Wedding",
+      "subject": "Preventivo riprese e streaming evento Villa Cora",
+      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
+      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
+      "date": "2026-09-27T23:02:19.215Z",
+      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "bant": {
+        "budget": "€ 6.000",
+        "authority": "Giorgio Villa (Event Director)",
+        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "timeline": "Entro 2-3 settimane"
+      },
+      "priority": "weeks_2_3"
+    },
+    {
+      "id": "sim-1790550079214-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:01:19.214Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790550019213-2",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
+      "date": "2026-09-27T23:00:19.213Z",
+      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione storyboard e montaggio spot TV",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
     {
       "id": "sim-1790549959212-1",
       "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
@@ -2774,6 +4433,314 @@
       "date": "2026-09-23T17:15:00Z",
       "parsedCategory": "Richiesta Servizio/Attrezzatura",
       "aiSummary": "Richiesta noleggio luci Aputure e studio per 2 giorni a inizio ottobre."
+    }
+  ],
+  "drafts": [
+    {
+      "id": "draft-1790554620594-644",
+      "emailId": "sim-1790554619903-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:17:00.594Z",
+      "sentAt": "2026-09-28T00:17:00.594Z"
+    },
+    {
+      "id": "draft-1790554560321-363",
+      "emailId": "sim-1790554559902-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:16:00.321Z",
+      "sentAt": "2026-09-28T00:16:00.321Z"
+    },
+    {
+      "id": "draft-1790554500409-404",
+      "emailId": "sim-1790554499902-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:15:00.409Z",
+      "sentAt": "2026-09-28T00:15:00.409Z"
+    },
+    {
+      "id": "draft-1790554440606-651",
+      "emailId": "sim-1790554439900-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:14:00.606Z",
+      "sentAt": "2026-09-28T00:14:00.606Z"
+    },
+    {
+      "id": "draft-1790554380436-858",
+      "emailId": "sim-1790554379899-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:13:00.436Z",
+      "sentAt": "2026-09-28T00:13:00.436Z"
+    },
+    {
+      "id": "draft-1790554320431-482",
+      "emailId": "sim-1790554319898-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:12:00.431Z",
+      "sentAt": "2026-09-28T00:12:00.431Z"
+    },
+    {
+      "id": "draft-1790554260723-424",
+      "emailId": "sim-1790554259896-1",
+      "company": "Officine Meccaniche Riva",
+      "recipient": "marco.riva@officineriva.it",
+      "subject": "Conferma accordo e avvio produzione - DADO Creative Studio",
+      "body": "Gentile Ing. Marco Riva,\n\nconfermiamo con piacere la ricezione dell'approvazione del preventivo per Officine Meccaniche Riva (€ 9.200).\nAbbiamo registrato l'accordo nel nostro CRM e predisposto il piano di produzione per le riprese video e l'impiego del drone 4K.\n\nNei prossimi giorni vi invieremo la documentazione per il kick-off, le liberatorie e il piano di lavoro operativo dettagliato.\n\nRestiamo a vostra completa disposizione.\n\nCordiali saluti,\nTeam DADO Creative Studio\nMilano | www.dadostudio.it",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "positive",
+      "autoSend": true,
+      "reason": "Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:11:00.723Z",
+      "sentAt": "2026-09-28T00:11:00.723Z"
+    },
+    {
+      "id": "draft-1790554200302-204",
+      "emailId": "sim-1790554199896-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:10:00.302Z",
+      "sentAt": "2026-09-28T00:10:00.302Z"
+    },
+    {
+      "id": "draft-1790554140763-199",
+      "emailId": "sim-1790554139895-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:09:00.763Z",
+      "sentAt": "2026-09-28T00:09:00.763Z"
+    },
+    {
+      "id": "draft-1790554083520-298",
+      "emailId": "sim-1790554082896-4",
+      "company": "Solaris Green Energy",
+      "recipient": "e.fontana@solarisgreen.eu",
+      "subject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "body": "Gentile Elena Fontana,\n\nin riferimento alla vostra richiesta per Solaris Green Energy relativa a \"Revisione economica e contrattuale spot TV HDR\", abbiamo elaborato la seguente proposta preliminare:\n\n• Budget indicativo stimato: € 14.500.\n• Finestra di consegna: Entro 1 settimana\n• Condizioni: 50% all'accettazione e saldo alla consegna dei master 4K.\n\n[Bozza generata da automazione CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nDADO Creative Studio",
+      "category": "CUSTOM_OR_NEGOTIATION",
+      "subType": "draft_only",
+      "autoSend": false,
+      "reason": "Trattativa complessa / preventivo personalizzato: salvato nelle BOZZE per revisione manuale (Non inviato in automatico)",
+      "status": "draft",
+      "requiresReview": true,
+      "createdAt": "2026-09-28T00:08:03.520Z",
+      "sentAt": null
+    }
+  ],
+  "sentEmails": [
+    {
+      "id": "draft-1790554620594-644",
+      "emailId": "sim-1790554619903-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:17:00.594Z",
+      "sentAt": "2026-09-28T00:17:00.594Z"
+    },
+    {
+      "id": "draft-1790554560321-363",
+      "emailId": "sim-1790554559902-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:16:00.321Z",
+      "sentAt": "2026-09-28T00:16:00.321Z"
+    },
+    {
+      "id": "draft-1790554500409-404",
+      "emailId": "sim-1790554499902-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:15:00.409Z",
+      "sentAt": "2026-09-28T00:15:00.409Z"
+    },
+    {
+      "id": "draft-1790554440606-651",
+      "emailId": "sim-1790554439900-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:14:00.606Z",
+      "sentAt": "2026-09-28T00:14:00.606Z"
+    },
+    {
+      "id": "draft-1790554380436-858",
+      "emailId": "sim-1790554379899-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:13:00.436Z",
+      "sentAt": "2026-09-28T00:13:00.436Z"
+    },
+    {
+      "id": "draft-1790554320431-482",
+      "emailId": "sim-1790554319898-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:12:00.431Z",
+      "sentAt": "2026-09-28T00:12:00.431Z"
+    },
+    {
+      "id": "draft-1790554260723-424",
+      "emailId": "sim-1790554259896-1",
+      "company": "Officine Meccaniche Riva",
+      "recipient": "marco.riva@officineriva.it",
+      "subject": "Conferma accordo e avvio produzione - DADO Creative Studio",
+      "body": "Gentile Ing. Marco Riva,\n\nconfermiamo con piacere la ricezione dell'approvazione del preventivo per Officine Meccaniche Riva (€ 9.200).\nAbbiamo registrato l'accordo nel nostro CRM e predisposto il piano di produzione per le riprese video e l'impiego del drone 4K.\n\nNei prossimi giorni vi invieremo la documentazione per il kick-off, le liberatorie e il piano di lavoro operativo dettagliato.\n\nRestiamo a vostra completa disposizione.\n\nCordiali saluti,\nTeam DADO Creative Studio\nMilano | www.dadostudio.it",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "positive",
+      "autoSend": true,
+      "reason": "Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:11:00.723Z",
+      "sentAt": "2026-09-28T00:11:00.723Z"
+    },
+    {
+      "id": "draft-1790554200302-204",
+      "emailId": "sim-1790554199896-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:10:00.302Z",
+      "sentAt": "2026-09-28T00:10:00.302Z"
+    },
+    {
+      "id": "draft-1790554140763-199",
+      "emailId": "sim-1790554139895-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:09:00.763Z",
+      "sentAt": "2026-09-28T00:09:00.763Z"
     }
   ]
 }

@@ -5,8 +5,16 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import OpenAI from 'openai'
-import { google } from 'googleapis'
-import { startBackgroundPipeline, executePipelineSweep, getPipelineStatus } from './pipeline/gmailLlmPipeline.js'
+import { 
+  startBackgroundPipeline, 
+  executePipelineSweep, 
+  getPipelineStatus,
+  getDrafts,
+  sendDraft,
+  updateDraft,
+  deleteDraft,
+  checkCalendarSlotAvailability
+} from './pipeline/gmailLlmPipeline.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -1156,6 +1164,9 @@ app.get('/api/auth/google/url', (req, res) => {
 
   const scopes = [
     'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.modify',
+    'https://www.googleapis.com/auth/gmail.compose',
+    'https://www.googleapis.com/auth/gmail.send',
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
   ]
@@ -1297,6 +1308,63 @@ app.get('/api/pipeline/status', (req, res) => {
 app.post('/api/pipeline/run', async (req, res) => {
   const result = await executePipelineSweep()
   res.json(result)
+})
+
+// ── GESTIONE BOZZE EMAIL, INVIO AUTOMATICO & DISPONIBILITÀ CALENDARIO ──
+app.get('/api/pipeline/drafts', (req, res) => {
+  res.json(getDrafts())
+})
+
+app.post('/api/pipeline/drafts/:id/send', async (req, res) => {
+  try {
+    const result = await sendDraft(req.params.id)
+    if (result.success) {
+      res.json(result)
+    } else {
+      res.status(400).json(result)
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.put('/api/pipeline/drafts/:id', (req, res) => {
+  try {
+    const result = updateDraft(req.params.id, req.body)
+    if (result.success) {
+      res.json(result)
+    } else {
+      res.status(400).json(result)
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.delete('/api/pipeline/drafts/:id', (req, res) => {
+  try {
+    const result = deleteDraft(req.params.id)
+    if (result.success) {
+      res.json(result)
+    } else {
+      res.status(400).json(result)
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/api/pipeline/calendar/check', (req, res) => {
+  try {
+    const { date, time } = req.query
+    if (!date || !time) {
+      return res.status(400).json({ error: 'Data e ora richieste (es. date=2026-09-29&time=11:00)' })
+    }
+    const availability = checkCalendarSlotAvailability(date, time)
+    res.json(availability)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // Fallback per Single Page Application (React Router - compatibile Express 5)
