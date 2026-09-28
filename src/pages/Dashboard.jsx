@@ -487,24 +487,51 @@ export default function Dashboard() {
   const [activeOutputTab, setActiveOutputTab] = useState('auto') // 'day' | 'ai' | 'auto'
 
   const popupLeaveTimerRef = useRef(null)
+  const dayHoverTimerRef = useRef(null)
   const isOverPopupRef = useRef(false)
   const isOverCalendarRef = useRef(false)
+  const calendarContainerRef = useRef(null)
   const popupContainerRef = useRef(null)
   const popupScrollRef = useRef(null)
 
   const handleDayMouseEnter = useCallback((d) => {
+    // Se un giorno è fissato/bloccato dal click, non cambiare al passaggio del mouse
+    if (pinnedCalendarDay) return
+
+    if (dayHoverTimerRef.current) {
+      clearTimeout(dayHoverTimerRef.current)
+      dayHoverTimerRef.current = null
+    }
     if (popupLeaveTimerRef.current) {
       clearTimeout(popupLeaveTimerRef.current)
       popupLeaveTimerRef.current = null
     }
+
+    if (hoveredCalendarDay?.date === d.date) return
+
     const sched = getDaySchedule(d.date)
-    if (!sched || !sched.events || sched.events.length === 0) {
-      setHoveredCalendarDay(null)
-      setPinnedCalendarDay(null)
+
+    // Se nessun giorno è aperto, aprilo subito senza ritardo
+    if (!hoveredCalendarDay) {
+      if (!sched || !sched.events || sched.events.length === 0) {
+        setHoveredCalendarDay(null)
+        return
+      }
+      setHoveredCalendarDay(d)
       return
     }
-    setHoveredCalendarDay(d)
-  }, [])
+
+    // Se un giorno è già visualizzato e il cursore sta solo "attraversando" gli altri giorni
+    // per raggiungere il pop-up a destra, aspetta 160ms: in questo modo il passaggio rapido
+    // sopra martedì, mercoledì, giovedì o sabato non cambia né chiude la finestra!
+    dayHoverTimerRef.current = setTimeout(() => {
+      if (!sched || !sched.events || sched.events.length === 0) {
+        setHoveredCalendarDay(null)
+        return
+      }
+      setHoveredCalendarDay(d)
+    }, 160)
+  }, [pinnedCalendarDay, hoveredCalendarDay])
 
   const handleCalendarMouseEnter = useCallback(() => {
     isOverCalendarRef.current = true
@@ -516,6 +543,10 @@ export default function Dashboard() {
 
   const handleCalendarMouseLeave = useCallback(() => {
     isOverCalendarRef.current = false
+    if (dayHoverTimerRef.current) {
+      clearTimeout(dayHoverTimerRef.current)
+      dayHoverTimerRef.current = null
+    }
     popupLeaveTimerRef.current = setTimeout(() => {
       if (!isOverPopupRef.current && !isOverCalendarRef.current) {
         setHoveredCalendarDay(null)
@@ -526,6 +557,10 @@ export default function Dashboard() {
 
   const handlePopupMouseEnter = useCallback(() => {
     isOverPopupRef.current = true
+    if (dayHoverTimerRef.current) {
+      clearTimeout(dayHoverTimerRef.current)
+      dayHoverTimerRef.current = null
+    }
     if (popupLeaveTimerRef.current) {
       clearTimeout(popupLeaveTimerRef.current)
       popupLeaveTimerRef.current = null
@@ -542,7 +577,7 @@ export default function Dashboard() {
     }, 350)
   }, [])
 
-  // Gestione rotellina non-passiva: impedisce categoricamente alla pagina di scrollare quando si è sopra il popup
+  // 1. Gestione rotellina sul Pop-up: blocca al 100% lo scroll pagina e muove il testo
   useEffect(() => {
     const el = popupContainerRef.current
     if (!el) return
@@ -556,6 +591,22 @@ export default function Dashboard() {
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
   }, [selectedCalendarDay, aiResult, aiLoading])
+
+  // 2. Gestione rotellina ANCHE DIRETTAMENTE sul Calendar Week:
+  // Permette di scorrere i dettagli rimanendo con il puntatore sul giorno nel calendario!
+  useEffect(() => {
+    const calendarEl = calendarContainerRef.current
+    if (!calendarEl) return
+    const onCalendarWheel = (e) => {
+      if (selectedCalendarDay && popupScrollRef.current) {
+        e.stopPropagation()
+        e.preventDefault()
+        popupScrollRef.current.scrollTop += e.deltaY
+      }
+    }
+    calendarEl.addEventListener('wheel', onCalendarWheel, { passive: false })
+    return () => calendarEl.removeEventListener('wheel', onCalendarWheel)
+  }, [selectedCalendarDay])
 
   // Stato data in tempo reale per mantenere la dashboard sempre aggiornata automaticamente
   const [realTimeDate, setRealTimeDate] = useState(() => new Date())
@@ -870,6 +921,7 @@ export default function Dashboard() {
 
                   {/* Calendario accanto alla card TO DO (spigoloso con angoli retti dal lato interno verso il centro dashboard e allargato all'estremità delle card sottostanti) */}
                   <div
+                    ref={calendarContainerRef}
                     onMouseEnter={handleCalendarMouseEnter}
                     onMouseLeave={handleCalendarMouseLeave}
                     className="p-2.5 bg-white shadow-sm flex flex-col justify-between min-h-[104px] h-[104px] border border-black/10 select-none shrink-0"
