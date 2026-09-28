@@ -48,13 +48,20 @@ body {
   animation: spin-fast 0.7s cubic-bezier(0.12, 0.8, 0.25, 1.25) forwards;
 }
 
-/* Giro fluido, rapido e continuo dei 4 elementi dell'icona Dashboard solo al click */
+/* Giro ultra-fluido, organico e continuo dei 4 elementi dell'icona Dashboard solo al click */
 @keyframes dashboard-lap {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-dashboard-lap {
-  transform-origin: 12px 12px;
-  animation: dashboard-lap 0.38s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+  backface-visibility: hidden;
+  animation: dashboard-lap 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }

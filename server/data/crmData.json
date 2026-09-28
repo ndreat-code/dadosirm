@@ -46,7 +46,7 @@
         "need": "Produzione contenuti audiovisivi",
         "timeline": "Entro 1 settimana"
       },
-      "lastContact": "2026-09-28T01:27:00.526Z"
+      "lastContact": "2026-09-28T01:28:00.528Z"
     },
     {
       "id": "comp-1790554140763",
@@ -226,7 +226,7 @@
         "isResolved": "Risolto",
         "resolution": "Riorganizzata la timeline di ripresa anticipando le scene a terra con i tecnici e le interviste; riprese aeree completate nel tardo pomeriggio quando il vento è sceso a 8 nodi."
       },
-      "lastContact": "2026-09-28T01:21:00.689Z",
+      "lastContact": "2026-09-28T01:29:00.415Z",
       "bant": {
         "budget": "€ 14.500.",
         "authority": "Referente aziendale",
@@ -1972,6 +1972,42 @@
     }
   ],
   "emails": [
+    {
+      "id": "sim-1790558939970-4",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.",
+      "date": "2026-09-28T01:28:59.970Z",
+      "aiSummary": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790558879969-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T01:27:59.969Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
     {
       "id": "sim-1790558819967-5",
       "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
@@ -6239,6 +6275,38 @@
   ],
   "drafts": [
     {
+      "id": "draft-1790558940415-746",
+      "emailId": "sim-1790558939970-4",
+      "company": "Solaris Green Energy",
+      "recipient": "e.fontana@solarisgreen.eu",
+      "subject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "body": "Gentile Elena Fontana,\n\nin riferimento alla vostra richiesta per Solaris Green Energy relativa a \"Revisione economica e contrattuale spot TV HDR\", abbiamo elaborato la seguente proposta preliminare:\n\n• Budget indicativo stimato: € 14.500.\n• Finestra di consegna: Entro 1 settimana\n• Condizioni: 50% all'accettazione e saldo alla consegna dei master 4K.\n\n[Bozza generata da automazione CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nDADO Creative Studio",
+      "category": "CUSTOM_OR_NEGOTIATION",
+      "subType": "draft_only",
+      "autoSend": false,
+      "reason": "Trattativa complessa / preventivo personalizzato: salvato nelle BOZZE per revisione manuale (Non inviato in automatico)",
+      "status": "draft",
+      "requiresReview": true,
+      "createdAt": "2026-09-28T01:29:00.415Z",
+      "sentAt": null
+    },
+    {
+      "id": "draft-1790558880528-122",
+      "emailId": "sim-1790558879969-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:28:00.528Z",
+      "sentAt": "2026-09-28T01:28:00.528Z"
+    },
+    {
       "id": "draft-1790558820526-825",
       "emailId": "sim-1790558819967-5",
       "company": "Fashion Brand Milano",
@@ -7520,6 +7588,22 @@
     }
   ],
   "sentEmails": [
+    {
+      "id": "draft-1790558880528-122",
+      "emailId": "sim-1790558879969-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:28:00.528Z",
+      "sentAt": "2026-09-28T01:28:00.528Z"
+    },
     {
       "id": "draft-1790558820526-825",
       "emailId": "sim-1790558819967-5",

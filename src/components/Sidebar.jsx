@@ -79,7 +79,10 @@ function AnimatedDashboardIcon({ isClicked }) {
     >
       <g
         className={isClicked ? 'animate-dashboard-lap' : ''}
-        style={{ transformOrigin: '12px 12px' }}
+        style={{
+          transformBox: 'fill-box',
+          transformOrigin: 'center',
+        }}
       >
         {/* Riquadro 1 (in alto a sinistra) */}
         <rect
@@ -147,7 +150,7 @@ export default function Sidebar() {
       setIsDashboardClicked(true)
       setTimeout(() => {
         setIsDashboardClicked(false)
-      }, 380)
+      }, 500)
     })
   }
 
@@ -178,12 +181,12 @@ export default function Sidebar() {
       {/* Logo in alto */}
       <DadoLogo />
 
-      {/* Pulsante Dashboard — Riquadri che si interscambiano velocemente e tornano al loro posto solo al click */}
+      {/* Pulsante Dashboard — Riquadri che si interscambiano con giro fluido e tornano al posto al click */}
       <NavLink
         to="/"
         end
         onClick={handleDashboardClick}
-        className="w-[100px] h-[58px] mb-8 self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] active:scale-95 cursor-pointer"
+        className="w-[100px] h-[58px] mb-8 self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer"
         style={{
           backgroundColor: '#d8ff00',
           color: '#111111',
