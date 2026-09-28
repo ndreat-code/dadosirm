@@ -486,6 +486,41 @@ export default function Dashboard() {
   const selectedCalendarDay = pinnedCalendarDay || hoveredCalendarDay
   const [activeOutputTab, setActiveOutputTab] = useState('auto') // 'day' | 'ai' | 'auto'
 
+  const popupLeaveTimerRef = useRef(null)
+  const isOverPopupRef = useRef(false)
+  const popupScrollRef = useRef(null)
+
+  const handleDayMouseEnter = useCallback((d) => {
+    if (popupLeaveTimerRef.current) clearTimeout(popupLeaveTimerRef.current)
+    setHoveredCalendarDay(d)
+  }, [])
+
+  const handleDayMouseLeave = useCallback(() => {
+    popupLeaveTimerRef.current = setTimeout(() => {
+      if (!isOverPopupRef.current) {
+        setHoveredCalendarDay(null)
+      }
+    }, 280)
+  }, [])
+
+  const handlePopupMouseEnter = useCallback(() => {
+    isOverPopupRef.current = true
+    if (popupLeaveTimerRef.current) clearTimeout(popupLeaveTimerRef.current)
+  }, [])
+
+  const handlePopupMouseLeave = useCallback(() => {
+    isOverPopupRef.current = false
+    popupLeaveTimerRef.current = setTimeout(() => {
+      setHoveredCalendarDay(null)
+    }, 200)
+  }, [])
+
+  const handlePopupWheel = useCallback((e) => {
+    if (popupScrollRef.current) {
+      popupScrollRef.current.scrollTop += e.deltaY
+    }
+  }, [])
+
   // Stato data in tempo reale per mantenere la dashboard sempre aggiornata automaticamente
   const [realTimeDate, setRealTimeDate] = useState(() => new Date())
 
@@ -828,8 +863,8 @@ export default function Dashboard() {
                           <button
                             key={d.date}
                             type="button"
-                            onMouseEnter={() => setHoveredCalendarDay(d)}
-                            onMouseLeave={() => setHoveredCalendarDay(null)}
+                            onMouseEnter={() => handleDayMouseEnter(d)}
+                            onMouseLeave={handleDayMouseLeave}
                             onClick={() => {
                               if (isPinned) {
                                 setPinnedCalendarDay(null)
@@ -1072,15 +1107,18 @@ export default function Dashboard() {
               {/* Sezione Output Allargata (Risposta OpenAI & Impegni Calendar Week) — Spostata in alto raggiungendo l'altezza del Calendar Week! */}
               {(aiResult || aiLoading || selectedCalendarDay) && (
                 <div
-                  className="flex-1 min-w-0 flex flex-col justify-between p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-stretch overflow-hidden"
+                  onMouseEnter={handlePopupMouseEnter}
+                  onMouseLeave={handlePopupMouseLeave}
+                  onWheel={handlePopupWheel}
+                  className="flex-1 min-w-0 flex flex-col justify-between p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-start overflow-hidden"
                   style={{
                     backgroundColor: 'rgba(0, 42, 26, 0.95)',
                     backdropFilter: 'blur(20px)',
                     border: '1.5px solid rgba(0, 255, 170, 0.45)',
                     boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
-                    height: '352px',
                     minHeight: '352px',
-                    maxHeight: '352px',
+                    maxHeight: '480px',
+                    height: 'fit-content',
                     fontFamily: '"Jost", "Inter", sans-serif',
                   }}
                 >
@@ -1123,8 +1161,9 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                {/* Corpo del Contenuto Sviluppato in Verticale (senza overflow all'esterno) */}
+                {/* Corpo del Contenuto Sviluppato in Verticale (senza overflow all'esterno) con supporto scroll rotella */}
                 <div
+                  ref={popupScrollRef}
                   className="flex-1 overflow-y-auto overflow-x-hidden pr-2 mt-1 space-y-2.5 leading-relaxed"
                   style={{
                     scrollbarWidth: 'thin',
