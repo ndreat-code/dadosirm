@@ -109,8 +109,22 @@ function MainLayout() {
               </ProtectedRoute>
             }
           />
-          <Route path="/users" element={<Users />} />
-          <Route path="/utenti" element={<Users />} />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute permission="users">
+                <Users />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/utenti"
+            element={
+              <ProtectedRoute permission="users">
+                <Users />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/calendar" replace />} />
         </Routes>

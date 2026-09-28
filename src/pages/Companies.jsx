@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useAuth } from '../context/AuthContext'
 import {
   Building2,
   Calendar,
@@ -21,6 +22,7 @@ import {
   Check,
   Sparkles,
   Zap,
+  Lock,
 } from 'lucide-react'
 
 // Helper per determinare lo stato di relazione / pagamento dell'azienda
@@ -279,6 +281,7 @@ function getImminenceScore(comp) {
 }
 
 export default function Companies() {
+  const { isDipendente } = useAuth()
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -437,30 +440,34 @@ export default function Companies() {
 
               {/* Badge Ordinamento Imminente / Switcher */}
               <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  onClick={() => setSortBy(sortBy === 'imminent' ? 'compensation_desc' : 'imminent')}
-                  className={`px-3 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer border ${
-                    sortBy === 'imminent'
-                      ? 'bg-[#0284c7] text-white border-[#0284c7]'
-                      : 'bg-white text-slate-700 border-sky-200 hover:bg-sky-50'
-                  }`}
-                  title="Ordina per lavori imminenti o per importo"
-                >
-                  <Zap className={`w-3.5 h-3.5 ${sortBy === 'imminent' ? 'text-amber-300 fill-amber-300' : 'text-[#0284c7]'}`} />
-                  <span>
-                    {sortBy === 'imminent' ? <strong>Lavori imminenti (1°)</strong> : 'Ordina: Importo'}
-                  </span>
-                </button>
+                {!isDipendente && (
+                  <button
+                    onClick={() => setSortBy(sortBy === 'imminent' ? 'compensation_desc' : 'imminent')}
+                    className={`px-3 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer border ${
+                      sortBy === 'imminent'
+                        ? 'bg-[#0284c7] text-white border-[#0284c7]'
+                        : 'bg-white text-slate-700 border-sky-200 hover:bg-sky-50'
+                    }`}
+                    title="Ordina per lavori imminenti o per importo"
+                  >
+                    <Zap className={`w-3.5 h-3.5 ${sortBy === 'imminent' ? 'text-amber-300 fill-amber-300' : 'text-[#0284c7]'}`} />
+                    <span>
+                      {sortBy === 'imminent' ? <strong>Lavori imminenti (1°)</strong> : 'Ordina: Importo'}
+                    </span>
+                  </button>
+                )}
 
-                {/* Pulsante + Nuova Azienda */}
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer"
-                  style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 800 }}
-                >
-                  <Plus className="w-4 h-4 stroke-[3]" />
-                  <span>+ Nuova Azienda</span>
-                </button>
+                {/* Pulsante + Nuova Azienda (Riservato ad Admin) */}
+                {!isDipendente && (
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer"
+                    style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 800 }}
+                  >
+                    <Plus className="w-4 h-4 stroke-[3]" />
+                    <span>+ Nuova Azienda</span>
+                  </button>
+                )}
               </div>
 
             </div>
@@ -608,7 +615,15 @@ export default function Companies() {
                           <div
                             className="text-xl md:text-2xl font-black leading-none mt-0.5 text-[#0284c7]"
                           >
-                            <strong>€ {(comp.compensation?.amount || 0).toLocaleString('it-IT')}</strong>
+                            <strong>
+                              {isDipendente ? (
+                                <span className="text-slate-400 font-mono text-base tracking-widest" title="Valore riservato ad Amministratore">
+                                  •••• €
+                                </span>
+                              ) : (
+                                `€ ${(comp.compensation?.amount || 0).toLocaleString('it-IT')}`
+                              )}
+                            </strong>
                           </div>
                           <div className="mt-1">
                             <span
@@ -784,7 +799,13 @@ export default function Companies() {
                                 {!bant.hasB && <strong className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA DEFINIRE</strong>}
                               </div>
                               <div className="text-base font-black text-slate-900 mt-1">
-                                {bant.budget}
+                                {isDipendente ? (
+                                  <span className="text-slate-400 font-mono text-sm tracking-wider" title="Budget riservato ad Amministratore">
+                                    🔒 Riservato
+                                  </span>
+                                ) : (
+                                  bant.budget
+                                )}
                               </div>
                               <div className="text-[11px] text-slate-500 mt-1">
                                 Capacità di spesa allocata per l'intervento

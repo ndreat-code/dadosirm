@@ -102,7 +102,7 @@ export function AuthProvider({ children }) {
   const currentUser = users.find((u) => u.id === activeUserId) || users[0] || DEFAULT_USERS[0]
 
   const isAdmin = currentUser.accessType === 'admin' || currentUser.badgeRole === 'Amministratore'
-  const isDipendente = currentUser.badgeRole === 'Dipendente' || currentUser.accessType === 'restricted'
+  const isDipendente = currentUser.badgeRole === 'Dipendente' || currentUser.accessType === 'restricted' || currentUser.id === 'usr-dipendente'
 
   const canSendDevNotes = Boolean(currentUser.permissions?.devNotes)
   const canAskOpenAI = Boolean(currentUser.permissions?.askOpenAi)

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import {
   Sparkles,
   Bot,
@@ -25,7 +26,8 @@ import {
   EyeOff,
   Zap,
   Globe,
-  Database
+  Database,
+  Lock,
 } from 'lucide-react'
 
 // Colore verde icona FaceTime ufficiale Apple
@@ -33,12 +35,49 @@ const FACETIME_GREEN = '#34c759'
 const FACETIME_GREEN_HOVER = '#28cd41'
 const FACETIME_GREEN_GLOW = 'rgba(52, 199, 89, 0.45)'
 
+// Banner di blocco per sezioni riservate ad Amministratore
+function SecretAccessDenied({ title, reason }) {
+  return (
+    <div
+      className="p-8 mb-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(145deg, #2a1b1b 0%, #1a1212 50%, #201515 100%)',
+        border: '1.5px solid rgba(239, 68, 68, 0.4)',
+        boxShadow: '0 10px 30px rgba(239, 68, 68, 0.15)',
+      }}
+    >
+      <div className="w-16 h-16 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 mb-4">
+        <Shield className="w-8 h-8 stroke-[2.2]" />
+      </div>
+      <div className="inline-block px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-mono font-bold uppercase tracking-wider mb-2">
+        🔒 Sezione Riservata all'Amministratore
+      </div>
+      <h3 className="text-xl md:text-2xl font-black text-white font-mono mb-2">
+        {title || 'Impostazioni Segrete Protette'}
+      </h3>
+      <p className="text-sm text-white/70 max-w-lg leading-relaxed font-sans">
+        {reason || 'Questa sezione contiene parametri riservati dello studio (API Key, impostazioni prezzi, dati aziendali fiscali e connessioni esterne). L\'accesso e le modifiche sono disabilitati per il profilo Dipendente.'}
+      </p>
+    </div>
+  )
+}
+
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState('google_ai')
+  const { currentUser, isAdmin, isDipendente } = useAuth()
+
+  // Se dipendente, la tab di partenza è 'equipment' (operativa); altrimenti 'google_ai'
+  const [activeTab, setActiveTab] = useState(() => isDipendente ? 'equipment' : 'google_ai')
   const [savedToast, setSavedToast] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
   const [testingAi, setTestingAi] = useState(false)
   const [aiTestResult, setAiTestResult] = useState(null)
+
+  // Reindirizzamento immediato ad 'equipment' se il profilo dipendente si trova in una tab segreta
+  useEffect(() => {
+    if (isDipendente && (activeTab === 'google_ai' || activeTab === 'identity' || activeTab === 'notifications')) {
+      setActiveTab('equipment')
+    }
+  }, [isDipendente, activeTab])
 
   // Stato Impostazioni con persistenza su localStorage
   const [settings, setSettings] = useState(() => {
@@ -105,8 +144,9 @@ export default function Settings() {
     }
   })
 
-  // Salva le modifiche
+  // Salva le modifiche (bloccato per dipendente)
   const handleSave = () => {
+    if (isDipendente) return
     localStorage.setItem('dado_crm_settings', JSON.stringify(settings))
     setSavedToast(true)
     setTimeout(() => {
@@ -114,8 +154,9 @@ export default function Settings() {
     }, 2800)
   }
 
-  // Test della connessione Gemini AI
+  // Test della connessione Gemini AI (bloccato per dipendente)
   const handleTestAi = () => {
+    if (isDipendente) return
     setTestingAi(true)
     setAiTestResult(null)
     setTimeout(() => {
@@ -129,8 +170,9 @@ export default function Settings() {
     }, 1100)
   }
 
-  // Toggle switch per booleani
+  // Toggle switch per booleani (bloccato per dipendente)
   const toggleSetting = (key) => {
+    if (isDipendente) return
     setSettings(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
@@ -148,8 +190,9 @@ export default function Settings() {
     }))
   }
 
-  // Export JSON Database
+  // Export JSON Database (bloccato per dipendente)
   const handleExportData = () => {
+    if (isDipendente) return
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(settings, null, 2))
     const downloadAnchor = document.createElement('a')
     downloadAnchor.setAttribute("href", dataStr)
@@ -159,13 +202,16 @@ export default function Settings() {
     downloadAnchor.remove()
   }
 
-  const tabs = [
-    { id: 'google_ai', label: 'Google & AI', icon: Sparkles },
-    { id: 'identity', label: 'Identità & Brand', icon: Building2 },
-    { id: 'equipment', label: 'Attrezzatura & Kit', icon: Camera },
-    { id: 'notifications', label: 'Connessioni & Notifiche', icon: Bell },
-    { id: 'system', label: 'Sistema & Preferenze', icon: Sliders },
+  const allTabs = [
+    { id: 'google_ai', label: 'Google & AI', icon: Sparkles, secret: true },
+    { id: 'identity', label: 'Identità & Brand', icon: Building2, secret: true },
+    { id: 'equipment', label: 'Attrezzatura & Kit', icon: Camera, secret: false },
+    { id: 'notifications', label: 'Connessioni & Notifiche', icon: Bell, secret: true },
+    { id: 'system', label: 'Sistema & Preferenze', icon: Sliders, secret: false },
   ]
+
+  // Rimuove completamente le schede segrete per il profilo dipendente
+  const tabs = allTabs.filter(tab => !isDipendente || !tab.secret)
 
   return (
     <div className="h-full min-h-screen md:min-h-0 bg-[#111111] flex flex-col flex-1 relative overflow-hidden">
@@ -205,21 +251,31 @@ export default function Settings() {
               </p>
             </div>
 
-            {/* Pulsante Salva Modifiche (Verde FaceTime #34c759) */}
+            {/* Selettore Salva Modifiche / Blocco Dipendente */}
             <div className="flex items-center gap-3">
-              <button
-                onClick={handleSave}
-                className="px-5 py-2.5 rounded-full flex items-center gap-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 active:scale-95 shadow-md"
-                style={{
-                  backgroundColor: FACETIME_GREEN,
-                  color: '#0d2813',
-                  fontFamily: '"Goldman", sans-serif',
-                  boxShadow: `0 4px 14px ${FACETIME_GREEN_GLOW}`,
-                }}
-              >
-                <Save className="w-4 h-4 stroke-[2.5]" />
-                <span>Salva Modifiche</span>
-              </button>
+              {isDipendente ? (
+                <div
+                  className="px-4 py-2.5 rounded-full flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider select-none border border-amber-500/40 bg-amber-500/15 text-amber-300 shadow-sm"
+                  title="Modifiche ai parametri dello studio bloccate per il profilo Dipendente"
+                >
+                  <Lock className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Modifiche Disabilitate (Dipendente)</span>
+                </div>
+              ) : (
+                <button
+                  onClick={handleSave}
+                  className="px-5 py-2.5 rounded-full flex items-center gap-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 active:scale-95 shadow-md cursor-pointer"
+                  style={{
+                    backgroundColor: FACETIME_GREEN,
+                    color: '#0d2813',
+                    fontFamily: '"Goldman", sans-serif',
+                    boxShadow: `0 4px 14px ${FACETIME_GREEN_GLOW}`,
+                  }}
+                >
+                  <Save className="w-4 h-4 stroke-[2.5]" />
+                  <span>Salva Modifiche</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -275,10 +331,16 @@ export default function Settings() {
           )}
 
           {/* ═════════════════════════════════════════════════════════════════ */}
-          {/* TAB 1: GOOGLE & AI INTEGRATION (WORKSPACE SOPRA, GEMINI SOTTO)     */}
+          {/* TAB 1: GOOGLE & AI INTEGRATION (API KEY)                          */}
           {/* ═════════════════════════════════════════════════════════════════ */}
           {activeTab === 'google_ai' && (
-            <div className="flex flex-col gap-6 mb-8">
+            isDipendente ? (
+              <SecretAccessDenied
+                title="API Key & Google AI Riservate"
+                reason="Le credenziali delle API Key e le connessioni Google Workspace sono riservate all'Amministratore e inaccessibili al profilo Dipendente."
+              />
+            ) : (
+              <div className="flex flex-col gap-6 mb-8">
 
               {/* CARD 1.1: Google Workspace (SOPRA - Gmail, Drive, Calendar) */}
               <div
@@ -499,6 +561,30 @@ export default function Settings() {
 
                   {/* Modello AI Selezionato */}
                   <div className="space-y-4">
+                    {/* Chiave API Gemini (Segreta) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs text-white/70 font-bold flex items-center gap-1.5" style={{ fontFamily: '"Space Mono", monospace' }}>
+                          <Key className="w-3.5 h-3.5 text-[#ffd600]" />
+                          <span>Gemini API Key (Riservata Amministratore)</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                          className="text-[11px] font-mono text-white/60 hover:text-white flex items-center gap-1 cursor-pointer"
+                        >
+                          {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          <span>{showApiKey ? 'Nascondi' : 'Mostra'}</span>
+                        </button>
+                      </div>
+                      <input
+                        type={showApiKey ? 'text' : 'password'}
+                        value={settings.geminiApiKey}
+                        onChange={(e) => setSettings({ ...settings, geminiApiKey: e.target.value })}
+                        className="w-full bg-[#14171c] border border-white/15 px-3 py-2 text-xs md:text-sm text-[#ffd600] font-mono rounded-xl focus:outline-none focus:border-[#34c759]"
+                      />
+                    </div>
+
                     {/* Tono & Stile Risposte */}
                     <div>
                       <label className="block text-xs text-white/70 mb-1 font-bold" style={{ fontFamily: '"Space Mono", monospace' }}>
@@ -609,14 +695,21 @@ export default function Settings() {
                 </div>
               </div>
 
-            </div>
+              </div>
+            )
           )}
 
           {/* ═════════════════════════════════════════════════════════════════ */}
-          {/* TAB 2: IDENTITÀ STUDIO & BRAND (DADO CREATIVE STUDIO)             */}
+          {/* TAB 2: IDENTITÀ STUDIO, DATI AZIENDA & PREZZI                     */}
           {/* ═════════════════════════════════════════════════════════════════ */}
           {activeTab === 'identity' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+            isDipendente ? (
+              <SecretAccessDenied
+                title="Dati Dettagli Azienda & Impostazioni Prezzi Riservati"
+                reason="I dati fiscali dello studio (P.IVA, PEC, IBAN) e il listino prezzi (tariffe giornata intera, mezza giornata, post-produzione) sono protetti e accessibili solo con credenziali Amministratore."
+              />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
 
               {/* Colonna Sinistra / Centrale: Dati Studio */}
               <div
@@ -803,7 +896,8 @@ export default function Settings() {
                 </div>
               </div>
 
-            </div>
+              </div>
+            )
           )}
 
           {/* ═════════════════════════════════════════════════════════════════ */}
@@ -910,7 +1004,13 @@ export default function Settings() {
           {/* TAB 4: CONNESSIONI, NOTIFICHE & BACKUP                            */}
           {/* ═════════════════════════════════════════════════════════════════ */}
           {activeTab === 'notifications' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
+            isDipendente ? (
+              <SecretAccessDenied
+                title="Sezione Connessioni & Backup Riservata"
+                reason="I webhook esterni di sincronizzazione, le automazioni e l'esportazione del database sono protetti e accessibili esclusivamente dall'Amministratore."
+              />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
 
               {/* Box Notifiche Push & Alert Scadenze */}
               <div
@@ -1106,7 +1206,8 @@ export default function Settings() {
                 </div>
               </div>
 
-            </div>
+              </div>
+            )
           )}
 
           {/* ═════════════════════════════════════════════════════════════════ */}
@@ -1180,7 +1281,10 @@ export default function Settings() {
                     </div>
                     <button
                       onClick={() => toggleSetting('soundEffects')}
-                      className="w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5"
+                      disabled={isDipendente}
+                      className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5 ${
+                        isDipendente ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                      }`}
                       style={{
                         backgroundColor: settings.soundEffects ? FACETIME_GREEN : '#334155',
                         boxShadow: settings.soundEffects ? `0 0 10px ${FACETIME_GREEN_GLOW}` : 'none'
@@ -1196,18 +1300,25 @@ export default function Settings() {
                 </div>
 
                 <div className="mt-6 pt-3 border-t border-white/10 flex justify-end">
-                  <button
-                    onClick={handleSave}
-                    className="px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all"
-                    style={{
-                      backgroundColor: FACETIME_GREEN,
-                      color: '#0d2813',
-                      fontFamily: '"Goldman", sans-serif',
-                      boxShadow: `0 2px 10px ${FACETIME_GREEN_GLOW}`
-                    }}
-                  >
-                    Salva Preferenze
-                  </button>
+                  {isDipendente ? (
+                    <span className="text-xs font-mono text-white/50 italic flex items-center gap-1.5">
+                      <Lock className="w-3 h-3 text-amber-400" />
+                      <span>Preferenze in sola visualizzazione per il profilo Dipendente</span>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={handleSave}
+                      className="px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                      style={{
+                        backgroundColor: FACETIME_GREEN,
+                        color: '#0d2813',
+                        fontFamily: '"Goldman", sans-serif',
+                        boxShadow: `0 2px 10px ${FACETIME_GREEN_GLOW}`
+                      }}
+                    >
+                      Salva Preferenze
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
