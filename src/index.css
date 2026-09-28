@@ -36,6 +36,26 @@ body {
     -ms-overflow-style: none !important;
     scrollbar-width: none !important;
   }
+
+  /* Scrollbar elegante e visibile per il pop-up attività */
+  .custom-popup-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #00ffaa rgba(0, 0, 0, 0.4);
+  }
+  .custom-popup-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-popup-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+  }
+  .custom-popup-scrollbar::-webkit-scrollbar-thumb {
+    background: #00ffaa;
+    border-radius: 4px;
+  }
+  .custom-popup-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #00dd90;
+  }
 }
 
 /* ── Animazioni Pulsanti Gialli Sidebar ───────────────────────────── */

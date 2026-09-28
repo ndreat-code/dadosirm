@@ -487,10 +487,15 @@ export default function Dashboard() {
 
   const popupLeaveTimerRef = useRef(null)
   const isOverPopupRef = useRef(false)
+  const isOverCalendarRef = useRef(false)
+  const popupContainerRef = useRef(null)
   const popupScrollRef = useRef(null)
 
   const handleDayMouseEnter = useCallback((d) => {
-    if (popupLeaveTimerRef.current) clearTimeout(popupLeaveTimerRef.current)
+    if (popupLeaveTimerRef.current) {
+      clearTimeout(popupLeaveTimerRef.current)
+      popupLeaveTimerRef.current = null
+    }
     const sched = getDaySchedule(d.date)
     if (!sched || !sched.events || sched.events.length === 0) {
       setHoveredCalendarDay(null)
@@ -500,33 +505,56 @@ export default function Dashboard() {
     setHoveredCalendarDay(d)
   }, [])
 
-  const handleDayMouseLeave = useCallback(() => {
+  const handleCalendarMouseEnter = useCallback(() => {
+    isOverCalendarRef.current = true
+    if (popupLeaveTimerRef.current) {
+      clearTimeout(popupLeaveTimerRef.current)
+      popupLeaveTimerRef.current = null
+    }
+  }, [])
+
+  const handleCalendarMouseLeave = useCallback(() => {
+    isOverCalendarRef.current = false
     popupLeaveTimerRef.current = setTimeout(() => {
-      if (!isOverPopupRef.current) {
+      if (!isOverPopupRef.current && !isOverCalendarRef.current) {
         setHoveredCalendarDay(null)
         setPinnedCalendarDay(null)
       }
-    }, 120)
+    }, 350)
   }, [])
 
   const handlePopupMouseEnter = useCallback(() => {
     isOverPopupRef.current = true
-    if (popupLeaveTimerRef.current) clearTimeout(popupLeaveTimerRef.current)
+    if (popupLeaveTimerRef.current) {
+      clearTimeout(popupLeaveTimerRef.current)
+      popupLeaveTimerRef.current = null
+    }
   }, [])
 
   const handlePopupMouseLeave = useCallback(() => {
     isOverPopupRef.current = false
     popupLeaveTimerRef.current = setTimeout(() => {
-      setHoveredCalendarDay(null)
-      setPinnedCalendarDay(null)
-    }, 120)
+      if (!isOverPopupRef.current && !isOverCalendarRef.current) {
+        setHoveredCalendarDay(null)
+        setPinnedCalendarDay(null)
+      }
+    }, 350)
   }, [])
 
-  const handlePopupWheel = useCallback((e) => {
-    if (popupScrollRef.current) {
-      popupScrollRef.current.scrollTop += e.deltaY
+  // Gestione rotellina non-passiva: impedisce categoricamente alla pagina di scrollare quando si è sopra il popup
+  useEffect(() => {
+    const el = popupContainerRef.current
+    if (!el) return
+    const onWheel = (e) => {
+      e.stopPropagation()
+      if (popupScrollRef.current) {
+        popupScrollRef.current.scrollTop += e.deltaY
+        e.preventDefault()
+      }
     }
-  }, [])
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [selectedCalendarDay, aiResult, aiLoading])
 
   // Calcolo dinamico settimana e mese corrente
   const currentWeekDays = useMemo(() => getCurrentWeekDays(), [])
@@ -832,14 +860,8 @@ export default function Dashboard() {
 
                   {/* Calendario accanto alla card TO DO (spigoloso con angoli retti dal lato interno verso il centro dashboard e allargato all'estremità delle card sottostanti) */}
                   <div
-                    onMouseLeave={() => {
-                      popupLeaveTimerRef.current = setTimeout(() => {
-                        if (!isOverPopupRef.current) {
-                          setHoveredCalendarDay(null)
-                          setPinnedCalendarDay(null)
-                        }
-                      }, 120)
-                    }}
+                    onMouseEnter={handleCalendarMouseEnter}
+                    onMouseLeave={handleCalendarMouseLeave}
                     className="p-2.5 bg-white shadow-sm flex flex-col justify-between min-h-[104px] h-[104px] border border-black/10 select-none shrink-0"
                     style={{
                       backgroundColor: '#ffffff',
@@ -870,7 +892,6 @@ export default function Dashboard() {
                             key={d.date}
                             type="button"
                             onMouseEnter={() => handleDayMouseEnter(d)}
-                            onMouseLeave={handleDayMouseLeave}
                             onClick={() => {
                               const sched = getDaySchedule(d.date)
                               if (!sched || !sched.events || sched.events.length === 0) {
@@ -1120,19 +1141,19 @@ export default function Dashboard() {
               {/* Sezione Output Allargata (Risposta OpenAI & Impegni Calendar Week) — Spostata in alto raggiungendo l'altezza del Calendar Week! */}
               {(aiResult || aiLoading || (selectedCalendarDay && currentDaySchedule?.events?.length > 0)) && (
                 <div
+                  ref={popupContainerRef}
                   onMouseEnter={handlePopupMouseEnter}
                   onMouseLeave={handlePopupMouseLeave}
-                  onWheel={handlePopupWheel}
-                  className="flex-1 min-w-0 flex flex-col justify-between p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-start overflow-hidden"
+                  className="flex-1 min-w-0 flex flex-col p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-start overflow-hidden"
                   style={{
                     backgroundColor: 'rgba(0, 42, 26, 0.95)',
                     backdropFilter: 'blur(20px)',
                     border: '1.5px solid rgba(0, 255, 170, 0.45)',
                     boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
-                    minHeight: '352px',
-                    maxHeight: '480px',
-                    height: 'fit-content',
+                    height: '352px',
+                    maxHeight: '352px',
                     fontFamily: '"Jost", "Inter", sans-serif',
+                    overscrollBehavior: 'contain',
                   }}
                 >
                   {/* Header Sezione Output: solo testo "Attività Programmate", senza cerchi, senza icone e senza "✕ chiudi" per massima ottimizzazione */}
@@ -1174,13 +1195,12 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                {/* Corpo del Contenuto Sviluppato in Verticale (senza overflow all'esterno) con supporto scroll rotella */}
+                {/* Corpo del Contenuto Sviluppato in Verticale (senza overflow all'esterno) con supporto scroll rotella fluido e barra visibile */}
                 <div
                   ref={popupScrollRef}
-                  className="flex-1 overflow-y-auto overflow-x-hidden pr-2 mt-1 space-y-2.5 leading-relaxed"
+                  className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-2 mt-1 space-y-2.5 leading-relaxed custom-popup-scrollbar overscroll-contain select-text"
                   style={{
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: 'rgba(0, 255, 170, 0.4) transparent',
+                    overscrollBehavior: 'contain',
                   }}
                 >
                   {selectedCalendarDay && activeOutputTab !== 'ai' && currentDaySchedule ? (
