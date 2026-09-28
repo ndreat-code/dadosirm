@@ -63,10 +63,84 @@ function DadoLogo() {
   )
 }
 
+function AnimatedDashboardIcon({ isDifferentSection, isClicked }) {
+  return (
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`transition-all duration-300 ${isClicked ? 'scale-90 rotate-3' : 'group-hover:scale-105'}`}
+    >
+      {/* Riquadro 1 (in alto a sinistra) */}
+      <rect
+        width="7"
+        height="9"
+        x="3"
+        y="3"
+        rx="1.5"
+        className={isDifferentSection ? 'animate-tile-1' : 'transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5'}
+        style={{ transformOrigin: 'center' }}
+      />
+      {/* Riquadro 2 (in alto a destra) */}
+      <rect
+        width="7"
+        height="5"
+        x="14"
+        y="3"
+        rx="1.5"
+        className={isDifferentSection ? 'animate-tile-2' : 'transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5'}
+        style={{ transformOrigin: 'center' }}
+      />
+      {/* Riquadro 3 (in basso a destra) */}
+      <rect
+        width="7"
+        height="9"
+        x="14"
+        y="12"
+        rx="1.5"
+        className={isDifferentSection ? 'animate-tile-3' : 'transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5'}
+        style={{ transformOrigin: 'center' }}
+      />
+      {/* Riquadro 4 (in basso a sinistra) */}
+      <rect
+        width="7"
+        height="5"
+        x="3"
+        y="16"
+        rx="1.5"
+        className={isDifferentSection ? 'animate-tile-4' : 'transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5'}
+        style={{ transformOrigin: 'center' }}
+      />
+    </svg>
+  )
+}
+
 export default function Sidebar() {
   const location = useLocation()
-  const isDashboard = location.pathname === '/'
+  const isDashboard = location.pathname === '/' || location.pathname === '/dashboard-a' || location.pathname === '/dashboard-b'
+  const isDifferentSection = !isDashboard
   const [isAiFocus, setIsAiFocus] = useState(false)
+  const [isSettingsSpinning, setIsSettingsSpinning] = useState(false)
+  const [isDashboardClicked, setIsDashboardClicked] = useState(false)
+
+  function handleSettingsClick() {
+    setIsSettingsSpinning(true)
+    setTimeout(() => {
+      setIsSettingsSpinning(false)
+    }, 700)
+  }
+
+  function handleDashboardClick() {
+    setIsDashboardClicked(true)
+    setTimeout(() => {
+      setIsDashboardClicked(false)
+    }, 450)
+  }
 
   useEffect(() => {
     const handler = (e) => {
@@ -95,20 +169,21 @@ export default function Sidebar() {
       {/* Logo in alto */}
       <DadoLogo />
 
-      {/* Pulsante Dashboard — Rimodellato da quadrato a rettangolo armonioso (100px x 58px, ridimensionato di ~1/3 in altezza) */}
+      {/* Pulsante Dashboard — Riquadri che si muovono e danzano quando ci si trova in una sezione differente */}
       <NavLink
         to="/"
         end
-        className="w-[100px] h-[58px] mb-8 self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.02]"
+        onClick={handleDashboardClick}
+        className="w-[100px] h-[58px] mb-8 self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] active:scale-95 cursor-pointer"
         style={{
           backgroundColor: '#d8ff00',
           color: '#111111',
           marginTop: 'calc(1rem + 1cm - 21px)',
           marginLeft: '8px',
         }}
-        title="Dashboard"
+        title={isDifferentSection ? 'Torna alla Dashboard' : 'Dashboard'}
       >
-        <LayoutDashboard size={27} strokeWidth={2.3} />
+        <AnimatedDashboardIcon isDifferentSection={isDifferentSection} isClicked={isDashboardClicked} />
       </NavLink>
 
       {/* Menu di navigazione — Voci Companies, Activities, etc. ulteriormente distaccate (gap-8) */}
@@ -129,11 +204,12 @@ export default function Sidebar() {
           </NavLink>
         ))}
 
-        {/* Pulsante Settings — Rotella meccanica stile pulsante Dashboard */}
+        {/* Pulsante Settings — Rotella meccanica con rotazione veloce quando schiacciata */}
         <NavLink
           to="/settings"
+          onClick={handleSettingsClick}
           className={({ isActive }) =>
-            `w-[100px] h-[58px] self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.02] ${
+            `w-[100px] h-[58px] self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] active:scale-95 cursor-pointer ${
               isActive ? 'ring-2 ring-[#00a8ff]' : ''
             }`
           }
@@ -142,9 +218,15 @@ export default function Sidebar() {
             color: '#111111',
             marginLeft: '8px',
           }}
-          title="Settings"
+          title="Settings (Clicca per far girare la rotella veloce)"
         >
-          <SettingsIcon size={27} strokeWidth={2.3} className="group-hover:rotate-45 transition-transform duration-300" />
+          <SettingsIcon
+            size={28}
+            strokeWidth={2.3}
+            className={`transition-transform duration-300 ${
+              isSettingsSpinning ? 'animate-spin-fast' : 'group-hover:rotate-90'
+            }`}
+          />
         </NavLink>
       </nav>
 

@@ -37,3 +37,46 @@ body {
     scrollbar-width: none !important;
   }
 }
+
+/* ── Animazioni Pulsanti Gialli Sidebar ───────────────────────────── */
+@keyframes spin-fast {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(720deg); }
+}
+
+.animate-spin-fast {
+  animation: spin-fast 0.7s cubic-bezier(0.12, 0.8, 0.25, 1.25) forwards;
+}
+
+@keyframes tile-dance-1 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, -2px) scale(0.94); }
+  50% { transform: translate(0, -1.5px); }
+  75% { transform: translate(-1.5px, 0); }
+}
+
+@keyframes tile-dance-2 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(2px, -1.5px) scale(1.06); }
+  50% { transform: translate(1px, -2px); }
+  75% { transform: translate(2px, 0); }
+}
+
+@keyframes tile-dance-3 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(2px, 2px) scale(0.94); }
+  50% { transform: translate(0, 2px); }
+  75% { transform: translate(1.5px, 1px); }
+}
+
+@keyframes tile-dance-4 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1.5px) scale(1.06); }
+  50% { transform: translate(-1px, 2px); }
+  75% { transform: translate(-2px, 0); }
+}
+
+.animate-tile-1 { animation: tile-dance-1 2.2s ease-in-out infinite; }
+.animate-tile-2 { animation: tile-dance-2 2.2s ease-in-out infinite 0.28s; }
+.animate-tile-3 { animation: tile-dance-3 2.2s ease-in-out infinite 0.56s; }
+.animate-tile-4 { animation: tile-dance-4 2.2s ease-in-out infinite 0.84s; }

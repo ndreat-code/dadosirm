@@ -869,9 +869,6 @@ export default function Opportunities() {
                 <span className="text-sm font-bold text-white tracking-tight" style={{ fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.02em' }}>
                   Pipeline Background
                 </span>
-                <span className="text-[11px] px-2 py-0.5 rounded bg-black/80 text-[#00ffaa] border border-[#00ffaa]/30 font-semibold" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                  A Riflettori Spenti (60s)
-                </span>
 
                 {/* Badge Stato Gmail */}
                 {googleAuth.connected ? (

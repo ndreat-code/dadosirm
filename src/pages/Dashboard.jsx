@@ -795,7 +795,7 @@ export default function Dashboard() {
                     <span
                       key={d.date}
                       className={`w-4 h-4 flex items-center justify-center rounded text-[10px] font-black font-mono leading-none ${
-                        d.isToday ? 'bg-[#ff6f43] text-white shadow-sm ring-1 ring-[#ff6f43]/40' : 'text-slate-700'
+                        d.isToday ? 'bg-[#00c853] text-white shadow-sm ring-1 ring-[#00c853]/40' : 'text-slate-700'
                       }`}
                       title={d.name}
                     >
@@ -868,7 +868,7 @@ export default function Dashboard() {
                             isSelected
                               ? 'ring-2 ring-[#00ffaa] bg-emerald-50 shadow-md border-[#00c853]'
                               : d.isToday
-                              ? 'border-[#ff6f43] bg-gradient-to-b from-orange-50 to-orange-100/80 hover:bg-orange-100 ring-2 ring-[#ff6f43]/50 shadow-sm'
+                              ? 'border-[#00c853] bg-emerald-50/90 hover:bg-emerald-100 ring-2 ring-[#00c853]/40 shadow-sm'
                               : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                           title={`Clicca per visualizzare gli impegni di ${d.name} nell'output della dashboard`}
@@ -877,13 +877,13 @@ export default function Dashboard() {
                             className="text-base font-black leading-none block"
                             style={{
                               fontFamily: '"Goldman", sans-serif',
-                              color: isSelected ? '#007a50' : d.isToday ? '#ff6f43' : '#334155',
+                              color: isSelected ? '#007a50' : d.isToday ? '#007a50' : '#334155',
                             }}
                           >
                             {d.letter}
                           </span>
                           {d.isToday && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#ff6f43] mt-1 shadow-sm" title="Oggi" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00c853] mt-1 shadow-sm" title="Oggi" />
                           )}
                         </button>
                       )
