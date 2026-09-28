@@ -4,6 +4,7 @@ import { Search, Database, Sparkles, X, ArrowRight, Calendar as CalendarIcon, Cl
 import CameraShutter from '../components/CameraShutter'
 import { getCurrentWeekDays, getCurrentMonthName, getTodayIso, getTomorrowIso, getCurrentWeekSundayIso, formatDayLong } from '../utils/dateUtils'
 import { getCalendarDayData } from '../utils/calendarData'
+import { useAuth } from '../context/AuthContext'
 
 function KpiCard({
   label,
@@ -111,6 +112,7 @@ function ClockDriveBox() {
 
 // ── Box ASK OPEN AI (Attaccato alla banda bianca, con contenuto scalato al di sotto della banda) ──
 function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk }) {
+  const { canAskOpenAI, currentUser } = useAuth()
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [answer, setAnswer] = useState(null)
@@ -129,6 +131,10 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk }) {
   }, [])
 
   async function handleAsk(promptText) {
+    if (!canAskOpenAI) {
+      setError('Accesso OpenAI disabilitato per questo profilo (Riservato all’Amministratore)')
+      return
+    }
     const textToAsk = promptText || query
     if (!textToAsk.trim() || loading) return
 
@@ -141,7 +147,10 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk }) {
     try {
       const res = await fetch('/api/ai/ask', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': currentUser?.badgeRole || currentUser?.role || '',
+        },
         body: JSON.stringify({ prompt: textToAsk }),
       })
       const data = await res.json()
@@ -168,19 +177,26 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk }) {
     <div className="bg-white rounded-none -mt-3 pt-3 px-4 pb-2.5 flex flex-col justify-between shadow-sm min-h-0 relative z-20">
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <h3
-            className="uppercase tracking-normal leading-tight select-none"
-            style={{
-              fontWeight: 900,
-              fontSize: '1.15rem',
-              background: 'linear-gradient(90deg, #ff1744 0%, #ff9100 20%, #ffd600 40%, #00e676 60%, #00b0ff 80%, #d500f9 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              display: 'inline-block',
-            }}
-          >
-            ASK OPEN AI:
-          </h3>
+          <div className="flex items-center gap-1.5">
+            <h3
+              className="uppercase tracking-normal leading-tight select-none"
+              style={{
+                fontWeight: 900,
+                fontSize: '1.15rem',
+                background: 'linear-gradient(90deg, #ff1744 0%, #ff9100 20%, #ffd600 40%, #00e676 60%, #00b0ff 80%, #d500f9 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                display: 'inline-block',
+              }}
+            >
+              ASK OPEN AI:
+            </h3>
+            {!canAskOpenAI && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                🔒 Riservato Admin
+              </span>
+            )}
+          </div>
           {(answer || query) && (
             <button
               type="button"
@@ -197,6 +213,12 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk }) {
             </button>
           )}
         </div>
+
+        {!canAskOpenAI && (
+          <div className="text-[10px] text-amber-700 bg-amber-50/80 border border-amber-200/80 p-1.5 my-1 rounded">
+            Interrogazione OpenAI disabilitata per il profilo Dipendente.
+          </div>
+        )}
 
         {loading && (
           <div className="py-2 flex items-center gap-2">
@@ -237,14 +259,19 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk }) {
               window.dispatchEvent(new CustomEvent('dado-ai-focus', { detail: { active: false } }))
             }
           }}
-          placeholder="Digita domanda..."
-          disabled={loading}
-          className="flex-1 bg-gray-50 border border-gray-200 px-2 py-1 text-xs text-[#111111] placeholder:text-gray-400 focus:outline-none focus:border-black"
+          placeholder={canAskOpenAI ? "Digita domanda..." : "🔒 Funzione disabilitata per il profilo Dipendente"}
+          disabled={loading || !canAskOpenAI}
+          className={`flex-1 border px-2 py-1 text-xs placeholder:text-gray-400 focus:outline-none ${
+            canAskOpenAI
+              ? 'bg-gray-50 border-gray-200 text-[#111111] focus:border-black'
+              : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
         />
         <button
           type="submit"
-          disabled={loading || !query.trim()}
-          className="bg-black text-white hover:bg-gray-800 disabled:opacity-30 px-2 py-1 text-xs font-bold cursor-pointer"
+          disabled={loading || !query.trim() || !canAskOpenAI}
+          title={!canAskOpenAI ? 'Disabilitato per Dipendente' : 'Invia domanda'}
+          className="bg-black text-white hover:bg-gray-800 disabled:opacity-30 px-2 py-1 text-xs font-bold cursor-pointer disabled:cursor-not-allowed"
         >
           {loading ? '...' : '→'}
         </button>
@@ -255,11 +282,17 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk }) {
 
 // ── Box NOTE PER SVILUPPATORE (Grigio metallizzato, testo nero bold, tasto INVIA nero scuro in rilievo) ──
 function DeveloperNotesBox() {
+  const { canSendDevNotes, currentUser } = useAuth()
   const [note, setNote] = useState('')
-  const [status, setStatus] = useState(null) // 'sending', 'sent'
+  const [status, setStatus] = useState(null) // 'sending', 'sent', 'blocked'
 
   async function handleSendNote(e) {
     if (e) e.preventDefault()
+    if (!canSendDevNotes) {
+      setStatus('blocked')
+      setTimeout(() => setStatus(null), 3000)
+      return
+    }
     const textToSend = note.trim()
     if (!textToSend || status === 'sending') return
 
@@ -270,7 +303,10 @@ function DeveloperNotesBox() {
     try {
       fetch('/api/developer-notes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': currentUser?.badgeRole || currentUser?.role || '',
+        },
         body: JSON.stringify({ note: textToSend }),
       }).catch(err => console.warn('Salvataggio server:', err))
 
@@ -294,7 +330,7 @@ function DeveloperNotesBox() {
     >
       <div>
         {/* Titolo orizzontale */}
-        <div className="text-center pt-0.5 whitespace-nowrap px-0.5">
+        <div className="text-center pt-0.5 whitespace-nowrap px-0.5 flex items-center justify-center gap-1.5">
           <span
             style={{
               fontFamily: '"Space Mono", monospace',
@@ -309,6 +345,11 @@ function DeveloperNotesBox() {
           >
             NOTE SVILUPPATORE
           </span>
+          {!canSendDevNotes && (
+            <span className="text-[8px] font-bold px-1 rounded bg-amber-200 text-amber-900 border border-amber-400">
+              🔒 BLOCCO DIPENDENTE
+            </span>
+          )}
         </div>
 
         {/* Separatore */}
@@ -332,9 +373,16 @@ function DeveloperNotesBox() {
               ✓ Inviata a<br />n.drea.t@gmail.com
             </span>
           </div>
+        ) : status === 'blocked' ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-1 bg-amber-950/90 rounded border border-amber-500/40">
+            <span className="text-[10px] font-bold text-amber-300 leading-tight">
+              🔒 Funzione riservata all’Amministratore
+            </span>
+          </div>
         ) : (
           <textarea
             value={note}
+            disabled={!canSendDevNotes}
             onChange={(e) => setNote(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -342,12 +390,15 @@ function DeveloperNotesBox() {
                 handleSendNote(e)
               }
             }}
-            placeholder="Scrivi una nota..."
-            className="w-full h-full p-1.5 text-[11px] font-bold text-black placeholder:text-black placeholder:font-bold rounded-none focus:outline-none resize-none leading-tight"
+            placeholder={canSendDevNotes ? "Scrivi una nota..." : "🔒 Invio note disabilitato per il profilo Dipendente"}
+            className={`w-full h-full p-1.5 text-[11px] font-bold rounded-none focus:outline-none resize-none leading-tight ${
+              canSendDevNotes
+                ? 'text-black placeholder:text-black placeholder:font-bold'
+                : 'text-gray-500 placeholder:text-gray-500/80 cursor-not-allowed italic'
+            }`}
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.82)',
+              backgroundColor: canSendDevNotes ? 'rgba(255, 255, 255, 0.82)' : 'rgba(230, 233, 238, 0.75)',
               border: '1px solid rgba(0, 0, 0, 0.25)',
-              color: '#000000',
               fontFamily: '"Space Mono", monospace',
               fontWeight: 700,
             }}
@@ -358,23 +409,32 @@ function DeveloperNotesBox() {
       {/* Tasto Invia nero scuro puro (#000000) in rilievo con testo grigio metallizzato NON bold */}
       <button
         type="button"
+        disabled={!canSendDevNotes || !note.trim() || status === 'sending'}
         onClick={handleSendNote}
-        className="w-full py-1.5 hover:brightness-125 active:translate-y-0.5 tracking-wider uppercase transition-all flex items-center justify-center gap-1 cursor-pointer select-none"
+        title={!canSendDevNotes ? "Invio note riservato all'Amministratore" : "Invia nota allo sviluppatore"}
+        className={`w-full py-1.5 tracking-wider uppercase transition-all flex items-center justify-center gap-1 select-none ${
+          canSendDevNotes
+            ? 'hover:brightness-125 active:translate-y-0.5 cursor-pointer'
+            : 'opacity-40 cursor-not-allowed'
+        }`}
         style={{
           backgroundColor: '#000000',
           background: '#000000',
           fontFamily: '"Space Mono", monospace',
           borderRadius: '3px',
           border: '1px solid #000000',
-          boxShadow: '0 3px 6px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 1)',
+          boxShadow: canSendDevNotes
+            ? '0 3px 6px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 1)'
+            : 'none',
           color: '#cbd2d8',
           fontWeight: 400,
           fontSize: '10px',
-          opacity: 1,
         }}
       >
-        <span style={{ color: '#cbd2d8', fontWeight: 400 }}>{status === 'sending' ? 'Invio...' : 'INVIA'}</span>
-        <span className="text-[9px]" style={{ color: '#cbd2d8' }}>✉</span>
+        <span style={{ color: '#cbd2d8', fontWeight: 400 }}>
+          {status === 'sending' ? 'Invio...' : canSendDevNotes ? 'INVIA' : '🔒 NON CONSENTITO'}
+        </span>
+        {canSendDevNotes && <span className="text-[9px]" style={{ color: '#cbd2d8' }}>✉</span>}
       </button>
     </div>
   )

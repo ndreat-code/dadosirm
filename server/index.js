@@ -452,6 +452,11 @@ app.post('/api/crm/inventory/:id/return', (req, res) => {
 
 app.post('/api/ai/ask', async (req, res) => {
   try {
+    const userRole = (req.headers['x-user-role'] || '').toLowerCase()
+    if (userRole === 'dipendente' || userRole === 'restricted') {
+      return res.status(403).json({ error: 'Accesso negato: interrogazione OpenAI non consentita per il profilo Dipendente' })
+    }
+
     const { prompt } = req.body
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({ error: 'Prompt richiesto' })
@@ -1443,6 +1448,11 @@ Analisi elaborata in tempo reale per: "${prompt}"
 // ─────────────────────────────────────────────────────────────
 app.post('/api/developer-notes', async (req, res) => {
   try {
+    const userRole = (req.headers['x-user-role'] || '').toLowerCase()
+    if (userRole === 'dipendente' || userRole === 'restricted') {
+      return res.status(403).json({ error: 'Accesso negato: invio note sviluppatore disabilitato per il profilo Dipendente' })
+    }
+
     const { note } = req.body
     if (!note || !note.trim()) {
       return res.status(400).json({ error: 'Nota vuota' })

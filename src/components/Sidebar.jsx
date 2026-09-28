@@ -7,15 +7,18 @@ import {
   Boxes,
   Users as UsersIcon,
   Settings as SettingsIcon,
+  ShieldCheck,
+  UserCheck,
 } from 'lucide-react'
 import ClockDriveBox from './ClockDriveBox'
+import { useAuth } from '../context/AuthContext'
 
 const navItems = [
-  { to: '/companies',  label: 'Companies',   title: 'Companies (Aziende & Contratti)', icon: Building2 },
-  { to: '/activities', label: 'Activities',  title: 'Activities (Attività & Task)',   icon: ListTodo },
-  { to: '/calendar',   label: 'Calendar',    title: 'Calendar (Calendario Set)',      icon: CalendarDays },
-  { to: '/inventory',  label: 'Inventario',  title: 'Inventario (Attrezzature)',       icon: Boxes },
-  { to: '/users',      label: 'Utenti',      title: 'Utenti & Permessi di Accesso',    icon: UsersIcon },
+  { to: '/companies',  permission: 'companies',  label: 'Companies',   title: 'Companies (Aziende & Contratti)', icon: Building2 },
+  { to: '/activities', permission: 'activities', label: 'Activities',  title: 'Activities (Attività & Task)',   icon: ListTodo },
+  { to: '/calendar',   permission: 'calendar',   label: 'Calendar',    title: 'Calendar (Calendario Set)',      icon: CalendarDays },
+  { to: '/inventory',  permission: 'inventory',  label: 'Inventario',  title: 'Inventario (Attrezzature)',       icon: Boxes },
+  { to: '/users',      permission: 'users',      label: 'Utenti',      title: 'Utenti & Permessi di Accesso',    icon: UsersIcon },
 ]
 
 function DadoBrandMark({ size = 18 }) {
@@ -170,6 +173,8 @@ function AnimatedDashboardIcon({ isClicked, size = 26 }) {
 
 export default function Sidebar() {
   const location = useLocation()
+  const { currentUser, canAccess, isAdmin, isDipendente, switchUser } = useAuth()
+
   const isDashboard = location.pathname === '/' || location.pathname === '/dashboard-a' || location.pathname === '/dashboard-b'
   const isSubSection = ['/activities', '/companies', '/leads', '/calendar', '/inventory', '/inventario', '/users', '/utenti', '/settings'].some(path => location.pathname.startsWith(path))
 
@@ -202,6 +207,14 @@ export default function Sidebar() {
     return () => window.removeEventListener('dado-ai-focus', handler)
   }, [])
 
+  // Voci di navigazione filtrate in base ai permessi dell'utente corrente
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.permission === 'users') return isAdmin
+    return canAccess(item.permission)
+  })
+
+  const hasDashboardAccess = canAccess('dashboard')
+
   // Dimensioni e padding condizionali: allargata in Dashboard, ristretta (74px) nelle altre sezioni
   const sidebarWidth = isAiFocus ? '0px' : isDashboard ? 'calc(280px - 2cm)' : '74px'
   const paddingX = isAiFocus ? '0px' : isDashboard ? '1rem' : '0.5rem'
@@ -232,35 +245,37 @@ export default function Sidebar() {
       {/* Intestazione Logo: completo in Dashboard, scritta CRM centrata sopra le icone nelle sottosezioni */}
       <DadoLogo isDashboard={isDashboard} />
 
-      {/* Pulsante Dashboard — Icona animata in pulsante metallico */}
-      <NavLink
-        to="/"
-        end
-        onClick={handleDashboardClick}
-        className={({ isActive }) =>
-          `${buttonWidthClass} ${buttonAlignClass} mb-3.5 flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
-            isActive
-              ? 'border border-[#00d2ff] shadow-[0_0_12px_rgba(0,210,255,0.25)] text-white'
-              : 'border border-[#3d4350] hover:border-[#5b6475] text-[#9fb0c3] hover:text-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
-          }`
-        }
-        style={({ isActive }) => ({
-          marginTop: isDashboard ? 'calc(1rem + 1cm - 21px)' : '0.5rem',
-          background: isActive
-            ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
-            : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
-          boxShadow: isActive
-            ? '0 0 12px rgba(0,210,255,0.25), inset 0 1px 0 rgba(255,255,255,0.18)'
-            : '0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.09)',
-        })}
-        title="Dashboard"
-      >
-        <AnimatedDashboardIcon isClicked={isDashboardClicked} size={isDashboard ? 26 : 22} />
-      </NavLink>
+      {/* Pulsante Dashboard — Visibile solo per chi ha accesso alla Dashboard */}
+      {hasDashboardAccess && (
+        <NavLink
+          to="/"
+          end
+          onClick={handleDashboardClick}
+          className={({ isActive }) =>
+            `${buttonWidthClass} ${buttonAlignClass} mb-3.5 flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
+              isActive
+                ? 'border border-[#00d2ff] shadow-[0_0_12px_rgba(0,210,255,0.25)] text-white'
+                : 'border border-[#3d4350] hover:border-[#5b6475] text-[#9fb0c3] hover:text-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
+            }`
+          }
+          style={({ isActive }) => ({
+            marginTop: isDashboard ? 'calc(1rem + 1cm - 21px)' : '0.5rem',
+            background: isActive
+              ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
+              : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
+            boxShadow: isActive
+              ? '0 0 12px rgba(0,210,255,0.25), inset 0 1px 0 rgba(255,255,255,0.18)'
+              : '0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.09)',
+          })}
+          title="Dashboard"
+        >
+          <AnimatedDashboardIcon isClicked={isDashboardClicked} size={isDashboard ? 26 : 22} />
+        </NavLink>
+      )}
 
-      {/* Dock Navigazione Icone Metallizzate (incluse Utenti e Impostazioni) */}
-      <nav className="flex flex-col gap-2.5">
-        {navItems.map(({ to, title, icon: IconComponent }) => (
+      {/* Dock Navigazione Icone Metallizzate (Filtrate per permessi) */}
+      <nav className={`flex flex-col gap-2.5 ${!hasDashboardAccess ? 'mt-3' : ''}`}>
+        {visibleNavItems.map(({ to, title, icon: IconComponent }) => (
           <NavLink
             key={to}
             to={to}
@@ -322,10 +337,43 @@ export default function Sidebar() {
 
       {/* Collegamento a Google Drive con orario sotto Settings */}
       {!isDashboard && (
-        <div className="mt-4 w-full flex justify-center">
+        <div className="mt-3.5 w-full flex justify-center">
           <ClockDriveBox width="52px" height="48px" compact={true} onlyTime={true} />
         </div>
       )}
+
+      {/* Profilo Attivo & Switcher Veloce in Fondo alla Barra */}
+      <div className="mt-auto pt-3 border-t border-[#383e49]/80 w-full flex flex-col items-center">
+        <button
+          type="button"
+          onClick={() => switchUser(currentUser.id === 'usr-admin' ? 'usr-dipendente' : 'usr-admin')}
+          title={`Profilo attivo: ${currentUser.name} (${currentUser.badgeRole || currentUser.role}). Clicca per cambiare profilo tra Amministratore e Dipendente.`}
+          className={`flex items-center justify-center rounded-xl transition-all cursor-pointer select-none group ${
+            isDashboard ? 'w-[96px] py-1.5 px-1 self-start ml-[8px]' : 'w-[52px] h-[36px] self-center mx-auto'
+          } ${
+            isAdmin
+              ? 'border border-[#00d2ff]/60 bg-gradient-to-r from-[#202733] to-[#171c24] text-cyan-300 shadow-[0_0_8px_rgba(0,210,255,0.2)] hover:border-[#00d2ff]'
+              : 'border border-amber-500/60 bg-gradient-to-r from-[#2a221b] to-[#1c1815] text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.2)] hover:border-amber-400'
+          }`}
+        >
+          {isDashboard ? (
+            <div className="flex flex-col items-center justify-center w-full leading-tight text-center">
+              <span className="text-[10px] font-bold truncate max-w-full">
+                {isAdmin ? '👑 ADMIN' : '👤 DIPENDENTE'}
+              </span>
+              <span className="text-[8px] text-gray-400 opacity-80 mt-0.5">
+                (Clicca switch)
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center leading-none">
+              <span className="text-[10px] font-mono font-bold tracking-tight">
+                {isAdmin ? 'ADM' : 'DIP'}
+              </span>
+            </div>
+          )}
+        </button>
+      </div>
 
     </aside>
   )

@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Users as UsersIcon,
   UserPlus,
   ShieldCheck,
   Shield,
-  Eye,
   Edit3,
   Trash2,
   CheckCircle2,
@@ -19,142 +18,38 @@ import {
   Cpu,
   Lock,
   Mail,
-  User
+  Zap,
 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 // Moduli e permessi configurabili nel CRM
 const PERMISSION_MODULES = [
-  { id: 'dashboard',   label: 'Dashboard & Finanza',     desc: 'Fatturato, margini, cassa e KPI strategici',      icon: TrendingUp },
-  { id: 'companies',   label: 'Aziende & Contratti',     desc: 'Schede clienti, contratti, acconti e saldi',       icon: Building2 },
-  { id: 'activities',  label: 'Attività & Task',         desc: 'To-do, priorità e scadenze commerciali',           icon: ListTodo },
-  { id: 'calendar',    label: 'Calendario Produzioni',   desc: 'Pianificazione set, shooting, date e orari',      icon: CalendarDays },
-  { id: 'inventory',   label: 'Inventario & Noleggi',    desc: 'Disponibilità camere, lenti, luci e droni',        icon: Boxes },
-  { id: 'leads',       label: 'Pipeline & Opportunità',  desc: 'Trattative in corso, preventivi e BANT',          icon: Shield },
-  { id: 'ai',          label: 'AI Intelligence Assistant', desc: 'Interrogazione dati incrociati e Ask AI',        icon: Cpu },
-]
-
-// Utenti predefiniti
-const DEFAULT_USERS = [
-  {
-    id: 'usr-1',
-    name: 'Andrea T.',
-    email: 'andrea@dadocreativestudio.com',
-    role: 'Executive Producer / Admin',
-    badgeRole: 'Super Admin',
-    status: 'active',
-    accessType: 'admin',
-    permissions: {
-      dashboard: true,
-      companies: true,
-      activities: true,
-      calendar: true,
-      inventory: true,
-      leads: true,
-      ai: true,
-    },
-    lastLogin: 'Oggi alle 19:45',
-  },
-  {
-    id: 'usr-2',
-    name: 'Matteo V.',
-    email: 'm.valenti@dadocreativestudio.com',
-    role: 'Senior Producer & Regia',
-    badgeRole: 'Producer',
-    status: 'active',
-    accessType: 'custom',
-    permissions: {
-      dashboard: false,
-      companies: true,
-      activities: true,
-      calendar: true,
-      inventory: true,
-      leads: false,
-      ai: true,
-    },
-    lastLogin: 'Oggi alle 16:30',
-  },
-  {
-    id: 'usr-3',
-    name: 'Sofia R.',
-    email: 's.rossi@dadocreativestudio.com',
-    role: 'Account & Business Developer',
-    badgeRole: 'Commerciale',
-    status: 'active',
-    accessType: 'custom',
-    permissions: {
-      dashboard: true,
-      companies: true,
-      activities: true,
-      calendar: true,
-      inventory: false,
-      leads: true,
-      ai: true,
-    },
-    lastLogin: 'Ieri alle 18:10',
-  },
-  {
-    id: 'usr-4',
-    name: 'Elena B.',
-    email: 'e.bossi@dadocreativestudio.com',
-    role: 'Amministrazione & Controllo di Gestione',
-    badgeRole: 'Finance',
-    status: 'active',
-    accessType: 'custom',
-    permissions: {
-      dashboard: true,
-      companies: true,
-      activities: false,
-      calendar: false,
-      inventory: false,
-      leads: false,
-      ai: false,
-    },
-    lastLogin: '25 Set 2026',
-  },
-  {
-    id: 'usr-5',
-    name: 'Luca M.',
-    email: 'l.marchetti@collaboratori-dado.it',
-    role: 'Operatore Set & Drone Pilot (Esterno)',
-    badgeRole: 'Operatore Tecnico',
-    status: 'active',
-    accessType: 'restricted',
-    permissions: {
-      dashboard: false,
-      companies: false,
-      activities: true,
-      calendar: true,
-      inventory: true,
-      leads: false,
-      ai: false,
-    },
-    lastLogin: '27 Set 2026',
-  }
+  { id: 'dashboard',   label: 'Dashboard & Finanza',     desc: 'Fatturato, margini, cassa e KPI strategici',        icon: TrendingUp },
+  { id: 'companies',   label: 'Aziende & Contratti',     desc: 'Schede clienti, contratti, acconti e saldi',         icon: Building2 },
+  { id: 'activities',  label: 'Attività & Task',         desc: 'To-do, priorità e scadenze commerciali',             icon: ListTodo },
+  { id: 'calendar',    label: 'Calendario Produzioni',   desc: 'Pianificazione set, shooting, date e orari',        icon: CalendarDays },
+  { id: 'inventory',   label: 'Inventario & Noleggi',    desc: 'Disponibilità camere, lenti, luci e droni',          icon: Boxes },
+  { id: 'leads',       label: 'Pipeline & Opportunità',  desc: 'Trattative in corso, preventivi e BANT',            icon: Shield },
+  { id: 'ai',          label: 'AI Intelligence Assistant', desc: 'Assistente intelligente e automazioni',            icon: Cpu },
+  { id: 'devNotes',    label: 'Note Sviluppatore',       desc: 'Invio note allo sviluppatore (n.drea.t@gmail.com)',  icon: Mail },
+  { id: 'askOpenAi',   label: 'Ask OpenAI CRM',          desc: 'Interrogazione diretta database con OpenAI',         icon: Cpu },
 ]
 
 export default function Users() {
-  const [users, setUsers] = useState(() => {
-    try {
-      const saved = localStorage.getItem('dado_crm_users_v1')
-      if (saved) return JSON.parse(saved)
-    } catch (e) {
-      console.warn('Errore lettura users da storage:', e)
-    }
-    return DEFAULT_USERS
-  })
+  const {
+    users,
+    currentUser,
+    activeUserId,
+    isAdmin,
+    switchUser,
+    addUser,
+    updateUser,
+    deleteUser,
+  } = useAuth()
 
   const [modalUser, setModalUser] = useState(null)
   const [isNewUser, setIsNewUser] = useState(false)
   const [activeFilter, setActiveFilter] = useState('all')
-
-  // Salva ogni modifica in localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('dado_crm_users_v1', JSON.stringify(users))
-    } catch (e) {
-      console.warn('Errore salvataggio users:', e)
-    }
-  }, [users])
 
   function handleOpenNewUser() {
     setIsNewUser(true)
@@ -168,12 +63,14 @@ export default function Users() {
       accessType: 'custom',
       permissions: {
         dashboard: false,
-        companies: true,
+        companies: false,
         activities: true,
         calendar: true,
         inventory: false,
         leads: false,
         ai: false,
+        devNotes: false,
+        askOpenAi: false,
       },
       lastLogin: 'Mai effettuato',
     })
@@ -191,29 +88,22 @@ export default function Users() {
     }
 
     if (isNewUser) {
-      setUsers((prev) => [modalUser, ...prev])
+      addUser(modalUser)
     } else {
-      setUsers((prev) => prev.map((u) => (u.id === modalUser.id ? modalUser : u)))
+      updateUser(modalUser)
     }
     setModalUser(null)
   }
 
   function handleDeleteUser(id) {
     if (confirm('Sei sicuro di voler rimuovere questo utente? Non potrà più accedere al CRM.')) {
-      setUsers((prev) => prev.filter((u) => u.id !== id))
+      deleteUser(id)
     }
   }
 
-  function handleToggleStatus(id) {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === id) {
-          const nextStatus = u.status === 'active' ? 'suspended' : 'active'
-          return { ...u, status: nextStatus }
-        }
-        return u
-      })
-    )
+  function handleToggleStatus(u) {
+    const nextStatus = u.status === 'active' ? 'suspended' : 'active'
+    updateUser({ ...u, status: nextStatus })
   }
 
   function togglePermission(moduleId) {
@@ -221,31 +111,94 @@ export default function Users() {
       ...prev,
       permissions: {
         ...prev.permissions,
-        [moduleId]: !prev.permissions[moduleId],
+        [moduleId]: !prev.permissions?.[moduleId],
       },
     }))
   }
 
-  function toggleAllPermissions(value) {
-    const nextPerms = {}
+  function toggleAllPermissions(enableAll) {
+    const updated = {}
     PERMISSION_MODULES.forEach((m) => {
-      nextPerms[m.id] = value
+      updated[m.id] = enableAll
     })
-    setModalUser((prev) => ({ ...prev, permissions: nextPerms }))
+    setModalUser((prev) => ({
+      ...prev,
+      permissions: updated,
+    }))
   }
 
   const filteredUsers = users.filter((u) => {
-    if (activeFilter === 'all') return true
     if (activeFilter === 'active') return u.status === 'active'
-    if (activeFilter === 'admin') return u.accessType === 'admin'
+    if (activeFilter === 'admin') return u.accessType === 'admin' || u.badgeRole === 'Amministratore'
+    if (activeFilter === 'restricted') return u.accessType !== 'admin' && u.badgeRole !== 'Amministratore'
     return true
   })
 
   return (
-    <div className="min-h-screen bg-[#111111] flex flex-col flex-1 relative font-sans text-slate-800">
-      
-      {/* ── CANVAS BIANCO ("FOGLIO") DI CONTENUTO ── */}
-      <div className="h-full flex-1 bg-white rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-start relative min-w-0 overflow-y-auto p-8 sm:p-10">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+
+        {/* ── BANNER PROFILO ATTIVO IN USO ── */}
+        <div
+          className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs transition-all ${
+            isAdmin
+              ? 'bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white border-slate-700'
+              : 'bg-gradient-to-r from-amber-950 via-slate-900 to-slate-900 text-white border-amber-600/50'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                isAdmin ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+              }`}
+            >
+              {isAdmin ? '👑' : '👤'}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-gray-400">
+                  Profilo Attivo nel CRM:
+                </span>
+                <span
+                  className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                    isAdmin ? 'bg-cyan-400 text-black' : 'bg-amber-400 text-black'
+                  }`}
+                >
+                  {currentUser.badgeRole || currentUser.role}
+                </span>
+              </div>
+              <div className="text-base font-bold text-white font-mono mt-0.5">
+                {currentUser.name} <span className="text-xs text-gray-400 font-sans font-normal">({currentUser.email})</span>
+              </div>
+              {!isAdmin && (
+                <p className="text-xs text-amber-300/90 font-sans mt-0.5">
+                  ⚠️ Modalità Dipendente: Accesso consentito solo ad <strong>Attività</strong> e <strong>Calendario</strong>. Note Sviluppatore e Ask OpenAI sono disabilitate.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-center">
+            {currentUser.id !== 'usr-admin' && (
+              <button
+                type="button"
+                onClick={() => switchUser('usr-admin')}
+                className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
+              >
+                <span>👑 Torna ad Admin</span>
+              </button>
+            )}
+            {currentUser.id !== 'usr-dipendente' && (
+              <button
+                type="button"
+                onClick={() => switchUser('usr-dipendente')}
+                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
+              >
+                <span>👤 Simula Dipendente</span>
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* ── HEADER SEZIONE UTENTI ── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
@@ -259,7 +212,7 @@ export default function Users() {
               </h1>
             </div>
             <p className="text-sm text-slate-500 font-sans">
-              Configura gli account del team e seleziona in modo granulare a quali sezioni del CRM dare accesso.
+              Configura i profili del team, scegli selettivamente a quali moduli dare accesso e controlla le abilitazioni per Note Sviluppatore e Ask OpenAI.
             </p>
           </div>
 
@@ -275,8 +228,8 @@ export default function Users() {
         </div>
 
         {/* ── STATISTICHE RAPIDE ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 my-6">
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 block">
               Totale Utenti
             </span>
@@ -285,32 +238,76 @@ export default function Users() {
             </span>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-600 block">
-              Attivi Oggi
+              Attivi
             </span>
             <span className="text-2xl font-black font-mono text-emerald-600 mt-1 block">
               {users.filter((u) => u.status === 'active').length}
             </span>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-sky-600 block">
               Amministratori
             </span>
             <span className="text-2xl font-black font-mono text-sky-600 mt-1 block">
-              {users.filter((u) => u.accessType === 'admin').length}
+              {users.filter((u) => u.accessType === 'admin' || u.badgeRole === 'Amministratore').length}
             </span>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-600 block">
               Accesso Ristretto
             </span>
             <span className="text-2xl font-black font-mono text-amber-600 mt-1 block">
-              {users.filter((u) => u.accessType !== 'admin').length}
+              {users.filter((u) => u.accessType !== 'admin' && u.badgeRole !== 'Amministratore').length}
             </span>
           </div>
+        </div>
+
+        {/* ── FILTRI ── */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <button
+            onClick={() => setActiveFilter('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+              activeFilter === 'all'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Tutti ({users.length})
+          </button>
+          <button
+            onClick={() => setActiveFilter('active')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+              activeFilter === 'active'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Attivi ({users.filter((u) => u.status === 'active').length})
+          </button>
+          <button
+            onClick={() => setActiveFilter('admin')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+              activeFilter === 'admin'
+                ? 'bg-sky-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Amministratori ({users.filter((u) => u.accessType === 'admin' || u.badgeRole === 'Amministratore').length})
+          </button>
+          <button
+            onClick={() => setActiveFilter('restricted')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+              activeFilter === 'restricted'
+                ? 'bg-amber-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Dipendenti & Ristretti ({users.filter((u) => u.accessType !== 'admin' && u.badgeRole !== 'Amministratore').length})
+          </button>
         </div>
 
         {/* ── TABELLA UTENTI & PERMESSI ── */}
@@ -321,27 +318,42 @@ export default function Users() {
                 <tr>
                   <th className="py-3 px-4">Utente</th>
                   <th className="py-3 px-4">Ruolo</th>
-                  <th className="py-3 px-4">Sezioni Accessibili</th>
+                  <th className="py-3 px-4">Sezioni & Funzioni</th>
                   <th className="py-3 px-4 text-center">Stato</th>
+                  <th className="py-3 px-4 text-center">Profilo in Uso</th>
                   <th className="py-3 px-4 text-right">Azioni</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-sans">
                 {filteredUsers.map((u) => {
-                  const allowedCount = Object.values(u.permissions || {}).filter(Boolean).length
-                  const isSuperAdmin = u.accessType === 'admin'
+                  const isSuperAdmin = u.accessType === 'admin' || u.badgeRole === 'Amministratore'
+                  const isCurrentActive = u.id === activeUserId
 
                   return (
-                    <tr key={u.id} className="hover:bg-slate-50/70 transition-colors">
+                    <tr
+                      key={u.id}
+                      className={`transition-colors ${
+                        isCurrentActive ? 'bg-cyan-50/40 hover:bg-cyan-50/60' : 'hover:bg-slate-50/70'
+                      }`}
+                    >
                       {/* Colonna 1: Avatar e Nome */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-800 text-white font-mono font-bold text-xs flex items-center justify-center flex-shrink-0">
+                          <div
+                            className={`w-10 h-10 rounded-full text-white font-mono font-bold text-xs flex items-center justify-center flex-shrink-0 ${
+                              isSuperAdmin ? 'bg-slate-900 border border-cyan-400' : 'bg-slate-700'
+                            }`}
+                          >
                             {u.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                           </div>
                           <div>
-                            <div className="font-bold text-slate-900 leading-tight">
-                              {u.name}
+                            <div className="font-bold text-slate-900 leading-tight flex items-center gap-1.5">
+                              <span>{u.name}</span>
+                              {isCurrentActive && (
+                                <span className="text-[10px] font-mono text-cyan-700 bg-cyan-100 px-1.5 py-0.2 rounded font-bold">
+                                  IN USO
+                                </span>
+                              )}
                             </div>
                             <div className="text-xs text-slate-500 font-mono">
                               {u.email}
@@ -355,40 +367,70 @@ export default function Users() {
                         <div className="text-xs font-semibold text-slate-800">
                           {u.role}
                         </div>
-                        <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                          {u.badgeRole}
+                        <span
+                          className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                            isSuperAdmin
+                              ? 'bg-cyan-50 text-cyan-800 border-cyan-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          {u.badgeRole || u.role}
                         </span>
                       </td>
 
                       {/* Colonna 3: Sezioni con Badge */}
                       <td className="py-3 px-4">
                         {isSuperAdmin ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-300">
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                            <span>Accesso Totale (Tutti i Moduli)</span>
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 w-fit">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>Accesso Totale (Tutti i Moduli)</span>
+                            </span>
+                            <div className="flex items-center gap-2 text-[10px] font-mono text-emerald-800">
+                              <span>✓ Note Sviluppatore</span>
+                              <span>✓ Ask OpenAI</span>
+                            </div>
+                          </div>
                         ) : (
-                          <div className="flex flex-wrap gap-1.5 max-w-md">
-                            {PERMISSION_MODULES.map((m) => {
-                              const hasAccess = u.permissions?.[m.id]
-                              if (!hasAccess) return null
-                              const IconComponent = m.icon
-                              return (
-                                <span
-                                  key={m.id}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200"
-                                  title={m.desc}
-                                >
-                                  <IconComponent className="w-3 h-3 text-[#007a50]" />
-                                  <span>{m.label.split(' ')[0]}</span>
-                                </span>
-                              )
-                            })}
-                            {allowedCount === 0 && (
-                              <span className="text-xs text-slate-400 italic">
-                                Nessun modulo assegnato
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap gap-1.5 max-w-md">
+                              {PERMISSION_MODULES.filter(m => m.id !== 'devNotes' && m.id !== 'askOpenAi').map((m) => {
+                                const hasAccess = u.permissions?.[m.id]
+                                if (!hasAccess) return null
+                                const IconComponent = m.icon
+                                return (
+                                  <span
+                                    key={m.id}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200"
+                                    title={m.desc}
+                                  >
+                                    <IconComponent className="w-3 h-3 text-[#007a50]" />
+                                    <span>{m.label.split(' ')[0]}</span>
+                                  </span>
+                                )
+                              })}
+                            </div>
+                            {/* Stato Funzioni Speciali */}
+                            <div className="flex items-center gap-2 text-[10.5px] font-mono">
+                              <span
+                                className={`px-1.5 py-0.5 rounded ${
+                                  u.permissions?.devNotes
+                                    ? 'bg-emerald-100 text-emerald-800 font-bold'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                }`}
+                              >
+                                {u.permissions?.devNotes ? '✓ Note Sviluppatore' : '✕ Note Sviluppatore (Bloccato)'}
                               </span>
-                            )}
+                              <span
+                                className={`px-1.5 py-0.5 rounded ${
+                                  u.permissions?.askOpenAi
+                                    ? 'bg-emerald-100 text-emerald-800 font-bold'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                }`}
+                              >
+                                {u.permissions?.askOpenAi ? '✓ Ask OpenAI' : '✕ Ask OpenAI (Bloccato)'}
+                              </span>
+                            </div>
                           </div>
                         )}
                       </td>
@@ -396,7 +438,7 @@ export default function Users() {
                       {/* Colonna 4: Stato */}
                       <td className="py-3 px-4 text-center">
                         <button
-                          onClick={() => handleToggleStatus(u.id)}
+                          onClick={() => handleToggleStatus(u)}
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold cursor-pointer transition-all ${
                             u.status === 'active'
                               ? 'bg-emerald-100/70 text-emerald-800 hover:bg-emerald-200'
@@ -418,20 +460,40 @@ export default function Users() {
                         </button>
                       </td>
 
-                      {/* Colonna 5: Azioni */}
+                      {/* Colonna 5: Profilo in Uso / Switch */}
+                      <td className="py-3 px-4 text-center">
+                        {isCurrentActive ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-cyan-500 text-slate-950 shadow-xs">
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            <span>In Uso</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => switchUser(u.id)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-all cursor-pointer"
+                            title="Attiva questo account per navigare nel CRM"
+                          >
+                            <Zap className="w-3 h-3 text-amber-500" />
+                            <span>Attiva</span>
+                          </button>
+                        )}
+                      </td>
+
+                      {/* Colonna 6: Azioni */}
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleEditUser(u)}
-                            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+                            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
                             title="Modifica Utente & Permessi"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
-                          {u.accessType !== 'admin' && (
+                          {!isSuperAdmin && (
                             <button
                               onClick={() => handleDeleteUser(u.id)}
-                              className="p-1.5 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"
+                              className="p-1.5 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                               title="Elimina Utente"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -509,7 +571,7 @@ export default function Users() {
                   type="text"
                   value={modalUser.role}
                   onChange={(e) => setModalUser({ ...modalUser, role: e.target.value })}
-                  placeholder="Es. Responsabile Set / Fonico"
+                  placeholder="Es. Operatore Set / Regia"
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-sans focus:outline-none focus:border-[#007a50]"
                 />
               </div>
@@ -531,7 +593,7 @@ export default function Users() {
                 >
                   <option value="custom">Personalizzato (Scelta moduli)</option>
                   <option value="admin">Amministratore (Tutto abilitato)</option>
-                  <option value="restricted">Collaboratore Ristretto</option>
+                  <option value="restricted">Dipendente con Funzioni Limitate</option>
                 </select>
               </div>
             </div>
@@ -541,14 +603,14 @@ export default function Users() {
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-mono font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-[#007a50]" />
-                  <span>Sezioni Accessibili nel CRM:</span>
+                  <span>Sezioni & Funzionalità Abilitate:</span>
                 </span>
 
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => toggleAllPermissions(true)}
-                    className="text-[11px] font-mono font-bold text-[#007a50] hover:underline"
+                    className="text-[11px] font-mono font-bold text-[#007a50] hover:underline cursor-pointer"
                   >
                     Seleziona tutti
                   </button>
@@ -556,7 +618,7 @@ export default function Users() {
                   <button
                     type="button"
                     onClick={() => toggleAllPermissions(false)}
-                    className="text-[11px] font-mono font-bold text-slate-400 hover:underline"
+                    className="text-[11px] font-mono font-bold text-slate-400 hover:underline cursor-pointer"
                   >
                     Deseleziona tutti
                   </button>
@@ -568,13 +630,17 @@ export default function Users() {
                 {PERMISSION_MODULES.map((m) => {
                   const isChecked = Boolean(modalUser.permissions?.[m.id])
                   const IconComp = m.icon
+                  const isRestrictedFeature = m.id === 'devNotes' || m.id === 'askOpenAi'
+
                   return (
                     <div
                       key={m.id}
                       onClick={() => togglePermission(m.id)}
                       className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                         isChecked
-                          ? 'border-[#007a50] bg-emerald-50/50 shadow-xs'
+                          ? isRestrictedFeature
+                            ? 'border-cyan-600 bg-cyan-50/50 shadow-xs'
+                            : 'border-[#007a50] bg-emerald-50/50 shadow-xs'
                           : 'border-slate-200 bg-white hover:bg-slate-50'
                       }`}
                     >
@@ -582,15 +648,22 @@ export default function Users() {
                         <div
                           className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                             isChecked
-                              ? 'bg-[#007a50] text-white'
+                              ? isRestrictedFeature
+                                ? 'bg-cyan-600 text-white'
+                                : 'bg-[#007a50] text-white'
                               : 'bg-slate-100 text-slate-500'
                           }`}
                         >
                           <IconComp className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-xs font-bold text-slate-900 leading-tight">
-                            {m.label}
+                          <div className="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1.5">
+                            <span>{m.label}</span>
+                            {isRestrictedFeature && (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                Speciale
+                              </span>
+                            )}
                           </div>
                           <div className="text-[11px] text-slate-500 leading-snug">
                             {m.desc}
@@ -602,7 +675,9 @@ export default function Users() {
                       <div
                         className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
                           isChecked
-                            ? 'bg-[#007a50] border-[#007a50] text-white'
+                            ? isRestrictedFeature
+                              ? 'bg-cyan-600 border-cyan-600 text-white'
+                              : 'bg-[#007a50] border-[#007a50] text-white'
                             : 'border-slate-300 bg-white'
                         }`}
                       >
@@ -619,14 +694,14 @@ export default function Users() {
               <button
                 type="button"
                 onClick={() => setModalUser(null)}
-                className="px-4 py-2 border border-slate-300 hover:bg-slate-100 rounded-xl text-xs font-mono font-bold text-slate-700 transition-colors"
+                className="px-4 py-2 border border-slate-300 hover:bg-slate-100 rounded-xl text-xs font-mono font-bold text-slate-700 transition-colors cursor-pointer"
               >
                 Annulla
               </button>
               <button
                 type="button"
                 onClick={handleSaveModal}
-                className="px-5 py-2 bg-[#007a50] hover:bg-[#008f5d] text-white rounded-xl text-xs font-mono font-bold transition-all shadow-sm active:scale-95"
+                className="px-5 py-2 bg-[#007a50] hover:bg-[#008f5d] text-white rounded-xl text-xs font-mono font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
               >
                 Salva e Applica Accessi
               </button>
