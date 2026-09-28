@@ -46,7 +46,7 @@
         "need": "Produzione contenuti audiovisivi",
         "timeline": "Entro 1 settimana"
       },
-      "lastContact": "2026-09-28T00:37:01.318Z"
+      "lastContact": "2026-09-28T00:44:01.842Z"
     },
     {
       "id": "comp-1790554140763",
@@ -226,7 +226,7 @@
         "isResolved": "Risolto",
         "resolution": "Riorganizzata la timeline di ripresa anticipando le scene a terra con i tecnici e le interviste; riprese aeree completate nel tardo pomeriggio quando il vento è sceso a 8 nodi."
       },
-      "lastContact": "2026-09-28T00:36:00.995Z",
+      "lastContact": "2026-09-28T00:41:00.486Z",
       "bant": {
         "budget": "€ 14.500.",
         "authority": "Referente aziendale",
@@ -294,7 +294,7 @@
         "isResolved": "Risolto",
         "resolution": "Impiegato il tempo d'attesa per calibrare al millimetro i contrasti luce con la controfigura e scattare gli accessori secondari; nessun minuto perso sul set effettivo."
       },
-      "lastContact": "2026-09-28T00:35:00.243Z",
+      "lastContact": "2026-09-28T00:43:00.374Z",
       "bant": {
         "authority": "Referente aziendale",
         "need": "Pianificazione call tecnica e coordinamento studio",
@@ -1430,6 +1430,132 @@
     }
   ],
   "emails": [
+    {
+      "id": "sim-1790556239928-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T00:43:59.928Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790556179926-2",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci",
+      "snippet": "Ciao DADO team, potremmo fare una video call o incontro Lunedì alle 10:00?......",
+      "body": "Ciao DADO team, vorremmo concordare una video call o appuntamento in studio per Lunedì mattina alle ore 10:00 per discutere i test fondale e la calibrazione monitor Atomos Ninja. Ci confermate se siete liberi a calendario?",
+      "date": "2026-09-28T00:42:59.926Z",
+      "aiSummary": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790556119926-2",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci",
+      "snippet": "Ciao DADO team, potremmo fare una video call o incontro Lunedì alle 10:00?......",
+      "body": "Ciao DADO team, vorremmo concordare una video call o appuntamento in studio per Lunedì mattina alle ore 10:00 per discutere i test fondale e la calibrazione monitor Atomos Ninja. Ci confermate se siete liberi a calendario?",
+      "date": "2026-09-28T00:41:59.926Z",
+      "aiSummary": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790556059924-4",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.",
+      "date": "2026-09-28T00:40:59.924Z",
+      "aiSummary": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790555999923-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T00:39:59.923Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790555939921-4",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.",
+      "date": "2026-09-28T00:38:59.921Z",
+      "aiSummary": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790555879920-2",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci",
+      "snippet": "Ciao DADO team, potremmo fare una video call o incontro Lunedì alle 10:00?......",
+      "body": "Ciao DADO team, vorremmo concordare una video call o appuntamento in studio per Lunedì mattina alle ore 10:00 per discutere i test fondale e la calibrazione monitor Atomos Ninja. Ci confermate se siete liberi a calendario?",
+      "date": "2026-09-28T00:37:59.920Z",
+      "aiSummary": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
     {
       "id": "sim-1790555819921-5",
       "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
@@ -4797,6 +4923,118 @@
   ],
   "drafts": [
     {
+      "id": "draft-1790556241842-15",
+      "emailId": "sim-1790556239928-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:44:01.842Z",
+      "sentAt": "2026-09-28T00:44:01.842Z"
+    },
+    {
+      "id": "draft-1790556180375-882",
+      "emailId": "sim-1790556179926-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:43:00.375Z",
+      "sentAt": "2026-09-28T00:43:00.375Z"
+    },
+    {
+      "id": "draft-1790556121407-18",
+      "emailId": "sim-1790556119926-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:42:01.407Z",
+      "sentAt": "2026-09-28T00:42:01.407Z"
+    },
+    {
+      "id": "draft-1790556060486-954",
+      "emailId": "sim-1790556059924-4",
+      "company": "Solaris Green Energy",
+      "recipient": "e.fontana@solarisgreen.eu",
+      "subject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "body": "Gentile Elena Fontana,\n\nin riferimento alla vostra richiesta per Solaris Green Energy relativa a \"Revisione economica e contrattuale spot TV HDR\", abbiamo elaborato la seguente proposta preliminare:\n\n• Budget indicativo stimato: € 14.500.\n• Finestra di consegna: Entro 1 settimana\n• Condizioni: 50% all'accettazione e saldo alla consegna dei master 4K.\n\n[Bozza generata da automazione CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nDADO Creative Studio",
+      "category": "CUSTOM_OR_NEGOTIATION",
+      "subType": "draft_only",
+      "autoSend": false,
+      "reason": "Trattativa complessa / preventivo personalizzato: salvato nelle BOZZE per revisione manuale (Non inviato in automatico)",
+      "status": "draft",
+      "requiresReview": true,
+      "createdAt": "2026-09-28T00:41:00.486Z",
+      "sentAt": null
+    },
+    {
+      "id": "draft-1790556000262-141",
+      "emailId": "sim-1790555999923-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:40:00.262Z",
+      "sentAt": "2026-09-28T00:40:00.262Z"
+    },
+    {
+      "id": "draft-1790555940416-651",
+      "emailId": "sim-1790555939921-4",
+      "company": "Solaris Green Energy",
+      "recipient": "e.fontana@solarisgreen.eu",
+      "subject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "body": "Gentile Elena Fontana,\n\nin riferimento alla vostra richiesta per Solaris Green Energy relativa a \"Revisione economica e contrattuale spot TV HDR\", abbiamo elaborato la seguente proposta preliminare:\n\n• Budget indicativo stimato: € 14.500.\n• Finestra di consegna: Entro 1 settimana\n• Condizioni: 50% all'accettazione e saldo alla consegna dei master 4K.\n\n[Bozza generata da automazione CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nDADO Creative Studio",
+      "category": "CUSTOM_OR_NEGOTIATION",
+      "subType": "draft_only",
+      "autoSend": false,
+      "reason": "Trattativa complessa / preventivo personalizzato: salvato nelle BOZZE per revisione manuale (Non inviato in automatico)",
+      "status": "draft",
+      "requiresReview": true,
+      "createdAt": "2026-09-28T00:39:00.416Z",
+      "sentAt": null
+    },
+    {
+      "id": "draft-1790555880278-751",
+      "emailId": "sim-1790555879920-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:38:00.278Z",
+      "sentAt": "2026-09-28T00:38:00.278Z"
+    },
+    {
       "id": "draft-1790555821318-633",
       "emailId": "sim-1790555819921-5",
       "company": "Fashion Brand Milano",
@@ -5278,6 +5516,86 @@
     }
   ],
   "sentEmails": [
+    {
+      "id": "draft-1790556241842-15",
+      "emailId": "sim-1790556239928-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:44:01.842Z",
+      "sentAt": "2026-09-28T00:44:01.842Z"
+    },
+    {
+      "id": "draft-1790556180375-882",
+      "emailId": "sim-1790556179926-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:43:00.375Z",
+      "sentAt": "2026-09-28T00:43:00.375Z"
+    },
+    {
+      "id": "draft-1790556121407-18",
+      "emailId": "sim-1790556119926-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:42:01.407Z",
+      "sentAt": "2026-09-28T00:42:01.407Z"
+    },
+    {
+      "id": "draft-1790556000262-141",
+      "emailId": "sim-1790555999923-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:40:00.262Z",
+      "sentAt": "2026-09-28T00:40:00.262Z"
+    },
+    {
+      "id": "draft-1790555880278-751",
+      "emailId": "sim-1790555879920-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T00:38:00.278Z",
+      "sentAt": "2026-09-28T00:38:00.278Z"
+    },
     {
       "id": "draft-1790555821318-633",
       "emailId": "sim-1790555819921-5",

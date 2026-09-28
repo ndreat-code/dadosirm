@@ -54,6 +54,17 @@ const INITIAL_CALENDAR_DATA = {
 
 export default function Calendar() {
   const [searchParams] = useSearchParams()
+
+  // Stato data e ora in tempo reale per mantenere la data odierna sempre aggiornata
+  const [realTimeNow, setRealTimeNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRealTimeNow(new Date())
+    }, 30000)
+    return () => clearInterval(timer)
+  }, [])
+
   // Data di riferimento dinamica (se query param date=YYYY-MM-DD usa quella, altrimenti usa oggi)
   const [currentDate, setCurrentDate] = useState(() => {
     const dParam = searchParams.get('date')
@@ -97,13 +108,13 @@ export default function Calendar() {
     monday.setDate(d.getDate() + diffToMonday)
     monday.setHours(0, 0, 0, 0)
 
-    const todayIso = getTodayIso()
+    const todayIso = getTodayIso(realTimeNow)
 
     const days = []
     for (let i = 0; i < 7; i++) {
       const dayDate = new Date(monday)
       dayDate.setDate(monday.getDate() + i)
-      const iso = dayDate.toISOString().split('T')[0]
+      const iso = getTodayIso(dayDate)
       days.push({
         dateObj: dayDate,
         iso,
@@ -116,10 +127,17 @@ export default function Calendar() {
       })
     }
     return days
-  }, [currentDate])
+  }, [currentDate, realTimeNow])
 
   const activeMonthIndex = currentWeekDays[3]?.monthNum ?? currentDate.getMonth()
   const activeYear = currentWeekDays[3]?.year ?? currentDate.getFullYear()
+
+  // Valori dinamici per il riquadro azzurro in alto a destra
+  const todayDayNum = realTimeNow.getDate()
+  const todayMonthShort = MONTH_NAMES[realTimeNow.getMonth()]?.slice(0, 3).toUpperCase() || 'SET'
+  const todayDayOfWeekIndex = realTimeNow.getDay() === 0 ? 6 : realTimeNow.getDay() - 1
+  const todayDayNameLong = DAY_NAMES_LONG[todayDayOfWeekIndex] || 'Lunedì'
+  const todayMonthNameLong = MONTH_NAMES[realTimeNow.getMonth()] || 'Settembre'
 
   // Navigazione Settimana
   function handlePrevWeek() {
@@ -139,8 +157,10 @@ export default function Calendar() {
   }
 
   function handleToday() {
-    setCurrentDate(new Date())
-    setHighlightedDayIso(getTodayIso())
+    const now = new Date()
+    setRealTimeNow(now)
+    setCurrentDate(now)
+    setHighlightedDayIso(getTodayIso(now))
   }
 
   // Cambio mese
@@ -398,13 +418,13 @@ export default function Calendar() {
                 }}
                 title="Clicca per andare alla settimana corrente e centrare la data di oggi"
               >
-                {/* Box Giorno del Mese (Grande) */}
+                {/* Box Giorno del Mese (Grande Dinamico) */}
                 <div className="w-12 h-12 rounded-xl bg-white/20 border border-white/30 flex flex-col items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-colors">
                   <span className="text-[10px] font-mono font-black uppercase tracking-wider text-sky-100 leading-none">
-                    SET
+                    {todayMonthShort}
                   </span>
                   <span className="text-2xl font-black font-mono leading-none mt-0.5 text-white">
-                    25
+                    {todayDayNum}
                   </span>
                 </div>
 
@@ -415,7 +435,7 @@ export default function Calendar() {
                     <span>OGGI È</span>
                   </div>
                   <div className="text-lg sm:text-xl font-black font-mono tracking-tight leading-tight text-white mt-0.5">
-                    Venerdì, 25 Settembre
+                    {todayDayNameLong}, {todayDayNum} {todayMonthNameLong}
                   </div>
                 </div>
               </button>
