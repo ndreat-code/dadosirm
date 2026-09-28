@@ -12,18 +12,15 @@ import {
   Mail,
   User,
   Search,
-  Filter,
   ArrowUpDown,
   Plus,
-  X,
   ChevronDown,
   ChevronUp,
   Download,
   Camera,
   Check,
-  Send,
   Sparkles,
-  Globe
+  Zap,
 } from 'lucide-react'
 
 // Helper per determinare lo stato di relazione / pagamento dell'azienda
@@ -31,17 +28,17 @@ export function getCompanyRelationshipStatus(comp) {
   if (comp.relationshipStatus) {
     switch (comp.relationshipStatus) {
       case 'lead_inbound':
-        return { key: 'lead_inbound', label: 'Lead & Inbound', emoji: '🎯', color: '#00ffaa', bg: 'rgba(0, 255, 170, 0.15)', border: 'rgba(0, 255, 170, 0.45)' }
+        return { key: 'lead_inbound', label: 'Lead & Inbound', tag: 'LEAD', emoji: '🎯', color: '#0284c7', bg: '#e0f2fe', border: '#bae6fd' }
       case 'in_coda_pagamento':
-        return { key: 'in_coda_pagamento', label: 'In coda pagamento', emoji: '⏳', color: '#ff9800', bg: 'rgba(255, 152, 0, 0.15)', border: 'rgba(255, 152, 0, 0.45)' }
+        return { key: 'in_coda_pagamento', label: 'In coda pagamento', tag: 'ATTESA PAGAMENTO', emoji: '⏳', color: '#b45309', bg: '#fef3c7', border: '#fde68a' }
       case 'in_attesa_risposta':
-        return { key: 'in_attesa_risposta', label: 'In attesa risposta', emoji: '🔄', color: '#00e5ff', bg: 'rgba(0, 229, 255, 0.15)', border: 'rgba(0, 229, 255, 0.45)' }
+        return { key: 'in_attesa_risposta', label: 'In attesa risposta', tag: 'IN ATTESA', emoji: '🔄', color: '#0369a1', bg: '#e0f2fe', border: '#7dd3fc' }
       case 'lavoro_concluso':
-        return { key: 'lavoro_concluso', label: 'Lavoro concluso', emoji: '✅', color: '#c084fc', bg: 'transparent', border: 'transparent' }
+        return { key: 'lavoro_concluso', label: 'Lavoro concluso', tag: 'CONCLUSO', emoji: '✅', color: '#15803d', bg: '#dcfce7', border: '#bbf7d0' }
       case 'rifiutato':
-        return { key: 'rifiutato', label: 'Rifiutato all\'ultimo', emoji: '❌', color: '#ff4444', bg: 'rgba(255, 68, 68, 0.15)', border: 'rgba(255, 68, 68, 0.45)' }
+        return { key: 'rifiutato', label: 'Rifiutato all\'ultimo', tag: 'RIFIUTATO', emoji: '❌', color: '#b91c1c', bg: '#fee2e2', border: '#fca5a5' }
       case 'interrotto':
-        return { key: 'interrotto', label: 'Rapporto interrotto', emoji: '⛔', color: '#e53935', bg: 'rgba(229, 57, 53, 0.2)', border: 'rgba(229, 57, 53, 0.5)' }
+        return { key: 'interrotto', label: 'Rapporto interrotto', tag: 'INTERROTTO', emoji: '⛔', color: '#991b1b', bg: '#fee2e2', border: '#f87171' }
       default:
         break
     }
@@ -49,25 +46,25 @@ export function getCompanyRelationshipStatus(comp) {
 
   // Deduci dai dati del CRM
   if (comp.status === 'In trattativa' || comp.contract?.code?.includes('INB') || comp.contract?.status === 'In elaborazione') {
-    return { key: 'lead_inbound', label: 'Lead & Inbound', emoji: '🎯', color: '#00ffaa', bg: 'rgba(0, 255, 170, 0.15)', border: 'rgba(0, 255, 170, 0.45)' }
+    return { key: 'lead_inbound', label: 'Lead & Inbound', tag: 'LEAD', emoji: '🎯', color: '#0284c7', bg: '#e0f2fe', border: '#bae6fd' }
   }
   if (comp.status === 'Rifiutato') {
-    return { key: 'rifiutato', label: 'Rifiutato all\'ultimo', emoji: '❌', color: '#ff4444', bg: 'rgba(255, 68, 68, 0.15)', border: 'rgba(255, 68, 68, 0.45)' }
+    return { key: 'rifiutato', label: 'Rifiutato all\'ultimo', tag: 'RIFIUTATO', emoji: '❌', color: '#b91c1c', bg: '#fee2e2', border: '#fca5a5' }
   }
   if (comp.status === 'Interrotto') {
-    return { key: 'interrotto', label: 'Rapporto interrotto', emoji: '⛔', color: '#e53935', bg: 'rgba(229, 57, 53, 0.2)', border: 'rgba(229, 57, 53, 0.5)' }
+    return { key: 'interrotto', label: 'Rapporto interrotto', tag: 'INTERROTTO', emoji: '⛔', color: '#991b1b', bg: '#fee2e2', border: '#f87171' }
   }
 
   const compStatus = comp.compensation?.status
   const balance = comp.compensation?.balance || 0
   if (compStatus === 'Acconto versato' || balance > 0) {
-    return { key: 'in_coda_pagamento', label: 'In coda pagamento', emoji: '⏳', color: '#ff9800', bg: 'rgba(255, 152, 0, 0.15)', border: 'rgba(255, 152, 0, 0.45)' }
+    return { key: 'in_coda_pagamento', label: 'In coda pagamento', tag: 'ATTESA PAGAMENTO', emoji: '⏳', color: '#b45309', bg: '#fef3c7', border: '#fde68a' }
   }
-  if (comp.id === 'comp-1' || comp.id === 'comp-4' || comp.id === 'comp-10') {
-    return { key: 'in_attesa_risposta', label: 'In attesa risposta', emoji: '🔄', color: '#00e5ff', bg: 'rgba(0, 229, 255, 0.15)', border: 'rgba(0, 229, 255, 0.45)' }
+  if (comp.id === 'comp-1' || comp.id === 'comp-4' || comp.id === 'comp-10' || comp.id === 'comp-1790554320431' || comp.id === 'comp-1790554140763') {
+    return { key: 'in_attesa_risposta', label: 'In attesa risposta', tag: 'IN ATTESA', emoji: '🔄', color: '#0369a1', bg: '#e0f2fe', border: '#7dd3fc' }
   }
 
-  return { key: 'lavoro_concluso', label: 'Lavoro concluso', emoji: '✅', color: '#c084fc', bg: 'transparent', border: 'transparent' }
+  return { key: 'lavoro_concluso', label: 'Lavoro concluso', tag: 'CONCLUSO', emoji: '✅', color: '#15803d', bg: '#dcfce7', border: '#bbf7d0' }
 }
 
 // Helper per determinare canale di ingresso, motivo del contatto e asset DADO
@@ -79,55 +76,59 @@ export function getCompanyAcquisitionChannel(comp) {
   if (ch.includes('referral') || name.includes('nextmedia') || name.includes('alpha')) {
     return {
       channel: 'Referral & Passaparola',
+      shortChannel: 'REFERRAL',
       type: 'Caldissimo / Fiducia',
       reason: 'Collaborazione continuativa da agenzie di comunicazione o partner (es. NextMedia).',
       assetRequired: 'Portfolio lavori simili, condizioni quadro B2B.',
-      score: '⭐⭐⭐⭐⭐ (5/5)',
-      color: '#fac429'
+      score: '5/5',
+      color: '#d97706'
     }
   }
   if (ch.includes('instagram') || ch.includes('tiktok') || ch.includes('adv') || name.includes('gusto') || name.includes('poggio')) {
     return {
       channel: 'Instagram / TikTok ADV & DM',
+      shortChannel: 'ADV & DM',
       type: 'Moderato / Visual',
       reason: 'Richiesta noleggio Limbo Studio Milano, video clip o reel social di tendenza.',
       assetRequired: 'Scheda tecnica Limbo A, prezzi mezze giornate.',
-      score: '⭐⭐⭐⭐ (4/5)',
-      color: '#ff00aa'
+      score: '4/5',
+      color: '#db2777'
     }
   }
   if (ch.includes('outreach') || ch.includes('cold') || name.includes('urban') || name.includes('nexura')) {
     return {
       channel: 'Outreach B2B / Cold Email',
+      shortChannel: 'B2B OUTREACH',
       type: 'Proattivo / Freddo',
       reason: 'Proposta servizi video corporate e riprese con drone per aziende manifatturiere.',
       assetRequired: 'Case study di settore (es. Officine Riva).',
-      score: '⭐⭐⭐ (3/5)',
-      color: '#1bb7ed'
+      score: '3/5',
+      color: '#0284c7'
     }
   }
   if (ch.includes('fiera') || ch.includes('event') || name.includes('vogue') || name.includes('riva')) {
     return {
       channel: 'Eventi / Fiere di Settore',
+      shortChannel: 'FIERE & EVENTI',
       type: 'Relazionale',
       reason: 'Contatto diretto con direttori marketing / responsabili comunicazione.',
       assetRequired: 'Presentazione aziendale PDF, contatto referente.',
-      score: '⭐⭐⭐⭐ (4/5)',
-      color: '#d8ff00'
+      score: '4/5',
+      color: '#ca8a04'
     }
   }
   return {
     channel: 'Sito Web (Form Inbound)',
+    shortChannel: 'INBOUND WEB',
     type: 'Caldo / Inbound Diretto',
     reason: 'Richiesta preventivo spot corporate, video industriale o shooting moda.',
     assetRequired: 'Showreel, listino indicativo, disponibilità date.',
-    score: '⭐⭐⭐⭐⭐ (5/5)',
-    color: '#00ffaa'
+    score: '5/5',
+    color: '#059669'
   }
 }
 
-// ── Acronimo B.A.N.T. stile Brand Logo DADO con rilevamento dinamico parametri mancanti ──
-// Sequenza colori identica al logo DADO: B: Verde (#53ba75), A: Rosso (#ea3824), N: Ciano (#1bb7ed), T: Giallo (#fac429)
+// ── Acronimo B.A.N.T. con colori DADO in Switzer per sfondo chiaro ──
 export function BantLogoMark({ size = 'sm', bant = null }) {
   const isSm = size === 'sm'
   const hasB = bant ? bant.hasB : true
@@ -137,91 +138,50 @@ export function BantLogoMark({ size = 'sm', bant = null }) {
 
   return (
     <div
-      className="inline-flex items-center gap-1 select-none px-2 py-0.5 rounded bg-black/80 border border-white/20 shadow-inner shrink-0"
+      className="inline-flex items-center gap-1 select-none px-2 py-0.5 rounded-md bg-white border border-sky-200/80 shadow-xs shrink-0"
+      style={{ fontFamily: '"Switzer", sans-serif' }}
       title={`Framework B.A.N.T. ${bant ? `(${bant.score}/4 completati${bant.missingList?.length ? ' - Manca: ' + bant.missingLabel : ''})` : ''}`}
     >
       {/* B • Budget */}
-      <div className={`flex items-center gap-0.5 ${hasB ? '' : 'opacity-25'}`}>
-        <span
-          style={{
-            fontFamily: '"Goldman", sans-serif',
-            color: hasB ? '#53ba75' : '#888888',
-            fontWeight: 900,
-            fontSize: isSm ? '11px' : '13px',
-            lineHeight: 1,
-            textDecoration: hasB ? 'none' : 'line-through',
-          }}
-        >
-          B
-        </span>
-        <span className={`w-0.5 h-0.5 rounded-full ${hasB ? 'bg-[#53ba75]' : 'bg-[#666666]'}`} />
-      </div>
-
+      <span
+        className={`font-black ${isSm ? 'text-[11px]' : 'text-[13px]'} ${hasB ? 'text-[#16a34a]' : 'text-slate-300'}`}
+      >
+        B
+      </span>
+      <span className="text-slate-300 text-[10px] font-bold">·</span>
       {/* A • Authority */}
-      <div className={`flex items-center gap-0.5 ${hasA ? '' : 'opacity-25'}`}>
-        <span
-          style={{
-            fontFamily: '"Goldman", sans-serif',
-            color: hasA ? '#ea3824' : '#888888',
-            fontWeight: 900,
-            fontSize: isSm ? '11px' : '13px',
-            lineHeight: 1,
-            textDecoration: hasA ? 'none' : 'line-through',
-          }}
-        >
-          A
-        </span>
-        <span className={`w-0.5 h-0.5 rounded-full ${hasA ? 'bg-[#ea3824]' : 'bg-[#666666]'}`} />
-      </div>
-
+      <span
+        className={`font-black ${isSm ? 'text-[11px]' : 'text-[13px]'} ${hasA ? 'text-[#dc2626]' : 'text-slate-300'}`}
+      >
+        A
+      </span>
+      <span className="text-slate-300 text-[10px] font-bold">·</span>
       {/* N • Need */}
-      <div className={`flex items-center gap-0.5 ${hasN ? '' : 'opacity-25'}`}>
-        <span
-          style={{
-            fontFamily: '"Goldman", sans-serif',
-            color: hasN ? '#1bb7ed' : '#888888',
-            fontWeight: 900,
-            fontSize: isSm ? '11px' : '13px',
-            lineHeight: 1,
-            textDecoration: hasN ? 'none' : 'line-through',
-          }}
-        >
-          N
-        </span>
-        <span className={`w-0.5 h-0.5 rounded-full ${hasN ? 'bg-[#1bb7ed]' : 'bg-[#666666]'}`} />
-      </div>
-
+      <span
+        className={`font-black ${isSm ? 'text-[11px]' : 'text-[13px]'} ${hasN ? 'text-[#0284c7]' : 'text-slate-300'}`}
+      >
+        N
+      </span>
+      <span className="text-slate-300 text-[10px] font-bold">·</span>
       {/* T • Timeline */}
-      <div className={`flex items-center gap-0.5 ${hasT ? '' : 'opacity-25'}`}>
-        <span
-          style={{
-            fontFamily: '"Goldman", sans-serif',
-            color: hasT ? '#fac429' : '#888888',
-            fontWeight: 900,
-            fontSize: isSm ? '11px' : '13px',
-            lineHeight: 1,
-            textDecoration: hasT ? 'none' : 'line-through',
-          }}
-        >
-          T
-        </span>
-      </div>
+      <span
+        className={`font-black ${isSm ? 'text-[11px]' : 'text-[13px]'} ${hasT ? 'text-[#d97706]' : 'text-slate-300'}`}
+      >
+        T
+      </span>
     </div>
   )
 }
 
-// Helper per estrarre e verificare lo stato completo dei 4 parametri B.A.N.T.
+// Calcolo qualificazione B.A.N.T.
 export function getCompanyBant(comp) {
   let budget = comp.bant?.budget
   let authority = comp.bant?.authority
   let need = comp.bant?.need
   let timeline = comp.bant?.timeline
 
-  // Se non esplicitamente in comp.bant, fallback sui dati del CRM
   if (budget === undefined) {
-    if (comp.id === 'comp-9' || comp.name?.includes('Nexura')) {
-      budget = null // Simula richiesta preventivo arrivata senza budget
-    } else if (comp.compensation?.amount) {
+    if (comp.compensation?.amount) {
       budget = `€ ${comp.compensation.amount.toLocaleString('it-IT')}`
     } else {
       budget = null
@@ -229,10 +189,10 @@ export function getCompanyBant(comp) {
   }
 
   if (authority === undefined) {
-    if (comp.id === 'comp-11' || comp.name?.includes('Urban Mobility')) {
-      authority = null // Referente decisionale non ancora identificato
-    } else if (comp.contactPerson?.name) {
-      authority = `${comp.contactPerson.name}${comp.contactPerson.role ? ' (' + comp.contactPerson.role + ')' : ''}`
+    if (comp.contactPerson?.name) {
+      authority = comp.contactPerson.role
+        ? `${comp.contactPerson.name} (${comp.contactPerson.role})`
+        : comp.contactPerson.name
     } else {
       authority = null
     }
@@ -250,7 +210,7 @@ export function getCompanyBant(comp) {
 
   if (timeline === undefined) {
     if (comp.id === 'comp-8' || comp.name?.includes('Poggio Antico')) {
-      timeline = null // Scadenza non ancora concordata
+      timeline = null
     } else if (comp.workSchedule?.datesFormatted) {
       timeline = comp.workSchedule.datesFormatted
     } else if (comp.workSchedule?.scheduleType) {
@@ -289,15 +249,42 @@ export function getCompanyBant(comp) {
   }
 }
 
+// ── Funzione di ordinamento lavori imminenti (in primo piano) ──
+function getImminenceScore(comp) {
+  const scheduleText = `${comp.workSchedule?.datesFormatted || ''} ${comp.workSchedule?.scheduleType || ''}`.toLowerCase()
+  let urgencyBonus = 0
+  if (scheduleText.includes('entro 1 settimana') || scheduleText.includes('imminente') || scheduleText.includes('oggi') || scheduleText.includes('urgente')) {
+    urgencyBonus += 40000
+  }
+  if (comp.relationshipStatus === 'in_attesa_risposta' || comp.status === 'In trattativa') {
+    urgencyBonus += 20000
+  }
+
+  const rawDate = comp.workSchedule?.recentDate || comp.lastContact?.split('T')[0] || comp.firstContact?.date
+  if (!rawDate) return urgencyBonus
+
+  const d = new Date(rawDate)
+  if (isNaN(d.getTime())) return urgencyBonus
+
+  // Data di riferimento attuale (fine settembre 2026 nel dataset)
+  const now = new Date('2026-09-28T00:00:00Z').getTime()
+  const diffDays = Math.round((d.getTime() - now) / (1000 * 60 * 60 * 24))
+
+  // Se la data è oggi o futura (diffDays >= 0), prioritizza i più vicini
+  if (diffDays >= 0) {
+    return 100000 - (diffDays * 50) + urgencyBonus
+  }
+  // Se la data è passata recente (es. -1, -3 giorni), precede i lavori di mesi fa
+  return 10000 + diffDays + urgencyBonus
+}
+
 export default function Companies() {
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filterSchedule, setFilterSchedule] = useState('all')
-  const [filterPayment, setFilterPayment] = useState('all')
   const [filterRelationship, setFilterRelationship] = useState('all')
-  const [filterBant, setFilterBant] = useState('all') // 'all', 'complete', 'incomplete'
-  const [sortBy, setSortBy] = useState('recent') // 'recent', 'oldest', 'compensation_desc', 'rating_desc'
+  const [filterBant, setFilterBant] = useState('all')
+  const [sortBy, setSortBy] = useState('imminent') // 'imminent' (default), 'recent', 'compensation_desc', 'rating_desc'
   const [expandedId, setExpandedId] = useState(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -333,25 +320,10 @@ export default function Companies() {
     loadCompanies()
   }, [])
 
-  // Calcolo KPI riassuntivi
-  const stats = useMemo(() => {
-    const total = companies.length
-    const totalRevenue = companies.reduce((acc, c) => acc + (c.compensation?.amount || 0), 0)
-    const fullyPaid = companies.filter(c => c.compensation?.status === 'Saldato').length
-    const withResolvedIssues = companies.filter(c => c.issues?.isResolved === 'Risolto').length
-    return {
-      total,
-      totalRevenue: totalRevenue.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }),
-      fullyPaid,
-      withResolvedIssues,
-    }
-  }, [companies])
-
-  // Filtro e ordinamento dal più recente al meno recente
+  // Filtro e ordinamento con lavori imminenti in primo piano
   const filteredCompanies = useMemo(() => {
     let list = [...companies]
 
-    // Ricerca testuale ad ampio spettro (Azienda, referente, contatti, attrezzatura, contratti, orari, note, pagamenti)
     if (search.trim()) {
       const q = search.toLowerCase()
       list = list.filter(c =>
@@ -365,31 +337,17 @@ export default function Companies() {
         c.contact?.mobile?.toLowerCase().includes(q) ||
         c.contract?.fileName?.toLowerCase().includes(q) ||
         c.workSchedule?.scheduleType?.toLowerCase().includes(q) ||
-        c.workSchedule?.recentDate?.toLowerCase().includes(q) ||
+        c.workSchedule?.datesFormatted?.toLowerCase().includes(q) ||
         c.compensation?.status?.toLowerCase().includes(q) ||
         c.issues?.description?.toLowerCase().includes(q) ||
-        c.issues?.resolution?.toLowerCase().includes(q) ||
-        c.feedback?.notes?.toLowerCase().includes(q) ||
         (c.requestedMaterials && c.requestedMaterials.some(m => m.toLowerCase().includes(q)))
       )
     }
 
-    // Filtro orario
-    if (filterSchedule !== 'all') {
-      list = list.filter(c => c.workSchedule?.scheduleType?.toLowerCase().includes(filterSchedule.toLowerCase()))
-    }
-
-    // Filtro pagamento
-    if (filterPayment !== 'all') {
-      list = list.filter(c => c.compensation?.status === filterPayment)
-    }
-
-    // Filtro stato relazione / pagamento (nuovo)
     if (filterRelationship !== 'all') {
       list = list.filter(c => getCompanyRelationshipStatus(c).key === filterRelationship)
     }
 
-    // Filtro B.A.N.T. (Tutti, Completi 4/4, Incompleti con parametri mancanti)
     if (filterBant !== 'all') {
       list = list.filter(c => {
         const bant = getCompanyBant(c)
@@ -397,813 +355,594 @@ export default function Companies() {
       })
     }
 
-    // Ordinamento (Default: dal più recente al meno recente)
+    // Ordinamento: per impostazione predefinita i lavori imminenti appaiono per primi
     list.sort((a, b) => {
-      const dateA = new Date(a.workSchedule?.recentDate || a.lastContact || 0)
-      const dateB = new Date(b.workSchedule?.recentDate || b.lastContact || 0)
-
-      if (sortBy === 'recent') return dateB - dateA
-      if (sortBy === 'oldest') return dateA - dateB
-      if (sortBy === 'compensation_desc') return (b.compensation?.amount || 0) - (a.compensation?.amount || 0)
-      if (sortBy === 'rating_desc') return (b.feedback?.rating || 0) - (a.feedback?.rating || 0)
+      if (sortBy === 'imminent') {
+        return getImminenceScore(b) - getImminenceScore(a)
+      }
+      if (sortBy === 'recent') {
+        const dateA = new Date(a.workSchedule?.recentDate || a.lastContact || 0)
+        const dateB = new Date(b.workSchedule?.recentDate || b.lastContact || 0)
+        return dateB - dateA
+      }
+      if (sortBy === 'compensation_desc') {
+        return (b.compensation?.amount || 0) - (a.compensation?.amount || 0)
+      }
+      if (sortBy === 'rating_desc') {
+        return (b.feedback?.rating || 0) - (a.feedback?.rating || 0)
+      }
       return 0
     })
 
     return list
-  }, [companies, search, filterSchedule, filterPayment, filterRelationship, filterBant, sortBy])
+  }, [companies, search, filterRelationship, filterBant, sortBy])
 
   return (
-    <div className="h-full min-h-screen md:min-h-0 bg-[#111111] flex flex-col flex-1 relative overflow-hidden">
-      
-      {/* ── CANVAS VERDE TAVOLO DA BILIARDO (#007a50) COME LA DASHBOARD ── */}
-      <div className="h-full flex-1 bg-[#007a50] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden">
+    <div
+      className="h-full min-h-screen md:min-h-0 flex flex-col flex-1 relative overflow-hidden"
+      style={{
+        backgroundColor: '#eaf4fb',
+        fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      }}
+    >
+      {/* ── CANVAS AZZURRO TENUE COME LA "O" DI DADO (SENZA NERO E SENZA VERDE BILIARDO) ── */}
+      <div
+        className="h-full flex-1 rounded-tl-[36px] rounded-bl-[36px] flex flex-col justify-between relative min-w-0 overflow-hidden"
+        style={{
+          background: 'linear-gradient(180deg, #f0f8fd 0%, #e5f3fa 100%)',
+          borderLeft: '1.5px solid #d4ebf9',
+        }}
+      >
+        {/* ── AREA PRINCIPALE: CONTENUTO IMMEDIATO SENZA TITOLONE IN ALTO PER MASSIMA VISIBILITÀ ── */}
+        <div className="flex-1 min-h-0 px-4 md:px-7 py-3 overflow-y-auto">
 
-        {/* ── Banda Bianca Superiore ── */}
-        <div className="w-full flex justify-end flex-shrink-0">
-          <div className="bg-white rounded-bl-2xl w-[calc(100%-2.5rem)]" style={{ height: 'calc(3rem - 0.5cm)' }} />
-        </div>
-
-        {/* ── Contenuto Principale con scroll ── */}
-        <div className="flex-1 min-h-0 pl-10 pr-8 py-3 overflow-y-auto">
-
-          {/* ── TITOLO IN ALTO A SINISTRA (FONT INSPIRATION + SOTTOTITOLO GOLDMAN BLU/ARANCIO) ── */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 border-b border-black/20 pb-4">
-            <div>
-              {/* Titolo Principale Inspiration identico a Dashboard */}
-              <h1 className="leading-none flex items-baseline gap-0.5">
-                <span
-                  style={{
-                    fontFamily: 'Inspiration, cursive',
-                    fontSize: '3.6rem',
-                    color: '#111111',
-                    lineHeight: 1,
-                  }}
-                >
-                  Companies
-                </span>
-              </h1>
-
-              {/* Sottotitolo Switzer & Goldman */}
-              <p style={{ marginTop: '4px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 600 }}>
-                <span style={{ color: '#00e5ff' }}>Client database & </span>
-                <span style={{ color: '#ff6f43' }}>contracts</span>
-                <span style={{ color: '#ffffff', fontSize: '13.5px', fontFamily: '"Space Mono", monospace', marginLeft: '14px', fontWeight: 400 }}>
-                  ({filteredCompanies.length} partner)
-                </span>
-              </p>
-            </div>
-
-            {/* Pulsanti Azione e Badge Ordinamento */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <div
-                className="px-3 py-1.5 bg-[#111111] text-xs font-mono text-white rounded-none border border-black flex items-center gap-2 shadow-sm"
-              >
-                <ArrowUpDown className="w-3.5 h-3.5 text-[#00e5ff]" />
-                <span>Ordinamento: <strong style={{ color: '#00ffaa' }}>Dal più recente</strong></span>
-              </div>
-
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 bg-[#ff6f43] hover:bg-[#ff5722] text-[#111111] text-xs font-bold uppercase tracking-wider rounded-none flex items-center gap-2 transition-transform active:scale-95 shadow-sm"
-                style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 800 }}
-              >
-                <Plus className="w-4 h-4 stroke-[3]" />
-                <span>+ Nuova Azienda</span>
-              </button>
-            </div>
-          </div>
-
-          {/* ── KPI METRICS CARDS (COLORI IDENTICI A DASHBOARD: NERO, BIANCO, MENTA, ARANCIO IN SWITZER) ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {/* ── TOOLBAR COMPATTA SALVA-SPAZIO (AZIENDE VISIBILI SUBITO IN ALTO) ── */}
+          <div className="flex flex-col gap-2.5 mb-3.5 pt-1">
             
-            {/* Card 1: Aziende Totali (Nero puro #111111 con Arancione #ff6f43) */}
-            <div
-              className="p-3.5 flex flex-col justify-between shadow-sm"
-              style={{ backgroundColor: '#111111', borderRadius: '4px' }}
-            >
-              <div className="flex items-center justify-between">
-                <span style={{ color: '#ff6f43', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
-                  AZIENDE A DATABASE
-                </span>
-                <Building2 className="w-4 h-4 text-[#ff6f43]" />
-              </div>
-              <div className="mt-2 text-3xl font-black font-mono text-white leading-none">
-                {stats.total}
-              </div>
-              <div className="mt-1 text-xs text-[#00e5ff]" style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 500 }}>
-                11 schede verificate nel CRM
-              </div>
-            </div>
-
-            {/* Card 2: Volume Contratti (Verde Menta #00ffaa con testo nero) */}
-            <div
-              className="p-3.5 flex flex-col justify-between shadow-sm"
-              style={{ backgroundColor: '#00ffaa', borderRadius: '4px' }}
-            >
-              <div className="flex items-center justify-between">
-                <span style={{ color: '#111111', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
-                  VOLUME CONTRATTI
-                </span>
-                <DollarSign className="w-4 h-4 text-[#111111]" />
-              </div>
-              <div className="mt-2 text-3xl font-black font-mono text-[#111111] leading-none">
-                {stats.totalRevenue}
-              </div>
-              <div className="mt-1 text-xs text-[#111111]/80 font-bold" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                {stats.fullyPaid} contratti già saldati
-              </div>
-            </div>
-
-            {/* Card 3: Risoluzione Criticità (Nero #111111 con Blu Mare #00e5ff) */}
-            <div
-              className="p-3.5 flex flex-col justify-between shadow-sm"
-              style={{ backgroundColor: '#111111', borderRadius: '4px' }}
-            >
-              <div className="flex items-center justify-between">
-                <span style={{ color: '#00e5ff', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
-                  PROBLEMI RISOLTI
-                </span>
-                <CheckCircle2 className="w-4 h-4 text-[#00e5ff]" />
-              </div>
-              <div className="mt-2 text-3xl font-black font-mono text-white leading-none">
-                100%
-              </div>
-              <div className="mt-1 text-xs text-[#00e575]" style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 500 }}>
-                {stats.withResolvedIssues} criticità gestite con successo
-              </div>
-            </div>
-
-            {/* Card 4: Formato Contratti (Bianco puro #ffffff con Arancione #ff6f43) */}
-            <div
-              className="p-3.5 flex flex-col justify-between shadow-sm"
-              style={{ backgroundColor: '#ffffff', borderRadius: '4px' }}
-            >
-              <div className="flex items-center justify-between">
-                <span style={{ color: '#111111', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
-                  FORMATO CONTRATTI
-                </span>
-                <FileText className="w-4 h-4 text-[#ff6f43]" />
-              </div>
-              <div className="mt-2 text-3xl font-black font-mono text-[#111111] leading-none">
-                PDF Digitali
-              </div>
-              <div className="mt-1 text-xs text-[#ff6f43] font-bold" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                Firma elettronica qualificata / PEC
-              </div>
-            </div>
-
-          </div>
-
-          {/* ── BARRA DI RICERCA METALLIZZATA & MORBIDA (FULL WIDTH - ESTESA FINO A DESTRA) ── */}
-          <div className="mb-6 w-full">
-            <div
-              className="relative flex items-center w-full px-5 py-3 transition-all duration-300 shadow-lg group"
-              style={{
-                borderRadius: '9999px',
-                background: 'linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.95)',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
-              }}
-            >
-              {/* Icona di Ricerca in grigio ardesia scuro metallizzato */}
-              <Search className="w-5 h-5 flex-shrink-0 text-slate-700 mr-3 stroke-[2.2]" />
-
-              {/* Input a tutta larghezza con font morbido e leggibile */}
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cerca per azienda, referente, telefono, materiale, contratto, orario, pagamento..."
-                className="w-full bg-transparent text-slate-900 placeholder:text-slate-500 text-sm md:text-[15px] font-medium focus:outline-none tracking-normal"
-                style={{ fontFamily: '"Jost", sans-serif' }}
-              />
-
-              {/* Elementi a destra: Reset Rapido e Conteggio */}
-              <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+            {/* Riga 1: Barra di ricerca estesa + Tasto Nuova Azienda + Selettore Ordinamento */}
+            <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+              
+              {/* Barra di ricerca morbida in azzurro tenue / bianco */}
+              <div
+                className="relative flex items-center flex-1 min-w-[240px] px-4 py-2 transition-all duration-200 bg-white shadow-xs"
+                style={{
+                  borderRadius: '9999px',
+                  border: '1.5px solid #bfe0f5',
+                }}
+              >
+                <Search className="w-4 h-4 flex-shrink-0 text-[#0284c7] mr-2.5 stroke-[2.5]" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Cerca azienda, referente, telefono, materiale, data, contratto..."
+                  className="w-full bg-transparent text-slate-800 placeholder:text-slate-400 text-sm font-semibold focus:outline-none"
+                  style={{ fontFamily: '"Switzer", sans-serif' }}
+                />
                 {search && (
                   <button
                     onClick={() => setSearch('')}
-                    className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-400/40 hover:bg-slate-400/70 text-slate-800 transition-colors text-xs font-bold"
+                    className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 transition-colors text-xs font-bold mr-1"
                     title="Cancella testo"
                   >
                     ✕
                   </button>
                 )}
-
                 <span
-                  className="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-bold tracking-tight text-slate-800"
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.75)',
-                    border: '1px solid rgba(255, 255, 255, 0.9)',
-                    fontFamily: '"Space Mono", monospace',
-                  }}
+                  className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold text-[#0369a1] bg-[#e0f2fe] shrink-0"
                 >
-                  {filteredCompanies.length} {filteredCompanies.length === 1 ? 'azienda' : 'aziende'}
+                  {filteredCompanies.length} <span className="ml-1 font-bold">AZIENDE</span>
                 </span>
               </div>
+
+              {/* Badge Ordinamento Imminente / Switcher */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={() => setSortBy(sortBy === 'imminent' ? 'compensation_desc' : 'imminent')}
+                  className={`px-3 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer border ${
+                    sortBy === 'imminent'
+                      ? 'bg-[#0284c7] text-white border-[#0284c7]'
+                      : 'bg-white text-slate-700 border-sky-200 hover:bg-sky-50'
+                  }`}
+                  title="Ordina per lavori imminenti o per importo"
+                >
+                  <Zap className={`w-3.5 h-3.5 ${sortBy === 'imminent' ? 'text-amber-300 fill-amber-300' : 'text-[#0284c7]'}`} />
+                  <span>
+                    {sortBy === 'imminent' ? <strong>Lavori imminenti (1°)</strong> : 'Ordina: Importo'}
+                  </span>
+                </button>
+
+                {/* Pulsante + Nuova Azienda */}
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer"
+                  style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 800 }}
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>+ Nuova Azienda</span>
+                </button>
+              </div>
+
             </div>
+
+            {/* Riga 2: Filtri rapidi a pillole senza riquadri duri */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-xs">
+              <span className="text-slate-500 font-bold text-xs uppercase mr-1 shrink-0">
+                STATO:
+              </span>
+              {[
+                { id: 'all', label: 'Tutti', emoji: '🏢' },
+                { id: 'lead_inbound', label: 'Lead & Inbound', emoji: '🎯' },
+                { id: 'in_attesa_risposta', label: 'In attesa', emoji: '🔄' },
+                { id: 'in_coda_pagamento', label: 'Coda pagamento', emoji: '⏳' },
+                { id: 'lavoro_concluso', label: 'Concluso', emoji: '✅' },
+              ].map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setFilterRelationship(f.id)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap border ${
+                    filterRelationship === f.id
+                      ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
+                      : 'bg-white/80 text-slate-700 border-sky-200/90 hover:bg-white hover:text-slate-900'
+                  }`}
+                >
+                  <span>{f.emoji}</span>
+                  <span>{f.label}</span>
+                </button>
+              ))}
+
+              <div className="h-4 w-[1px] bg-sky-200 mx-1 shrink-0" />
+
+              <span className="text-slate-500 font-bold text-xs uppercase mr-1 shrink-0">
+                B.A.N.T.:
+              </span>
+              {[
+                { id: 'all', label: 'Tutti' },
+                { id: 'complete', label: '🟢 4/4 Completo' },
+                { id: 'incomplete', label: '⚠️ Mancanti' },
+              ].map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setFilterBant(f.id)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap border ${
+                    filterBant === f.id
+                      ? 'bg-[#d97706] text-white border-[#d97706] shadow-xs'
+                      : 'bg-white/80 text-slate-700 border-sky-200/90 hover:bg-white hover:text-slate-900'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
           </div>
 
-          {/* ── FILTRI RAPIDI PER STATO RELAZIONE / PAGAMENTO (SENZA LINEE COLORATE) ── */}
-          <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-1 text-xs">
-            <span className="text-white/60 font-mono text-[11px] uppercase mr-1">Filtra stato:</span>
-            {[
-              { id: 'all', label: 'Tutti', emoji: '🏢' },
-              { id: 'lead_inbound', label: 'Lead & Inbound', emoji: '🎯' },
-              { id: 'in_coda_pagamento', label: 'In coda pagamento', emoji: '⏳' },
-              { id: 'in_attesa_risposta', label: 'In attesa risposta', emoji: '🔄' },
-              { id: 'lavoro_concluso', label: 'Lavoro concluso', emoji: '✅' },
-              { id: 'rifiutato', label: 'Rifiutato all\'ultimo', emoji: '❌' },
-              { id: 'interrotto', label: 'Rapporto interrotto', emoji: '⛔' },
-            ].map(f => (
-              <button
-                key={f.id}
-                onClick={() => setFilterRelationship(f.id)}
-                className={`px-3 py-1 rounded-full font-mono text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap border ${
-                  filterRelationship === f.id
-                    ? 'bg-white text-black border-white shadow'
-                    : 'bg-black/40 text-white/70 border-white/10 hover:border-white/30 hover:text-white'
-                }`}
-              >
-                <span>{f.emoji}</span>
-                <span>{f.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* ── FILTRI QUALIFICAZIONE LEAD B.A.N.T. ── */}
-          <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1 text-xs">
-            <span className="text-white/60 font-mono text-[11px] uppercase mr-1">Qualifica B.A.N.T.:</span>
-            {[
-              { id: 'all', label: 'Tutte le schede', badge: companies.length },
-              { id: 'complete', label: '🟢 B.A.N.T. Completo (4/4)', badge: companies.filter(c => getCompanyBant(c).isComplete).length },
-              { id: 'incomplete', label: '⚠️ Con parametri mancanti', badge: companies.filter(c => !getCompanyBant(c).isComplete).length },
-            ].map(f => (
-              <button
-                key={f.id}
-                onClick={() => setFilterBant(f.id)}
-                className={`px-3 py-1 rounded-full font-mono text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap border ${
-                  filterBant === f.id
-                    ? 'bg-[#fac429] text-black border-[#fac429] shadow font-black'
-                    : 'bg-black/40 text-white/70 border-white/10 hover:border-white/30 hover:text-white'
-                }`}
-              >
-                <span>{f.label}</span>
-                <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${filterBant === f.id ? 'bg-black/20 text-black font-black' : 'bg-white/10 text-white/80'}`}>
-                  {f.badge}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* ── LISTA SCHEDE AZIENDE: CARDS NERE #111111 CON BORDO BILIARDO ED ACCENTI VIVIDI ── */}
+          {/* ── LISTA SCHEDE AZIENDE: CARDS CHIARE SU SFONDO AZZURRO TENUE (NO RIQUADRINI) ── */}
           {loading ? (
-            <div className="py-16 text-center text-white/60 font-mono text-sm">
+            <div className="py-16 text-center text-slate-500 font-semibold text-sm">
               Caricamento database aziende in corso...
             </div>
           ) : filteredCompanies.length === 0 ? (
-            <div className="py-16 text-center bg-[#111111] p-8 border border-black">
-              <Building2 className="w-10 h-10 text-white/30 mx-auto mb-2" />
-              <h3 className="text-base font-bold text-white mb-1" style={{ fontFamily: '"Goldman", sans-serif' }}>
+            <div className="py-16 text-center bg-white p-8 rounded-2xl border border-sky-200 shadow-sm max-w-lg mx-auto">
+              <Building2 className="w-10 h-10 text-sky-400 mx-auto mb-2" />
+              <h3 className="text-base font-bold text-slate-800 mb-1">
                 Nessuna azienda trovata
               </h3>
-              <p className="text-white/50 text-xs" style={{ fontFamily: '"Jost", sans-serif' }}>
-                Nessun risultato corrisponde ai filtri selezionati.
+              <p className="text-slate-500 text-xs">
+                Nessun risultato corrisponde alla ricerca corrente.
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-3.5 pb-8">
+            <div className="flex flex-col gap-3 pb-8">
               {filteredCompanies.map((comp) => {
                 const isExpanded = expandedId === comp.id
-                const compDate = comp.workSchedule?.recentDate || comp.lastContact?.split('T')[0]
                 const relStatus = getCompanyRelationshipStatus(comp)
                 const bant = getCompanyBant(comp)
                 const acq = getCompanyAcquisitionChannel(comp)
                 const contactEmail = comp.contact?.directEmail || comp.contact?.email
                 const contactPhone = comp.contact?.mobile || comp.contact?.phone
 
+                // Formattazione data imminente
+                const upcomingWork = comp.workSchedule?.datesFormatted || comp.workSchedule?.recentDate || 'Pianificazione in corso'
+                const isUrgent = upcomingWork.toLowerCase().includes('settimana') || upcomingWork.toLowerCase().includes('oggi') || relStatus.key === 'in_attesa_risposta'
+
                 return (
                   <div
                     key={comp.id}
-                    className="p-4 md:p-5 shadow-sm transition-all text-white relative overflow-hidden"
+                    className="p-4 md:p-5 transition-all text-slate-800 relative bg-white rounded-2xl shadow-xs hover:shadow-md"
                     style={{
-                      backgroundColor: '#111111',
-                      borderRadius: '6px',
-                      border: isExpanded ? '1px solid #00e5ff' : '1px solid rgba(255,255,255,0.08)',
+                      border: isExpanded ? '2px solid #0284c7' : '1px solid #cce5f6',
+                      boxShadow: isExpanded ? '0 4px 20px rgba(2, 132, 199, 0.12)' : '0 2px 10px rgba(27, 183, 237, 0.06)',
                     }}
                   >
-                    {/* ── 1. TESTATA SCHEDA: NOME AZIENDA, STATUS & RETRIBUZIONE ── */}
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-white/10">
+                    {/* ── 1. TESTATA SCHEDA: NOME AZIENDA, STATO, LAVORO IMMINENTE & RETRIBUZIONE ── */}
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-sky-100">
                       
-                      {/* Icona Azienda, Nome, Settore, Relazione e BANT */}
-                      <div className="flex items-center gap-3">
+                      {/* Sinistra: Icona, Nome Grande Switzer, Settore, Badge di Stato e BANT */}
+                      <div className="flex items-start sm:items-center gap-3">
                         <div
-                          className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/15 flex items-center justify-center flex-shrink-0 text-[#00e5ff] shadow-inner"
-                          title={`Scheda Anagrafica: ${comp.name}`}
+                          className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#e0f2fe] to-[#bae6fd] border border-sky-200 flex items-center justify-center shrink-0 text-[#0284c7] shadow-xs"
+                          title={`Scheda Azienda: ${comp.name}`}
                         >
-                          <Building2 className="w-5 h-5 text-[#00e5ff]" />
+                          <Building2 className="w-5 h-5 text-[#0284c7] stroke-[2.2]" />
                         </div>
 
                         <div>
-                          <div className="flex items-center gap-2.5 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <h2
-                              className="text-lg md:text-xl font-bold text-white tracking-tight"
-                              style={{ fontFamily: '"Goldman", sans-serif' }}
+                              className="text-xl md:text-2xl font-black text-slate-900 tracking-tight"
+                              style={{ fontFamily: '"Switzer", sans-serif' }}
                             >
                               {comp.name}
                             </h2>
 
-                            {/* Settore Aziendale */}
+                            {/* Settore con testo bold */}
                             <span
-                              className="px-2 py-0.5 bg-white/10 text-white/90 text-[11px] font-semibold rounded"
-                              style={{ fontFamily: '"Space Mono", monospace' }}
+                              className="px-2 py-0.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-md uppercase"
                             >
                               {comp.industry}
                             </span>
 
-                            {/* Badge Stato Relazione & Pagamento */}
+                            {/* Badge Stato Relazione & Pagamento in colori DADO su fondo chiaro */}
                             <span
-                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold"
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold"
                               style={{
                                 backgroundColor: relStatus.bg,
                                 color: relStatus.color,
-                                border: relStatus.border === 'transparent' ? 'none' : `1px solid ${relStatus.border}`,
-                                fontFamily: '"Space Mono", monospace',
+                                border: `1px solid ${relStatus.border}`,
                               }}
-                              title={`Stato attuale: ${relStatus.label}`}
                             >
                               <span>{relStatus.emoji}</span>
-                              <span>{relStatus.label}</span>
+                              <strong className="font-extrabold">{relStatus.tag}</strong>
                             </span>
 
-                            {/* BANT Logo Mark compatto */}
+                            {/* BANT Logo Mark compatto con lettere bold */}
                             <BantLogoMark size="sm" bant={bant} />
 
-                            {/* Badge Stato Qualificazione B.A.N.T. */}
+                            {/* Qualificazione BANT */}
                             {bant.isComplete ? (
                               <span
-                                className="inline-flex items-center gap-1 text-[11px] font-bold font-mono text-[#c084fc]"
-                                title="Tutti i 4 parametri B.A.N.T. sono stati identificati con successo"
+                                className="inline-flex items-center gap-1 text-xs font-bold text-[#16a34a]"
+                                title="BANT 4/4 completo"
                               >
                                 <span>🟢</span>
-                                <span>4/4 Qualificato</span>
+                                <strong>4/4 QUALIFICATO</strong>
                               </span>
                             ) : (
                               <span
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/50"
-                                title={`Attenzione: mancano ${bant.missingList.length} parametri B.A.N.T.: ${bant.missingLabel}`}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200"
+                                title={`Mancanti: ${bant.missingLabel}`}
                               >
                                 <span>⚠️</span>
-                                <span>{bant.score}/4 • Manca {bant.missingLabel}</span>
+                                <strong>{bant.score}/4 • MANCA {bant.missingList[0]?.toUpperCase()}</strong>
                               </span>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      {/* Retribuzione e Pulsante Dettagli */}
-                      <div className="flex items-center justify-between lg:justify-end gap-4">
+                      {/* Destra: Retribuzione e Tasto Dettagli */}
+                      <div className="flex items-center justify-between lg:justify-end gap-5">
                         <div className="text-left lg:text-right">
-                          <div
-                            className="text-[9.5px] uppercase text-white/50 tracking-wider font-mono"
-                          >
+                          <div className="text-[11px] uppercase text-slate-400 font-extrabold tracking-wider">
                             RETRIBUZIONE
                           </div>
                           <div
-                            className="text-xl md:text-2xl font-black leading-none mt-0.5 font-mono"
-                            style={{ color: '#00ffaa' }}
+                            className="text-xl md:text-2xl font-black leading-none mt-0.5 text-[#0284c7]"
                           >
-                            € {(comp.compensation?.amount || 0).toLocaleString('it-IT')}
+                            <strong>€ {(comp.compensation?.amount || 0).toLocaleString('it-IT')}</strong>
                           </div>
                           <div className="mt-1">
                             <span
-                              className={`text-[9.5px] font-bold px-2 py-0.5 uppercase tracking-wider rounded ${
+                              className={`text-[11px] font-extrabold px-2 py-0.5 uppercase tracking-wide rounded-md ${
                                 comp.compensation?.status === 'Saldato'
-                                  ? 'bg-[#007a50] text-white'
-                                  : 'bg-[#ff6f43] text-black font-extrabold'
+                                  ? 'bg-[#dcfce7] text-[#15803d]'
+                                  : 'bg-[#ffedd5] text-[#c2410c]'
                               }`}
-                              style={{ fontFamily: '"Space Mono", monospace' }}
                             >
-                              {comp.compensation?.status}
+                              <strong>{comp.compensation?.status === 'Saldato' ? 'SALDATO' : comp.compensation?.status?.toUpperCase()}</strong>
                             </span>
                           </div>
                         </div>
 
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : comp.id)}
-                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer rounded"
-                          style={{ fontFamily: '"Goldman", sans-serif' }}
+                          className="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-[#0284c7] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer rounded-xl border border-sky-200"
+                          style={{ fontFamily: '"Switzer", sans-serif' }}
                         >
-                          <span>{isExpanded ? 'CHIUDI' : 'DETTAGLI'}</span>
-                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          <strong className="font-extrabold">{isExpanded ? 'CHIUDI' : 'DETTAGLI'}</strong>
+                          {isExpanded ? <ChevronUp className="w-4 h-4 stroke-[2.5]" /> : <ChevronDown className="w-4 h-4 stroke-[2.5]" />}
                         </button>
                       </div>
 
                     </div>
 
-                    {/* ── 2. GRIGLIA SCHEMATIZZATA A 4 BLOCCHI MODULARI ── */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mt-3">
+                    {/* ── 2. LAYOUT APERTO E FLUIDO (SENZA RIQUADRINI E SENZA SCATOLETTE) ── */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-3.5 text-sm">
                       
-                      {/* Blocco 1: Referente & Recapiti */}
-                      <div className="p-3 bg-white/[0.03] border border-white/10 rounded flex flex-col justify-between">
+                      {/* Sezione 1: Referente & Recapiti Diretti */}
+                      <div className="flex flex-col justify-between">
                         <div>
-                          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#00e5ff] flex items-center gap-1.5 mb-1.5">
+                          <div className="text-xs font-black uppercase tracking-wider text-[#0284c7] flex items-center gap-1.5 mb-1">
                             <User className="w-3.5 h-3.5" />
-                            <span>REFERENTE</span>
+                            <strong>REFERENTE</strong>
                           </div>
-                          <div className="font-bold text-xs text-white truncate" title={comp.contactPerson?.name}>
+                          <div className="font-bold text-slate-900 text-sm truncate" title={comp.contactPerson?.name}>
                             {comp.contactPerson?.name || 'Referente non indicato'}
                           </div>
-                          <div className="text-[11px] text-white/50 truncate">
+                          <div className="text-xs text-slate-500 truncate font-medium">
                             {comp.contactPerson?.role || comp.contact?.role || 'Referente aziendale'}
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-white/5 flex-wrap">
+                        {/* Recapiti veloci con etichette corte in bold */}
+                        <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-sky-100/80 flex-wrap">
                           {contactEmail && (
                             <button
                               type="button"
                               onClick={(e) => handleCopy(contactEmail, `${comp.id}-email`, e)}
-                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border transition-all cursor-pointer ${
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer border ${
                                 copiedField === `${comp.id}-email`
-                                  ? 'bg-[#00ffaa]/25 text-[#00ffaa] border-[#00ffaa]'
-                                  : 'bg-white/5 text-white/80 hover:bg-white/10 border-white/15'
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold'
+                                  : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
                               }`}
                               title={`Copia email: ${contactEmail}`}
                             >
-                              <Mail className="w-3 h-3 text-[#00ffaa]" />
-                              <span>{copiedField === `${comp.id}-email` ? 'Copiata!' : 'Email'}</span>
+                              <Mail className="w-3 h-3 text-[#0284c7]" />
+                              <strong>{copiedField === `${comp.id}-email` ? 'COPIATA' : 'MAIL'}</strong>
                             </button>
                           )}
                           {contactPhone && (
                             <button
                               type="button"
                               onClick={(e) => handleCopy(contactPhone, `${comp.id}-phone`, e)}
-                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border transition-all cursor-pointer ${
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer border ${
                                 copiedField === `${comp.id}-phone`
-                                  ? 'bg-[#00e5ff]/25 text-[#00e5ff] border-[#00e5ff]'
-                                  : 'bg-white/5 text-white/80 hover:bg-white/10 border-white/15'
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold'
+                                  : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
                               }`}
                               title={`Copia telefono: ${contactPhone}`}
                             >
-                              <Phone className="w-3 h-3 text-[#00e5ff]" />
-                              <span>{copiedField === `${comp.id}-phone` ? 'Copiato!' : 'Tel'}</span>
+                              <Phone className="w-3 h-3 text-[#0284c7]" />
+                              <strong>{copiedField === `${comp.id}-phone` ? 'COPIATO' : 'TEL'}</strong>
                             </button>
                           )}
                         </div>
                       </div>
 
-                      {/* Blocco 2: Produzione & Calendario */}
-                      <div className="p-3 bg-white/[0.03] border border-white/10 rounded flex flex-col justify-between">
+                      {/* Sezione 2: Lavoro Imminente & Calendario */}
+                      <div className="flex flex-col justify-between pl-0 lg:pl-3 lg:border-l lg:border-sky-100">
                         <div>
-                          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#fac429] flex items-center gap-1.5 mb-1.5">
+                          <div className="text-xs font-black uppercase tracking-wider text-[#d97706] flex items-center gap-1.5 mb-1">
                             <Calendar className="w-3.5 h-3.5" />
-                            <span>SET & CALENDARIO</span>
+                            <strong>LAVORO IMMINENTE</strong>
                           </div>
-                          <div className="font-bold text-xs text-white truncate" title={comp.workSchedule?.datesFormatted || compDate}>
-                            {comp.workSchedule?.datesFormatted || compDate || 'Data da pianificare'}
+                          <div className="font-extrabold text-slate-900 text-sm truncate flex items-center gap-1.5" title={upcomingWork}>
+                            {isUrgent && <span className="text-amber-500 font-black">⚡</span>}
+                            <span>{upcomingWork}</span>
                           </div>
-                          <div className="text-[11px] text-[#c084fc] font-mono mt-0.5 truncate">
-                            ⏱️ {comp.workSchedule?.scheduleType || 'Sessione da definire'}
+                          <div className="text-xs text-slate-600 font-semibold mt-0.5 truncate">
+                            <strong>SET:</strong> {comp.workSchedule?.scheduleType || 'Sessione da definire'}
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5 text-[10.5px] font-mono">
-                          <span className="text-white/40">Feedback:</span>
-                          <span className="flex items-center gap-1 text-amber-300 font-bold">
-                            <Star className="w-3 h-3 fill-amber-300" />
-                            {comp.feedback?.rating ? comp.feedback.rating.toFixed(1) : '5.0'} / 5.0
+                        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-sky-100/80 text-xs">
+                          <span className="text-slate-400 font-medium">Feedback:</span>
+                          <span className="flex items-center gap-1 text-amber-600 font-black">
+                            <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                            <strong>{comp.feedback?.rating ? comp.feedback.rating.toFixed(1) : '5.0'}</strong> / 5.0
                           </span>
                         </div>
                       </div>
 
-                      {/* Blocco 3: Qualificazione B.A.N.T. Schematizzata */}
-                      <div className="p-3 bg-white/[0.03] border border-white/10 rounded flex flex-col justify-between">
+                      {/* Sezione 3: Parametri B.A.N.T. Schematizzati in modo aperto */}
+                      <div className="flex flex-col justify-between pl-0 lg:pl-3 lg:border-l lg:border-sky-100">
                         <div>
-                          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#53ba75] flex items-center justify-between mb-1.5">
-                            <span className="flex items-center gap-1.5">
+                          <div className="text-xs font-black uppercase tracking-wider text-[#16a34a] flex items-center justify-between mb-1">
+                            <span className="flex items-center gap-1">
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>B.A.N.T. STATUS</span>
+                              <strong>PARAMETRI B.A.N.T.</strong>
                             </span>
-                            <span className="text-[9px] text-white/50">{bant.score}/4</span>
+                            <strong className="text-slate-500 text-xs">{bant.score}/4</strong>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-1 text-[11px] font-mono">
-                            <div className="truncate" title={`Budget: ${bant.budget || 'Mancante'}`}>
-                              <span className="font-black text-[#53ba75]">B:</span>{' '}
-                              <span className={bant.hasB ? 'text-white' : 'text-amber-400 font-bold'}>
+                          <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                            <div className="truncate" title={`Budget: ${bant.budget}`}>
+                              <strong className="text-[#16a34a]">B:</strong>{' '}
+                              <span className={bant.hasB ? 'text-slate-800 font-bold' : 'text-amber-600 font-bold'}>
                                 {bant.hasB ? bant.budget : 'Assente'}
                               </span>
                             </div>
-                            <div className="truncate" title={`Authority: ${bant.authority || 'Mancante'}`}>
-                              <span className="font-black text-[#ea3824]">A:</span>{' '}
-                              <span className={bant.hasA ? 'text-white' : 'text-amber-400 font-bold'}>
-                                {bant.hasA ? (bant.authority?.split(' ')[0] || 'Ok') : 'Assente'}
+                            <div className="truncate" title={`Authority: ${bant.authority}`}>
+                              <strong className="text-[#dc2626]">A:</strong>{' '}
+                              <span className={bant.hasA ? 'text-slate-800 font-bold' : 'text-amber-600 font-bold'}>
+                                {bant.hasA ? (bant.authority?.split(' ')[0] || 'OK') : 'Assente'}
                               </span>
                             </div>
-                            <div className="truncate" title={`Need: ${bant.need || 'Mancante'}`}>
-                              <span className="font-black text-[#1bb7ed]">N:</span>{' '}
-                              <span className={bant.hasN ? 'text-white' : 'text-amber-400 font-bold'}>
-                                {bant.hasN ? 'Definito' : 'Assente'}
+                            <div className="truncate" title={`Need: ${bant.need}`}>
+                              <strong className="text-[#0284c7]">N:</strong>{' '}
+                              <span className={bant.hasN ? 'text-slate-800 font-bold' : 'text-amber-600 font-bold'}>
+                                {bant.hasN ? 'DEFINITO' : 'Assente'}
                               </span>
                             </div>
-                            <div className="truncate" title={`Timeline: ${bant.timeline || 'Mancante'}`}>
-                              <span className="font-black text-[#fac429]">T:</span>{' '}
-                              <span className={bant.hasT ? 'text-white' : 'text-amber-400 font-bold'}>
-                                {bant.hasT ? (bant.timeline?.slice(0, 10) || 'Ok') : 'Assente'}
+                            <div className="truncate" title={`Timeline: ${bant.timeline}`}>
+                              <strong className="text-[#d97706]">T:</strong>{' '}
+                              <span className={bant.hasT ? 'text-slate-800 font-bold' : 'text-amber-600 font-bold'}>
+                                {bant.hasT ? (bant.timeline?.slice(0, 10) || 'OK') : 'Assente'}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="mt-2 pt-2 border-t border-white/5 text-[10.5px] font-mono truncate text-white/50">
-                          Canale: <span className="text-white/80">{acq?.channel ? acq.channel.split(' ')[0] : 'Inbound'}</span>
+                        <div className="mt-2.5 pt-2 border-t border-sky-100/80 text-xs text-slate-500 truncate">
+                          Canale: <strong className="text-slate-800 uppercase">{acq?.shortChannel || 'INBOUND'}</strong>
                         </div>
                       </div>
 
-                      {/* Blocco 4: Contratto & Criticità */}
-                      <div className="p-3 bg-white/[0.03] border border-white/10 rounded flex flex-col justify-between">
+                      {/* Sezione 4: Contratto & Criticità */}
+                      <div className="flex flex-col justify-between pl-0 lg:pl-3 lg:border-l lg:border-sky-100">
                         <div>
-                          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#ff6f43] flex items-center gap-1.5 mb-1.5">
+                          <div className="text-xs font-black uppercase tracking-wider text-[#ea580c] flex items-center gap-1.5 mb-1">
                             <FileText className="w-3.5 h-3.5" />
-                            <span>CONTRATTO & NOTE</span>
+                            <strong>CONTRATTO & STATO</strong>
                           </div>
-                          <div className="font-mono text-xs text-white truncate" title={comp.contract?.fileName}>
+                          <div className="font-bold text-slate-900 text-sm truncate" title={comp.contract?.fileName}>
                             {comp.contract?.fileName || comp.contract?.code || 'CTR-DADO-2026'}
                           </div>
-                          <div className="text-[11px] text-white/50 truncate mt-0.5">
-                            Stato: <span className="text-white/80">{comp.contract?.status || 'Archiviato'}</span>
+                          <div className="text-xs text-slate-500 truncate mt-0.5">
+                            Formato: <strong className="text-slate-700">PDF</strong> • <strong className="text-slate-700">{comp.contract?.status?.toUpperCase() || 'FIRMATO'}</strong>
                           </div>
                         </div>
 
-                        <div className="mt-2 pt-2 border-t border-white/5 text-[10.5px] truncate">
+                        <div className="mt-2.5 pt-2 border-t border-sky-100/80 text-xs truncate">
                           {comp.issues?.isResolved === 'Risolto' ? (
-                            <span className="text-[#00ffaa] flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Criticità gestita
+                            <span className="text-emerald-700 font-bold flex items-center gap-1">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                              <strong>RISOLTO (100%)</strong>
                             </span>
                           ) : (
-                            <span className="text-white/40">Nessuna criticità</span>
+                            <span className="text-slate-400 font-medium">Nessuna criticità</span>
                           )}
                         </div>
                       </div>
 
                     </div>
 
-                    {/* ── DETTAGLI COMPLETI ESPANSI (FONT JOST & SPACE MONO) ── */}
+                    {/* ── 3. DETTAGLI COMPLETI ESPANSI (IN SWITZER SU SFONDO CHIARO SENZA RIQUADRETTI DURI) ── */}
                     {isExpanded && (
-                      <div className="mt-5 pt-4 border-t border-white/15 flex flex-col gap-4 animate-in fade-in duration-150">
+                      <div className="mt-4 pt-4 border-t border-sky-100 flex flex-col gap-4 animate-in fade-in duration-150 text-slate-800">
                         
-                        {/* Riquadro Dettagli Qualificazione B.A.N.T. */}
-                        <div className={`p-4 rounded-lg shadow-inner ${
-                          bant.isComplete
-                            ? 'bg-black/60 border border-white/10'
-                            : 'bg-amber-950/15 border-2 border-dashed border-amber-500/50'
-                        }`}>
-                          <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/10 flex-wrap gap-2">
-                            <div className="flex items-center gap-2.5">
+                        {/* Sezione B.A.N.T. Approfondita */}
+                        <div className="p-4 rounded-xl bg-sky-50/70 border border-sky-200">
+                          <div className="flex items-center justify-between pb-2 mb-3 border-b border-sky-200/80 flex-wrap gap-2">
+                            <div className="flex items-center gap-2">
                               <BantLogoMark size="md" bant={bant} />
-                              <span className="text-xs font-bold uppercase tracking-wider text-white" style={{ fontFamily: '"Goldman", sans-serif' }}>
-                                Qualificazione Commerciale B.A.N.T.
-                              </span>
+                              <strong className="text-sm font-black uppercase tracking-wider text-slate-900">
+                                QUALIFICAZIONE COMMERCIALE B.A.N.T.
+                              </strong>
                             </div>
                             {bant.isComplete ? (
-                              <span className="text-[11px] font-mono text-[#c084fc] font-bold">
-                                🟢 4/4 Parametri Rilevati • Lead Qualificato
+                              <span className="text-xs text-emerald-700 font-extrabold bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+                                🟢 4/4 PARAMETRI RILEVATI • LEAD QUALIFICATO
                               </span>
                             ) : (
-                              <span className="text-[11px] font-mono text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded border border-amber-500/50 font-bold animate-pulse">
-                                ⚠️ {4 - bant.score} Parametri Mancanti • Richiede Follow-up Commerciale
+                              <span className="text-xs text-amber-800 font-extrabold bg-amber-100 px-2.5 py-0.5 rounded border border-amber-300">
+                                ⚠️ {4 - bant.score} PARAMETRI MANCANTI: {bant.missingLabel.toUpperCase()}
                               </span>
                             )}
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                             {/* Budget */}
-                            <div className={`p-3 rounded flex flex-col justify-between transition-all ${
-                              bant.hasB
-                                ? 'bg-[#161616] border-l-4 border-[#53ba75]'
-                                : 'bg-amber-950/30 border-2 border-dashed border-amber-400/90'
-                            }`}>
-                              <div>
-                                <div className={`text-[11px] font-bold uppercase font-mono tracking-wider flex items-center justify-between ${
-                                  bant.hasB ? 'text-[#53ba75]' : 'text-amber-400'
-                                }`}>
-                                  <span>B • Budget</span>
-                                  {!bant.hasB && <span className="text-[10px] bg-amber-500/20 px-1.5 py-0.2 rounded">DA CHIARIRE</span>}
-                                </div>
-                                <div className={`font-mono text-base mt-1.5 ${
-                                  bant.hasB ? 'text-white font-black' : 'text-amber-300 font-bold'
-                                }`}>
-                                  {bant.hasB ? bant.budget : '⚠️ Non specificato'}
-                                </div>
+                            <div className="p-3 bg-white rounded-lg border border-sky-100 shadow-xs">
+                              <div className="text-xs font-black uppercase text-[#16a34a] flex items-center justify-between">
+                                <strong>B • BUDGET</strong>
+                                {!bant.hasB && <strong className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA DEFINIRE</strong>}
                               </div>
-                              <div className="mt-2 pt-2 border-t border-white/5 text-[10.5px]">
-                                {bant.hasB ? (
-                                  <span className="text-white/40">Capacità di spesa allocata</span>
-                                ) : (
-                                  <span className="text-amber-200/90 font-medium">
-                                    💡 <em>Da chiedere in 1ª call:</em> "Avete già stanziato un budget indicativo per questo intervento?"
-                                  </span>
-                                )}
+                              <div className="text-base font-black text-slate-900 mt-1">
+                                {bant.budget}
+                              </div>
+                              <div className="text-[11px] text-slate-500 mt-1">
+                                Capacità di spesa allocata per l'intervento
                               </div>
                             </div>
 
                             {/* Authority */}
-                            <div className={`p-3 rounded flex flex-col justify-between transition-all ${
-                              bant.hasA
-                                ? 'bg-[#161616] border-l-4 border-[#ea3824]'
-                                : 'bg-amber-950/30 border-2 border-dashed border-amber-400/90'
-                            }`}>
-                              <div>
-                                <div className={`text-[11px] font-bold uppercase font-mono tracking-wider flex items-center justify-between ${
-                                  bant.hasA ? 'text-[#ea3824]' : 'text-amber-400'
-                                }`}>
-                                  <span>A • Authority</span>
-                                  {!bant.hasA && <span className="text-[10px] bg-amber-500/20 px-1.5 py-0.2 rounded">DA INDIVIDUARE</span>}
-                                </div>
-                                <div className={`text-sm mt-1.5 truncate ${
-                                  bant.hasA ? 'text-white font-bold' : 'text-amber-300 font-bold'
-                                }`} title={bant.authority}>
-                                  {bant.hasA ? bant.authority : '⚠️ Referente decisionale assente'}
-                                </div>
+                            <div className="p-3 bg-white rounded-lg border border-sky-100 shadow-xs">
+                              <div className="text-xs font-black uppercase text-[#dc2626] flex items-center justify-between">
+                                <strong>A • AUTHORITY</strong>
+                                {!bant.hasA && <strong className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA VERIFICARE</strong>}
                               </div>
-                              <div className="mt-2 pt-2 border-t border-white/5 text-[10.5px]">
-                                {bant.hasA ? (
-                                  <span className="text-white/40">Referente con potere di firma</span>
-                                ) : (
-                                  <span className="text-amber-200/90 font-medium">
-                                    💡 <em>Da verificare:</em> "Chi approva la spesa e siglerà il contratto oltre al contatto attuale?"
-                                  </span>
-                                )}
+                              <div className="text-sm font-bold text-slate-900 mt-1 truncate" title={bant.authority}>
+                                {bant.authority}
+                              </div>
+                              <div className="text-[11px] text-slate-500 mt-1">
+                                Referente decisionale con potere di firma
                               </div>
                             </div>
 
                             {/* Need */}
-                            <div className={`p-3 rounded flex flex-col justify-between transition-all ${
-                              bant.hasN
-                                ? 'bg-[#161616] border-l-4 border-[#1bb7ed]'
-                                : 'bg-amber-950/30 border-2 border-dashed border-amber-400/90'
-                            }`}>
-                              <div>
-                                <div className={`text-[11px] font-bold uppercase font-mono tracking-wider flex items-center justify-between ${
-                                  bant.hasN ? 'text-[#1bb7ed]' : 'text-amber-400'
-                                }`}>
-                                  <span>N • Need</span>
-                                  {!bant.hasN && <span className="text-[10px] bg-amber-500/20 px-1.5 py-0.2 rounded">DA DEFINIRE</span>}
-                                </div>
-                                <div className={`text-xs mt-1.5 line-clamp-2 leading-relaxed ${
-                                  bant.hasN ? 'text-white' : 'text-amber-300 font-bold'
-                                }`} title={bant.need}>
-                                  {bant.hasN ? bant.need : '⚠️ Esigenza o problema non delineato'}
-                                </div>
+                            <div className="p-3 bg-white rounded-lg border border-sky-100 shadow-xs">
+                              <div className="text-xs font-black uppercase text-[#0284c7] flex items-center justify-between">
+                                <strong>N • NEED</strong>
+                                {!bant.hasN && <strong className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA CHIARIRE</strong>}
                               </div>
-                              <div className="mt-2 pt-2 border-t border-white/5 text-[10.5px]">
-                                {bant.hasN ? (
-                                  <span className="text-white/40">Esigenza operativa e tecnica</span>
-                                ) : (
-                                  <span className="text-amber-200/90 font-medium">
-                                    💡 <em>Da approfondire:</em> "Qual è la sfida principale o il risultato atteso da ottenere subito?"
-                                  </span>
-                                )}
+                              <div className="text-xs font-bold text-slate-900 mt-1 line-clamp-2 leading-relaxed" title={bant.need}>
+                                {bant.need}
+                              </div>
+                              <div className="text-[11px] text-slate-500 mt-1">
+                                Esigenza operativa e output atteso
                               </div>
                             </div>
 
                             {/* Timeline */}
-                            <div className={`p-3 rounded flex flex-col justify-between transition-all ${
-                              bant.hasT
-                                ? 'bg-[#161616] border-l-4 border-[#fac429]'
-                                : 'bg-amber-950/30 border-2 border-dashed border-amber-400/90'
-                            }`}>
-                              <div>
-                                <div className={`text-[11px] font-bold uppercase font-mono tracking-wider flex items-center justify-between ${
-                                  bant.hasT ? 'text-[#fac429]' : 'text-amber-400'
-                                }`}>
-                                  <span>T • Timeline</span>
-                                  {!bant.hasT && <span className="text-[10px] bg-amber-500/20 px-1.5 py-0.2 rounded">DA FISSARE</span>}
-                                </div>
-                                <div className={`text-xs mt-1.5 font-mono ${
-                                  bant.hasT ? 'text-white font-bold' : 'text-amber-300 font-bold'
-                                }`}>
-                                  {bant.hasT ? bant.timeline : '⚠️ Nessuna tempistica o data concordata'}
-                                </div>
+                            <div className="p-3 bg-white rounded-lg border border-sky-100 shadow-xs">
+                              <div className="text-xs font-black uppercase text-[#d97706] flex items-center justify-between">
+                                <strong>T • TIMELINE</strong>
+                                {!bant.hasT && <strong className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA FISSARE</strong>}
                               </div>
-                              <div className="mt-2 pt-2 border-t border-white/5 text-[10.5px]">
-                                {bant.hasT ? (
-                                  <span className="text-white/40">Finestra temporale attesa</span>
-                                ) : (
-                                  <span className="text-amber-200/90 font-medium">
-                                    💡 <em>Da concordare:</em> "Qual è la deadline ideale entro cui dovremmo consegnare o avviare?"
-                                  </span>
-                                )}
+                              <div className="text-xs font-black text-slate-900 mt-1">
+                                {bant.timeline}
+                              </div>
+                              <div className="text-[11px] text-slate-500 mt-1">
+                                Finestra temporale di erogazione
                               </div>
                             </div>
                           </div>
                         </div>
 
-                        {/* 2 Colonne */}
+                        {/* Griglia 2 Colonne Aperta */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-                          {/* COLONNA 1: REFERENTE, STORICO E ORARI */}
+                          
+                          {/* Colonna 1: Storico e Orari */}
                           <div className="flex flex-col gap-3">
-                            
-                            {/* Referente & Contatti */}
-                            <div className="bg-[#1c1c1c] p-3.5 border border-white/10">
-                              <div
-                                className="flex items-center gap-2 text-xs font-bold uppercase text-[#00e5ff] mb-2"
-                                style={{ fontFamily: '"Goldman", sans-serif' }}
-                              >
-                                <User className="w-4 h-4" />
-                                <span>REFERENTE & RECAPITI</span>
+                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
+                              <strong className="text-xs font-black uppercase text-[#0284c7] flex items-center gap-1.5 mb-2">
+                                <Clock className="w-4 h-4" />
+                                PROGRAMMAZIONE ORARI & LOCATION
+                              </strong>
+                              <div className="text-sm font-extrabold text-slate-900">
+                                {comp.workSchedule?.datesFormatted || 'Date da calendarizzare'}
                               </div>
-                              <div className="text-base font-bold text-white" style={{ fontFamily: '"Jost", sans-serif' }}>
-                                {comp.contactPerson?.name}
+                              <div className="text-xs text-slate-600 font-semibold mt-1">
+                                Tipologia: <strong>{comp.workSchedule?.scheduleType}</strong>
                               </div>
-                              <div className="text-xs text-white/60 mb-2.5" style={{ fontFamily: '"Jost", sans-serif' }}>
-                                {comp.contactPerson?.role}
+                              <div className="text-xs text-slate-600 mt-1">
+                                Orari: <strong>{comp.workSchedule?.hours || 'Standard'}</strong>
                               </div>
-
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" style={{ fontFamily: '"Space Mono", monospace' }}>
-                                <a
-                                  href={`mailto:${comp.contact?.directEmail || comp.contact?.email}`}
-                                  className="px-2 py-1.5 bg-black/60 hover:bg-black text-white/90 flex items-center gap-1.5 transition-colors"
-                                >
-                                  <Mail className="w-3.5 h-3.5 text-[#00ffaa]" />
-                                  <span className="truncate">{comp.contact?.directEmail || comp.contact?.email}</span>
-                                </a>
-                                <a
-                                  href={`tel:${comp.contact?.mobile || comp.contact?.phone}`}
-                                  className="px-2 py-1.5 bg-black/60 hover:bg-black text-white/90 flex items-center gap-1.5 transition-colors"
-                                >
-                                  <Phone className="w-3.5 h-3.5 text-[#00e5ff]" />
-                                  <span>{comp.contact?.mobile || comp.contact?.phone}</span>
-                                </a>
-                              </div>
+                              {comp.workSchedule?.location && (
+                                <div className="text-xs text-slate-600 mt-1">
+                                  Location: <strong>{comp.workSchedule?.location}</strong>
+                                </div>
+                              )}
                             </div>
 
-                            {/* Storico 1° Contatto */}
-                            <div className="bg-[#1c1c1c] p-3.5 border border-white/10">
-                              <div
-                                className="flex items-center gap-2 text-xs font-bold uppercase text-amber-300 mb-1.5"
-                                style={{ fontFamily: '"Goldman", sans-serif' }}
-                              >
+                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
+                              <strong className="text-xs font-black uppercase text-[#d97706] flex items-center gap-1.5 mb-1.5">
                                 <Calendar className="w-4 h-4" />
-                                <span>STORICO 1° CONTATTO</span>
+                                1° CONTATTO & ACQUISIZIONE
+                              </strong>
+                              <div className="text-xs text-slate-500 mb-1">
+                                Data: <strong className="text-slate-800">{comp.firstContact?.date}</strong> • Canale: <strong className="text-[#0284c7]">{comp.firstContact?.channel}</strong>
                               </div>
-                              <div className="flex items-center gap-2 text-xs mb-1.5" style={{ fontFamily: '"Space Mono", monospace' }}>
-                                <span className="px-1.5 py-0.5 bg-black text-white text-[11px] font-bold">
-                                  {comp.firstContact?.date}
-                                </span>
-                                <span>via</span>
-                                <span className="text-[#00e5ff] font-bold">{comp.firstContact?.channel}</span>
-                              </div>
-                              <p className="text-xs text-white/80 leading-relaxed" style={{ fontFamily: '"Jost", sans-serif', fontSize: '14.5px' }}>
-                                {comp.firstContact?.notes}
+                              <p className="text-xs text-slate-700 leading-relaxed">
+                                {comp.firstContact?.notes || 'Nessuna nota iniziale.'}
                               </p>
                             </div>
-
-                            {/* Programmazione Giorni di Lavoro */}
-                            <div className="bg-[#1c1c1c] p-3.5 border border-white/10">
-                              <div
-                                className="flex items-center gap-2 text-xs font-bold uppercase text-[#00ffaa] mb-1.5"
-                                style={{ fontFamily: '"Goldman", sans-serif' }}
-                              >
-                                <Clock className="w-4 h-4" />
-                                <span>PROGRAMMAZIONE GIORNI DI LAVORO</span>
-                              </div>
-                              <div className="text-sm font-bold text-white mb-0.5" style={{ fontFamily: '"Jost", sans-serif' }}>
-                                {comp.workSchedule?.datesFormatted}
-                              </div>
-                              <div className="text-xs text-[#00ffaa] mb-2 font-bold" style={{ fontFamily: '"Space Mono", monospace' }}>
-                                Tipologia: {comp.workSchedule?.scheduleType}
-                              </div>
-                              <div className="text-xs text-white/80 bg-black/60 p-2 border border-white/5" style={{ fontFamily: '"Space Mono", monospace' }}>
-                                ⏱️ Orari: {comp.workSchedule?.hours}
-                                {comp.workSchedule?.location && (
-                                  <div className="mt-1 text-white/60">📍 Location: {comp.workSchedule?.location}</div>
-                                )}
-                              </div>
-                            </div>
-
                           </div>
 
-                          {/* COLONNA 2: MATERIALE, CONTRATTO, RETRIBUZIONE */}
+                          {/* Colonna 2: Materiali, Contratto e Dettaglio Finanziario */}
                           <div className="flex flex-col gap-3">
-                            
-                            {/* Materiale & Deliverables Richiesti */}
-                            <div className="bg-[#1c1c1c] p-3.5 border border-white/10">
-                              <div
-                                className="flex items-center gap-2 text-xs font-bold uppercase text-[#ff6f43] mb-2"
-                                style={{ fontFamily: '"Goldman", sans-serif' }}
-                              >
+                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
+                              <strong className="text-xs font-black uppercase text-[#ea580c] flex items-center gap-1.5 mb-2">
                                 <Camera className="w-4 h-4" />
-                                <span>MATERIALE & OUTPUT RICHIESTI</span>
-                              </div>
+                                MATERIALI & OUTPUT RICHIESTI
+                              </strong>
                               <div className="flex flex-wrap gap-1.5">
                                 {comp.requestedMaterials?.map((item, i) => (
                                   <span
                                     key={i}
-                                    className="px-2.5 py-1 bg-black/70 border border-white/15 text-white/90 text-xs font-medium"
-                                    style={{ fontFamily: '"Jost", sans-serif', fontSize: '13.5px' }}
+                                    className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-md"
                                   >
                                     {item}
                                   </span>
@@ -1211,119 +950,61 @@ export default function Companies() {
                               </div>
                             </div>
 
-                            {/* Contratto Formato Digitale */}
-                            <div className="bg-[#1c1c1c] p-3.5 border border-white/10">
+                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
                               <div className="flex items-center justify-between mb-2">
-                                <div
-                                  className="flex items-center gap-2 text-xs font-bold uppercase text-white"
-                                  style={{ fontFamily: '"Goldman", sans-serif' }}
-                                >
-                                  <FileText className="w-4 h-4 text-[#00ffaa]" />
-                                  <span>CONTRATTO FORMATO DIGITALE</span>
-                                </div>
-                                <span
-                                  className="text-[10px] font-bold uppercase px-2 py-0.5 bg-[#007a50] text-white"
-                                  style={{ fontFamily: '"Space Mono", monospace' }}
-                                >
-                                  {comp.contract?.status}
+                                <strong className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
+                                  <FileText className="w-4 h-4 text-[#0284c7]" />
+                                  CONTRATTO FORMATO DIGITALE
+                                </strong>
+                                <span className="text-[11px] font-extrabold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded">
+                                  {comp.contract?.status?.toUpperCase()}
                                 </span>
                               </div>
-
-                              <div className="flex items-center justify-between bg-black/60 p-2 border border-white/10 mb-2">
-                                <div className="flex items-center gap-2 text-xs text-white" style={{ fontFamily: '"Space Mono", monospace' }}>
-                                  <Download className="w-3.5 h-3.5 text-[#00e5ff]" />
-                                  <span className="font-bold">{comp.contract?.fileName}</span>
-                                </div>
-                                <span className="text-[10px] text-white/50" style={{ fontFamily: '"Space Mono", monospace' }}>{comp.contract?.code}</span>
+                              <div className="text-xs font-bold text-slate-900 mb-1">
+                                <strong>CTR:</strong> {comp.contract?.fileName} ({comp.contract?.code})
                               </div>
-
-                              <div className="text-xs text-white/70 leading-relaxed" style={{ fontFamily: '"Jost", sans-serif', fontSize: '14px' }}>
-                                <strong className="text-white">Termini:</strong> {comp.contract?.terms}
-                              </div>
-                              <div className="text-[10px] text-white/50 mt-1" style={{ fontFamily: '"Space Mono", monospace' }}>
-                                Formato: {comp.contract?.digitalFormat} (Firmato il {comp.contract?.signedDate})
+                              <div className="text-xs text-slate-600 leading-relaxed">
+                                <strong>Termini:</strong> {comp.contract?.terms}
                               </div>
                             </div>
-
-                            {/* Retribuzione e Dettagli Finanziari */}
-                            <div className="bg-[#1c1c1c] p-3.5 border border-white/10">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold uppercase text-[#00ffaa]" style={{ fontFamily: '"Goldman", sans-serif' }}>
-                                  DETTAGLIO RETRIBUZIONE
-                                </span>
-                                <span className="text-xs text-white/60" style={{ fontFamily: '"Space Mono", monospace' }}>
-                                  {comp.compensation?.paymentMethod}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2 text-center" style={{ fontFamily: '"Space Mono", monospace' }}>
-                                <div className="bg-black/60 p-2 border border-white/5">
-                                  <div className="text-[10px] text-white/50 uppercase">Totale</div>
-                                  <div className="text-sm font-black text-white">€ {comp.compensation?.amount?.toLocaleString()}</div>
-                                </div>
-                                <div className="bg-black/60 p-2 border border-white/5">
-                                  <div className="text-[10px] text-[#00ffaa] uppercase">Acconto</div>
-                                  <div className="text-sm font-black text-[#00ffaa]">€ {comp.compensation?.deposit?.toLocaleString()}</div>
-                                </div>
-                                <div className="bg-black/60 p-2 border border-white/5">
-                                  <div className="text-[10px] text-[#ff6f43] uppercase">Saldo</div>
-                                  <div className="text-sm font-black text-[#ff6f43]">€ {comp.compensation?.balance?.toLocaleString()}</div>
-                                </div>
-                              </div>
-                            </div>
-
                           </div>
+
                         </div>
 
-                        {/* RIGA INFERIORE: FEEDBACK PERSONALE & CRITICITÀ RISOLTE */}
+                        {/* Riga Inferiore: Feedback e Risoluzione Criticità */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-1">
-                          
-                          {/* Feedback Personale */}
-                          <div className="bg-[#007a50]/20 border border-[#00ffaa]/40 p-3.5">
-                            <div className="flex items-center justify-between mb-2">
-                              <span
-                                className="text-xs font-bold uppercase text-[#00ffaa] flex items-center gap-1.5"
-                                style={{ fontFamily: '"Goldman", sans-serif' }}
-                              >
-                                <Star className="w-3.5 h-3.5 fill-[#00ffaa]" />
-                                FEEDBACK PERSONALE SULLA COLLABORAZIONE
-                              </span>
-                              <span className="text-xs font-bold text-amber-300" style={{ fontFamily: '"Space Mono", monospace' }}>
+                          <div className="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <strong className="text-xs font-black uppercase text-amber-800 flex items-center gap-1.5">
+                                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                                FEEDBACK SULLA COLLABORAZIONE
+                              </strong>
+                              <strong className="text-xs font-black text-amber-800">
                                 ★ {comp.feedback?.rating} / 5.0
-                              </span>
+                              </strong>
                             </div>
-                            <p className="text-xs text-white/90 italic leading-relaxed" style={{ fontFamily: '"Jost", sans-serif', fontSize: '15px' }}>
+                            <p className="text-xs text-slate-800 italic leading-relaxed">
                               "{comp.feedback?.notes}"
                             </p>
                           </div>
 
-                          {/* Problemi Presentati & Risoluzione */}
-                          <div className="bg-[#ff6f43]/15 border border-[#ff6f43]/40 p-3.5">
-                            <div className="flex items-center justify-between mb-2">
-                              <span
-                                className="text-xs font-bold uppercase text-[#ff6f43] flex items-center gap-1.5"
-                                style={{ fontFamily: '"Goldman", sans-serif' }}
-                              >
-                                <AlertCircle className="w-3.5 h-3.5" />
-                                PROBLEMA PRESENTATO & SOLUZIONE
-                              </span>
-                              <span
-                                className="text-[10px] font-bold uppercase px-2 py-0.5 bg-[#007a50] text-white"
-                                style={{ fontFamily: '"Space Mono", monospace' }}
-                              >
-                                ✓ {comp.issues?.isResolved}
+                          <div className="p-3.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <strong className="text-xs font-black uppercase text-emerald-800 flex items-center gap-1.5">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                GESTIONE CRITICITÀ
+                              </strong>
+                              <span className="text-[10px] font-extrabold px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded">
+                                ✓ {comp.issues?.isResolved?.toUpperCase()}
                               </span>
                             </div>
-                            <div className="text-xs text-white/90 mb-1.5" style={{ fontFamily: '"Jost", sans-serif', fontSize: '14.5px' }}>
-                              <strong>Criticità emersa:</strong> {comp.issues?.description}
+                            <div className="text-xs text-slate-800 mb-1">
+                              <strong>Criticità:</strong> {comp.issues?.description}
                             </div>
-                            <div
-                              className="text-xs text-emerald-200 bg-black/60 p-2.5 border border-emerald-500/30 leading-relaxed"
-                              style={{ fontFamily: '"Jost", sans-serif', fontSize: '14.5px' }}
-                            >
-                              <strong>Come è stato risolto:</strong> {comp.issues?.resolution}
+                            <div className="text-xs text-emerald-900 font-medium">
+                              <strong>Soluzione adottata:</strong> {comp.issues?.resolution}
                             </div>
                           </div>
-
                         </div>
 
                       </div>
@@ -1337,31 +1018,23 @@ export default function Companies() {
 
         </div>
 
-        {/* ── Banda Bianca Inferiore ── */}
-        <div className="w-full flex justify-end flex-shrink-0 mt-auto">
-          <div className="bg-white rounded-tl-2xl w-[calc(100%-2.5rem)]" style={{ height: 'calc(3rem - 0.5cm)' }} />
-        </div>
-
       </div>
 
-      {/* ── MODAL AGGIUNGI NUOVA SCHEDA AZIENDA ── */}
+      {/* ── MODAL AGGIUNGI NUOVA SCHEDA AZIENDA IN SWITZER E TEMA AZZURRO CHIARO ── */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div
-            className="bg-[#111111] border-2 border-black p-6 max-w-2xl w-full my-8 text-left shadow-2xl relative"
-            style={{ borderRadius: '4px' }}
+            className="bg-white border border-sky-200 p-6 max-w-2xl w-full my-8 text-left shadow-2xl rounded-2xl relative text-slate-800"
+            style={{ fontFamily: '"Switzer", sans-serif' }}
           >
-            <div className="flex items-center justify-between mb-4 border-b border-white/20 pb-3">
-              <h3
-                className="text-xl font-bold text-white flex items-center gap-2"
-                style={{ fontFamily: '"Goldman", sans-serif' }}
-              >
-                <Plus className="w-5 h-5 text-[#00ffaa]" />
+            <div className="flex items-center justify-between mb-4 border-b border-sky-100 pb-3">
+              <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                <Plus className="w-5 h-5 text-[#0284c7] stroke-[3]" />
                 Nuova Scheda Azienda & Collaborazione
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-white/50 hover:text-white text-lg p-1"
+                className="text-slate-400 hover:text-slate-700 text-lg p-1 font-bold cursor-pointer"
               >
                 ✕
               </button>
@@ -1427,93 +1100,58 @@ export default function Companies() {
                 setCompanies([newCompany, ...companies])
                 setShowAddModal(false)
               }}
-              className="flex flex-col gap-3.5 text-xs text-white"
-              style={{ fontFamily: '"Jost", sans-serif' }}
+              className="flex flex-col gap-3.5 text-xs text-slate-800"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-white/70 mb-1 font-bold">Nome Azienda *</label>
-                  <input name="name" required placeholder="Es. Omega Fashion Milano" className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
+                  <label className="block text-slate-700 mb-1 font-bold">Nome Azienda *</label>
+                  <input name="name" required placeholder="Es. Omega Fashion Milano" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
                 </div>
                 <div>
-                  <label className="block text-white/70 mb-1 font-bold">Settore</label>
-                  <input name="industry" placeholder="Es. Moda & ADV" className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
+                  <label className="block text-slate-700 mb-1 font-bold">Settore</label>
+                  <input name="industry" placeholder="Es. Moda & ADV" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-white/70 mb-1 font-bold">Referente e Ruolo</label>
-                  <input name="contactPerson" placeholder="Es. Laura Neri (Art Buyer)" className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
+                  <label className="block text-slate-700 mb-1 font-bold">Referente e Ruolo</label>
+                  <input name="contactPerson" placeholder="Es. Laura Neri (Art Buyer)" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
                 </div>
                 <div>
-                  <label className="block text-white/70 mb-1 font-bold">Email e Telefono</label>
-                  <input name="email" placeholder="email@azienda.it | +39 333 1234567" className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
+                  <label className="block text-slate-700 mb-1 font-bold">Email e Telefono</label>
+                  <input name="email" placeholder="laura@omega.it, +39 02 123456" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-white/70 mb-1 font-bold">Tipologia Orario</label>
-                  <select name="scheduleType" className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white">
-                    <option value="Un giorno intero">Un giorno intero</option>
-                    <option value="Un pomeriggio">Un pomeriggio</option>
-                    <option value="2/3 ore la mattina">2/3 ore la mattina</option>
-                    <option value="2/3 ore la sera">2/3 ore la sera</option>
-                  </select>
+                  <label className="block text-slate-700 mb-1 font-bold">Importo Totale (€)</label>
+                  <input name="amount" type="number" defaultValue="5000" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
                 </div>
                 <div>
-                  <label className="block text-white/70 mb-1 font-bold">Date Lavoro</label>
-                  <input name="workDates" placeholder="Es. 28 Settembre 2026" className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-white/70 mb-1 font-bold">Materiale Richiesto</label>
-                <input name="materials" placeholder="Es. Sony FX3, Aputure 600d, Drone Mavic 3, CFexpress" className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-white/70 mb-1 font-bold">Compenso Totale (€)</label>
-                  <input name="amount" type="number" placeholder="5000" className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
+                  <label className="block text-slate-700 mb-1 font-bold">Acconto Versato (€)</label>
+                  <input name="deposit" type="number" defaultValue="2500" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
                 </div>
                 <div>
-                  <label className="block text-white/70 mb-1 font-bold">Acconto Versato (€)</label>
-                  <input name="deposit" type="number" placeholder="2500" className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
+                  <label className="block text-slate-700 mb-1 font-bold">Date Lavori</label>
+                  <input name="workDates" placeholder="Es. 15 e 16 Ottobre" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-white/70 mb-1 font-bold">Feedback Personale</label>
-                <textarea name="feedbackNotes" rows="2" placeholder="Es. Ottima intesa sul set, consegna puntuale..." className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white resize-none" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-white/70 mb-1 font-bold">Criticità Emersa</label>
-                  <input name="issueDescription" placeholder="Es. Vento forte al mattino..." className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
-                </div>
-                <div>
-                  <label className="block text-white/70 mb-1 font-bold">Come Risolto</label>
-                  <input name="issueResolution" placeholder="Es. Spostate le riprese al pomeriggio..." className="w-full bg-[#1c1c1c] border border-white/20 p-2 text-white" />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-4 pt-3 border-t border-white/20">
+              <div className="flex justify-end gap-2.5 mt-3 pt-3 border-t border-sky-100">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg cursor-pointer"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#ff6f43] hover:bg-[#ff5722] text-black font-bold uppercase tracking-wider"
-                  style={{ fontFamily: '"Goldman", sans-serif' }}
+                  className="px-5 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white font-extrabold rounded-lg shadow-xs cursor-pointer"
                 >
-                  Salva nel Database
+                  Salva Scheda Azienda
                 </button>
               </div>
             </form>
