@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getTodayIso, getTomorrowIso, getCurrentWeekSundayIso } from '../utils/dateUtils'
 import { getCalendarDayData, saveCalendarDayData } from '../utils/calendarData'
@@ -7,7 +7,6 @@ import {
   Paperclip,
   FileText,
   Trash2,
-  Clock,
   Check,
   Download,
   StickyNote,
@@ -16,7 +15,6 @@ import {
   Folder,
   ChevronLeft,
   ChevronRight,
-  Plus
 } from 'lucide-react'
 
 // Nomi dei mesi e dei giorni in italiano
@@ -31,10 +29,10 @@ const MONTH_NAMES_SHORT = [
 const DAY_NAMES_SHORT = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM']
 const DAY_NAMES_LONG = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
 
-// Colori del brand logo DADO: Verde (D), Rosso (△), Ciano (D), Giallo (O)
+// Colori del brand logo DADO in successione delle lettere: D (Verde), A (Rosso), D (Ciano), O (Giallo)
 const BRAND_COLORS = [
   '#53ba75', // Verde D
-  '#ea3824', // Rosso △
+  '#ea3824', // Rosso A (△)
   '#1bb7ed', // Ciano D
   '#fac429', // Giallo O
 ]
@@ -64,11 +62,28 @@ export default function Calendar() {
 
   const [highlightedDayIso, setHighlightedDayIso] = useState(null)
   const [calendarVersion, setCalendarVersion] = useState(0)
+  const scrollContainerRef = useRef(null)
 
   useEffect(() => {
     const handleUpdate = () => setCalendarVersion(v => v + 1)
     window.addEventListener('dado-calendar-update', handleUpdate)
     return () => window.removeEventListener('dado-calendar-update', handleUpdate)
+  }, [])
+
+  // Supporto allo scorrimento orizzontale (destra/sinistra) tramite rotellina del mouse
+  useEffect(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+
+    const handleWheel = (e) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault()
+        el.scrollLeft += e.deltaY * 1.3
+      }
+    }
+
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
   }, [])
 
   const [selectedDayModal, setSelectedDayModal] = useState(null)
@@ -107,17 +122,38 @@ export default function Calendar() {
     return days
   }, [currentDate, realTimeNow])
 
-  // Calcolo cadenza colori brand per i giorni con impegni consecutivi
+  // Calcolo linea fine colorata per giorni con impegni:
+  // Se 2 o più giorni di fila, alterna in successione i colori del brand logo DADO (Verde, Rosso, Ciano, Giallo)
   const commitmentCadenceMap = useMemo(() => {
-    let count = 0
     const map = {}
-    twoWeeksDays.forEach((day) => {
-      const data = getCalendarDayData(day.iso)
-      if (data?.events && data.events.length > 0) {
-        map[day.iso] = count % BRAND_COLORS.length
-        count++
+    let streakIndex = -1
+
+    for (let i = 0; i < twoWeeksDays.length; i++) {
+      const day = twoWeeksDays[i]
+      const dayData = getCalendarDayData(day.iso)
+      const hasEvents = (dayData?.events || []).length > 0
+
+      if (hasEvents) {
+        if (streakIndex === -1) {
+          // Controlla se il giorno immediatamente precedente aveva impegni
+          const prevDate = new Date(day.dateObj)
+          prevDate.setDate(prevDate.getDate() - 1)
+          const prevIso = getTodayIso(prevDate)
+          const prevData = getCalendarDayData(prevIso)
+          if ((prevData?.events || []).length > 0) {
+            streakIndex = 1
+          } else {
+            streakIndex = 0
+          }
+        } else {
+          streakIndex = (streakIndex + 1) % BRAND_COLORS.length
+        }
+        map[day.iso] = BRAND_COLORS[streakIndex]
+      } else {
+        streakIndex = -1
+        map[day.iso] = null
       }
-    })
+    }
     return map
   }, [twoWeeksDays, calendarVersion])
 
@@ -235,138 +271,131 @@ export default function Calendar() {
   const endDay = twoWeeksDays[13]
   const currentMonthName = MONTH_NAMES[realTimeNow.getMonth()]?.toUpperCase()
 
-  // Render di una settimana (7 schede rettangolari orizzontali 6x4 cm)
-  function renderWeekRow(weekDays, weekLabel) {
+  // Render di una settimana (7 caselle orizzontali ingrandite del 25%, edge-to-edge)
+  function renderWeekRow(weekDays) {
     return (
-      <div className="w-full mb-3 overflow-x-auto pb-1 select-none">
-        <div className="flex items-stretch justify-start lg:justify-between gap-3 min-w-max mx-auto">
-          {weekDays.map((day) => {
-            const dayData = getCalendarDayData(day.iso)
-            const events = dayData?.events || []
-            const hasEvents = events.length > 0
-            const hasNotes = Boolean(dayData?.notes && dayData.notes.trim())
-            const isToday = day.isToday
-            const isHighlighted = highlightedDayIso === day.iso
-            const baseCadence = commitmentCadenceMap[day.iso] ?? 0
-            const dayBorderColor = hasEvents ? BRAND_COLORS[baseCadence % BRAND_COLORS.length] : null
+      <div className="flex items-stretch justify-start gap-2.5 w-full min-w-max">
+        {weekDays.map((day) => {
+          const dayData = getCalendarDayData(day.iso)
+          const events = dayData?.events || []
+          const hasEvents = events.length > 0
+          const hasNotes = Boolean(dayData?.notes && dayData.notes.trim())
+          const isToday = day.isToday
+          const isHighlighted = highlightedDayIso === day.iso
+          const dayLineColor = commitmentCadenceMap[day.iso]
 
-            return (
+          return (
+            <div
+              key={day.iso}
+              onClick={() => {
+                setHighlightedDayIso(day.iso)
+                openDayEditor(day)
+              }}
+              className={`p-2.5 flex flex-col justify-between cursor-pointer transition-all bg-white relative overflow-hidden select-none flex-1 ${
+                isHighlighted
+                  ? 'ring-2 ring-[#0284c7] shadow-sm'
+                  : 'hover:border-slate-300 hover:shadow-xs'
+              }`}
+              style={{
+                minWidth: '7.5cm',
+                minHeight: '5.0cm',
+                height: '5.0cm',
+                border: '1.5px solid #e2e8f0',
+                borderRadius: '10px',
+                backgroundColor: isToday ? '#fcfdfd' : '#ffffff',
+              }}
+              title={`Clicca per gestire dettagli (${day.shortName} ${day.dayNum})`}
+            >
+              {/* 1. Linea fine colorata: successione colori brand DADO per giorni con impegni consecutivi */}
               <div
-                key={day.iso}
-                onClick={() => {
-                  setHighlightedDayIso(day.iso)
-                  openDayEditor(day)
-                }}
-                className={`p-2.5 flex flex-col justify-between cursor-pointer transition-all hover:shadow-md relative overflow-hidden ${
-                  isHighlighted
-                    ? 'ring-2 ring-[#00a8ff] shadow-md'
-                    : ''
-                }`}
+                className="w-full rounded-full mb-1.5 transition-colors flex-shrink-0"
                 style={{
-                  width: '6cm',
-                  height: '4cm',
-                  minWidth: '6cm',
-                  minHeight: '4cm',
-                  maxWidth: '6cm',
-                  maxHeight: '4cm',
-                  border: hasEvents ? `2.5px solid ${dayBorderColor}` : '1.5px solid #e2e8f0',
-                  borderRadius: '12px',
-                  backgroundColor: isToday ? '#fbfdfc' : '#ffffff',
-                  boxShadow: hasEvents ? '0 2px 6px rgba(0, 0, 0, 0.04)' : 'none',
+                  height: '2.5px',
+                  backgroundColor: dayLineColor || '#f1f5f9',
+                  opacity: dayLineColor ? 1 : 0.35,
                 }}
-                title={`Clicca per aprire dettagli (${day.shortName} ${day.dayNum})`}
-              >
-                {/* 1. Intestazione Giorno in cima al rettangolo orizzontale */}
-                <div className="flex items-center justify-between pb-1 border-b border-slate-100 select-none flex-shrink-0">
-                  <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-slate-500">
-                    {day.shortName}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    {day.isToday && (
-                      <span className="bg-[#007a50] text-white text-[7.5px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider">
-                        Oggi
-                      </span>
-                    )}
-                    <span className={`text-[15px] font-mono font-black leading-none ${
-                      day.isToday ? 'text-[#007a50]' : 'text-slate-900'
-                    }`}>
-                      {day.dayNum}
+              />
+
+              {/* 2. Intestazione Giorno: Nome e Data (+2pt font, pulito senza icone né riquadri) */}
+              <div className="flex items-center justify-between pb-1 border-b border-slate-100 flex-shrink-0">
+                <span className="text-[13px] font-bold tracking-wider uppercase text-slate-500">
+                  {day.shortName}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {day.isToday && (
+                    <span className="bg-[#007a50] text-white text-[9.5px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Oggi
                     </span>
-                  </div>
-                </div>
-
-                {/* 2. Contenuto impegni che riempie direttamente la scheda orizzontale */}
-                <div className="flex-1 overflow-y-auto pt-1 flex flex-col justify-between text-left pr-0.5">
-                  {hasEvents ? (
-                    events.map((ev, evIdx) => (
-                      <div
-                        key={evIdx}
-                        className={`text-left select-text flex flex-col justify-between h-full ${
-                          evIdx > 0 ? 'pt-1.5 mt-1.5 border-t border-slate-200' : ''
-                        }`}
-                      >
-                        <div>
-                          {/* Orario & Nome Azienda su riga orizzontale */}
-                          <div className="flex items-center justify-between gap-1 mb-0.5">
-                            <span
-                              className="font-mono font-black text-[9px] px-1.5 py-0.2 rounded leading-none whitespace-nowrap"
-                              style={{
-                                backgroundColor: `${dayBorderColor}20`,
-                                color: '#0f172a',
-                                border: `1px solid ${dayBorderColor}60`,
-                              }}
-                            >
-                              ⏰ {ev.time}
-                            </span>
-                            <span className="font-black text-slate-900 text-[11px] truncate flex-1 text-right" title={ev.company}>
-                              {ev.company}
-                            </span>
-                          </div>
-
-                          {/* Azione da svolgere */}
-                          <div className="text-[10px] font-bold text-slate-800 leading-snug line-clamp-2 my-0.5">
-                            {ev.title || ev.category || 'Attività programmata'}
-                          </div>
-                        </div>
-
-                        {/* Persone interessate, Luogo & Note */}
-                        <div className="pt-1 border-t border-slate-100 flex flex-col gap-0.5 text-[8.5px] text-slate-600">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="flex items-center gap-0.5 truncate max-w-[50%]">
-                              <span className="text-slate-400 font-bold">👥</span>
-                              <span className="truncate">{ev.people || ev.attendees || 'Team DADO'}</span>
-                            </span>
-                            {ev.location && (
-                              <span className="flex items-center gap-0.5 truncate max-w-[50%] text-right">
-                                <span className="text-slate-400 font-bold">📍</span>
-                                <span className="truncate">{ev.location}</span>
-                              </span>
-                            )}
-                          </div>
-
-                          {(ev.notes || ev.materials) && (
-                            <div className="text-[8px] text-slate-500 italic flex items-center gap-1 truncate">
-                              <span className="text-slate-400 font-bold">📝</span>
-                              <span className="truncate">{ev.notes || ev.materials}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  ) : hasNotes ? (
-                    <div className="h-full flex items-center justify-center p-1.5 bg-slate-50 rounded border border-dashed border-slate-200 text-[9.5px] text-slate-700 leading-snug italic text-center">
-                      "{dayData.notes}"
-                    </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center opacity-0 hover:opacity-40 transition-opacity">
-                      <Plus className="w-4 h-4 text-slate-300" />
-                    </div>
                   )}
+                  <span className={`text-[17px] font-black leading-none ${
+                    day.isToday ? 'text-[#007a50]' : 'text-slate-900'
+                  }`}>
+                    {day.dayNum}
+                  </span>
                 </div>
               </div>
-            )
-          })}
-        </div>
+
+              {/* 3. Contenuto impegni: testo pulito, +2pt font, NO icone, NO riquadri colorati */}
+              <div className="flex-1 overflow-y-auto pt-1 flex flex-col justify-between text-left pr-0.5">
+                {hasEvents ? (
+                  events.map((ev, evIdx) => (
+                    <div
+                      key={evIdx}
+                      className={`text-left select-text flex flex-col justify-between h-full ${
+                        evIdx > 0 ? 'pt-2 mt-2 border-t border-slate-100' : ''
+                      }`}
+                    >
+                      <div>
+                        {/* Orario e Nome Azienda (+2pt font, niente riquadri colorati né icone) */}
+                        <div className="flex items-baseline justify-between gap-1 mb-0.5">
+                          <span className="font-mono font-bold text-[12px] text-slate-900 tracking-tight whitespace-nowrap">
+                            {ev.time}
+                          </span>
+                          <span className="font-black text-slate-900 text-[13px] truncate flex-1 text-right" title={ev.company}>
+                            {ev.company}
+                          </span>
+                        </div>
+
+                        {/* Titolo / Attività da svolgere */}
+                        <div className="text-[12px] font-medium text-slate-800 leading-snug line-clamp-2 my-0.5">
+                          {ev.title || ev.category || 'Attività programmata'}
+                        </div>
+                      </div>
+
+                      {/* Dettagli partecipanti, location e note (senza icone) */}
+                      <div className="pt-1 border-t border-slate-100 flex flex-col gap-0.5 text-[10.5px] text-slate-600">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="truncate max-w-[50%] font-medium">
+                            {ev.people || ev.attendees || 'Team DADO'}
+                          </span>
+                          {ev.location && (
+                            <span className="truncate max-w-[50%] text-right text-slate-500">
+                              {ev.location}
+                            </span>
+                          )}
+                        </div>
+
+                        {(ev.notes || ev.materials) && (
+                          <div className="text-[10px] text-slate-500 italic truncate">
+                            {ev.notes || ev.materials}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : hasNotes ? (
+                  <div className="h-full flex items-center justify-center p-2 text-[11.5px] text-slate-600 leading-relaxed italic text-center">
+                    "{dayData.notes}"
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-[11px] text-slate-300">
+                    {/* Nessun impegno - pulito e professionale */}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
     )
   }
@@ -374,26 +403,24 @@ export default function Calendar() {
   return (
     <div className="h-full min-h-screen md:min-h-0 bg-[#111111] flex flex-col flex-1 relative overflow-hidden font-sans">
       
-      {/* ── CANVAS BIANCO ("FOGLIO") SPOSTATO VERSO L'ALTO (PADDING RIDOTTO) ── */}
+      {/* ── CANVAS BIANCO ("FOGLIO") DALL'ESTREMITÀ PER GUADAGNARE TUTTO LO SPAZIO ── */}
       <div
-        className="h-full flex-1 bg-white rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-y-auto text-slate-800"
-        style={{
-          paddingTop: '0.7cm', // Spostato verso l'alto
-          paddingLeft: '1.5rem',
-          paddingRight: '1.5rem',
-          paddingBottom: '1rem',
-        }}
+        className="h-full flex-1 bg-white rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden text-slate-800 p-2 sm:p-2.5"
       >
 
-        {/* ── GRIGLIA BISETTIMANALE SUDDIVISA CON LINEE FINI ── */}
-        <div className="flex-1 w-full flex flex-col justify-start">
-          
-          {/* Settimana 1 (7 giorni) */}
-          {renderWeekRow(week1Days, 'Settimana 1')}
+        {/* ── GRIGLIA BISETTIMANALE SCROLLABILE ORIZZONTALMENTE CON ROTELLINA DEL MOUSE ── */}
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 w-full overflow-x-auto overflow-y-hidden select-none pb-2"
+          style={{ scrollBehavior: 'smooth' }}
+        >
+          <div className="flex flex-col gap-2.5 w-full min-w-max">
+            {/* Settimana 1 (7 giorni) */}
+            {renderWeekRow(week1Days)}
 
-          {/* Settimana 2 (7 giorni) */}
-          {renderWeekRow(week2Days, 'Settimana 2')}
-
+            {/* Settimana 2 (7 giorni) */}
+            {renderWeekRow(week2Days)}
+          </div>
         </div>
 
         {/* ── BARRA DI NAVIGAZIONE IN FONDO INGRANDITA: MESI A 3 LETTERE E FRECCE PROPORZIONALMENTE PIÙ GRANDI ── */}
