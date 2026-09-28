@@ -253,10 +253,10 @@ export default function Sidebar() {
         </NavLink>
       </nav>
 
-      {/* Collegamento a Google Drive con orario sotto Settings — Ridimensionato esattamente della metà rispetto alla grandezza di partenza */}
+      {/* Collegamento a Google Drive con orario sotto Settings — Ingrandito di 1/3, solo orario senza scritta Google Drive */}
       {!isDashboard && (
         <div className="mt-4 w-full">
-          <ClockDriveBox compact={true} width="100%" height="calc(29px + 0.75cm)" />
+          <ClockDriveBox width="100%" height="calc(39px + 1cm)" onlyTime={true} />
         </div>
       )}
 

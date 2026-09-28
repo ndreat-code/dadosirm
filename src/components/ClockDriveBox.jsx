@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 
-export default function ClockDriveBox({ width = '100%', height = 'calc(58px + 1.5cm)', compact = false, className = '', style = {} }) {
+export default function ClockDriveBox({
+  width = '100%',
+  height = 'calc(39px + 1cm)',
+  onlyTime = true,
+  className = '',
+  style = {}
+}) {
   const [time, setTime] = useState(new Date())
 
   useEffect(() => {
@@ -9,13 +15,11 @@ export default function ClockDriveBox({ width = '100%', height = 'calc(58px + 1.
   }, [])
 
   const hhmm = time.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
-  // Dimensionamento calibrato esattamente alla metà rispetto alla grandezza di partenza (58px vs 115px)
-  const actualHeight = compact ? 'calc(29px + 0.75cm)' : height
 
   return (
     <div
-      className={`border border-[#00c8c8] rounded-none ${compact ? 'py-1.5 px-3' : 'py-2 px-3'} text-center cursor-pointer hover:border-cyan-400 transition-all relative overflow-hidden group select-none shadow-sm flex flex-col items-center justify-center flex-shrink-0 ${className}`}
-      style={{ backgroundColor: '#ffffff', width, height: actualHeight, ...style }}
+      className={`border border-[#00c8c8] rounded-none py-2 px-3 text-center cursor-pointer hover:border-cyan-400 transition-all relative overflow-hidden group select-none shadow-sm flex flex-col items-center justify-center flex-shrink-0 ${className}`}
+      style={{ backgroundColor: '#ffffff', width, height, ...style }}
       onClick={() => window.open('https://drive.google.com', '_blank')}
       title="Clicca per aprire Google Drive"
     >
@@ -24,25 +28,27 @@ export default function ClockDriveBox({ width = '100%', height = 'calc(58px + 1.
         <img
           src="/google-drive-logo.jpg"
           alt="Google Drive Logo"
-          className={`${compact ? 'w-[88px] h-[88px] opacity-35 scale-115' : 'w-[110px] h-[110px] opacity-40 scale-125'} object-contain group-hover:opacity-60 transition-opacity transform`}
+          className="w-[95px] h-[95px] object-contain opacity-35 group-hover:opacity-55 transition-opacity transform scale-115"
           style={{ mixBlendMode: 'multiply' }}
         />
       </div>
 
-      {/* Contenuto testuale: ORE e Google Drive ben leggibili e proporzionati alla metà */}
-      <div className="relative z-10 leading-tight">
+      {/* Contenuto testuale: solo l'orario (senza scritta google drive) */}
+      <div className="relative z-10 leading-tight flex flex-col items-center justify-center">
         <div
-          className="font-black tracking-wider text-[#111111] leading-tight"
-          style={{ fontSize: compact ? '15.5px' : '18px' }}
+          className="font-black tracking-wider text-[#111111] leading-none"
+          style={{ fontSize: onlyTime ? '21px' : '18px', fontFamily: '"Switzer", sans-serif' }}
         >
           ORE: {hhmm}
         </div>
-        <div
-          className="font-bold text-[#111111] tracking-wide leading-tight"
-          style={{ fontFamily: 'Goldman, sans-serif', fontSize: compact ? '13px' : '15px', marginTop: '2px' }}
-        >
-          Google Drive
-        </div>
+        {!onlyTime && (
+          <div
+            className="font-bold text-[#111111] tracking-wide leading-tight"
+            style={{ fontFamily: 'Goldman, sans-serif', fontSize: '13px', marginTop: '2px' }}
+          >
+            Google Drive
+          </div>
+        )}
       </div>
     </div>
   )
