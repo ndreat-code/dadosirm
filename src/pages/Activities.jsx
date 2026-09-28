@@ -574,86 +574,52 @@ export default function Activities() {
           {/* ── SELEZIONE CONTENUTO: TASKS OPPURE BOZZE/INVII AUTOMATICI ── */}
           {mainTab === 'tasks' ? (
             <div>
-              {/* ── RIGA 4 CARD METRICHE KPI (Stile KpiCard con font Switzer DADO Studio) ── */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" style={{ fontFamily: '"Switzer", sans-serif' }}>
+              {/* ── CARDS IN CIMA: TO DO E IN PROGRAMMA (ELIMINATE LE ALTRE CARDS) ── */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6" style={{ fontFamily: '"Switzer", sans-serif' }}>
             
-            {/* Card 1: TODAY'S FOCUS */}
-            <div
-              onClick={() => { setStatusFilter('pending'); setCategoryFilter('all'); }}
-              className="p-3.5 bg-[#111111] rounded-[6px] shadow-sm flex flex-col justify-between cursor-pointer hover:opacity-95 transition-all min-h-[85px] border border-black"
-              style={{ fontFamily: '"Switzer", sans-serif' }}
-            >
-              <span className="font-bold uppercase tracking-[0.05em] block leading-tight text-[#ff6f43] text-[13px]">
-                TODAY'S FOCUS
-              </span>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="font-extrabold leading-none text-[#ff6f43] text-[34px]" style={{ letterSpacing: '-0.03em' }}>
-                  {stats.dueToday}
-                </span>
-                <span className="text-[12px] font-medium text-[#aaaaaa]">
-                  in scadenza oggi
-                </span>
-              </div>
-            </div>
+                {/* Card 1: TO DO */}
+                <div
+                  onClick={() => { setStatusFilter('pending'); setCategoryFilter('all'); }}
+                  className="p-4 bg-[#111111] rounded-[8px] shadow-sm flex items-center justify-between cursor-pointer hover:bg-black transition-all min-h-[90px] border border-black group"
+                  style={{ fontFamily: '"Switzer", sans-serif' }}
+                >
+                  <div>
+                    <span className="font-extrabold uppercase tracking-[0.06em] block leading-tight text-[#ff6f43] text-sm mb-1">
+                      TO DO
+                    </span>
+                    <span className="text-xs font-semibold text-white/60">
+                      In scadenza oggi / prioritarie
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-black leading-none text-[#ff6f43] text-[38px] block" style={{ letterSpacing: '-0.03em' }}>
+                      {stats.dueToday}
+                    </span>
+                  </div>
+                </div>
 
-            {/* Card 2: SHOOTING & SET */}
-            <div
-              onClick={() => { setStatusFilter('pending'); setCategoryFilter('shooting'); }}
-              className="p-3.5 bg-[#9c27b0] rounded-[6px] shadow-sm flex flex-col justify-between cursor-pointer hover:opacity-95 transition-all min-h-[85px]"
-              style={{ fontFamily: '"Switzer", sans-serif' }}
-            >
-              <span className="font-bold uppercase tracking-[0.05em] block leading-tight text-[#00ff66] text-[13px]">
-                SHOOTING & SET
-              </span>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="font-extrabold leading-none text-[#00ff66] text-[34px]" style={{ letterSpacing: '-0.03em' }}>
-                  {stats.shootings}
-                </span>
-                <span className="text-[12px] font-medium text-[#00e5ff]">
-                  sul campo
-                </span>
-              </div>
-            </div>
+                {/* Card 2: IN PROGRAMMA */}
+                <div
+                  onClick={() => { setStatusFilter('pending'); setCategoryFilter('all'); }}
+                  className="p-4 bg-[#111111] rounded-[8px] shadow-sm flex items-center justify-between cursor-pointer hover:bg-black transition-all min-h-[90px] border border-black group"
+                  style={{ fontFamily: '"Switzer", sans-serif' }}
+                >
+                  <div>
+                    <span className="font-extrabold uppercase tracking-[0.06em] block leading-tight text-[#00e5ff] text-sm mb-1">
+                      IN PROGRAMMA
+                    </span>
+                    <span className="text-xs font-semibold text-white/60">
+                      Attività in coda / pipeline
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-black leading-none text-[#00e5ff] text-[38px] block" style={{ letterSpacing: '-0.03em' }}>
+                      {stats.pending}
+                    </span>
+                  </div>
+                </div>
 
-            {/* Card 3: IN PROGRAMMA */}
-            <div
-              onClick={() => { setStatusFilter('pending'); setCategoryFilter('all'); }}
-              className="p-3.5 bg-[#111111] rounded-[6px] shadow-sm flex flex-col justify-between cursor-pointer hover:opacity-95 transition-all min-h-[85px] border border-black"
-              style={{ fontFamily: '"Switzer", sans-serif' }}
-            >
-              <span className="font-bold uppercase tracking-[0.05em] block leading-tight text-white/90 text-[13px]">
-                IN PROGRAMMA
-              </span>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="font-extrabold leading-none text-white text-[34px]" style={{ letterSpacing: '-0.03em' }}>
-                  {stats.pending}
-                </span>
-                <span className="text-[12px] font-medium text-white/60">
-                  in pipeline
-                </span>
               </div>
-            </div>
-
-            {/* Card 4: COMPLETATE */}
-            <div
-              onClick={() => { setStatusFilter('completed'); }}
-              className="p-3.5 bg-[#00ffaa] rounded-[6px] shadow-sm flex flex-col justify-between cursor-pointer hover:opacity-95 transition-all min-h-[85px]"
-              style={{ fontFamily: '"Switzer", sans-serif' }}
-            >
-              <span className="font-bold uppercase tracking-[0.05em] block leading-tight text-[#111111] text-[13px]">
-                CONCLUSE
-              </span>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="font-extrabold leading-none text-[#111111] text-[34px]" style={{ letterSpacing: '-0.03em' }}>
-                  {stats.completed}
-                </span>
-                <span className="text-[12px] font-medium text-[#111111]/80">
-                  archivio
-                </span>
-              </div>
-            </div>
-
-          </div>
 
           {/* ── CONSOLE ATTIVITÀ: SKIP TASK (WALKMAN), MODIFICA PRIORITÀ, TASK CONCLUSO (SPUNTA) E RIMUOVI ── */}
           {activeTask && (
