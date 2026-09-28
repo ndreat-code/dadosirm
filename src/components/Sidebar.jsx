@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Settings as SettingsIcon } from 'lucide-react'
+import {
+  Building2,
+  ListTodo,
+  CalendarDays,
+  Boxes,
+  Settings as SettingsIcon,
+} from 'lucide-react'
 import ClockDriveBox from './ClockDriveBox'
 
-const navLinks = [
-  { to: '/companies',  label: 'Companies' },
-  { to: '/activities', label: 'Activities' },
-  { to: '/calendar',   label: 'Calendar' },
-  { to: '/inventory',  label: 'Inventario' },
+const navItems = [
+  { to: '/companies',  label: 'Companies',   title: 'Companies (Aziende & Contratti)', icon: Building2 },
+  { to: '/activities', label: 'Activities',  title: 'Activities (Attività & Task)',   icon: ListTodo },
+  { to: '/calendar',   label: 'Calendar',    title: 'Calendar (Calendario Set)',      icon: CalendarDays },
+  { to: '/inventory',  label: 'Inventario',  title: 'Inventario (Attrezzature)',       icon: Boxes },
 ]
 
 function DadoBrandMark({ size = 18 }) {
@@ -44,18 +50,19 @@ function DadoLogo() {
       <div className="flex items-center justify-center flex-shrink-0">
         <DadoBrandMark size={20} />
       </div>
-      {/* Parola CRM allineata otticamente e ridimensionata di 2 punti */}
+      {/* Parola CRM in finitura grigio metallizzato platino */}
       <span
-        className="inline-flex items-center justify-center"
+        className="inline-flex items-center justify-center tracking-wider select-none"
         style={{
           fontFamily: 'Sixtyfour, monospace',
-          color: '#777777',
+          color: '#cbd5e1',
           fontSize: '1.30rem',
           lineHeight: 1,
           height: '20px',
-          letterSpacing: '0.02em',
+          letterSpacing: '0.04em',
           flexShrink: 0,
           transform: 'translateY(1px)',
+          textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
         }}
       >
         CRM
@@ -67,8 +74,8 @@ function DadoLogo() {
 function AnimatedDashboardIcon({ isClicked }) {
   return (
     <svg
-      width="28"
-      height="28"
+      width="27"
+      height="27"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -78,7 +85,7 @@ function AnimatedDashboardIcon({ isClicked }) {
       className="transition-all duration-300 group-hover:scale-105"
       style={{ overflow: 'visible' }}
     >
-      {/* Riquadro 1 (in alto a sinistra) — Si allontana verso l'alto a sx e ingrandisce */}
+      {/* Riquadro 1 (in alto a sinistra) */}
       <rect
         width="7"
         height="9"
@@ -92,7 +99,7 @@ function AnimatedDashboardIcon({ isClicked }) {
         }
         style={{ transformOrigin: 'center' }}
       />
-      {/* Riquadro 2 (in alto a destra) — Si allontana verso l'alto a dx e ingrandisce */}
+      {/* Riquadro 2 (in alto a destra) */}
       <rect
         width="7"
         height="5"
@@ -106,7 +113,7 @@ function AnimatedDashboardIcon({ isClicked }) {
         }
         style={{ transformOrigin: 'center' }}
       />
-      {/* Riquadro 3 (in basso a destra) — Si allontana verso il basso a dx e ingrandisce */}
+      {/* Riquadro 3 (in basso a destra) */}
       <rect
         width="7"
         height="9"
@@ -120,7 +127,7 @@ function AnimatedDashboardIcon({ isClicked }) {
         }
         style={{ transformOrigin: 'center' }}
       />
-      {/* Riquadro 4 (in basso a sinistra) — Si allontana verso il basso a sx e ingrandisce */}
+      {/* Riquadro 4 (in basso a sinistra) */}
       <rect
         width="7"
         height="5"
@@ -141,7 +148,6 @@ function AnimatedDashboardIcon({ isClicked }) {
 export default function Sidebar() {
   const location = useLocation()
   const isDashboard = location.pathname === '/' || location.pathname === '/dashboard-a' || location.pathname === '/dashboard-b'
-  const isDifferentSection = !isDashboard
   const isSubSection = ['/activities', '/companies', '/leads', '/calendar', '/inventory', '/inventario'].some(path => location.pathname.startsWith(path))
 
   const [isAiFocus, setIsAiFocus] = useState(false)
@@ -175,7 +181,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="min-h-screen bg-[#111111] flex flex-col border-r border-white/5 flex-shrink-0 transition-all duration-500 ease-in-out"
+      className="min-h-screen flex flex-col flex-shrink-0 transition-all duration-500 ease-in-out relative select-none"
       style={{
         width: isAiFocus ? '0px' : 'calc(280px - 2cm)',
         paddingLeft: isAiFocus ? '0px' : '1rem',
@@ -186,66 +192,100 @@ export default function Sidebar() {
         transform: isAiFocus ? 'translateX(-100%)' : 'translateX(0)',
         overflow: 'hidden',
         pointerEvents: isAiFocus ? 'none' : 'auto',
+        // Finitura grigio metallizzato satinato con riflessi armonizzati
+        background: 'linear-gradient(180deg, #2d3139 0%, #22262d 42%, #191b20 100%)',
+        borderRight: '1px solid #383e49',
+        boxShadow: 'inset -1px 0 0 rgba(0, 0, 0, 0.4), inset 1px 0 0 rgba(255, 255, 255, 0.05)',
       }}
     >
       
-      {/* Logo in alto */}
+      {/* Logo in alto (D △ D O geometrico a colori + CRM platino metallizzato) */}
       <DadoLogo />
 
-      {/* Pulsante Dashboard — Riquadri che si allontanano max 0.6cm con movimento rallentato a metà velocità e tornano al posto al click */}
+      {/* Pulsante Dashboard — Icona animata in pulsante metallico */}
       <NavLink
         to="/"
         end
         onClick={handleDashboardClick}
-        className="w-[100px] h-[58px] mb-6 self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer"
-        style={{
-          backgroundColor: '#d8ff00',
-          color: '#111111',
+        className={({ isActive }) =>
+          `w-[96px] h-[52px] mb-4 self-start flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
+            isActive
+              ? 'border border-[#00d2ff] shadow-[0_0_12px_rgba(0,210,255,0.25)] text-white'
+              : 'border border-[#3d4350] hover:border-[#5b6475] text-[#9fb0c3] hover:text-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
+          }`
+        }
+        style={({ isActive }) => ({
           marginTop: 'calc(1rem + 1cm - 21px)',
           marginLeft: '8px',
-        }}
+          background: isActive
+            ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
+            : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
+          boxShadow: isActive
+            ? '0 0 12px rgba(0,210,255,0.25), inset 0 1px 0 rgba(255,255,255,0.18)'
+            : '0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.09)',
+        })}
         title="Dashboard"
       >
         <AnimatedDashboardIcon isClicked={isDashboardClicked} />
       </NavLink>
 
-      {/* Menu di navigazione — Voci ben spaziate */}
-      <nav className="flex flex-col gap-4">
-        {navLinks.map(({ to, label }) => (
+      {/* Dock Navigazione Icone Metallizzate — Sostituzione voci con icone */}
+      <nav className="flex flex-col gap-3">
+        {navItems.map(({ to, title, icon: IconComponent }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `text-[17px] font-medium tracking-wide transition-colors ${
+              `w-[96px] h-[52px] self-start flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
                 isActive
-                  ? 'text-white font-semibold border border-[#00a8ff] px-3 py-1 w-fit rounded-none'
-                  : 'text-[#888888] hover:text-white px-3 py-1'
+                  ? 'border border-[#00d2ff] text-white shadow-[0_0_12px_rgba(0,210,255,0.25)]'
+                  : 'border border-[#3d4350] hover:border-[#5b6475] text-[#9fb0c3] hover:text-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
               }`
             }
+            style={({ isActive }) => ({
+              marginLeft: '8px',
+              background: isActive
+                ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
+                : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
+              boxShadow: isActive
+                ? '0 0 12px rgba(0,210,255,0.25), inset 0 1px 0 rgba(255,255,255,0.18)'
+                : '0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.09)',
+            })}
+            title={title}
           >
-            {label}
+            <IconComponent
+              size={24}
+              strokeWidth={2.1}
+              className="transition-transform duration-200 group-hover:scale-110"
+            />
           </NavLink>
         ))}
 
-        {/* Pulsante Settings — Rotella meccanica standard */}
+        {/* Pulsante Settings — Rotella meccanica armonizzata nel design metallico */}
         <NavLink
           to="/settings"
           onClick={handleSettingsClick}
           className={({ isActive }) =>
-            `w-[100px] h-[58px] self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer ${
-              isActive ? 'ring-2 ring-[#00a8ff]' : ''
+            `w-[96px] h-[52px] self-start flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
+              isActive
+                ? 'border border-[#00d2ff] text-white shadow-[0_0_12px_rgba(0,210,255,0.25)]'
+                : 'border border-[#3d4350] hover:border-[#5b6475] text-[#9fb0c3] hover:text-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
             }`
           }
-          style={{
-            backgroundColor: '#d8ff00',
-            color: '#111111',
+          style={({ isActive }) => ({
             marginLeft: '8px',
-          }}
-          title="Settings (Clicca per far girare la rotella veloce)"
+            background: isActive
+              ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
+              : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
+            boxShadow: isActive
+              ? '0 0 12px rgba(0,210,255,0.25), inset 0 1px 0 rgba(255,255,255,0.18)'
+              : '0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.09)',
+          })}
+          title="Impostazioni (Clicca per far girare la rotella)"
         >
           <SettingsIcon
-            size={28}
-            strokeWidth={2.3}
+            size={24}
+            strokeWidth={2.1}
             className={`transition-transform duration-300 ${
               isSettingsSpinning ? 'animate-spin-fast' : 'group-hover:rotate-90'
             }`}
@@ -253,38 +293,12 @@ export default function Sidebar() {
         </NavLink>
       </nav>
 
-      {/* Collegamento a Google Drive con orario sotto Settings — Ingrandito di 1/3, solo orario senza scritta Google Drive */}
+      {/* Collegamento a Google Drive con orario sotto Settings — visibile nelle sottosezioni */}
       {!isDashboard && (
-        <div className="mt-4 w-full">
+        <div className="mt-5 w-full">
           <ClockDriveBox width="100%" height="calc(39px + 1cm)" onlyTime={true} />
         </div>
       )}
-
-      {/* Pulsante Opportunities — Ridimensionato della metà rispetto alla grandezza di partenza affinché non scompaia mai */}
-      <NavLink
-        to="/opportunities"
-        className="text-center py-2 px-2 rounded-2xl transition-all block hover:opacity-95 shadow-sm"
-        style={{
-          backgroundColor: '#007a50',
-          color: '#ffffff',
-          width: '100%',
-          marginTop: isDashboard ? 'calc(2rem + 3cm)' : 'calc(0.75rem + 0.5cm)',
-        }}
-      >
-        <span
-          className="inline-block whitespace-nowrap"
-          style={{
-            fontFamily: '"Goldman", sans-serif',
-            fontWeight: 400,
-            fontSize: '0.74rem',
-            letterSpacing: '0.12cm',
-            lineHeight: 1,
-            textTransform: 'lowercase',
-          }}
-        >
-          opportunities
-        </span>
-      </NavLink>
 
     </aside>
   )
