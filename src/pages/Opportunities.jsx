@@ -869,48 +869,49 @@ export default function Opportunities() {
                 <span className="text-sm font-bold text-white tracking-tight" style={{ fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.02em' }}>
                   Pipeline Background
                 </span>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-black/80 text-[#00ffaa] border border-[#00ffaa]/30">
+                <span className="text-[11px] px-2 py-0.5 rounded bg-black/80 text-[#00ffaa] border border-[#00ffaa]/30 font-semibold" style={{ fontFamily: '"Switzer", sans-serif' }}>
                   A Riflettori Spenti (60s)
                 </span>
 
                 {/* Badge Stato Gmail */}
                 {googleAuth.connected ? (
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-mono px-2.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/40 font-bold">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/40 font-bold" style={{ fontFamily: '"Switzer", sans-serif' }}>
                     <Mail className="w-3 h-3" />
                     <span>Gmail: <strong>{googleAuth.email || 'Collegato'}</strong></span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/40">
+                  <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/40 font-semibold" style={{ fontFamily: '"Switzer", sans-serif' }}>
                     <span>⚠️ Feed Live Autonomo</span>
                   </span>
                 )}
 
                 {pipelineTriggerMsg && (
-                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/40 animate-pulse">
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/40 animate-pulse font-semibold" style={{ fontFamily: '"Switzer", sans-serif' }}>
                     {pipelineTriggerMsg}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-400 font-mono mt-0.5 flex items-center gap-1.5 flex-wrap">
+              <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5 flex-wrap" style={{ fontFamily: '"Switzer", sans-serif' }}>
                 <span>Inbound: {googleAuth.connected ? 'Gmail API Live' : 'Feed Background'}</span>
                 <span className="text-white/20">•</span>
                 <span>Analisi Semantica: {pipelineStatus?.activeEngine || 'OpenAI + NLP Fallback'}</span>
                 <span className="text-white/20">•</span>
                 <span className="text-gray-300">
-                  Ultimo scan: <strong className="text-white font-mono">{pipelineStatus?.lastRun ? new Date(pipelineStatus.lastRun).toLocaleTimeString('it-IT') : 'In corso...'}</strong>
+                  Ultimo scan: <strong className="text-white font-semibold">{pipelineStatus?.lastRun ? new Date(pipelineStatus.lastRun).toLocaleTimeString('it-IT') : 'In corso...'}</strong>
                 </span>
               </p>
             </div>
           </div>
 
-          {/* Metric Badges & Pulsanti */}
-          <div className="flex items-center gap-2.5 flex-wrap self-end lg:self-auto">
+          {/* Metric Badges & Pulsanti in Switzer */}
+          <div className="flex items-center gap-2.5 flex-wrap self-end lg:self-auto" style={{ fontFamily: '"Switzer", sans-serif' }}>
             {/* Pulsante Collega Gmail o Disconnetti */}
             {!googleAuth.connected ? (
               <button
                 type="button"
                 onClick={handleConnectGmail}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/90 hover:bg-red-500 text-white text-xs font-mono font-bold transition-all shadow-md active:scale-95 cursor-pointer border border-red-400/40"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/90 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer border border-red-400/40"
+                style={{ fontFamily: '"Switzer", sans-serif' }}
                 title="Collega la tua casella Gmail per estrarre in tempo reale i preventivi e aggiornare il CRM"
               >
                 <Mail className="w-3.5 h-3.5" />
@@ -920,14 +921,15 @@ export default function Opportunities() {
               <button
                 type="button"
                 onClick={handleDisconnectGmail}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-mono transition-all cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-semibold transition-all cursor-pointer"
+                style={{ fontFamily: '"Switzer", sans-serif' }}
                 title="Scollega account Google"
               >
                 <span>Scollega</span>
               </button>
             )}
 
-            <div className="flex items-center gap-2 bg-black/50 px-2.5 py-1.5 rounded-lg border border-white/10 text-xs font-mono">
+            <div className="flex items-center gap-2 bg-black/50 px-2.5 py-1.5 rounded-lg border border-white/10 text-xs" style={{ fontFamily: '"Switzer", sans-serif' }}>
               <span className="text-gray-400">Cicli:</span>
               <span className="text-[#3b82f6] font-bold">{pipelineStatus?.totalRuns ?? 0}</span>
               <span className="text-white/20">|</span>
@@ -942,7 +944,8 @@ export default function Opportunities() {
               type="button"
               onClick={handleTriggerPipeline}
               disabled={pipelineLoading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-[#3b82f6] hover:text-white border border-[#3b82f6]/40 text-xs font-mono font-bold transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-[#3b82f6] hover:text-white border border-[#3b82f6]/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+              style={{ fontFamily: '"Switzer", sans-serif' }}
               title="Forza l'estrazione e scansione immediata da Gmail"
             >
               <Zap className={`w-3.5 h-3.5 ${pipelineLoading ? 'animate-spin' : ''}`} />
@@ -952,7 +955,8 @@ export default function Opportunities() {
             <button
               type="button"
               onClick={() => setIsPipelineModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/90 border border-white/15 text-xs font-mono transition-all cursor-pointer active:scale-95"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/90 border border-white/15 text-xs font-semibold transition-all cursor-pointer active:scale-95"
+              style={{ fontFamily: '"Switzer", sans-serif' }}
               title="Apri i log in tempo reale della telemetria"
             >
               <Radio className="w-3.5 h-3.5 text-[#00ffaa]" />
@@ -1572,13 +1576,13 @@ export default function Opportunities() {
                   <Radio className="w-4 h-4 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2" style={{ fontFamily: '"Goldman", sans-serif' }}>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2" style={{ fontFamily: '"Switzer", sans-serif' }}>
                     Telemetria Pipeline Background
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/40">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/40 font-bold" style={{ fontFamily: '"Switzer", sans-serif' }}>
                       LIVE
                     </span>
                   </h3>
-                  <p className="text-xs text-white/50 font-mono">
+                  <p className="text-xs text-white/50" style={{ fontFamily: '"Switzer", sans-serif' }}>
                     Connessione Gmail • Motore Semantico LLM • CRM Ingestion
                   </p>
                 </div>
@@ -1592,20 +1596,20 @@ export default function Opportunities() {
               </button>
             </div>
 
-            {/* Corpo Modale */}
-            <div className="p-6 overflow-y-auto space-y-5 text-xs font-mono">
+            {/* Corpo Modale in Switzer */}
+            <div className="p-6 overflow-y-auto space-y-5 text-xs" style={{ fontFamily: '"Switzer", sans-serif' }}>
               {/* Stato nodi */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
-                    <span className="text-white/50 text-[11px]">CONNETTORE GMAIL</span>
+                    <span className="text-white/50 text-[11px] font-medium" style={{ fontFamily: '"Switzer", sans-serif' }}>CONNETTORE GMAIL</span>
                     <span className={`w-2 h-2 rounded-full ${googleAuth.connected ? 'bg-[#10b981]' : 'bg-[#fac429]'}`} />
                   </div>
                   <div className="mt-2">
-                    <div className="font-bold text-white text-xs truncate">
+                    <div className="font-bold text-white text-xs truncate" style={{ fontFamily: '"Switzer", sans-serif' }}>
                       {googleAuth.connected ? (googleAuth.email || 'OAuth2 Connesso') : 'Feed Live Autonomo'}
                     </div>
-                    <div className="text-[10px] text-white/50 mt-0.5">
+                    <div className="text-[10px] text-white/50 mt-0.5" style={{ fontFamily: '"Switzer", sans-serif' }}>
                       {googleAuth.connected ? 'Scansione automatica casella attiva' : 'Nessun account collegato'}
                     </div>
                   </div>
@@ -1614,7 +1618,8 @@ export default function Opportunities() {
                       <button
                         type="button"
                         onClick={handleDisconnectGmail}
-                        className="px-2 py-0.5 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-[10px] transition-all cursor-pointer"
+                        className="px-2 py-0.5 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-[10px] font-semibold transition-all cursor-pointer"
+                        style={{ fontFamily: '"Switzer", sans-serif' }}
                       >
                         Scollega
                       </button>
@@ -1623,6 +1628,7 @@ export default function Opportunities() {
                         type="button"
                         onClick={handleConnectGmail}
                         className="px-2.5 py-1 rounded bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold text-[10.5px] transition-all cursor-pointer shadow flex items-center gap-1"
+                        style={{ fontFamily: '"Switzer", sans-serif' }}
                       >
                         <Mail className="w-3 h-3" />
                         <span>Collega Gmail</span>
@@ -1632,55 +1638,69 @@ export default function Opportunities() {
                 </div>
 
                 <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
-                  <span className="text-white/50 text-[11px]">MOTORE SEMANTICO</span>
+                  <span className="text-white/50 text-[11px] font-medium" style={{ fontFamily: '"Switzer", sans-serif' }}>MOTORE SEMANTICO</span>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="w-2 h-2 rounded-full bg-[#10b981]" />
-                    <span className="font-bold text-white truncate" title={pipelineStatus?.activeEngine}>
+                    <span className="font-bold text-white truncate text-xs" style={{ fontFamily: '"Switzer", sans-serif' }} title={pipelineStatus?.activeEngine}>
                       {pipelineStatus?.activeEngine || 'OpenAI / DADO NLP'}
                     </span>
                   </div>
                 </div>
 
                 <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
-                  <span className="text-white/50 text-[11px]">FREQUENZA BACKGROUND</span>
+                  <span className="text-white/50 text-[11px] font-medium" style={{ fontFamily: '"Switzer", sans-serif' }}>FREQUENZA BACKGROUND</span>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="w-2 h-2 rounded-full bg-[#3b82f6]" />
-                    <span className="font-bold text-white">
+                    <span className="font-bold text-white text-xs" style={{ fontFamily: '"Switzer", sans-serif' }}>
                       Ogni {pipelineStatus?.intervalSeconds || 60}s (Silenzioso)
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Registro Log Eventi */}
+              {/* Registro Log Eventi in Switzer */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white font-bold text-[12px]" style={{ fontFamily: '"Goldman", sans-serif' }}>
+                  <span className="text-white font-bold text-[12px] tracking-wide" style={{ fontFamily: '"Switzer", sans-serif' }}>
                     LOG EVENTI IN TEMPO REALE
                   </span>
-                  <span className="text-white/40 text-[11px]">Buffer circolare automatico</span>
+                  <span className="text-white/40 text-[11px]" style={{ fontFamily: '"Switzer", sans-serif' }}>Buffer circolare automatico</span>
                 </div>
-                <div className="p-3 rounded-xl bg-black/80 border border-white/10 max-h-56 overflow-y-auto space-y-1.5 font-mono text-[11px]">
+                <div
+                  className="p-3.5 rounded-xl bg-black/85 border border-white/10 max-h-60 overflow-y-auto space-y-2 text-[12px]"
+                  style={{ fontFamily: '"Switzer", sans-serif' }}
+                >
                   {pipelineStatus?.logs && pipelineStatus.logs.length > 0 ? (
                     pipelineStatus.logs.map((lg, i) => (
-                      <div key={i} className="flex items-start gap-2 text-white/80 leading-relaxed">
-                        <span className="text-white/40 shrink-0">[{lg.timestamp}]</span>
-                        <span
-                          className={`font-bold shrink-0 ${
-                            lg.level === 'success'
-                              ? 'text-[#10b981]'
-                              : lg.level === 'warning'
-                              ? 'text-[#fac429]'
-                              : 'text-[#3b82f6]'
-                          }`}
-                        >
-                          {lg.level.toUpperCase()}:
+                      <div
+                        key={i}
+                        className="flex items-start gap-2.5 text-white/90 leading-relaxed text-[12px]"
+                        style={{ fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.01em' }}
+                      >
+                        <span className="text-white/45 shrink-0 font-medium" style={{ fontFamily: '"Switzer", sans-serif' }}>
+                          [{lg.timestamp}]
                         </span>
-                        <span className="text-white/90">{lg.message}</span>
+                        <span
+                          className={`font-bold shrink-0 text-[11px] px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                            lg.level === 'success'
+                              ? 'text-[#10b981] bg-[#10b981]/15 border border-[#10b981]/30'
+                              : lg.level === 'warning'
+                              ? 'text-[#fac429] bg-[#fac429]/15 border border-[#fac429]/30'
+                              : 'text-[#3b82f6] bg-[#3b82f6]/15 border border-[#3b82f6]/30'
+                          }`}
+                          style={{ fontFamily: '"Switzer", sans-serif' }}
+                        >
+                          {lg.level}:
+                        </span>
+                        <span className="text-white/90 font-normal break-words" style={{ fontFamily: '"Switzer", sans-serif' }}>
+                          {lg.message}
+                        </span>
                       </div>
                     ))
                   ) : (
-                    <div className="text-white/40 italic py-2 text-center">Nessun log recente registrato.</div>
+                    <div className="text-white/40 italic py-2 text-center" style={{ fontFamily: '"Switzer", sans-serif' }}>
+                      Nessun log recente registrato.
+                    </div>
                   )}
                 </div>
               </div>
@@ -1688,15 +1708,15 @@ export default function Opportunities() {
               {/* Ultime Opportunità Qualificate via B.A.N.T. */}
               {pipelineStatus?.recentTasks && pipelineStatus.recentTasks.length > 0 && (
                 <div>
-                  <span className="text-white font-bold text-[12px] block mb-2" style={{ fontFamily: '"Goldman", sans-serif' }}>
+                  <span className="text-white font-bold text-[12px] block mb-2" style={{ fontFamily: '"Switzer", sans-serif' }}>
                     TASK E LEAD QUALIFICATI B.A.N.T. DALLA PIPELINE
                   </span>
-                  <div className="space-y-2">
+                  <div className="space-y-2" style={{ fontFamily: '"Switzer", sans-serif' }}>
                     {pipelineStatus.recentTasks.map((t, idx) => (
-                      <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-1.5">
+                      <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-1.5" style={{ fontFamily: '"Switzer", sans-serif' }}>
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-[#00e5ff]">{t.company}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#fac429]/20 text-[#fac429] border border-[#fac429]/30">
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#fac429]/20 text-[#fac429] border border-[#fac429]/30 font-bold">
                             Priorità: {t.priority}
                           </span>
                         </div>
@@ -1717,14 +1737,15 @@ export default function Opportunities() {
             </div>
 
             {/* Footer Modale */}
-            <div className="px-6 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between">
-              <span className="text-[11px] text-white/40">
+            <div className="px-6 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between" style={{ fontFamily: '"Switzer", sans-serif' }}>
+              <span className="text-[11px] text-white/40 font-medium">
                 Uptime pipeline: {pipelineStatus?.uptime ? Math.floor(pipelineStatus.uptime) : 0}s
               </span>
               <button
                 type="button"
                 onClick={() => setIsPipelineModalOpen(false)}
                 className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors cursor-pointer"
+                style={{ fontFamily: '"Switzer", sans-serif' }}
               >
                 Chiudi
               </button>
