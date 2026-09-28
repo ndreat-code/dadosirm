@@ -7,6 +7,7 @@ import Activities from './pages/Activities'
 import Calendar from './pages/Calendar'
 import Opportunities from './pages/Opportunities'
 import Settings from './pages/Settings'
+import Inventory from './pages/Inventory'
 
 export default function App() {
   const isPort3005 = typeof window !== 'undefined' && window.location.port === '3005'
@@ -24,6 +25,8 @@ export default function App() {
           <Route path="/activities" element={<Activities />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/opportunities" element={<Opportunities />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/inventario" element={<Inventory />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>

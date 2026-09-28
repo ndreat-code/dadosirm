@@ -7,6 +7,7 @@ const navLinks = [
   { to: '/companies',  label: 'Companies' },
   { to: '/activities', label: 'Activities' },
   { to: '/calendar',   label: 'Calendar' },
+  { to: '/inventory',  label: 'Inventario' },
 ]
 
 function DadoBrandMark({ size = 18 }) {
@@ -194,8 +195,8 @@ export default function Sidebar() {
         <AnimatedDashboardIcon isClicked={isDashboardClicked} />
       </NavLink>
 
-      {/* Menu di navigazione — Voci Companies, Activities, etc. ulteriormente distaccate (gap-8) */}
-      <nav className="flex flex-col gap-8">
+      {/* Menu di navigazione — Voci Companies, Activities, etc. ben spaziate */}
+      <nav className="flex flex-col gap-6">
         {navLinks.map(({ to, label }) => (
           <NavLink
             key={to}

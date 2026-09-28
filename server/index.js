@@ -252,6 +252,200 @@ app.delete('/api/crm/activities/:id', (req, res) => {
 })
 
 // ─────────────────────────────────────────────────────────────
+// ENDPOINT INVENTARIO & GESTIONE NOLEGGI ATTREZZATURA
+// ─────────────────────────────────────────────────────────────
+
+app.get('/api/crm/inventory', (req, res) => {
+  try {
+    const crmData = getCrmData()
+    const inventory = crmData.inventory || []
+    res.json({ success: true, inventory })
+  } catch (err) {
+    console.error('Errore lettura inventario:', err)
+    res.status(500).json({ error: 'Errore interno lettura inventario' })
+  }
+})
+
+app.post('/api/crm/inventory', (req, res) => {
+  try {
+    const {
+      name,
+      category,
+      brand,
+      serialNumber,
+      status,
+      quantity,
+      estimatedValue,
+      location,
+      notes,
+      rental
+    } = req.body
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Nome articolo obbligatorio' })
+    }
+
+    const crmData = getCrmData()
+    if (!crmData.inventory) crmData.inventory = []
+
+    const newItem = {
+      id: 'inv-' + Date.now(),
+      name: name.trim(),
+      category: category || 'extra',
+      brand: brand || '',
+      serialNumber: serialNumber || '',
+      status: status || 'in_studio',
+      quantity: Number(quantity) || 1,
+      estimatedValue: Number(estimatedValue) || 0,
+      location: location || 'Studio',
+      notes: notes || '',
+      rental: rental || null,
+      rentalHistory: [],
+      createdAt: new Date().toISOString()
+    }
+
+    crmData.inventory.unshift(newItem)
+    saveCrmData(crmData)
+    res.json({ success: true, item: newItem, inventory: crmData.inventory })
+  } catch (err) {
+    console.error('Errore creazione articolo inventario:', err)
+    res.status(500).json({ error: 'Errore interno creazione articolo' })
+  }
+})
+
+app.patch('/api/crm/inventory/:id', (req, res) => {
+  try {
+    const { id } = req.params
+    const updates = req.body
+    const crmData = getCrmData()
+    if (!crmData.inventory) crmData.inventory = []
+
+    const idx = crmData.inventory.findIndex(item => String(item.id) === String(id))
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Articolo non trovato' })
+    }
+
+    crmData.inventory[idx] = {
+      ...crmData.inventory[idx],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+
+    saveCrmData(crmData)
+    res.json({ success: true, item: crmData.inventory[idx], inventory: crmData.inventory })
+  } catch (err) {
+    console.error('Errore aggiornamento articolo inventario:', err)
+    res.status(500).json({ error: 'Errore interno aggiornamento articolo' })
+  }
+})
+
+app.delete('/api/crm/inventory/:id', (req, res) => {
+  try {
+    const { id } = req.params
+    const crmData = getCrmData()
+    if (!crmData.inventory) crmData.inventory = []
+
+    crmData.inventory = crmData.inventory.filter(item => String(item.id) !== String(id))
+    saveCrmData(crmData)
+    res.json({ success: true, inventory: crmData.inventory })
+  } catch (err) {
+    console.error('Errore eliminazione articolo inventario:', err)
+    res.status(500).json({ error: 'Errore interno eliminazione articolo' })
+  }
+})
+
+// Assegna noleggio ad un articolo
+app.post('/api/crm/inventory/:id/rent', (req, res) => {
+  try {
+    const { id } = req.params
+    const {
+      clientName,
+      company,
+      contactPhone,
+      contactEmail,
+      startDate,
+      endDate,
+      agreedPrice,
+      pricingType,
+      contractCode,
+      deposit,
+      notes
+    } = req.body
+
+    const crmData = getCrmData()
+    if (!crmData.inventory) crmData.inventory = []
+
+    const idx = crmData.inventory.findIndex(item => String(item.id) === String(id))
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Articolo non trovato' })
+    }
+
+    const rentalData = {
+      id: 'rent-' + Date.now(),
+      clientName: clientName || 'Referente non specificato',
+      company: company || 'Cliente Diretto',
+      contactPhone: contactPhone || '',
+      contactEmail: contactEmail || '',
+      startDate: startDate || new Date().toISOString().split('T')[0],
+      endDate: endDate || '',
+      agreedPrice: Number(agreedPrice) || 0,
+      pricingType: pricingType || 'Totale forfait',
+      contractCode: contractCode || 'DADO-RENT-' + Date.now().toString().slice(-4),
+      deposit: Number(deposit) || 0,
+      notes: notes || '',
+      rentedAt: new Date().toISOString()
+    }
+
+    crmData.inventory[idx].status = 'noleggiato'
+    crmData.inventory[idx].location = 'Fuori Studio'
+    crmData.inventory[idx].rental = rentalData
+
+    saveCrmData(crmData)
+    res.json({ success: true, item: crmData.inventory[idx], inventory: crmData.inventory })
+  } catch (err) {
+    console.error('Errore assegnazione noleggio:', err)
+    res.status(500).json({ error: 'Errore interno assegnazione noleggio' })
+  }
+})
+
+// Rientro noleggio in studio
+app.post('/api/crm/inventory/:id/return', (req, res) => {
+  try {
+    const { id } = req.params
+    const { returnLocation, returnNotes } = req.body
+    const crmData = getCrmData()
+    if (!crmData.inventory) crmData.inventory = []
+
+    const idx = crmData.inventory.findIndex(item => String(item.id) === String(id))
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Articolo non trovato' })
+    }
+
+    const currentRental = crmData.inventory[idx].rental
+    if (currentRental) {
+      if (!crmData.inventory[idx].rentalHistory) {
+        crmData.inventory[idx].rentalHistory = []
+      }
+      crmData.inventory[idx].rentalHistory.unshift({
+        ...currentRental,
+        returnedAt: new Date().toISOString(),
+        returnNotes: returnNotes || ''
+      })
+    }
+
+    crmData.inventory[idx].status = 'in_studio'
+    crmData.inventory[idx].location = returnLocation || 'Studio'
+    crmData.inventory[idx].rental = null
+
+    saveCrmData(crmData)
+    res.json({ success: true, item: crmData.inventory[idx], inventory: crmData.inventory })
+  } catch (err) {
+    console.error('Errore rientro noleggio:', err)
+    res.status(500).json({ error: 'Errore interno rientro noleggio' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
 // ENDPOINT ASK OPEN AI
 // ─────────────────────────────────────────────────────────────
 
