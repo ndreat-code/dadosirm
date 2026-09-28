@@ -46,7 +46,7 @@
         "need": "Produzione contenuti audiovisivi",
         "timeline": "Entro 1 settimana"
       },
-      "lastContact": "2026-09-28T01:04:00.776Z"
+      "lastContact": "2026-09-28T01:14:00.453Z"
     },
     {
       "id": "comp-1790554140763",
@@ -94,7 +94,7 @@
         "need": "Shooting video corporate stabilimento con drone 4K",
         "timeline": "Entro 1 settimana"
       },
-      "lastContact": "2026-09-28T01:12:00.580Z"
+      "lastContact": "2026-09-28T01:18:00.532Z"
     },
     {
       "id": "comp-3",
@@ -157,7 +157,7 @@
         "isResolved": "Risolto",
         "resolution": "Intervista spostata nella sala controllo insonorizzata con finestra vetrata panoramica sui macchinari + applicazione di voice-isolation neurale in post-produzione. Resa audio limpida."
       },
-      "lastContact": "2026-09-28T01:10:00.567Z",
+      "lastContact": "2026-09-28T01:15:00.363Z",
       "bant": {
         "budget": "€ 9.200",
         "need": "Shooting video corporate stabilimento con drone 4K",
@@ -226,7 +226,7 @@
         "isResolved": "Risolto",
         "resolution": "Riorganizzata la timeline di ripresa anticipando le scene a terra con i tecnici e le interviste; riprese aeree completate nel tardo pomeriggio quando il vento è sceso a 8 nodi."
       },
-      "lastContact": "2026-09-28T01:11:02.595Z",
+      "lastContact": "2026-09-28T01:17:00.409Z",
       "bant": {
         "budget": "€ 14.500.",
         "authority": "Referente aziendale",
@@ -1430,6 +1430,114 @@
     }
   ],
   "emails": [
+    {
+      "id": "sim-1790558279958-3",
+      "from": "Sara Moretti <s.moretti@nextmedia.agency>",
+      "senderEmail": "s.moretti@nextmedia.agency",
+      "company": "NextMedia Agency",
+      "subject": "Richiesta info servizi video, showreel e opportunità di collaborazione",
+      "snippet": "Buongiorno DADO Studio, vi scriviamo per richiedere maggiori informazioni sui vostri servizi video e showreel......",
+      "body": "Buongiorno DADO Studio, siamo una nuova agenzia di comunicazione e seguiamo diversi brand moda e lifestyle. Vi scriviamo per richiedere maggiori informazioni sui vostri servizi di produzione video corporate, disponibilità drone e per proporvi una collaborazione continuativa (collab). Potete inviarci il vostro showreel aggiornato?",
+      "date": "2026-09-28T01:17:59.958Z",
+      "aiSummary": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790558219957-4",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.",
+      "date": "2026-09-28T01:16:59.957Z",
+      "aiSummary": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790558159957-3",
+      "from": "Sara Moretti <s.moretti@nextmedia.agency>",
+      "senderEmail": "s.moretti@nextmedia.agency",
+      "company": "NextMedia Agency",
+      "subject": "Richiesta info servizi video, showreel e opportunità di collaborazione",
+      "snippet": "Buongiorno DADO Studio, vi scriviamo per richiedere maggiori informazioni sui vostri servizi video e showreel......",
+      "body": "Buongiorno DADO Studio, siamo una nuova agenzia di comunicazione e seguiamo diversi brand moda e lifestyle. Vi scriviamo per richiedere maggiori informazioni sui vostri servizi di produzione video corporate, disponibilità drone e per proporvi una collaborazione continuativa (collab). Potete inviarci il vostro showreel aggiornato?",
+      "date": "2026-09-28T01:15:59.957Z",
+      "aiSummary": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790558099956-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e approvazione budget deliberato",
+      "snippet": "Buongiorno team Dado, vi confermiamo che il consiglio ha deliberato il preventivo di € 9.200......",
+      "body": "Buongiorno team Dado, vi confermiamo con piacere che il consiglio ha deliberato e approvato il preventivo di € 9.200 per lo shooting corporate e le riprese drone indoor. Attendiamo vostra conferma per avvio produzione e dettagli logistici.",
+      "date": "2026-09-28T01:14:59.957Z",
+      "aiSummary": "Richiesta rilevata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790558039956-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T01:13:59.956Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790557979955-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T01:12:59.955Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
     {
       "id": "sim-1790557919953-3",
       "from": "Sara Moretti <s.moretti@nextmedia.agency>",
@@ -5427,6 +5535,102 @@
   ],
   "drafts": [
     {
+      "id": "draft-1790558280532-23",
+      "emailId": "sim-1790558279958-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:18:00.532Z",
+      "sentAt": "2026-09-28T01:18:00.532Z"
+    },
+    {
+      "id": "draft-1790558220409-904",
+      "emailId": "sim-1790558219957-4",
+      "company": "Solaris Green Energy",
+      "recipient": "e.fontana@solarisgreen.eu",
+      "subject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "body": "Gentile Elena Fontana,\n\nin riferimento alla vostra richiesta per Solaris Green Energy relativa a \"Revisione economica e contrattuale spot TV HDR\", abbiamo elaborato la seguente proposta preliminare:\n\n• Budget indicativo stimato: € 14.500.\n• Finestra di consegna: Entro 1 settimana\n• Condizioni: 50% all'accettazione e saldo alla consegna dei master 4K.\n\n[Bozza generata da automazione CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nDADO Creative Studio",
+      "category": "CUSTOM_OR_NEGOTIATION",
+      "subType": "draft_only",
+      "autoSend": false,
+      "reason": "Trattativa complessa / preventivo personalizzato: salvato nelle BOZZE per revisione manuale (Non inviato in automatico)",
+      "status": "draft",
+      "requiresReview": true,
+      "createdAt": "2026-09-28T01:17:00.409Z",
+      "sentAt": null
+    },
+    {
+      "id": "draft-1790558160608-261",
+      "emailId": "sim-1790558159957-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:16:00.608Z",
+      "sentAt": "2026-09-28T01:16:00.608Z"
+    },
+    {
+      "id": "draft-1790558100363-888",
+      "emailId": "sim-1790558099956-1",
+      "company": "Officine Meccaniche Riva",
+      "recipient": "marco.riva@officineriva.it",
+      "subject": "Conferma accordo e avvio produzione - DADO Creative Studio",
+      "body": "Gentile Ing. Marco Riva,\n\nconfermiamo con piacere la ricezione dell'approvazione del preventivo per Officine Meccaniche Riva (€ 9.200).\nAbbiamo registrato l'accordo nel nostro CRM e predisposto il piano di produzione per le riprese video e l'impiego del drone 4K.\n\nNei prossimi giorni vi invieremo la documentazione per il kick-off, le liberatorie e il piano di lavoro operativo dettagliato.\n\nRestiamo a vostra completa disposizione.\n\nCordiali saluti,\nTeam DADO Creative Studio\nMilano | www.dadostudio.it",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "positive",
+      "autoSend": true,
+      "reason": "Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:15:00.363Z",
+      "sentAt": "2026-09-28T01:15:00.363Z"
+    },
+    {
+      "id": "draft-1790558040453-149",
+      "emailId": "sim-1790558039956-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:14:00.453Z",
+      "sentAt": "2026-09-28T01:14:00.453Z"
+    },
+    {
+      "id": "draft-1790557980555-963",
+      "emailId": "sim-1790557979955-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:13:00.555Z",
+      "sentAt": "2026-09-28T01:13:00.555Z"
+    },
+    {
       "id": "draft-1790557920580-945",
       "emailId": "sim-1790557919953-3",
       "company": "NextMedia Agency",
@@ -6468,6 +6672,86 @@
     }
   ],
   "sentEmails": [
+    {
+      "id": "draft-1790558280532-23",
+      "emailId": "sim-1790558279958-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:18:00.532Z",
+      "sentAt": "2026-09-28T01:18:00.532Z"
+    },
+    {
+      "id": "draft-1790558160608-261",
+      "emailId": "sim-1790558159957-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:16:00.608Z",
+      "sentAt": "2026-09-28T01:16:00.608Z"
+    },
+    {
+      "id": "draft-1790558100363-888",
+      "emailId": "sim-1790558099956-1",
+      "company": "Officine Meccaniche Riva",
+      "recipient": "marco.riva@officineriva.it",
+      "subject": "Conferma accordo e avvio produzione - DADO Creative Studio",
+      "body": "Gentile Ing. Marco Riva,\n\nconfermiamo con piacere la ricezione dell'approvazione del preventivo per Officine Meccaniche Riva (€ 9.200).\nAbbiamo registrato l'accordo nel nostro CRM e predisposto il piano di produzione per le riprese video e l'impiego del drone 4K.\n\nNei prossimi giorni vi invieremo la documentazione per il kick-off, le liberatorie e il piano di lavoro operativo dettagliato.\n\nRestiamo a vostra completa disposizione.\n\nCordiali saluti,\nTeam DADO Creative Studio\nMilano | www.dadostudio.it",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "positive",
+      "autoSend": true,
+      "reason": "Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:15:00.363Z",
+      "sentAt": "2026-09-28T01:15:00.363Z"
+    },
+    {
+      "id": "draft-1790558040453-149",
+      "emailId": "sim-1790558039956-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:14:00.453Z",
+      "sentAt": "2026-09-28T01:14:00.453Z"
+    },
+    {
+      "id": "draft-1790557980555-963",
+      "emailId": "sim-1790557979955-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:13:00.555Z",
+      "sentAt": "2026-09-28T01:13:00.555Z"
+    },
     {
       "id": "draft-1790557920580-945",
       "emailId": "sim-1790557919953-3",

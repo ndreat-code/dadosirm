@@ -48,40 +48,13 @@ body {
   animation: spin-fast 0.7s cubic-bezier(0.12, 0.8, 0.25, 1.25) forwards;
 }
 
-/* Interscambio rapido dei 4 riquadri dell'icona Dashboard solo al click */
-@keyframes tile-swap-1 {
-  0% { transform: translate(0px, 0px); }
-  25% { transform: translate(11px, 0px); }
-  50% { transform: translate(11px, 9px); }
-  75% { transform: translate(0px, 13px); }
-  100% { transform: translate(0px, 0px); }
+/* Giro fluido, rapido e continuo dei 4 elementi dell'icona Dashboard solo al click */
+@keyframes dashboard-lap {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-@keyframes tile-swap-2 {
-  0% { transform: translate(0px, 0px); }
-  25% { transform: translate(0px, 9px); }
-  50% { transform: translate(-11px, 13px); }
-  75% { transform: translate(-11px, 0px); }
-  100% { transform: translate(0px, 0px); }
+.animate-dashboard-lap {
+  transform-origin: 12px 12px;
+  animation: dashboard-lap 0.38s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
 }
-
-@keyframes tile-swap-3 {
-  0% { transform: translate(0px, 0px); }
-  25% { transform: translate(-11px, 4px); }
-  50% { transform: translate(-11px, -9px); }
-  75% { transform: translate(0px, -9px); }
-  100% { transform: translate(0px, 0px); }
-}
-
-@keyframes tile-swap-4 {
-  0% { transform: translate(0px, 0px); }
-  25% { transform: translate(0px, -13px); }
-  50% { transform: translate(11px, -13px); }
-  75% { transform: translate(11px, -4px); }
-  100% { transform: translate(0px, 0px); }
-}
-
-.animate-tile-swap-1 { animation: tile-swap-1 0.58s ease-in-out; }
-.animate-tile-swap-2 { animation: tile-swap-2 0.58s ease-in-out; }
-.animate-tile-swap-3 { animation: tile-swap-3 0.58s ease-in-out; }
-.animate-tile-swap-4 { animation: tile-swap-4 0.58s ease-in-out; }
