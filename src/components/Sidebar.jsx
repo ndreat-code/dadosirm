@@ -336,11 +336,14 @@ export default function Sidebar() {
       </nav>
 
       {/* Collegamento a Google Drive con orario sotto Settings */}
-      {!isDashboard && (
-        <div className="mt-3.5 w-full flex justify-center">
-          <ClockDriveBox width="52px" height="48px" compact={true} onlyTime={true} />
-        </div>
-      )}
+      <div className={`mt-3.5 w-full flex ${isDashboard ? 'justify-start pl-[8px]' : 'justify-center'}`}>
+        <ClockDriveBox
+          width={isDashboard ? '96px' : '52px'}
+          height="48px"
+          compact={!isDashboard}
+          onlyTime={true}
+        />
+      </div>
 
       {/* Profilo Attivo & Switcher Veloce in Fondo alla Barra */}
       <div className="mt-auto pt-3 border-t border-[#383e49]/80 w-full flex flex-col items-center">
