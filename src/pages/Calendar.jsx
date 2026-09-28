@@ -231,130 +231,137 @@ export default function Calendar() {
   const endDay = twoWeeksDays[13]
   const currentMonthName = MONTH_NAMES[realTimeNow.getMonth()]?.toUpperCase()
 
-  // Render di una settimana (7 colonne con linee fini)
+  // Render di una settimana (7 colonne con linee fini, formato orizzontale e leggibile)
   function renderWeekRow(weekDays, weekLabel) {
     return (
-      <div className="w-full mb-4">
-        {/* Intestazione giorni settimana */}
-        <div className="grid grid-cols-7 border-t border-x border-slate-300 divide-x divide-slate-200 bg-slate-100/90 text-slate-700 text-center select-none">
-          {weekDays.map((day) => (
-            <div
-              key={day.iso}
-              className={`py-2 px-1 flex flex-col items-center justify-center transition-colors ${
-                day.isToday ? 'bg-[#007a50]/10 text-[#007a50]' : ''
-              }`}
-            >
-              <span className="text-[11px] font-mono font-bold tracking-wider leading-none">
-                {day.shortName}
-              </span>
-              <span className={`text-[15px] font-mono font-black leading-tight mt-0.5 ${
-                day.isToday ? 'text-[#007a50] underline underline-offset-2' : 'text-slate-900'
-              }`}>
-                {day.dayNum}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Griglia delle celle dei 7 giorni */}
-        <div className="grid grid-cols-7 border-b border-x border-slate-300 divide-x divide-slate-200 bg-white">
-          {weekDays.map((day) => {
-            const dayData = getCalendarDayData(day.iso)
-            const events = dayData?.events || []
-            const hasNotes = Boolean(dayData?.notes && dayData.notes.trim())
-            const isToday = day.isToday
-            const isHighlighted = highlightedDayIso === day.iso
-            const baseCadence = commitmentCadenceMap[day.iso] ?? 0
-
-            return (
+      <div className="w-full mb-3.5 overflow-x-auto">
+        <div className="min-w-[1080px] w-full">
+          {/* Intestazione giorni settimana orizzontale ed elegante */}
+          <div className="grid grid-cols-7 border-t border-x border-slate-300 divide-x divide-slate-200 bg-slate-100/95 text-slate-700 select-none">
+            {weekDays.map((day) => (
               <div
                 key={day.iso}
-                onClick={() => {
-                  setHighlightedDayIso(day.iso)
-                  openDayEditor(day)
-                }}
-                className={`min-h-[175px] max-h-[260px] p-2 flex flex-col justify-start gap-2 overflow-y-auto cursor-pointer transition-all hover:bg-slate-50/80 relative group ${
-                  isHighlighted
-                    ? 'ring-2 ring-inset ring-[#00a8ff] bg-sky-50/20'
-                    : isToday
-                    ? 'bg-emerald-50/15'
-                    : ''
+                className={`py-1.5 px-3 flex items-center justify-between transition-colors ${
+                  day.isToday ? 'bg-[#007a50]/15 text-[#007a50]' : ''
                 }`}
-                title={`Clicca per gestire note o allegati (${day.shortName} ${day.dayNum})`}
               >
-                {/* Elenco Riquadri Impegni perimetrati con i colori del brand */}
-                {events.length > 0 ? (
-                  events.map((ev, evIdx) => {
-                    const borderColor = BRAND_COLORS[(baseCadence + evIdx) % BRAND_COLORS.length]
-                    return (
-                      <div
-                        key={evIdx}
-                        className="bg-white rounded-lg p-2 text-left transition-shadow hover:shadow-md select-text"
-                        style={{
-                          border: `2px solid ${borderColor}`,
-                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-                        }}
-                      >
-                        {/* 1. Orario (dalle - alle) & Badge */}
-                        <div className="flex items-center justify-between gap-1 mb-1">
-                          <span
-                            className="font-mono font-black text-[9px] px-1.5 py-0.5 rounded leading-none"
-                            style={{
-                              backgroundColor: `${borderColor}18`,
-                              color: '#111111',
-                              border: `1px solid ${borderColor}50`,
-                            }}
-                          >
-                            ⏰ {ev.time}
-                          </span>
-                        </div>
-
-                        {/* 2. Azienda */}
-                        <div className="font-black text-slate-900 text-[10.5px] leading-tight mb-0.5 truncate">
-                          {ev.company}
-                        </div>
-
-                        {/* 3. Azione da svolgere */}
-                        <div className="text-[9.5px] font-semibold text-slate-700 leading-snug mb-1 line-clamp-2">
-                          {ev.title || ev.category || 'Attività programmata'}
-                        </div>
-
-                        {/* 4. Persone interessate */}
-                        <div className="text-[8.5px] text-slate-600 flex items-center gap-1 mb-0.5 truncate">
-                          <span className="text-slate-400 font-bold">👥</span>
-                          <span className="truncate">{ev.people || ev.attendees || ev.contact || 'Team DADO Studio'}</span>
-                        </div>
-
-                        {/* 5. Luogo */}
-                        {ev.location && (
-                          <div className="text-[8.5px] text-slate-600 flex items-center gap-1 mb-0.5 truncate">
-                            <span className="text-slate-400 font-bold">📍</span>
-                            <span className="truncate">{ev.location}</span>
-                          </div>
-                        )}
-
-                        {/* 6. Note */}
-                        {(ev.notes || ev.materials) && (
-                          <div className="text-[8px] text-slate-500 italic flex items-center gap-1 mt-0.5 truncate">
-                            <span className="text-slate-400">📝</span>
-                            <span className="truncate">{ev.notes || ev.materials}</span>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })
-                ) : hasNotes ? (
-                  <div className="p-2 bg-slate-50 rounded border border-dashed border-slate-300 text-[10px] text-slate-700 leading-snug italic">
-                    "{dayData.notes}"
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center opacity-0 group-hover:opacity-40 transition-opacity">
-                    <Plus className="w-4 h-4 text-slate-400" />
-                  </div>
-                )}
+                <span className="text-[11.5px] font-mono font-bold tracking-wider uppercase">
+                  {day.shortName}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {day.isToday && (
+                    <span className="bg-[#007a50] text-white text-[8.5px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                      Oggi
+                    </span>
+                  )}
+                  <span className={`text-[16px] font-mono font-black leading-none ${
+                    day.isToday ? 'text-[#007a50]' : 'text-slate-900'
+                  }`}>
+                    {day.dayNum}
+                  </span>
+                </div>
               </div>
-            )
-          })}
+            ))}
+          </div>
+
+          {/* Griglia delle celle dei 7 giorni — Più grandi, orizzontali e spaziose */}
+          <div className="grid grid-cols-7 border-b border-x border-slate-300 divide-x divide-slate-200 bg-white">
+            {weekDays.map((day) => {
+              const dayData = getCalendarDayData(day.iso)
+              const events = dayData?.events || []
+              const hasNotes = Boolean(dayData?.notes && dayData.notes.trim())
+              const isToday = day.isToday
+              const isHighlighted = highlightedDayIso === day.iso
+              const baseCadence = commitmentCadenceMap[day.iso] ?? 0
+
+              return (
+                <div
+                  key={day.iso}
+                  onClick={() => {
+                    setHighlightedDayIso(day.iso)
+                    openDayEditor(day)
+                  }}
+                  className={`min-h-[190px] max-h-[300px] p-2 flex flex-col justify-start gap-2.5 overflow-y-auto cursor-pointer transition-all hover:bg-slate-50/70 relative group ${
+                    isHighlighted
+                      ? 'ring-2 ring-inset ring-[#00a8ff] bg-sky-50/20'
+                      : isToday
+                      ? 'bg-emerald-50/10'
+                      : ''
+                  }`}
+                  title={`Clicca per gestire note o allegati (${day.shortName} ${day.dayNum})`}
+                >
+                  {/* Elenco Riquadri Impegni: formattati in orizzontale e con font più grandi e chiari */}
+                  {events.length > 0 ? (
+                    events.map((ev, evIdx) => {
+                      const borderColor = BRAND_COLORS[(baseCadence + evIdx) % BRAND_COLORS.length]
+                      return (
+                        <div
+                          key={evIdx}
+                          className="bg-white rounded-xl p-2.5 text-left transition-all hover:shadow-md select-text"
+                          style={{
+                            border: `2px solid ${borderColor}`,
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
+                          }}
+                        >
+                          {/* 1. Orario (dalle - alle) & Azienda su riga orizzontale */}
+                          <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                            <span
+                              className="font-mono font-black text-[10px] px-2 py-0.5 rounded leading-none whitespace-nowrap"
+                              style={{
+                                backgroundColor: `${borderColor}20`,
+                                color: '#0f172a',
+                                border: `1px solid ${borderColor}60`,
+                              }}
+                            >
+                              ⏰ {ev.time}
+                            </span>
+                            <span className="font-black text-slate-900 text-[11.5px] truncate text-right flex-1" title={ev.company}>
+                              {ev.company}
+                            </span>
+                          </div>
+
+                          {/* 2. Azione da svolgere in evidenza */}
+                          <div className="text-[10.5px] font-bold text-slate-800 leading-snug mb-1.5 line-clamp-2">
+                            {ev.title || ev.category || 'Attività programmata'}
+                          </div>
+
+                          {/* 3. Persone interessate & Luogo disposti orizzontalmente */}
+                          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[9.5px] text-slate-600 mb-1">
+                            <span className="flex items-center gap-1 truncate max-w-[55%]">
+                              <span className="text-slate-400 font-bold">👥</span>
+                              <span className="truncate">{ev.people || ev.attendees || ev.contact || 'Team DADO'}</span>
+                            </span>
+                            {ev.location && (
+                              <span className="flex items-center gap-1 truncate max-w-[45%]">
+                                <span className="text-slate-400 font-bold">📍</span>
+                                <span className="truncate">{ev.location}</span>
+                              </span>
+                            )}
+                          </div>
+
+                          {/* 4. Note e materiali tecnici */}
+                          {(ev.notes || ev.materials) && (
+                            <div className="text-[9px] text-slate-500 italic flex items-center gap-1 pt-1 border-t border-slate-100 truncate">
+                              <span className="text-slate-400 font-bold">📝</span>
+                              <span className="truncate">{ev.notes || ev.materials}</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
+                  ) : hasNotes ? (
+                    <div className="p-2.5 bg-slate-50 rounded-lg border border-dashed border-slate-300 text-[10.5px] text-slate-700 leading-relaxed italic">
+                      "{dayData.notes}"
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center opacity-0 group-hover:opacity-40 transition-opacity">
+                      <Plus className="w-4 h-4 text-slate-400" />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     )
@@ -363,14 +370,14 @@ export default function Calendar() {
   return (
     <div className="h-full min-h-screen md:min-h-0 bg-[#111111] flex flex-col flex-1 relative overflow-hidden font-sans">
       
-      {/* ── CANVAS BIANCO ("FOGLIO") SENZA SCRITTE IN ALTO, SUDDIVISO GIÀ A 2 CM DAL LIMITE ── */}
+      {/* ── CANVAS BIANCO ("FOGLIO") SPOSTATO VERSO L'ALTO (PADDING RIDOTTO) ── */}
       <div
         className="h-full flex-1 bg-white rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-y-auto text-slate-800"
         style={{
-          paddingTop: '2cm', // Già 2 cm sotto il limite del foglio
-          paddingLeft: '2rem',
-          paddingRight: '2rem',
-          paddingBottom: '1.5rem',
+          paddingTop: '0.7cm', // Spostato verso l'alto
+          paddingLeft: '1.5rem',
+          paddingRight: '1.5rem',
+          paddingBottom: '1rem',
         }}
       >
 
