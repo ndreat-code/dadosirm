@@ -5,6 +5,7 @@ import {
   ListTodo,
   CalendarDays,
   Boxes,
+  Users as UsersIcon,
   Settings as SettingsIcon,
 } from 'lucide-react'
 import ClockDriveBox from './ClockDriveBox'
@@ -14,6 +15,7 @@ const navItems = [
   { to: '/activities', label: 'Activities',  title: 'Activities (Attività & Task)',   icon: ListTodo },
   { to: '/calendar',   label: 'Calendar',    title: 'Calendar (Calendario Set)',      icon: CalendarDays },
   { to: '/inventory',  label: 'Inventario',  title: 'Inventario (Attrezzature)',       icon: Boxes },
+  { to: '/users',      label: 'Utenti',      title: 'Utenti & Permessi di Accesso',    icon: UsersIcon },
 ]
 
 function DadoBrandMark({ size = 18 }) {
@@ -43,14 +45,35 @@ function DadoBrandMark({ size = 18 }) {
   )
 }
 
-function DadoLogo() {
+function DadoLogo({ isDashboard = true }) {
+  if (!isDashboard) {
+    // In modalità ristretta: brand logo geometrico spostato e scritta CRM visibile sopra le icone
+    return (
+      <div className="mb-4 flex items-center justify-center w-full select-none">
+        <span
+          className="inline-flex items-center justify-center tracking-wider"
+          style={{
+            fontFamily: 'Sixtyfour, monospace',
+            color: '#cbd5e1',
+            fontSize: '1.15rem',
+            lineHeight: 1,
+            height: '20px',
+            letterSpacing: '0.04em',
+            textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
+          }}
+        >
+          CRM
+        </span>
+      </div>
+    )
+  }
+
+  // In Dashboard: Logo completo D △ D O a colori + CRM affiancato
   return (
     <div className="mb-4 flex items-center justify-start gap-3 w-full pl-0.5">
-      {/* Brand Logo geometrico D △ D O (size 20) */}
       <div className="flex items-center justify-center flex-shrink-0">
         <DadoBrandMark size={20} />
       </div>
-      {/* Parola CRM in finitura grigio metallizzato platino */}
       <span
         className="inline-flex items-center justify-center tracking-wider select-none"
         style={{
@@ -71,11 +94,11 @@ function DadoLogo() {
   )
 }
 
-function AnimatedDashboardIcon({ isClicked }) {
+function AnimatedDashboardIcon({ isClicked, size = 26 }) {
   return (
     <svg
-      width="27"
-      height="27"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -148,7 +171,7 @@ function AnimatedDashboardIcon({ isClicked }) {
 export default function Sidebar() {
   const location = useLocation()
   const isDashboard = location.pathname === '/' || location.pathname === '/dashboard-a' || location.pathname === '/dashboard-b'
-  const isSubSection = ['/activities', '/companies', '/leads', '/calendar', '/inventory', '/inventario'].some(path => location.pathname.startsWith(path))
+  const isSubSection = ['/activities', '/companies', '/leads', '/calendar', '/inventory', '/inventario', '/users', '/utenti', '/settings'].some(path => location.pathname.startsWith(path))
 
   const [isAiFocus, setIsAiFocus] = useState(false)
   const [isSettingsSpinning, setIsSettingsSpinning] = useState(false)
@@ -179,15 +202,22 @@ export default function Sidebar() {
     return () => window.removeEventListener('dado-ai-focus', handler)
   }, [])
 
+  // Dimensioni e padding condizionali: allargata in Dashboard, ristretta (74px) nelle altre sezioni
+  const sidebarWidth = isAiFocus ? '0px' : isDashboard ? 'calc(280px - 2cm)' : '74px'
+  const paddingX = isAiFocus ? '0px' : isDashboard ? '1rem' : '0.5rem'
+  const buttonWidthClass = isDashboard ? 'w-[96px] h-[52px]' : 'w-[52px] h-[48px]'
+  const buttonAlignClass = isDashboard ? 'self-start ml-[8px]' : 'self-center mx-auto'
+  const iconSize = isDashboard ? 24 : 22
+
   return (
     <aside
-      className="min-h-screen flex flex-col flex-shrink-0 transition-all duration-500 ease-in-out relative select-none"
+      className="min-h-screen flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out relative select-none"
       style={{
-        width: isAiFocus ? '0px' : 'calc(280px - 2cm)',
-        paddingLeft: isAiFocus ? '0px' : '1rem',
-        paddingRight: isAiFocus ? '0px' : '1rem',
-        paddingTop: isAiFocus ? '0px' : isSubSection ? '1rem' : '1.5rem',
-        paddingBottom: isAiFocus ? '0px' : isSubSection ? '1rem' : '1.5rem',
+        width: sidebarWidth,
+        paddingLeft: paddingX,
+        paddingRight: paddingX,
+        paddingTop: isAiFocus ? '0px' : isDashboard ? '1.5rem' : '1.25rem',
+        paddingBottom: isAiFocus ? '0px' : '1.25rem',
         opacity: isAiFocus ? 0 : 1,
         transform: isAiFocus ? 'translateX(-100%)' : 'translateX(0)',
         overflow: 'hidden',
@@ -199,8 +229,8 @@ export default function Sidebar() {
       }}
     >
       
-      {/* Logo in alto (D △ D O geometrico a colori + CRM platino metallizzato) */}
-      <DadoLogo />
+      {/* Intestazione Logo: completo in Dashboard, scritta CRM centrata sopra le icone nelle sottosezioni */}
+      <DadoLogo isDashboard={isDashboard} />
 
       {/* Pulsante Dashboard — Icona animata in pulsante metallico */}
       <NavLink
@@ -208,15 +238,14 @@ export default function Sidebar() {
         end
         onClick={handleDashboardClick}
         className={({ isActive }) =>
-          `w-[96px] h-[52px] mb-4 self-start flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
+          `${buttonWidthClass} ${buttonAlignClass} mb-3.5 flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
             isActive
               ? 'border border-[#00d2ff] shadow-[0_0_12px_rgba(0,210,255,0.25)] text-white'
               : 'border border-[#3d4350] hover:border-[#5b6475] text-[#9fb0c3] hover:text-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
           }`
         }
         style={({ isActive }) => ({
-          marginTop: 'calc(1rem + 1cm - 21px)',
-          marginLeft: '8px',
+          marginTop: isDashboard ? 'calc(1rem + 1cm - 21px)' : '0.5rem',
           background: isActive
             ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
             : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
@@ -226,24 +255,23 @@ export default function Sidebar() {
         })}
         title="Dashboard"
       >
-        <AnimatedDashboardIcon isClicked={isDashboardClicked} />
+        <AnimatedDashboardIcon isClicked={isDashboardClicked} size={isDashboard ? 26 : 22} />
       </NavLink>
 
-      {/* Dock Navigazione Icone Metallizzate — Sostituzione voci con icone */}
-      <nav className="flex flex-col gap-3">
+      {/* Dock Navigazione Icone Metallizzate (incluse Utenti e Impostazioni) */}
+      <nav className="flex flex-col gap-2.5">
         {navItems.map(({ to, title, icon: IconComponent }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `w-[96px] h-[52px] self-start flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
+              `${buttonWidthClass} ${buttonAlignClass} flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
                 isActive
                   ? 'border border-[#00d2ff] text-white shadow-[0_0_12px_rgba(0,210,255,0.25)]'
                   : 'border border-[#3d4350] hover:border-[#5b6475] text-[#9fb0c3] hover:text-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
               }`
             }
             style={({ isActive }) => ({
-              marginLeft: '8px',
               background: isActive
                 ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
                 : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
@@ -254,26 +282,25 @@ export default function Sidebar() {
             title={title}
           >
             <IconComponent
-              size={24}
+              size={iconSize}
               strokeWidth={2.1}
               className="transition-transform duration-200 group-hover:scale-110"
             />
           </NavLink>
         ))}
 
-        {/* Pulsante Settings — Rotella meccanica armonizzata nel design metallico */}
+        {/* Pulsante Settings — Rotella meccanica */}
         <NavLink
           to="/settings"
           onClick={handleSettingsClick}
           className={({ isActive }) =>
-            `w-[96px] h-[52px] self-start flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
+            `${buttonWidthClass} ${buttonAlignClass} flex items-center justify-center rounded-2xl transition-all cursor-pointer group hover:scale-[1.04] ${
               isActive
                 ? 'border border-[#00d2ff] text-white shadow-[0_0_12px_rgba(0,210,255,0.25)]'
                 : 'border border-[#3d4350] hover:border-[#5b6475] text-[#9fb0c3] hover:text-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
             }`
           }
           style={({ isActive }) => ({
-            marginLeft: '8px',
             background: isActive
               ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
               : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
@@ -284,7 +311,7 @@ export default function Sidebar() {
           title="Impostazioni (Clicca per far girare la rotella)"
         >
           <SettingsIcon
-            size={24}
+            size={iconSize}
             strokeWidth={2.1}
             className={`transition-transform duration-300 ${
               isSettingsSpinning ? 'animate-spin-fast' : 'group-hover:rotate-90'
@@ -293,10 +320,10 @@ export default function Sidebar() {
         </NavLink>
       </nav>
 
-      {/* Collegamento a Google Drive con orario sotto Settings — visibile nelle sottosezioni */}
+      {/* Collegamento a Google Drive con orario sotto Settings */}
       {!isDashboard && (
-        <div className="mt-5 w-full">
-          <ClockDriveBox width="100%" height="calc(39px + 1cm)" onlyTime={true} />
+        <div className="mt-4 w-full flex justify-center">
+          <ClockDriveBox width="52px" height="48px" compact={true} onlyTime={true} />
         </div>
       )}
 

@@ -9,6 +9,7 @@ import Opportunities from './pages/Opportunities'
 import Settings from './pages/Settings'
 import Inventory from './pages/Inventory'
 import Leads from './pages/Leads'
+import Users from './pages/Users'
 
 export default function App() {
   const isPort3005 = typeof window !== 'undefined' && window.location.port === '3005'
@@ -29,6 +30,8 @@ export default function App() {
           <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/inventario" element={<Inventory />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/utenti" element={<Users />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
