@@ -663,97 +663,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* ── Riga Superiore Standard con Card TO DO e Calendario (nascosta in Focus Mode) ── */}
-          {!isAiFocusMode && (
-            <div className="flex items-center w-full" style={{ marginTop: '0', marginBottom: '8px' }}>
-              <div className="flex gap-2.5 items-stretch">
-                {/* Card: TO DO — Colore arancione #ff6f43 */}
-                <KpiCard
-                  label="TO DO"
-                  value="4"
-                  bg="#111111"
-                  labelColor="#ff6f43"
-                  valueColor="#ff6f43"
-                  sub="2 in scadenza oggi"
-                  subColor="#888888"
-                  width="160px"
-                  labelSize="15px"
-                  valueSize="36px"
-                  subSize="14px"
-                />
 
-                {/* Calendario accanto alla card TO DO (spigoloso con angoli retti dal lato interno verso il centro dashboard e allargato all'estremità delle card sottostanti) */}
-                <div
-                  className="p-2.5 bg-white shadow-sm flex flex-col justify-between min-h-[104px] h-[104px] border border-black/10 select-none shrink-0"
-                  style={{
-                    backgroundColor: '#ffffff',
-                    width: 'calc(260px - 1.3cm + 16px + 185px - 160px - 10px)',
-                    borderRadius: '6px 0px 0px 6px',
-                  }}
-                >
-                  {/* Header Sezione: Nome del mese corrente ingrandito (senza "calendar week" e senza anno) */}
-                  <div className="flex items-center px-0.5">
-                    <span
-                      className="font-black uppercase tracking-[0.12em] block leading-tight text-[14px]"
-                      style={{
-                        fontFamily: '"Space Mono", monospace',
-                        color: '#111111',
-                      }}
-                    >
-                      {currentMonthName}
-                    </span>
-                  </div>
-
-                  {/* 7 Caselle Giorni: solo prima lettera (L M M G V S D) con segna giorno dinamico */}
-                  <div className="grid grid-cols-7 gap-1 mt-1 flex-1 items-stretch">
-                    {currentWeekDays.map((d) => {
-                      const isSelected = selectedCalendarDay?.date === d.date
-                      const isPinned = pinnedCalendarDay?.date === d.date
-                      return (
-                        <button
-                          key={d.date}
-                          type="button"
-                          onMouseEnter={() => setHoveredCalendarDay(d)}
-                          onMouseLeave={() => setHoveredCalendarDay(null)}
-                          onClick={() => {
-                            if (isPinned) {
-                              setPinnedCalendarDay(null)
-                            } else {
-                              setPinnedCalendarDay(d)
-                              setActiveOutputTab('day')
-                            }
-                          }}
-                          className={`flex flex-col items-center justify-center rounded transition-all group py-1 border cursor-pointer ${
-                            isSelected
-                              ? 'ring-2 ring-[#00ffaa] bg-emerald-50 shadow-md border-[#00c853]'
-                              : d.isSunday
-                              ? 'border-[#ff6f43]/40 bg-orange-50/40 hover:bg-orange-50 hover:border-[#ff6f43]'
-                              : d.isToday
-                              ? 'border-[#00c853]/60 bg-emerald-50/80 hover:bg-emerald-100 ring-1 ring-[#00c853]'
-                              : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'
-                          }`}
-                          title={`Posiziona il cursore o clicca per visualizzare gli impegni di ${d.name}`}
-                        >
-                          <span
-                            className="text-base font-black leading-none block"
-                            style={{
-                              fontFamily: '"Goldman", sans-serif',
-                              color: d.isSunday ? '#ff6f43' : isSelected ? '#007a50' : d.isToday ? '#007a50' : '#334155',
-                            }}
-                          >
-                            {d.letter}
-                          </span>
-                          {d.isToday && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#00c853] mt-1" title="Oggi" />
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* ── IN FOCUS MODE: SEZIONE OUTPUT ALLARGATA A TUTTO SCHERMO ── */}
           {isAiFocusMode && (
@@ -854,9 +764,100 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ── IN VISUALE STANDARD: Next Actions (sinistra) + SEZIONE OUTPUT RICERCHE DATABASE (centro/destra) ── */}
+          {/* ── IN VISUALE STANDARD: Riga 1 + Riga 2 a sinistra, Pop-up ad altezza Calendar Week a destra ── */}
           {!isAiFocusMode && (
             <div className="flex items-start gap-4 mb-1 flex-1 min-w-0">
+
+              {/* Colonna Sinistra Fissa: Riga Superiore (TO DO + Calendario Week) + Riga Inferiore (Next actions + Opportunities/Clients) */}
+              <div className="flex flex-col gap-2 flex-shrink-0">
+                {/* Riga Superiore: Card TO DO e Calendario Week */}
+                <div className="flex gap-2.5 items-stretch">
+                  {/* Card: TO DO — Colore arancione #ff6f43 */}
+                  <KpiCard
+                    label="TO DO"
+                    value="4"
+                    bg="#111111"
+                    labelColor="#ff6f43"
+                    valueColor="#ff6f43"
+                    sub="2 in scadenza oggi"
+                    subColor="#888888"
+                    width="160px"
+                    labelSize="15px"
+                    valueSize="36px"
+                    subSize="14px"
+                  />
+
+                  {/* Calendario accanto alla card TO DO (spigoloso con angoli retti dal lato interno verso il centro dashboard e allargato all'estremità delle card sottostanti) */}
+                  <div
+                    className="p-2.5 bg-white shadow-sm flex flex-col justify-between min-h-[104px] h-[104px] border border-black/10 select-none shrink-0"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      width: 'calc(260px - 1.3cm + 16px + 185px - 160px - 10px)',
+                      borderRadius: '6px 0px 0px 6px',
+                    }}
+                  >
+                    {/* Header Sezione: Nome del mese corrente ingrandito (senza "calendar week" e senza anno) */}
+                    <div className="flex items-center px-0.5">
+                      <span
+                        className="font-black uppercase tracking-[0.12em] block leading-tight text-[14px]"
+                        style={{
+                          fontFamily: '"Space Mono", monospace',
+                          color: '#111111',
+                        }}
+                      >
+                        {currentMonthName}
+                      </span>
+                    </div>
+
+                    {/* 7 Caselle Giorni: solo prima lettera (L M M G V S D) con segna giorno dinamico */}
+                    <div className="grid grid-cols-7 gap-1 mt-1 flex-1 items-stretch">
+                      {currentWeekDays.map((d) => {
+                        const isSelected = selectedCalendarDay?.date === d.date
+                        const isPinned = pinnedCalendarDay?.date === d.date
+                        return (
+                          <button
+                            key={d.date}
+                            type="button"
+                            onMouseEnter={() => setHoveredCalendarDay(d)}
+                            onMouseLeave={() => setHoveredCalendarDay(null)}
+                            onClick={() => {
+                              if (isPinned) {
+                                setPinnedCalendarDay(null)
+                              } else {
+                                setPinnedCalendarDay(d)
+                                setActiveOutputTab('day')
+                              }
+                            }}
+                            className={`flex flex-col items-center justify-center rounded transition-all group py-1 border cursor-pointer ${
+                              isSelected
+                                ? 'ring-2 ring-[#00ffaa] bg-emerald-50 shadow-md border-[#00c853]'
+                                : d.isToday
+                                ? 'border-[#00c853] bg-emerald-50/90 hover:bg-emerald-100 ring-2 ring-[#00c853]/40 shadow-sm'
+                                : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'
+                            }`}
+                            title={`Posiziona il cursore o clicca per visualizzare gli impegni di ${d.name}`}
+                          >
+                            <span
+                              className="text-base font-black leading-none block"
+                              style={{
+                                fontFamily: '"Goldman", sans-serif',
+                                color: isSelected ? '#007a50' : d.isToday ? '#007a50' : '#334155',
+                              }}
+                            >
+                              {d.letter}
+                            </span>
+                            {d.isToday && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#00c853] mt-1 shadow-sm" title="Oggi" />
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Riga Inferiore: Next actions (sinistra) + Box 2: Opportunità e Clienti Attivi (destra) */}
+                <div className="flex items-start gap-4">
 
             {/* Box 1: Next actions — Accorciato di 0,3cm (calc(260px - 1.3cm)), riga 'No races..' preservata su una riga */}
             <div
@@ -1056,102 +1057,62 @@ export default function Dashboard() {
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Sezione Output Allargata (Risposta OpenAI & Impegni Calendar Week) — Sviluppata in verticale, senza overflow */}
-            {(aiResult || aiLoading || selectedCalendarDay) && (
-              <div
-                className="flex-1 min-w-0 flex flex-col justify-between p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-stretch overflow-hidden"
-                style={{
-                  backgroundColor: 'rgba(0, 42, 26, 0.95)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1.5px solid rgba(0, 255, 170, 0.45)',
-                  boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
-                  minHeight: '280px',
-                  maxHeight: '370px',
-                  fontFamily: '"Jost", "Inter", sans-serif',
-                }}
-              >
-                {/* Header Sezione Output con spazi ben organizzati */}
-                <div className="flex items-center justify-between pb-2.5 mb-1.5 border-b border-white/15 gap-4 flex-shrink-0">
-                  {/* Sinistra: Titolo o Tab Switcher */}
-                  <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#00ffaa] animate-pulse flex-shrink-0" />
-
-                    {/* Switcher Tab se entrambi attivi (AI + Giorno) */}
-                    {aiResult && selectedCalendarDay ? (
+              {/* Sezione Output Allargata (Risposta OpenAI & Impegni Calendar Week) — Spostata in alto raggiungendo l'altezza del Calendar Week! */}
+              {(aiResult || aiLoading || selectedCalendarDay) && (
+                <div
+                  className="flex-1 min-w-0 flex flex-col justify-between p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-stretch overflow-hidden"
+                  style={{
+                    backgroundColor: 'rgba(0, 42, 26, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1.5px solid rgba(0, 255, 170, 0.45)',
+                    boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+                    height: '352px',
+                    minHeight: '352px',
+                    maxHeight: '352px',
+                    fontFamily: '"Jost", "Inter", sans-serif',
+                  }}
+                >
+                  {/* Header Sezione Output: solo testo "Attività Programmate", senza cerchi, senza icone e senza "✕ chiudi" per massima ottimizzazione */}
+                  <div className="flex items-center pb-2 mb-1.5 border-b border-white/15 flex-shrink-0">
+                    {selectedCalendarDay && activeOutputTab !== 'ai' ? (
+                      <span
+                        className="text-white font-black tracking-wider uppercase text-[15px] sm:text-[16px]"
+                        style={{ fontFamily: '"Goldman", sans-serif', letterSpacing: '0.08em' }}
+                      >
+                        Attività Programmate
+                      </span>
+                    ) : aiResult && selectedCalendarDay ? (
                       <div className="flex items-center gap-1.5 bg-black/50 p-1 rounded-lg border border-white/10">
                         <button
                           onClick={() => setActiveOutputTab('day')}
-                          className={`px-3 py-0.5 rounded text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          className={`px-3 py-0.5 rounded text-xs font-bold transition-all cursor-pointer ${
                             activeOutputTab === 'day'
                               ? 'bg-[#00ffaa] text-[#111111] shadow'
                               : 'text-white/70 hover:text-white'
                           }`}
                         >
-                          <CalendarIcon size={12} />
-                          Impegni {selectedCalendarDay.name.split(' ')[0]}
+                          Attività Programmate
                         </button>
                         <button
                           onClick={() => setActiveOutputTab('ai')}
-                          className={`px-3 py-0.5 rounded text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          className={`px-3 py-0.5 rounded text-xs font-bold transition-all cursor-pointer ${
                             activeOutputTab === 'ai'
                               ? 'bg-[#00ffaa] text-[#111111] shadow'
                               : 'text-white/70 hover:text-white'
                           }`}
                         >
-                          <Sparkles size={12} />
                           Risposta OpenAI
                         </button>
                       </div>
-                    ) : selectedCalendarDay && activeOutputTab !== 'ai' ? (
-                      <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-                        <CalendarIcon size={18} className="text-[#00ffaa] flex-shrink-0" />
-                        <span
-                          className="text-white font-black tracking-wider uppercase text-[15px] sm:text-[16px] truncate"
-                          style={{ fontFamily: '"Goldman", sans-serif', letterSpacing: '0.07em' }}
-                        >
-                          Attività Programmate
-                        </span>
-                        {currentDaySchedule?.tag && (
-                          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#00ffaa]/15 text-[#00ffaa] border border-[#00ffaa]/35 font-bold uppercase tracking-wider whitespace-nowrap">
-                            {currentDaySchedule.tag}
-                          </span>
-                        )}
-                      </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-                        <Sparkles size={16} className="text-[#d8ff00] flex-shrink-0" />
-                        <span className="text-white/95 font-bold tracking-wide text-[15px] truncate">
-                          {aiLoading ? 'Analisi in corso...' : 'Indagine CRM & Punti in Comune (OpenAI)'}
-                        </span>
-                        {aiResult && (
-                          <span className="text-[10.5px] font-mono text-white/50 px-2 py-0.5 rounded bg-white/5 whitespace-nowrap">
-                            {aiResult.timestamp}
-                          </span>
-                        )}
-                      </div>
+                      <span className="text-white/95 font-bold tracking-wide text-[15px] truncate">
+                        {aiLoading ? 'Analisi in corso...' : 'Indagine CRM & Punti in Comune (OpenAI)'}
+                      </span>
                     )}
                   </div>
-
-                  {/* Destra: solo pulsante Chiudi (rimosso il testo "Apri nel Calendario") */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => {
-                        setPinnedCalendarDay(null)
-                        setHoveredCalendarDay(null)
-                        if (activeOutputTab === 'ai' || !selectedCalendarDay) {
-                          setAiResult(null)
-                          setAiLoading(false)
-                          window.dispatchEvent(new CustomEvent('dado-ai-reset'))
-                        }
-                      }}
-                      className="text-white/70 hover:text-white hover:bg-white/10 text-xs px-2.5 py-1 rounded-full transition-colors tracking-wide font-mono cursor-pointer border border-white/15"
-                      title="Chiudi e libera lo spazio"
-                    >
-                      ✕ chiudi
-                    </button>
-                  </div>
-                </div>
 
                 {/* Corpo del Contenuto Sviluppato in Verticale (senza overflow all'esterno) */}
                 <div
