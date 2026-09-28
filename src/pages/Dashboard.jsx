@@ -20,10 +20,11 @@ function KpiCard({
   valueSize = '36px',
   subSize = '13px',
   minHeight = '90px',
+  padding = 'p-3',
 }) {
   return (
     <div
-      className="p-3 flex flex-col justify-between min-w-0 shadow-sm"
+      className={`${padding} flex flex-col justify-between min-w-0 shadow-sm`}
       style={{
         backgroundColor: bg,
         borderRadius: '6px',
@@ -41,9 +42,9 @@ function KpiCard({
       >
         {label}
       </span>
-      <div className="mt-1">
+      <div className="mt-0.5">
         <span
-          className="font-black leading-none block"
+          className="font-black leading-none block font-mono"
           style={{ color: valueColor, fontSize: valueSize, fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.03em' }}
         >
           {value}
@@ -51,7 +52,7 @@ function KpiCard({
         {/* Scritta sotto il numero */}
         {sub && (
           <span
-            className="font-bold block mt-1.5 leading-tight whitespace-nowrap"
+            className="font-bold block mt-1 leading-tight whitespace-nowrap"
             style={{ color: subColor || 'rgba(255,255,255,0.7)', fontSize: subSize, fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.01em' }}
           >
             {sub}
@@ -1144,39 +1145,72 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Box 2: Card Nuove Opportunità e Clienti Attivi una sopra l'altra a lato di Next actions */}
+                  {/* Box 2: Card Leads, Nuove Opportunità e Clienti Attivi ridimensionate una sopra l'altra a lato di Next actions */}
                   <div
-                    className="flex flex-col gap-2.5 flex-shrink-0"
+                    className="flex flex-col gap-2 flex-shrink-0"
                     style={{
                       width: '185px',
                       height: '240px',
                     }}
                   >
-                    {/* Card Superiore: OPEN OPPORTUNITIES (Nuove Opportunità) */}
+                    {/* Card 1: LEADS (Inbound & Qualificazione BANT) */}
                     <div className="flex-1 min-h-0">
-                      <KpiCard
-                        label="OPEN OPPORTUNITIES"
-                        value="10"
-                        bg="#9c27b0"
-                        labelColor="#00ff66"
-                        valueColor="#00ff66"
-                        sub="€ 52.7k potential"
-                        subColor="#00e5ff"
-                        width="100%"
-                        height="100%"
-                        minHeight="0"
-                        labelSize="11px"
-                        valueSize="28px"
-                        subSize="11px"
-                      />
+                      <Link
+                        to="/leads"
+                        className="block hover:opacity-90 transition-opacity h-full flex flex-col group cursor-pointer"
+                        title="Apri la sezione Leads (Funnel & Inbound)"
+                      >
+                        <KpiCard
+                          label="LEADS"
+                          value="5"
+                          bg="#ff6f43"
+                          labelColor="#111111"
+                          valueColor="#111111"
+                          sub="5 canali attivi"
+                          subColor="rgba(0, 0, 0, 0.7)"
+                          width="100%"
+                          height="100%"
+                          minHeight="0"
+                          padding="py-1.5 px-3"
+                          labelSize="9.5px"
+                          valueSize="22px"
+                          subSize="9.5px"
+                        />
+                      </Link>
                     </div>
 
-                    {/* Card Inferiore: ACTIVE CLIENTS (Clienti Attivi) */}
+                    {/* Card 2: NEW OPPORTUNITIES (Nuove Opportunità) */}
+                    <div className="flex-1 min-h-0">
+                      <Link
+                        to="/opportunities"
+                        className="block hover:opacity-90 transition-opacity h-full flex flex-col group cursor-pointer"
+                        title="Apri la sezione Opportunità & Trattative"
+                      >
+                        <KpiCard
+                          label="NEW OPPORTUNITIES"
+                          value="10"
+                          bg="#9c27b0"
+                          labelColor="#00ff66"
+                          valueColor="#00ff66"
+                          sub="€ 52.7k potential"
+                          subColor="#00e5ff"
+                          width="100%"
+                          height="100%"
+                          minHeight="0"
+                          padding="py-1.5 px-3"
+                          labelSize="9.5px"
+                          valueSize="22px"
+                          subSize="9.5px"
+                        />
+                      </Link>
+                    </div>
+
+                    {/* Card 3: ACTIVE CLIENTS (Clienti Attivi) */}
                     <div className="flex-1 min-h-0">
                       <Link
                         to="/companies"
-                        className="block hover:opacity-90 transition-opacity h-full flex flex-col"
-                        title="Apri il Database Aziende"
+                        className="block hover:opacity-90 transition-opacity h-full flex flex-col group cursor-pointer"
+                        title="Apri il Database Aziende & Contratti"
                       >
                         <KpiCard
                           label="ACTIVE CLIENTS"
@@ -1185,13 +1219,14 @@ export default function Dashboard() {
                           labelColor="#111111"
                           valueColor="#111111"
                           sub="11 clienti attivi"
-                          subColor="rgba(0, 0, 0, 0.65)"
+                          subColor="rgba(0, 0, 0, 0.7)"
                           width="100%"
                           height="100%"
                           minHeight="0"
-                          labelSize="11.5px"
-                          valueSize="28px"
-                          subSize="11px"
+                          padding="py-1.5 px-3"
+                          labelSize="9.5px"
+                          valueSize="22px"
+                          subSize="9.5px"
                         />
                       </Link>
                     </div>

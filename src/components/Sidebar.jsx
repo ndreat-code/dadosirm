@@ -142,7 +142,7 @@ export default function Sidebar() {
   const location = useLocation()
   const isDashboard = location.pathname === '/' || location.pathname === '/dashboard-a' || location.pathname === '/dashboard-b'
   const isDifferentSection = !isDashboard
-  const isSubSection = ['/activities', '/companies', '/calendar', '/inventory', '/inventario'].some(path => location.pathname.startsWith(path))
+  const isSubSection = ['/activities', '/companies', '/leads', '/calendar', '/inventory', '/inventario'].some(path => location.pathname.startsWith(path))
 
   const [isAiFocus, setIsAiFocus] = useState(false)
   const [isSettingsSpinning, setIsSettingsSpinning] = useState(false)

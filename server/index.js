@@ -52,9 +52,10 @@ function saveCrmData(data) {
   }
 }
 
-// Inizializza OpenAI
+// Inizializza OpenAI (supporta anche modelli locali compatibili come Ollama e LM Studio)
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
+  apiKey: process.env.OPENAI_API_KEY || 'local-key',
+  baseURL: process.env.OPENAI_BASE_URL || undefined,
 })
 
 // Inizializza Google OAuth Client
@@ -511,17 +512,25 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
      * Intervallo di cadenza rispetto al lavoro precedente nel mese (distanza in giorni tra i set)
    - Analizza la frequenza e il ritmo del mese: ritmo medio tra i lavori (es. 1 commessa ogni 4-5 giorni a Settembre), identificazione di picchi di carico (es. concentrazione nella seconda metà di Settembre tra il 15 e il 25 con 4 produzioni ravvicinate) e gestione cuscinetti per il montaggio.
    - Fornisci sempre il totale commesse e il volume d'affari complessivo del mese richiesto.
-8. STILE DI RISPOSTA:
+8. CONFRONTO E RICERCA DEI CONTRATTI NEL CORSO DELL'ANNO:
+   Se l'utente chiede un confronto, ricerca o andamento dei contratti stipulati nel corso dell'anno 2026 (o per mese / trimestre):
+   - Analizza l'evoluzione cronologica dei contratti stipulati (da aprile a settembre 2026): numero contratti (11 contratti firmati), valore totale (€ 56.900) e crescita del ticket medio (da € 1.500 di Urban Mobility a € 9.200 di Officine Riva).
+   - Fornisci il confronto dettagliato: Mese, Cliente, Codice Contratto, Importo (€), Stato del pagamento (Saldato 100% vs Acconto versato con saldo aperto), Modalità di pagamento e Deliverables/materiali.
+   - Struttura l'analisi per trimestri (Q2 vs Q3) e per fasce di valore (Top Tier > €7.000, Mid Tier €4.000-€6.500, Entry Tier < €4.000).
+   - Evidenzia la gestione del credito: € 46.000 incassati vs € 10.900 in attesa di saldo (Riva, Kroma, Beta Digital) e la redditività oraria delle varie commesse.
+   - Sintesi strategica sulle opportunità future e contratti inbound in elaborazione (Fashion Brand Milano, NextMedia Agency).
+9. STILE DI RISPOSTA:
    Professionale, incisivo, altamente analitico, con sezioni tematiche chiare, numeri precisi (€, orari, date) e conclusioni operative immediatamente applicabili.`
 
     let answer = ''
     let usingOpenAi = false
     let openAiError = null
 
-    if (process.env.OPENAI_API_KEY) {
+    if (process.env.OPENAI_API_KEY || process.env.OPENAI_BASE_URL) {
       try {
+        const modelName = process.env.OPENAI_MODEL || (process.env.OPENAI_BASE_URL ? 'llama3.1' : 'gpt-4o-mini')
         const completion = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
+          model: modelName,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: prompt }
@@ -983,6 +992,131 @@ ${sortedCompaniesByDate.map((c, idx) => `• [${c.workSchedule?.datesFormatted}]
         matchedCompanies.push(found)
       }
     }
+  }
+
+  // ── 1-bis. CONFRONTO E RICERCA CONTRATTI NEL CORSO DELL'ANNO ─────────────────
+  const isContractComparison = 
+    (p.includes('contratt') && (p.includes('confront') || p.includes('corso') || p.includes('anno') || p.includes('andament') || p.includes('evoluzion') || p.includes('compar') || p.includes('tutt') || p.includes('2026') || p.includes('storico') || p.includes('elenc') || p.includes('classific') || p.includes('ricerc') || p.includes('analisi') || p.includes('differenz') || p.includes('vs'))) ||
+    (p.includes('confront') && p.includes('contratt')) ||
+    (p.includes('confront') && (p.includes('anno') || p.includes('annuale') || p.includes('2026'))) ||
+    (p.includes('ricerca') && p.includes('contratt')) ||
+    (p.includes('elenco') && p.includes('contratt')) ||
+    (p.includes('tutti i contratti'))
+
+  if (isContractComparison) {
+    const signedContracts = companies
+      .filter(c => c.contract && (c.contract.signedDate || (c.contract.code && c.contract.code.includes('CTR'))))
+      .map(c => ({
+        company: c.name,
+        industry: c.industry,
+        code: c.contract.code || 'CTR-2026',
+        signedDate: c.contract.signedDate || '2026-09-01',
+        amount: c.compensation?.amount || 0,
+        deposit: c.compensation?.deposit || 0,
+        balance: c.compensation?.balance || 0,
+        status: c.compensation?.status || 'N/D',
+        paymentMethod: c.compensation?.paymentMethod || 'Bonifico Bancario',
+        workDate: c.workSchedule?.datesFormatted || 'N/D',
+        location: c.workSchedule?.location || 'Studio DADO',
+        scheduleType: c.workSchedule?.scheduleType || 'Standard',
+        hours: c.workSchedule?.hours || '',
+        materials: c.requestedMaterials || []
+      }))
+      .sort((a, b) => new Date(a.signedDate) - new Date(b.signedDate))
+
+    const inboundContracts = companies
+      .filter(c => !c.contract?.signedDate && c.contract?.code?.includes('INB'))
+      .map(c => ({
+        company: c.name,
+        code: c.contract.code,
+        status: c.contract.status || 'In elaborazione',
+        amount: c.compensation?.amount || 5000
+      }))
+
+    const totalAmount = signedContracts.reduce((s, c) => s + c.amount, 0)
+    const totalCollected = signedContracts.reduce((s, c) => s + (c.deposit || 0), 0)
+    const totalPending = signedContracts.reduce((s, c) => s + (c.balance || 0), 0)
+    const avgAmount = Math.round(totalAmount / (signedContracts.length || 1))
+
+    // Raggruppamento trimestrale
+    const q2 = signedContracts.filter(c => c.signedDate >= '2026-04-01' && c.signedDate <= '2026-06-30')
+    const q3 = signedContracts.filter(c => c.signedDate >= '2026-07-01' && c.signedDate <= '2026-09-30')
+    const totQ2 = q2.reduce((s, c) => s + c.amount, 0)
+    const totQ3 = q3.reduce((s, c) => s + c.amount, 0)
+    const avgQ2 = q2.length ? Math.round(totQ2 / q2.length) : 0
+    const avgQ3 = q3.length ? Math.round(totQ3 / q3.length) : 0
+
+    // Fasce di valore (Tier)
+    const topTier = signedContracts.filter(c => c.amount >= 7000)
+    const midTier = signedContracts.filter(c => c.amount >= 4000 && c.amount < 7000)
+    const entryTier = signedContracts.filter(c => c.amount < 4000)
+
+    // Formattatore date leggibili in italiano
+    const formatSigned = (iso) => {
+      if (!iso) return 'N/D'
+      const parts = iso.split('-')
+      if (parts.length < 3) return iso
+      const mNames = ['', 'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+      const mIdx = parseInt(parts[1], 10)
+      return `${parseInt(parts[2], 10)} ${mNames[mIdx]} ${parts[0]}`
+    }
+
+    return `📑 CONFRONTO ED EVOLUZIONE DEI CONTRATTI NEL CORSO DELL'ANNO 2026
+─────────────────────────────────────────────────────────────
+Analisi strategico-commerciale di tutti i ${signedContracts.length} contratti firmati da DADO Creative Studio nel corso del 2026, ordinati cronologicamente per data di sottoscrizione:
+
+🎯 1. SINTESI METRICHE E TREND ANNUALE:
+• Volume complessivo contrattualizzato: € ${totalAmount.toLocaleString('it-IT')} su ${signedContracts.length} commesse deliberate.
+• Ticket medio per contratto: € ${avgAmount.toLocaleString('it-IT')} (in fortissima crescita nel corso dell'anno).
+• Tasso di incasso: € ${totalCollected.toLocaleString('it-IT')} già incassati (${Math.round((totalCollected / totalAmount) * 100)}%), con € ${totalPending.toLocaleString('it-IT')} di saldo residuo da incassare (${Math.round((totalPending / totalAmount) * 100)}%).
+• Evoluzione temporale del valore: Dal primo contratto primaverile di € 1.500 (Urban Mobility) al record autunnale di € 9.200 (Officine Riva), con un incremento del +513% sul valore del singolo accordo.
+
+═════════════════════════════════════════════════════════════
+📅 2. CRONOLOGIA COMPARATIVA DEI CONTRATTI NEL CORSO DELL'ANNO:
+${signedContracts.map((c, idx) => `${idx + 1}. [${formatSigned(c.signedDate)}] ➔ ${c.company.toUpperCase()} (${c.industry})
+   • Contratto: ${c.code}
+   • Valore commessa: € ${c.amount.toLocaleString('it-IT')} [${c.status === 'Saldato' ? '✅ Saldato 100%' : `⏳ Acconto € ${c.deposit.toLocaleString('it-IT')} • Saldo aperto € ${c.balance.toLocaleString('it-IT')}`}]
+   • Condizioni pagamento: ${c.paymentMethod}
+   • Set & Produzione: ${c.workDate} (${c.scheduleType}${c.hours ? ` - ${c.hours}` : ''})
+   • Location: ${c.location}
+   • Materiali & Output: ${(c.materials || []).slice(0, 3).join(' • ')}`).join('\n\n')}
+
+═════════════════════════════════════════════════════════════
+📊 3. CONFRONTO TRIMESTRALE (Q2 vs Q3 2026):
+• TRIMESTRE Q2 (Aprile - Giugno 2026) - Fase di Avvio Stagionale:
+  - Contratti firmati: ${q2.length} (${q2.map(c => c.company).join(', ')})
+  - Volume economico: € ${totQ2.toLocaleString('it-IT')} | Ticket medio: € ${avgQ2.toLocaleString('it-IT')}
+  - Caratteristiche: Spot agili, still life e produzioni leggere monoposto.
+
+• TRIMESTRE Q3 (Luglio - Settembre 2026) - Fase di Espansione & Consolidamento:
+  - Contratti firmati: ${q3.length} (${q3.map(c => c.company).join(', ')})
+  - Volume economico: € ${totQ3.toLocaleString('it-IT')} | Ticket medio: € ${avgQ3.toLocaleString('it-IT')}
+  - Delta performance: +${Math.round(((avgQ3 - avgQ2) / (avgQ2 || 1)) * 100)}% di crescita del ticket medio e quadruplicazione dei volumi mensili.
+  - Caratteristiche: Produzioni industriali multi-day, spot TV broadcast (Solaris), contratti moda con limbo (Alpha Studio) e film per eventi di lusso (Vogue Events).
+
+═════════════════════════════════════════════════════════════
+🏆 4. CONFRONTO PER FASCE DI VALORE (TIER COMMERCIALE):
+• 🥇 TOP TIER (> € 7.000) - ${topTier.length} Contratti (${Math.round((topTier.reduce((s,c)=>s+c.amount,0)/totalAmount)*100)}% del fatturato):
+${topTier.map(c => `  - ${c.company}: € ${c.amount.toLocaleString('it-IT')} (${c.code}) - ${c.industry}`).join('\n')}
+
+• 🥈 MID TIER (€ 4.000 - € 6.500) - ${midTier.length} Contratti (${Math.round((midTier.reduce((s,c)=>s+c.amount,0)/totalAmount)*100)}% del fatturato):
+${midTier.map(c => `  - ${c.company}: € ${c.amount.toLocaleString('it-IT')} (${c.code}) - ${c.industry}`).join('\n')}
+
+• 🥉 ENTRY TIER (< € 4.000) - ${entryTier.length} Contratti (${Math.round((entryTier.reduce((s,c)=>s+c.amount,0)/totalAmount)*100)}% del fatturato):
+${entryTier.map(c => `  - ${c.company}: € ${c.amount.toLocaleString('it-IT')} (${c.code}) - ${c.industry}`).join('\n')}
+
+═════════════════════════════════════════════════════════════
+💳 5. GESTIONE DEI FLUSSI DI CASSA E INSOLUTI A CONFRONTO:
+• Posizioni saldate al 100% (${signedContracts.filter(c => c.balance === 0).length} contratti):
+  ➔ ${signedContracts.filter(c => c.balance === 0).map(c => c.company).join(', ')}.
+• Posizioni con acconto versato e SALDO RESIDUO in attesa (€ ${totalPending.toLocaleString('it-IT')} da riscuotere):
+${signedContracts.filter(c => c.balance > 0).map(c => `  - ${c.company}: Saldo aperto di € ${c.balance.toLocaleString('it-IT')} su € ${c.amount.toLocaleString('it-IT')} totali (${c.paymentMethod})`).join('\n')}
+
+═════════════════════════════════════════════════════════════
+⚡ 6. CONTRATTI INBOUND IN NEGOZIAZIONE (POTENZIALE +€ 10.000):
+${inboundContracts.map(c => `• ${c.company} (${c.code}): Stima € ${c.amount.toLocaleString('it-IT')} [Stato: ${c.status}]`).join('\n')}
+
+💡 Suggerimento operativo: Puoi anche confrontare direttamente due commesse digitando "Confronta Officine Riva e Solaris" oppure verificare il calendario con "Cadenze temporali settembre".`
   }
 
   // ── 1. CONFRONTO TRA CLIENTI, AZIENDE O PREVENTIVI ───────────────────

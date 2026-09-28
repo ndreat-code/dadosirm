@@ -20,13 +20,18 @@ import {
   ChevronUp,
   Download,
   Camera,
-  Check
+  Check,
+  Send,
+  Sparkles,
+  Globe
 } from 'lucide-react'
 
 // Helper per determinare lo stato di relazione / pagamento dell'azienda
 export function getCompanyRelationshipStatus(comp) {
   if (comp.relationshipStatus) {
     switch (comp.relationshipStatus) {
+      case 'lead_inbound':
+        return { key: 'lead_inbound', label: 'Lead & Inbound', emoji: '🎯', color: '#00ffaa', bg: 'rgba(0, 255, 170, 0.15)', border: 'rgba(0, 255, 170, 0.45)' }
       case 'in_coda_pagamento':
         return { key: 'in_coda_pagamento', label: 'In coda pagamento', emoji: '⏳', color: '#ff9800', bg: 'rgba(255, 152, 0, 0.15)', border: 'rgba(255, 152, 0, 0.45)' }
       case 'in_attesa_risposta':
@@ -43,6 +48,9 @@ export function getCompanyRelationshipStatus(comp) {
   }
 
   // Deduci dai dati del CRM
+  if (comp.status === 'In trattativa' || comp.contract?.code?.includes('INB') || comp.contract?.status === 'In elaborazione') {
+    return { key: 'lead_inbound', label: 'Lead & Inbound', emoji: '🎯', color: '#00ffaa', bg: 'rgba(0, 255, 170, 0.15)', border: 'rgba(0, 255, 170, 0.45)' }
+  }
   if (comp.status === 'Rifiutato') {
     return { key: 'rifiutato', label: 'Rifiutato all\'ultimo', emoji: '❌', color: '#ff4444', bg: 'rgba(255, 68, 68, 0.15)', border: 'rgba(255, 68, 68, 0.45)' }
   }
@@ -60,6 +68,62 @@ export function getCompanyRelationshipStatus(comp) {
   }
 
   return { key: 'lavoro_concluso', label: 'Lavoro concluso', emoji: '✅', color: '#c084fc', bg: 'transparent', border: 'transparent' }
+}
+
+// Helper per determinare canale di ingresso, motivo del contatto e asset DADO
+export function getCompanyAcquisitionChannel(comp) {
+  if (comp.acquisitionChannel) return comp.acquisitionChannel
+  const ch = (comp.firstContact?.channel || '').toLowerCase()
+  const name = (comp.name || '').toLowerCase()
+
+  if (ch.includes('referral') || name.includes('nextmedia') || name.includes('alpha')) {
+    return {
+      channel: 'Referral & Passaparola',
+      type: 'Caldissimo / Fiducia',
+      reason: 'Collaborazione continuativa da agenzie di comunicazione o partner (es. NextMedia).',
+      assetRequired: 'Portfolio lavori simili, condizioni quadro B2B.',
+      score: '⭐⭐⭐⭐⭐ (5/5)',
+      color: '#fac429'
+    }
+  }
+  if (ch.includes('instagram') || ch.includes('tiktok') || ch.includes('adv') || name.includes('gusto') || name.includes('poggio')) {
+    return {
+      channel: 'Instagram / TikTok ADV & DM',
+      type: 'Moderato / Visual',
+      reason: 'Richiesta noleggio Limbo Studio Milano, video clip o reel social di tendenza.',
+      assetRequired: 'Scheda tecnica Limbo A, prezzi mezze giornate.',
+      score: '⭐⭐⭐⭐ (4/5)',
+      color: '#ff00aa'
+    }
+  }
+  if (ch.includes('outreach') || ch.includes('cold') || name.includes('urban') || name.includes('nexura')) {
+    return {
+      channel: 'Outreach B2B / Cold Email',
+      type: 'Proattivo / Freddo',
+      reason: 'Proposta servizi video corporate e riprese con drone per aziende manifatturiere.',
+      assetRequired: 'Case study di settore (es. Officine Riva).',
+      score: '⭐⭐⭐ (3/5)',
+      color: '#1bb7ed'
+    }
+  }
+  if (ch.includes('fiera') || ch.includes('event') || name.includes('vogue') || name.includes('riva')) {
+    return {
+      channel: 'Eventi / Fiere di Settore',
+      type: 'Relazionale',
+      reason: 'Contatto diretto con direttori marketing / responsabili comunicazione.',
+      assetRequired: 'Presentazione aziendale PDF, contatto referente.',
+      score: '⭐⭐⭐⭐ (4/5)',
+      color: '#d8ff00'
+    }
+  }
+  return {
+    channel: 'Sito Web (Form Inbound)',
+    type: 'Caldo / Inbound Diretto',
+    reason: 'Richiesta preventivo spot corporate, video industriale o shooting moda.',
+    assetRequired: 'Showreel, listino indicativo, disponibilità date.',
+    score: '⭐⭐⭐⭐⭐ (5/5)',
+    color: '#00ffaa'
+  }
 }
 
 // ── Acronimo B.A.N.T. stile Brand Logo DADO con rilevamento dinamico parametri mancanti ──
@@ -545,6 +609,7 @@ export default function Companies() {
             <span className="text-white/60 font-mono text-[11px] uppercase mr-1">Filtra stato:</span>
             {[
               { id: 'all', label: 'Tutti', emoji: '🏢' },
+              { id: 'lead_inbound', label: 'Lead & Inbound', emoji: '🎯' },
               { id: 'in_coda_pagamento', label: 'In coda pagamento', emoji: '⏳' },
               { id: 'in_attesa_risposta', label: 'In attesa risposta', emoji: '🔄' },
               { id: 'lavoro_concluso', label: 'Lavoro concluso', emoji: '✅' },

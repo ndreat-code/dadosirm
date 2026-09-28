@@ -87,7 +87,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Matrimonio luxury con copertura foto/video continua, drone e luci architetturali.',
     materials: 'Sony FX3 + A7SIII, Drone Mavic 3 Cine',
-    owner: 'Andrea'
+    owner: 'Sofia'
   },
   {
     id: 'opp-sep-06',
@@ -100,7 +100,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Budget congelato',
     notes: 'Decisione del consiglio rimandata al 2027 per revisione bilancio.',
     materials: 'Kit interviste 4K ProRes',
-    owner: 'Matteo'
+    owner: 'Elena'
   },
   {
     id: 'opp-sep-08',
@@ -113,7 +113,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Preventivo inviato',
     notes: 'Invio bozze e preventivo dettagliato per 14 ambientazioni fotorealistiche.',
     materials: 'Rendering 3D set, Foto still life',
-    owner: 'Andrea'
+    owner: 'Marco'
   },
   {
     id: 'opp-sep-10',
@@ -126,7 +126,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Accordo firmato per 2 giorni di riprese consecutive in studio DADO.',
     materials: 'Sony 70-200mm GM, Aputure 300x, Diffusori seta',
-    owner: 'Andrea'
+    owner: 'Chiara'
   },
   {
     id: 'opp-sep-12',
@@ -139,7 +139,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Accordo chiuso con cessione diritti TV locali per 12 mesi.',
     materials: 'Sony A7SIII, Gimbal RS3 Pro, Drone Mavic 3',
-    owner: 'Andrea'
+    owner: 'Luca'
   },
   {
     id: 'opp-sep-14',
@@ -152,7 +152,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Rifiutato per prezzo',
     notes: 'Cliente ha scelto gestione interna con smartphone e montaggio generico.',
     materials: 'Video verticali 9:16',
-    owner: 'Matteo'
+    owner: 'Valentina'
   },
   {
     id: 'opp-sep-15',
@@ -165,7 +165,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'In attesa feedback',
     notes: 'Trattativa avanzata per fornitura continuativa mensile.',
     materials: 'Sony FX3, Nanlite Pavotube II neon',
-    owner: 'Matteo'
+    owner: 'Federico'
   },
   {
     id: 'opp-sep-18',
@@ -178,7 +178,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Limbo A confermato con kit luci Aputure 600d e ottiche 85mm GM.',
     materials: 'Aputure 600d Pro, Softbox Octa 120cm, Sony 85mm GM',
-    owner: 'Andrea'
+    owner: 'Giulia'
   },
   {
     id: 'opp-sep-18-2',
@@ -204,7 +204,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'In negoziazione',
     notes: 'Bozza secondo lotto in discussione dopo il successo della sessione principale.',
     materials: 'Foto still life, Luce continua',
-    owner: 'Matteo'
+    owner: 'Elena'
   },
   {
     id: 'opp-sep-22',
@@ -217,7 +217,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'In definizione',
     notes: 'Possibile estensione collegata all\'inaugurazione del nuovo impianto agrivoltaico.',
     materials: 'Kit audio wireless, 2 Cam FX3/A7SIII',
-    owner: 'Andrea'
+    owner: 'Marco'
   },
   {
     id: 'opp-sep-23',
@@ -243,7 +243,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Preventivo in scadenza',
     notes: 'Preventivo speciale da confermare per bloccare le date di montaggio rapido.',
     materials: 'Cut 60s LinkedIn + Master ProRes',
-    owner: 'Andrea'
+    owner: 'Sofia'
   },
   {
     id: 'opp-sep-26',
@@ -256,7 +256,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Preventivo inviato',
     notes: 'In attesa di definizione calendario chiusura cucina pomeridiana.',
     materials: 'Food photography, Sony 85mm GM',
-    owner: 'Andrea'
+    owner: 'Chiara'
   },
   {
     id: 'opp-sep-28',
@@ -269,7 +269,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Ultimo preventivo',
     notes: 'In approvazione finale da parte della proprietà per shooting bottiglie.',
     materials: 'Riprese tramonto filari, drone',
-    owner: 'Andrea'
+    owner: 'Luca'
   },
 
   // ── AGOSTO 2026 ─────────────────────────────────────────────
@@ -284,7 +284,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Confermato slot serale di 3 ore in golden hour a Montalcino.',
     materials: 'Sony FX3, Mavic 3 Cine, Filtri ND',
-    owner: 'Andrea'
+    owner: 'Federico'
   },
   {
     id: 'opp-aug-11',
@@ -297,7 +297,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Budget insufficiente',
     notes: 'Richiesta di ribasso del 40% non compatibile con standard qualitativi DADO.',
     materials: 'Spot TV broadcast',
-    owner: 'Matteo'
+    owner: 'Valentina'
   },
   {
     id: 'opp-aug-14',
@@ -310,7 +310,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Completata sessione etichette e bottiglie con luce naturale.',
     materials: 'Sony 85mm GM, Pannelli riflettenti',
-    owner: 'Andrea'
+    owner: 'Giulia'
   },
   {
     id: 'opp-aug-20',
@@ -323,7 +323,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Annullato dal cliente',
     notes: 'Ristrutturazione locale prolungata fino a ottobre.',
     materials: 'Video food',
-    owner: 'Matteo'
+    owner: 'Marco'
   },
   {
     id: 'opp-aug-28',
@@ -336,7 +336,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Sessione pomeridiana 15:00 - 20:30 a cucina chiusa.',
     materials: 'Sony 85mm macro, Aputure 300x',
-    owner: 'Andrea'
+    owner: 'Chiara'
   },
 
   // ── LUGLIO 2026 ─────────────────────────────────────────────
@@ -364,7 +364,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Progetto rimandato',
     notes: 'Round di finanziamento posticipato a novembre 2026.',
     materials: 'Interviste founder',
-    owner: 'Andrea'
+    owner: 'Elena'
   },
   {
     id: 'opp-jul-22',
@@ -377,7 +377,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Consegna master 4K approvata.',
     materials: 'ProRes 422',
-    owner: 'Matteo'
+    owner: 'Sofia'
   },
 
   // ── GIUGNO 2026 ─────────────────────────────────────────────
@@ -392,7 +392,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Giornata intera 09:00 - 18:00 all\'atelier di Torino.',
     materials: 'Sony 85mm GM, Luci continue con lanterna',
-    owner: 'Andrea'
+    owner: 'Giulia'
   },
   {
     id: 'opp-jun-18',
@@ -405,7 +405,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Trattativa interrotta',
     notes: 'Richiesta di permessi riprese drone non ottenuta in tempo dalle autorità.',
     materials: 'Drone + Gimbal',
-    owner: 'Andrea'
+    owner: 'Luca'
   },
   {
     id: 'opp-jun-30',
@@ -418,7 +418,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Completamento prima tranche semestrale.',
     materials: 'High-res photography',
-    owner: 'Andrea'
+    owner: 'Valentina'
   },
 
   // ── MAGGIO 2026 ─────────────────────────────────────────────
@@ -433,7 +433,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Non aggiudicato',
     notes: 'Logistica di trasferta a Roma non conveniente per il cliente.',
     materials: 'Action cam + Gimbal',
-    owner: 'Matteo'
+    owner: 'Federico'
   },
   {
     id: 'opp-may-12',
@@ -446,7 +446,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Sessione alba 06:30 - 09:30 strade vuote CityLife Milano.',
     materials: 'Sony FX3 su e-cargo, Action cam 4K',
-    owner: 'Andrea'
+    owner: 'Marco'
   }
 ]
 
@@ -461,7 +461,7 @@ const MONTHS_LIST = [
 export default function Opportunities() {
   const [opportunities, setOpportunities] = useState(() => {
     try {
-      const saved = localStorage.getItem('dado_opportunities_store_v3')
+      const saved = localStorage.getItem('dado_opportunities_store_v4')
       if (saved) return JSON.parse(saved)
     } catch (e) {
       // fallback
@@ -488,7 +488,7 @@ export default function Opportunities() {
   // Salva nello store locale
   useEffect(() => {
     try {
-      localStorage.setItem('dado_opportunities_store_v3', JSON.stringify(opportunities))
+      localStorage.setItem('dado_opportunities_store_v4', JSON.stringify(opportunities))
     } catch (e) {
       // ignore
     }

@@ -8,6 +8,7 @@ import Calendar from './pages/Calendar'
 import Opportunities from './pages/Opportunities'
 import Settings from './pages/Settings'
 import Inventory from './pages/Inventory'
+import Leads from './pages/Leads'
 
 export default function App() {
   const isPort3005 = typeof window !== 'undefined' && window.location.port === '3005'
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/" element={<ActiveDashboard />} />
           <Route path="/dashboard-a" element={<Dashboard />} />
           <Route path="/dashboard-b" element={<DashboardB />} />
+          <Route path="/leads" element={<Leads />} />
           <Route path="/companies" element={<Companies />} />
           <Route path="/activities" element={<Activities />} />
           <Route path="/calendar" element={<Calendar />} />
