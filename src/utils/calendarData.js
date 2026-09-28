@@ -232,46 +232,18 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
     ]
   },
   '2026-10-03': {
-    tag: 'Live Gala Shooting',
-    events: [
-      {
-        time: '10:00 - 17:00',
-        company: 'Vogue Events & Wedding',
-        location: 'Como - Villa del Balbianello (Tremezzina)',
-        materials: 'Kit Completo Cinema: FX3 + 2x A7 IV, RS3 Pro, Drone Mavic 3, Audio Rode Wireless Pro',
-        category: 'Produzione Evento',
-        title: 'Riprese video cinema 4K e scatti editoriali per gala wedding esclusivo internazionale.'
-      }
-    ],
-    notes: 'Gala wedding Como: copertura continua da mattino a pomeriggio.',
+    tag: 'Nessun impegno',
+    events: [],
+    notes: '',
     files: []
   },
   '2026-10-04': {
-    tag: 'Archiviazione & Lab',
-    events: [
-      {
-        time: '11:00 - 16:30',
-        company: 'DADO Creative Studio',
-        location: 'Milano - Studio DADO (Laboratorio Tecnico)',
-        materials: 'Ingest Station, Doppio NAS Synology 10GbE, Caricabatterie Multipli, Kit Pulizia',
-        category: 'Archivio & Service',
-        title: 'Ingest totale schede di memoria, backup doppio ridondato e pulizia sensori e attrezzatura.'
-      }
-    ],
-    notes: 'Riversamento master su server NAS e controllo integrità file video.',
+    tag: 'Nessun impegno',
+    events: [],
+    notes: '',
     files: []
   }
 }
-
-// Generatore deterministico per date arbitrarie (così nessuna data è mai vuota o disallineata)
-const GENERIC_COMPANIES = [
-  { name: 'Officine Meccaniche Riva', loc: 'Brescia - Stabilimento Riva (Via Industriale 14)', mat: 'Sony FX3, Gimbal DJI RS3 Pro, Ottiche Cine Prime, Mic Sennheiser AVX' },
-  { name: 'Alpha Studio Milano', loc: 'Milano - Studio B (Via Tortona 15)', mat: 'Sony FX3, Kit Luci Nanlite Forza 500W, Softbox Octa 120, Stativi' },
-  { name: 'Solaris Green Energy', loc: 'Milano - Headquarter Solaris (Piazza Affari 4)', mat: 'DJI Mavic 3 Cine, Sony FX3, Filtri ND, Monitor Alta Luminosità' },
-  { name: 'Gusto & Tradizione Food', loc: 'Milano - Cucina Lab (Corso Sempione 32)', mat: 'Sony FX3 + Sony A7 IV, Ottica Macro 90mm f/2.8, Ring Light LED' },
-  { name: 'NextMedia Agency', loc: 'Milano - DADO Creative Studio (Sala Montaggio)', mat: 'Workstation DaVinci Resolve Studio, Monitor Eizo ColorEdge' },
-  { name: 'Vogue Events & Wedding', loc: 'Como - Villa del Balbianello (Tremezzina)', mat: 'Kit Cinema: FX3 + A7 IV, RS3 Pro, Drone Mavic 3 Cine, Audio Wireless' }
-]
 
 export function getCalendarDayData(dateIso) {
   if (!dateIso) return null
@@ -282,14 +254,13 @@ export function getCalendarDayData(dateIso) {
     if (saved) {
       const parsed = JSON.parse(saved)
       if (parsed[dateIso]) {
-        // Se ha eventi salvati, usali; altrimenti unisci con default
         const entry = parsed[dateIso]
         const defaultEntry = DEFAULT_CALENDAR_SCHEDULE[dateIso]
         return {
-          events: entry.events || defaultEntry?.events || generateFallbackEvents(dateIso),
+          events: entry.events !== undefined ? entry.events : (defaultEntry?.events || []),
           notes: entry.notes !== undefined ? entry.notes : (defaultEntry?.notes || ''),
           files: entry.files || defaultEntry?.files || [],
-          tag: entry.tag || defaultEntry?.tag || 'Attività Programmate'
+          tag: entry.tag || defaultEntry?.tag || ''
         }
       }
     }
@@ -302,11 +273,11 @@ export function getCalendarDayData(dateIso) {
     return DEFAULT_CALENDAR_SCHEDULE[dateIso]
   }
 
-  // 3. Fallback realistico generato deterministicamente
+  // 3. Data non programmata (nessun impegno)
   return {
-    tag: 'Attività Programmate',
-    events: generateFallbackEvents(dateIso),
-    notes: 'Giornata di produzione e coordinamento commesse.',
+    tag: '',
+    events: [],
+    notes: '',
     files: []
   }
 }

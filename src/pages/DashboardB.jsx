@@ -491,6 +491,12 @@ export default function Dashboard() {
 
   const handleDayMouseEnter = useCallback((d) => {
     if (popupLeaveTimerRef.current) clearTimeout(popupLeaveTimerRef.current)
+    const sched = getDaySchedule(d.date)
+    if (!sched || !sched.events || sched.events.length === 0) {
+      setHoveredCalendarDay(null)
+      setPinnedCalendarDay(null)
+      return
+    }
     setHoveredCalendarDay(d)
   }, [])
 
@@ -498,8 +504,9 @@ export default function Dashboard() {
     popupLeaveTimerRef.current = setTimeout(() => {
       if (!isOverPopupRef.current) {
         setHoveredCalendarDay(null)
+        setPinnedCalendarDay(null)
       }
-    }, 280)
+    }, 120)
   }, [])
 
   const handlePopupMouseEnter = useCallback(() => {
@@ -511,7 +518,8 @@ export default function Dashboard() {
     isOverPopupRef.current = false
     popupLeaveTimerRef.current = setTimeout(() => {
       setHoveredCalendarDay(null)
-    }, 200)
+      setPinnedCalendarDay(null)
+    }, 120)
   }, [])
 
   const handlePopupWheel = useCallback((e) => {
@@ -824,6 +832,14 @@ export default function Dashboard() {
 
                   {/* Calendario accanto alla card TO DO (spigoloso con angoli retti dal lato interno verso il centro dashboard e allargato all'estremità delle card sottostanti) */}
                   <div
+                    onMouseLeave={() => {
+                      popupLeaveTimerRef.current = setTimeout(() => {
+                        if (!isOverPopupRef.current) {
+                          setHoveredCalendarDay(null)
+                          setPinnedCalendarDay(null)
+                        }
+                      }, 120)
+                    }}
                     className="p-2.5 bg-white shadow-sm flex flex-col justify-between min-h-[104px] h-[104px] border border-black/10 select-none shrink-0"
                     style={{
                       backgroundColor: '#ffffff',
@@ -856,6 +872,12 @@ export default function Dashboard() {
                             onMouseEnter={() => handleDayMouseEnter(d)}
                             onMouseLeave={handleDayMouseLeave}
                             onClick={() => {
+                              const sched = getDaySchedule(d.date)
+                              if (!sched || !sched.events || sched.events.length === 0) {
+                                setPinnedCalendarDay(null)
+                                setHoveredCalendarDay(null)
+                                return
+                              }
                               if (isPinned) {
                                 setPinnedCalendarDay(null)
                               } else {
@@ -1096,7 +1118,7 @@ export default function Dashboard() {
         </div>
 
               {/* Sezione Output Allargata (Risposta OpenAI & Impegni Calendar Week) — Spostata in alto raggiungendo l'altezza del Calendar Week! */}
-              {(aiResult || aiLoading || selectedCalendarDay) && (
+              {(aiResult || aiLoading || (selectedCalendarDay && currentDaySchedule?.events?.length > 0)) && (
                 <div
                   onMouseEnter={handlePopupMouseEnter}
                   onMouseLeave={handlePopupMouseLeave}
