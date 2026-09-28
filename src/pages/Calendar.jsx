@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getTodayIso, getTomorrowIso, getCurrentWeekSundayIso } from '../utils/dateUtils'
+import { getCalendarDayData, saveCalendarDayData } from '../utils/calendarData'
 import {
   Calendar as CalendarIcon,
   Paperclip,
@@ -24,33 +25,6 @@ const MONTH_NAMES = [
 ]
 const DAY_NAMES_SHORT = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM']
 const DAY_NAMES_LONG = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
-
-// Dati iniziali realistici DADO Creative Studio
-const INITIAL_CALENDAR_DATA = {
-  '2026-09-24': {
-    notes: 'Shooting video corporate Officine Riva. Ritrovo alle 07:30 in studio per carico furgone. Drone + FX3.',
-    files: [
-      { name: 'Ordine_Produzione_Riva.pdf', size: '1.2 MB', date: '24 Set 2026' }
-    ]
-  },
-  '2026-09-25': {
-    notes: 'Giornata 2 riprese Riva (pomeriggio dalle 14:00). A seguire transcodifica ProRes 422 e backup su doppio SSD T7.',
-    files: [
-      { name: 'Piano_Riprese_Day2.pdf', size: '850 KB', date: '25 Set 2026' },
-      { name: 'Liberatorie_Operai_signed.pdf', size: '2.4 MB', date: '25 Set 2026' }
-    ]
-  },
-  '2026-09-26': {
-    notes: 'Revisione preventivi in scadenza e controllo calibrazione monitor Atomos Ninja.',
-    files: []
-  },
-  '2026-09-28': {
-    notes: 'Briefing con Alpha Studio Milano per nuova campagna autunno moda.',
-    files: [
-      { name: 'Moodboard_Alpha_FW26.pdf', size: '4.8 MB', date: '28 Set 2026' }
-    ]
-  }
-}
 
 export default function Calendar() {
   const [searchParams] = useSearchParams()
@@ -76,24 +50,13 @@ export default function Calendar() {
   })
   const [highlightedDayIso, setHighlightedDayIso] = useState(null)
 
-  // Database locale persistente
-  const [calendarStore, setCalendarStore] = useState(() => {
-    try {
-      const saved = localStorage.getItem('dado_crm_calendar_store')
-      if (saved) return JSON.parse(saved)
-    } catch (e) {
-      console.warn('Errore lettura localStorage calendario', e)
-    }
-    return INITIAL_CALENDAR_DATA
-  })
+  const [calendarVersion, setCalendarVersion] = useState(0)
 
   useEffect(() => {
-    try {
-      localStorage.setItem('dado_crm_calendar_store', JSON.stringify(calendarStore))
-    } catch (e) {
-      console.warn('Errore salvataggio localStorage calendario', e)
-    }
-  }, [calendarStore])
+    const handleUpdate = () => setCalendarVersion(v => v + 1)
+    window.addEventListener('dado-calendar-update', handleUpdate)
+    return () => window.removeEventListener('dado-calendar-update', handleUpdate)
+  }, [])
 
   const [selectedDayModal, setSelectedDayModal] = useState(null)
   const [editingNote, setEditingNote] = useState('')
@@ -174,8 +137,8 @@ export default function Calendar() {
 
   // Apertura editor giorno
   function openDayEditor(dayInfo) {
-    const existing = calendarStore[dayInfo.iso] || { notes: '', files: [] }
-    setEditingNote(existing.notes || '')
+    const existing = getCalendarDayData(dayInfo.iso)
+    setEditingNote(existing?.notes || '')
     setSelectedDayModal({ ...dayInfo, data: existing })
   }
 
@@ -225,16 +188,14 @@ export default function Calendar() {
   function saveNoteForDay() {
     if (!selectedDayModal) return
     const iso = selectedDayModal.iso
-    const current = calendarStore[iso] || { notes: '', files: [] }
+    const current = getCalendarDayData(iso)
     const updated = {
       ...current,
       notes: editingNote.trim()
     }
-    setCalendarStore((prev) => ({
-      ...prev,
-      [iso]: updated
-    }))
+    saveCalendarDayData(iso, { notes: editingNote.trim() })
     setSelectedDayModal((prev) => ({ ...prev, data: updated }))
+    setCalendarVersion(v => v + 1)
   }
 
   // Aggiunta file
@@ -242,7 +203,7 @@ export default function Calendar() {
     if (!e.target.files || !e.target.files[0] || !selectedDayModal) return
     const file = e.target.files[0]
     const iso = selectedDayModal.iso
-    const current = calendarStore[iso] || { notes: '', files: [] }
+    const current = getCalendarDayData(iso)
 
     const newFileEntry = {
       name: file.name,
@@ -252,16 +213,10 @@ export default function Calendar() {
       date: new Date().toLocaleDateString('it-IT')
     }
 
-    const updated = {
-      ...current,
-      files: [...(current.files || []), newFileEntry]
-    }
-
-    setCalendarStore((prev) => ({
-      ...prev,
-      [iso]: updated
-    }))
-    setSelectedDayModal((prev) => ({ ...prev, data: updated }))
+    const updatedFiles = [...(current?.files || []), newFileEntry]
+    saveCalendarDayData(iso, { files: updatedFiles })
+    setSelectedDayModal((prev) => ({ ...prev, data: { ...current, files: updatedFiles } }))
+    setCalendarVersion(v => v + 1)
     e.target.value = ''
   }
 
@@ -269,16 +224,11 @@ export default function Calendar() {
   function handleDeleteFile(fileName) {
     if (!selectedDayModal) return
     const iso = selectedDayModal.iso
-    const current = calendarStore[iso] || { notes: '', files: [] }
-    const updated = {
-      ...current,
-      files: (current.files || []).filter(f => f.name !== fileName)
-    }
-    setCalendarStore((prev) => ({
-      ...prev,
-      [iso]: updated
-    }))
-    setSelectedDayModal((prev) => ({ ...prev, data: updated }))
+    const current = getCalendarDayData(iso)
+    const updatedFiles = (current?.files || []).filter(f => f.name !== fileName)
+    saveCalendarDayData(iso, { files: updatedFiles })
+    setSelectedDayModal((prev) => ({ ...prev, data: { ...current, files: updatedFiles } }))
+    setCalendarVersion(v => v + 1)
   }
 
   // Navigazione giorno successivo (+1) o precedente (-1) con tastiera o pulsanti
@@ -331,20 +281,11 @@ export default function Calendar() {
     // Se l'editor del giorno è aperto, aggiorna anche il modale salvando le note correnti
     if (selectedDayModal) {
       const prevIso = selectedDayModal.iso
-      let currentStoreState = calendarStore
       if (editingNote !== undefined) {
-        currentStoreState = {
-          ...currentStoreState,
-          [prevIso]: {
-            ...(currentStoreState[prevIso] || { files: [] }),
-            notes: editingNote.trim()
-          }
-        }
-        setCalendarStore(currentStoreState)
+        saveCalendarDayData(prevIso, { notes: editingNote.trim() })
       }
-
-      const existingData = currentStoreState[nextIso] || { notes: '', files: [] }
-      setEditingNote(existingData.notes || '')
+      const existingData = getCalendarDayData(nextIso)
+      setEditingNote(existingData?.notes || '')
       setSelectedDayModal({ ...newDayInfo, data: existingData })
     }
   }
@@ -366,7 +307,7 @@ export default function Calendar() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedDayModal, highlightedDayIso, editingNote, calendarStore])
+  }, [selectedDayModal, highlightedDayIso, editingNote])
 
   return (
     <div className="h-full min-h-screen md:min-h-0 bg-[#111111] flex flex-col flex-1 relative overflow-hidden font-sans">
@@ -497,9 +438,10 @@ export default function Calendar() {
           <div className="w-full overflow-x-auto pb-4 pt-1 select-none">
             <div className="flex items-stretch justify-start lg:justify-between gap-3 min-w-max mx-auto">
               {currentWeekDays.map((day) => {
-                const dayData = calendarStore[day.iso] || { notes: '', files: [] }
-                const hasNotes = Boolean(dayData.notes && dayData.notes.trim())
-                const hasFiles = Boolean(dayData.files && dayData.files.length > 0)
+                const dayData = getCalendarDayData(day.iso)
+                const hasEvents = Boolean(dayData?.events && dayData.events.length > 0)
+                const hasNotes = Boolean(dayData?.notes && dayData.notes.trim())
+                const hasFiles = Boolean(dayData?.files && dayData.files.length > 0)
                 const isToday = day.isToday
                 const isHighlighted = highlightedDayIso === day.iso
 
@@ -563,16 +505,44 @@ export default function Calendar() {
                       <div className={`h-[2px] w-full my-2 ${isToday ? 'bg-[#007a50]/30' : 'bg-slate-100'}`} />
                     </div>
 
-                    {/* 2. Corpo Casella: Contenuto Note su sfondo bianco */}
-                    <div className="flex-1 overflow-hidden my-1 flex flex-col justify-start">
-                      {hasNotes ? (
+                    {/* 2. Corpo Casella: Attività Programmate con Orario, Cliente, Luogo, Materiali */}
+                    <div className="flex-1 overflow-y-auto my-1 flex flex-col justify-start gap-1 text-left pr-0.5">
+                      {hasEvents ? (
+                        dayData.events.map((ev, evIdx) => (
+                          <div
+                            key={evIdx}
+                            className="bg-slate-50 border border-slate-200/90 rounded p-1.5 text-[9.5px] leading-tight shadow-sm hover:border-[#0284c7]/50 transition-colors"
+                          >
+                            <div className="flex items-center justify-between gap-1 mb-0.5">
+                              <span className="font-mono font-black text-[#007a50] bg-emerald-50 px-1 py-0.2 rounded border border-emerald-300/50 text-[9px] whitespace-nowrap">
+                                ⏰ {ev.time}
+                              </span>
+                              <span className="font-black text-slate-900 truncate flex-1 text-right text-[10px]">
+                                {ev.company}
+                              </span>
+                            </div>
+                            {ev.location && (
+                              <div className="text-slate-600 truncate text-[9px] flex items-center gap-0.5">
+                                <span className="text-sky-600 font-bold flex-shrink-0">📍</span>
+                                <span className="truncate">{ev.location}</span>
+                              </div>
+                            )}
+                            {ev.materials && (
+                              <div className="text-slate-500 truncate text-[8.5px] flex items-center gap-0.5 mt-0.5">
+                                <span className="text-amber-600 font-bold flex-shrink-0">🎒</span>
+                                <span className="truncate">{ev.materials}</span>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      ) : hasNotes ? (
                         <p className="text-[11px] text-slate-800 line-clamp-4 leading-snug font-sans font-medium">
                           "{dayData.notes}"
                         </p>
                       ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center text-slate-300 group-hover:text-slate-400 transition-colors">
                           <StickyNote className="w-5 h-5 mb-1 stroke-[1.5]" />
-                          <span className="text-[10px] font-mono">+ Nota / File</span>
+                          <span className="text-[10px] font-mono">+ Attività / Nota</span>
                         </div>
                       )}
                     </div>
@@ -722,6 +692,58 @@ export default function Calendar() {
                 </button>
               </div>
             </div>
+
+            {/* Sezione Attività Programmate: Orario, Cliente, Luogo, Materiali */}
+            {selectedDayModal.data?.events && selectedDayModal.data.events.length > 0 && (
+              <div className="mb-5">
+                <label className="block text-xs font-mono text-[#00ffaa] uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
+                  <CalendarIcon className="w-4 h-4 text-[#00ffaa]" />
+                  Attività Programmate ({selectedDayModal.data.events.length}):
+                </label>
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {selectedDayModal.data.events.map((ev, evIdx) => (
+                    <div
+                      key={evIdx}
+                      className="bg-black/50 border border-white/15 rounded-xl p-3 text-xs leading-relaxed"
+                    >
+                      <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-white/10 mb-2">
+                        <span className="font-mono font-black text-[#00ffaa] bg-emerald-500/20 px-2.5 py-0.5 rounded border border-emerald-500/40 text-[11px] whitespace-nowrap shadow-sm">
+                          ⏰ {ev.time}
+                        </span>
+                        <span className="font-bold text-white text-sm truncate flex-1 text-right">
+                          {ev.company}
+                        </span>
+                      </div>
+                      <div className="space-y-1 text-slate-200">
+                        {ev.location && (
+                          <div className="flex items-start gap-1.5">
+                            <span className="text-sky-300 text-xs flex-shrink-0">📍</span>
+                            <span className="text-sky-100">
+                              <strong className="text-sky-300 font-mono text-[10px] uppercase mr-1">Luogo:</strong>
+                              {ev.location}
+                            </span>
+                          </div>
+                        )}
+                        {ev.materials && (
+                          <div className="flex items-start gap-1.5">
+                            <span className="text-amber-300 text-xs flex-shrink-0">🎒</span>
+                            <span className="text-amber-100">
+                              <strong className="text-amber-300 font-mono text-[10px] uppercase mr-1">Materiali:</strong>
+                              {ev.materials}
+                            </span>
+                          </div>
+                        )}
+                        {ev.title && (
+                          <p className="text-slate-400 text-[11px] italic mt-1">
+                            {ev.title}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Sezione 1: Note per questa giornata */}
             <div className="mb-5">

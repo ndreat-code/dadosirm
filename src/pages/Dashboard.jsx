@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Search, Database, Sparkles, X, ArrowRight, Calendar as CalendarIcon, Clock, FileText, Paperclip } from 'lucide-react'
 import CameraShutter from '../components/CameraShutter'
 import { getCurrentWeekDays, getCurrentMonthName, getTodayIso, getTomorrowIso, getCurrentWeekSundayIso, formatDayLong } from '../utils/dateUtils'
+import { getCalendarDayData } from '../utils/calendarData'
 
 function KpiCard({
   label,
@@ -471,138 +472,18 @@ const crmDatabase = {
   ]
 }
 
-// ── Dati Impegni e Calendario Settimanale DADO Creative Studio (21-27 Settembre 2026) ──
-const WEEK_SCHEDULE_DATA = {
-  '2026-09-21': {
-    dayName: 'Lunedì 21 Settembre 2026',
-    tag: 'Inizio Settimana',
-    events: [
-      { time: '09:30', company: 'DADO Studio Team', title: 'Meeting settimanale di produzione: pianificazione set, noleggi e scadenze consegne.', category: 'Produzione' },
-      { time: '11:30', company: 'Alpha Studio Milano', title: 'Allineamento moodboard e casting modella campagna Fall/Winter 2026.', category: 'Commerciale' },
-      { time: '15:00', company: 'Logistica Interna', title: 'Check attrezzature: formattazione CFexpress Type B, test drone DJI Mavic 3 Cine.', category: 'Tecnica' }
-    ],
-    notes: 'Priorità della settimana: completare lo shooting corporate Officine Riva e chiudere i preventivi caldi.',
-    files: []
-  },
-  '2026-09-22': {
-    dayName: 'Martedì 22 Settembre 2026',
-    tag: 'Shooting & Clienti',
-    events: [
-      { time: '10:00', company: 'Kroma Ceramiche', title: 'Ricezione campioni materiali per rendering 3D catalogo bagno 2027.', category: 'Meeting' },
-      { time: '14:30', company: 'Beta Digital Agency', title: 'Revisione rough cut primi 4 video TikTok / Reels e color check.', category: 'Post-Prod' },
-      { time: '17:00', company: 'Tenuta Poggio Antico', title: 'Call con direzione marketing per etichette nuovo Brunello.', category: 'Commerciale' }
-    ],
-    notes: 'Beta Agency richiede consegna file master in 4K verticale (9:16) H.265.',
-    files: []
-  },
-  '2026-09-23': {
-    dayName: 'Mercoledì 23 Settembre 2026',
-    tag: 'Post-Produzione',
-    events: [
-      { time: '09:00', company: 'Solaris Green Energy', title: 'Color grading e montaggio spot TV DaVinci Resolve Studio.', category: 'Post-Prod' },
-      { time: '14:00', company: 'Gusto & Tradizione Food', title: 'Definizione lista ingredienti e scaletta 10 video ricette chef stellato.', category: 'Pre-Prod' },
-      { time: '18:30', company: 'Storage & Backup', title: 'Sincronizzazione archivio su Google Drive e storage locale NAS.', category: 'Archivio' }
-    ],
-    notes: 'Verificare rendering HDR per spot TV broadcast locale.',
-    files: []
-  },
-  '2026-09-24': {
-    dayName: 'Giovedì 24 Settembre 2026',
-    tag: 'Shooting Day 1',
-    events: [
-      { time: '07:30', company: 'Officine Meccaniche Riva', title: 'Ritrovo alle 07:30 in studio per carico furgone. Drone + Sony FX3.', category: 'Shooting & Set' },
-      { time: '09:00 - 18:00', company: 'Officine Meccaniche Riva', title: 'Shooting video corporate: stabilimento e linee robotizzate ad alta precisione.', category: 'Shooting & Set' }
-    ],
-    notes: 'Shooting video corporate Officine Riva. Ritrovo alle 07:30 in studio per carico furgone. Drone + FX3.',
-    files: [
-      { name: 'Ordine_Produzione_Riva.pdf', size: '1.2 MB', date: '24 Set 2026' }
-    ]
-  },
-  '2026-09-25': {
-    dayName: 'Venerdì 25 Settembre 2026 (Oggi)',
-    tag: 'Oggi • Giornata Chiave',
-    events: [
-      { time: '14:00', company: 'Officine Meccaniche Riva', title: 'Giornata 2 riprese Riva (pomeriggio dalle 14:00). A seguire transcodifica ProRes 422 e backup su doppio SSD T7.', category: 'Shooting & Set' },
-      { time: '16:30', company: 'Officine Meccaniche Riva', title: 'Call conferma preventivo corporate (€ 9.200) in scadenza.', category: 'Commerciale' },
-      { time: '18:00', company: 'Solaris Green Energy', title: 'Inviare revisione storyboard spot TV locale + Digital ADS.', category: 'Consegna' }
-    ],
-    notes: 'Giornata 2 riprese Riva (pomeriggio dalle 14:00). A seguire transcodifica ProRes 422 e backup su doppio SSD T7.',
-    files: [
-      { name: 'Piano_Riprese_Day2.pdf', size: '850 KB', date: '25 Set 2026' },
-      { name: 'Liberatorie_Operai_signed.pdf', size: '2.4 MB', date: '25 Set 2026' }
-    ]
-  },
-  '2026-09-26': {
-    dayName: 'Sabato 26 Settembre 2026 (Domani)',
-    tag: 'Sopralluogo & Set',
-    events: [
-      { time: '10:00', company: 'Alpha Studio Milano', title: 'Sopralluogo set luci studio B e test fondale per riprese moda.', category: 'Shooting' },
-      { time: '12:00', company: 'Manutenzione Tecnica', title: 'Revisione preventivi in scadenza e controllo calibrazione monitor Atomos Ninja.', category: 'Revisione' }
-    ],
-    notes: 'Revisione preventivi in scadenza e controllo calibrazione monitor Atomos Ninja.',
-    files: []
-  },
-  '2026-09-27': {
-    dayName: 'Domenica 27 Settembre 2026',
-    tag: 'Evento Live & Regia',
-    events: [
-      { time: '15:00', company: 'Vogue Events & Wedding', title: 'Setup riprese e regia matrimonio Villa Cora. Gimbal DJI RS3 Pro e audio wireless Sennheiser AVX.', category: 'Evento & Set' },
-      { time: '22:00', company: 'Ingest Immediato', title: 'Riversamento immediato schede di memoria e creazione copia master.', category: 'Backup' }
-    ],
-    notes: 'Setup riprese matrimonio Villa Cora ore 15:00. Attrezzatura completa con drone autorizzato.',
-    files: []
-  },
-  '2026-09-28': {
-    dayName: 'Lunedì 28 Settembre 2026 (Oggi)',
-    tag: 'Oggi • Riprese & Montaggio',
-    events: [
-      { time: '09:30', company: 'Alpha Studio Milano', title: 'Briefing nuova campagna ADV moda e approvazione moodboard FW26.', category: 'Pre-Prod' },
-      { time: '14:30', company: 'Officine Meccaniche Riva', title: 'Consegna prima bozza montaggio spot video corporate e revisione cliente.', category: 'Post-Prod' },
-      { time: '17:00', company: 'Solaris Green Energy', title: 'Call allineamento preventivo corporate e approvazione piano riprese.', category: 'Commerciale' }
-    ],
-    notes: 'Briefing con Alpha Studio Milano per nuova campagna autunno moda e verifica consegna bozza Riva.',
-    files: [
-      { name: 'Moodboard_Alpha_FW26.pdf', size: '4.8 MB', date: '28 Set 2026' }
-    ]
-  }
-}
-
+// ── Dati Impegni e Calendario Settimanale DADO Creative Studio (Sincronizzati con /calendar) ──
 function getDaySchedule(dateIso) {
-  const dynamicName = formatDayLong(dateIso)
-  const isToday = dateIso === getTodayIso()
-  const base = WEEK_SCHEDULE_DATA[dateIso] || {
-    dayName: dynamicName || 'Programma Giornata',
-    tag: isToday ? 'Oggi • Attività' : 'Attività Programmate',
-    events: [
-      { time: '09:30', company: 'DADO Creative Studio', title: 'Pianificazione attività e revisione progetti in corso.', category: 'Produzione' },
-      { time: '15:00', company: 'Gestione Clienti', title: 'Follow-up e controllo avanzamento produzioni video.', category: 'Commerciale' }
-    ],
-    notes: 'Giornata di produzione e coordinamento commesse.',
-    files: []
-  }
-  try {
-    const saved = localStorage.getItem('dado_crm_calendar_store')
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      if (parsed[dateIso]) {
-        return {
-          ...base,
-          notes: parsed[dateIso].notes || base.notes,
-          files: (parsed[dateIso].files && parsed[dateIso].files.length > 0) ? parsed[dateIso].files : base.files
-        }
-      }
-    }
-  } catch (e) {
-    // ignore
-  }
-  return base
+  return getCalendarDayData(dateIso)
 }
 
 // ── Dashboard Principale ──────────────────────────────────
 export default function Dashboard() {
   const [aiResult, setAiResult] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
-  const [selectedCalendarDay, setSelectedCalendarDay] = useState(null)
+  const [pinnedCalendarDay, setPinnedCalendarDay] = useState(null)
+  const [hoveredCalendarDay, setHoveredCalendarDay] = useState(null)
+  const selectedCalendarDay = pinnedCalendarDay || hoveredCalendarDay
   const [activeOutputTab, setActiveOutputTab] = useState('auto') // 'day' | 'ai' | 'auto'
 
   // Stato data in tempo reale per mantenere la dashboard sempre aggiornata automaticamente
@@ -838,15 +719,18 @@ export default function Dashboard() {
                   <div className="grid grid-cols-7 gap-1 mt-1 flex-1 items-stretch">
                     {currentWeekDays.map((d) => {
                       const isSelected = selectedCalendarDay?.date === d.date
+                      const isPinned = pinnedCalendarDay?.date === d.date
                       return (
                         <button
                           key={d.date}
                           type="button"
+                          onMouseEnter={() => setHoveredCalendarDay(d)}
+                          onMouseLeave={() => setHoveredCalendarDay(null)}
                           onClick={() => {
-                            if (isSelected) {
-                              setSelectedCalendarDay(null)
+                            if (isPinned) {
+                              setPinnedCalendarDay(null)
                             } else {
-                              setSelectedCalendarDay(d)
+                              setPinnedCalendarDay(d)
                               setActiveOutputTab('day')
                             }
                           }}
@@ -857,7 +741,7 @@ export default function Dashboard() {
                               ? 'border-[#00c853] bg-emerald-50/90 hover:bg-emerald-100 ring-2 ring-[#00c853]/40 shadow-sm'
                               : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'
                           }`}
-                          title={`Clicca per visualizzare gli impegni di ${d.name} nell'output della dashboard`}
+                          title={`Posiziona il cursore o clicca per visualizzare gli impegni di ${d.name}`}
                         >
                           <span
                             className="text-base font-black leading-none block"
@@ -1235,7 +1119,7 @@ export default function Dashboard() {
                           className="text-white font-bold tracking-wide uppercase text-[15px]"
                           style={{ fontFamily: '"Goldman", sans-serif' }}
                         >
-                          {currentDaySchedule?.dayName}
+                          Attività Programmate
                         </span>
                         {currentDaySchedule?.tag && (
                           <span className="text-[10.5px] font-mono px-2 py-0.5 rounded-full bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40 font-bold">
@@ -1274,9 +1158,8 @@ export default function Dashboard() {
 
                     <button
                       onClick={() => {
-                        if (activeOutputTab === 'day' || !aiResult) {
-                          setSelectedCalendarDay(null)
-                        }
+                        setPinnedCalendarDay(null)
+                        setHoveredCalendarDay(null)
                         if (activeOutputTab === 'ai' || !selectedCalendarDay) {
                           setAiResult(null)
                           setAiLoading(false)
@@ -1295,33 +1178,49 @@ export default function Dashboard() {
                 <div className="flex-1 overflow-y-auto pr-2 mt-2 space-y-2 leading-relaxed">
                   {selectedCalendarDay && activeOutputTab !== 'ai' && currentDaySchedule ? (
                     <div className="space-y-2.5">
-                      {/* Elenco Attività Programmate: griglia orizzontale a 2/3 colonne */}
+                      {/* Elenco Attività Programmate: griglia con orario, cliente, luogo, materiali */}
                       <div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                           {currentDaySchedule.events.map((ev, idx) => (
                             <div
                               key={idx}
-                              className="bg-black/40 border border-white/12 rounded-lg p-2.5 flex items-start gap-2.5 hover:border-emerald-500/40 transition-colors shadow-sm"
+                              className="bg-black/50 border border-white/15 rounded-xl p-3 flex flex-col justify-between hover:border-[#00ffaa]/50 transition-colors shadow-sm text-left"
                             >
-                              <div className="flex-shrink-0 flex flex-col items-center">
-                                <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-[#00ffaa] border border-emerald-500/40 whitespace-nowrap">
-                                  {ev.time}
+                              {/* 1. Header Evento: Orario & Cliente */}
+                              <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-white/10">
+                                <span className="text-[12px] font-mono font-black px-2.5 py-1 rounded bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40 whitespace-nowrap shadow-sm">
+                                  ⏰ {ev.time}
+                                </span>
+                                <span className="text-white font-black text-[13.5px] truncate flex-1 text-right tracking-tight">
+                                  {ev.company}
                                 </span>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                                  <span className="text-white font-bold text-[13px] truncate">
-                                    {ev.company}
-                                  </span>
-                                  {ev.category && (
-                                    <span className="text-[9.5px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/10 text-white/80 border border-white/15">
-                                      {ev.category}
+
+                              {/* 2. Dettagli: Luogo & Materiali */}
+                              <div className="space-y-1.5 text-[12px] leading-snug">
+                                {ev.location && (
+                                  <div className="flex items-start gap-1.5 text-sky-200">
+                                    <span className="text-[13px] flex-shrink-0">📍</span>
+                                    <span className="font-semibold text-slate-100 line-clamp-1">
+                                      <strong className="text-sky-300 font-mono text-[10.5px] uppercase mr-1">Luogo:</strong>
+                                      {ev.location}
                                     </span>
-                                  )}
-                                </div>
-                                <p className="text-[#f4f2ea] text-[12.5px] leading-snug line-clamp-2">
-                                  {ev.title}
-                                </p>
+                                  </div>
+                                )}
+                                {ev.materials && (
+                                  <div className="flex items-start gap-1.5 text-amber-200">
+                                    <span className="text-[13px] flex-shrink-0">🎒</span>
+                                    <span className="font-semibold text-slate-200 line-clamp-2">
+                                      <strong className="text-amber-300 font-mono text-[10.5px] uppercase mr-1">Materiali:</strong>
+                                      {ev.materials}
+                                    </span>
+                                  </div>
+                                )}
+                                {ev.title && (
+                                  <p className="text-slate-300 text-[11.5px] italic line-clamp-1 mt-0.5">
+                                    {ev.title}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           ))}
