@@ -197,11 +197,11 @@ export default function Sidebar() {
         to="/"
         end
         onClick={handleDashboardClick}
-        className={`${isSubSection ? 'w-[88px] h-[50px] mb-4' : 'w-[100px] h-[58px] mb-6'} self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer`}
+        className="w-[100px] h-[58px] mb-6 self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer"
         style={{
           backgroundColor: '#d8ff00',
           color: '#111111',
-          marginTop: isSubSection ? 'calc(0.5rem + 0.3cm)' : 'calc(1rem + 1cm - 21px)',
+          marginTop: 'calc(1rem + 1cm - 21px)',
           marginLeft: '8px',
         }}
         title="Dashboard"
@@ -209,17 +209,17 @@ export default function Sidebar() {
         <AnimatedDashboardIcon isClicked={isDashboardClicked} />
       </NavLink>
 
-      {/* Menu di navigazione — Voci ben spaziate e compatte nelle sottosezioni */}
-      <nav className={`flex flex-col ${isSubSection ? 'gap-3' : 'gap-5'}`}>
+      {/* Menu di navigazione — Voci ben spaziate */}
+      <nav className="flex flex-col gap-4">
         {navLinks.map(({ to, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `${isSubSection ? 'text-[15px]' : 'text-[17px]'} font-medium tracking-wide transition-colors ${
+              `text-[17px] font-medium tracking-wide transition-colors ${
                 isActive
-                  ? 'text-white font-semibold border border-[#00a8ff] px-2.5 py-0.5 w-fit rounded-none'
-                  : 'text-[#888888] hover:text-white px-2.5 py-0.5'
+                  ? 'text-white font-semibold border border-[#00a8ff] px-3 py-1 w-fit rounded-none'
+                  : 'text-[#888888] hover:text-white px-3 py-1'
               }`
             }
           >
@@ -227,12 +227,12 @@ export default function Sidebar() {
           </NavLink>
         ))}
 
-        {/* Pulsante Settings — Rotella meccanica con rotazione veloce quando schiacciata */}
+        {/* Pulsante Settings — Rotella meccanica standard */}
         <NavLink
           to="/settings"
           onClick={handleSettingsClick}
           className={({ isActive }) =>
-            `${isSubSection ? 'w-[88px] h-[46px]' : 'w-[100px] h-[58px]'} self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer ${
+            `w-[100px] h-[58px] self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer ${
               isActive ? 'ring-2 ring-[#00a8ff]' : ''
             }`
           }
@@ -244,7 +244,7 @@ export default function Sidebar() {
           title="Settings (Clicca per far girare la rotella veloce)"
         >
           <SettingsIcon
-            size={isSubSection ? 24 : 28}
+            size={28}
             strokeWidth={2.3}
             className={`transition-transform duration-300 ${
               isSettingsSpinning ? 'animate-spin-fast' : 'group-hover:rotate-90'
@@ -253,22 +253,22 @@ export default function Sidebar() {
         </NavLink>
       </nav>
 
-      {/* Collegamento a Google Drive con orario sotto Settings — Rimpicciolito nelle sezioni affinché non scompaia mai */}
+      {/* Collegamento a Google Drive con orario sotto Settings — Ridimensionato esattamente della metà rispetto alla grandezza di partenza */}
       {!isDashboard && (
-        <div className={isSubSection ? 'mt-3 w-full' : 'mt-6 w-full'}>
-          <ClockDriveBox compact={isSubSection} width="100%" height={isSubSection ? '48px' : 'calc(58px + 1.5cm)'} />
+        <div className="mt-4 w-full">
+          <ClockDriveBox compact={true} width="100%" height="calc(29px + 0.75cm)" />
         </div>
       )}
 
-      {/* Pulsante Opportunities — Rimpicciolito nelle sezioni affinché né Drive né Opportunities scompaiano mai */}
+      {/* Pulsante Opportunities — Ridimensionato della metà rispetto alla grandezza di partenza affinché non scompaia mai */}
       <NavLink
         to="/opportunities"
-        className={`text-center ${isSubSection ? 'py-1.5 px-2 rounded-xl' : 'py-2 px-2 rounded-2xl'} transition-all block hover:opacity-95 shadow-sm`}
+        className="text-center py-2 px-2 rounded-2xl transition-all block hover:opacity-95 shadow-sm"
         style={{
           backgroundColor: '#007a50',
           color: '#ffffff',
           width: '100%',
-          marginTop: isDashboard ? 'calc(2rem + 3cm)' : isSubSection ? '10px' : 'calc(1.5rem + 1cm)',
+          marginTop: isDashboard ? 'calc(2rem + 3cm)' : 'calc(0.75rem + 0.5cm)',
         }}
       >
         <span
@@ -276,8 +276,8 @@ export default function Sidebar() {
           style={{
             fontFamily: '"Goldman", sans-serif',
             fontWeight: 400,
-            fontSize: isSubSection ? '0.64rem' : '0.76rem',
-            letterSpacing: isSubSection ? '0.08cm' : '0.14cm',
+            fontSize: '0.74rem',
+            letterSpacing: '0.12cm',
             lineHeight: 1,
             textTransform: 'lowercase',
           }}

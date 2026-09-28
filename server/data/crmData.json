@@ -94,7 +94,7 @@
         "need": "Shooting video corporate stabilimento con drone 4K",
         "timeline": "Entro 1 settimana"
       },
-      "lastContact": "2026-09-28T01:37:00.379Z"
+      "lastContact": "2026-09-28T01:39:00.463Z"
     },
     {
       "id": "comp-3",
@@ -226,7 +226,7 @@
         "isResolved": "Risolto",
         "resolution": "Riorganizzata la timeline di ripresa anticipando le scene a terra con i tecnici e le interviste; riprese aeree completate nel tardo pomeriggio quando il vento è sceso a 8 nodi."
       },
-      "lastContact": "2026-09-28T01:33:02.829Z",
+      "lastContact": "2026-09-28T01:38:00.496Z",
       "bant": {
         "budget": "€ 14.500.",
         "authority": "Referente aziendale",
@@ -1972,6 +1972,42 @@
     }
   ],
   "emails": [
+    {
+      "id": "sim-1790559539979-3",
+      "from": "Sara Moretti <s.moretti@nextmedia.agency>",
+      "senderEmail": "s.moretti@nextmedia.agency",
+      "company": "NextMedia Agency",
+      "subject": "Richiesta info servizi video, showreel e opportunità di collaborazione",
+      "snippet": "Buongiorno DADO Studio, vi scriviamo per richiedere maggiori informazioni sui vostri servizi video e showreel......",
+      "body": "Buongiorno DADO Studio, siamo una nuova agenzia di comunicazione e seguiamo diversi brand moda e lifestyle. Vi scriviamo per richiedere maggiori informazioni sui vostri servizi di produzione video corporate, disponibilità drone e per proporvi una collaborazione continuativa (collab). Potete inviarci il vostro showreel aggiornato?",
+      "date": "2026-09-28T01:38:59.979Z",
+      "aiSummary": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790559479977-4",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.",
+      "date": "2026-09-28T01:37:59.977Z",
+      "aiSummary": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
     {
       "id": "sim-1790559419976-3",
       "from": "Sara Moretti <s.moretti@nextmedia.agency>",
@@ -6419,6 +6455,38 @@
   ],
   "drafts": [
     {
+      "id": "draft-1790559540463-23",
+      "emailId": "sim-1790559539979-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:39:00.463Z",
+      "sentAt": "2026-09-28T01:39:00.463Z"
+    },
+    {
+      "id": "draft-1790559480496-65",
+      "emailId": "sim-1790559479977-4",
+      "company": "Solaris Green Energy",
+      "recipient": "e.fontana@solarisgreen.eu",
+      "subject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "body": "Gentile Elena Fontana,\n\nin riferimento alla vostra richiesta per Solaris Green Energy relativa a \"Revisione economica e contrattuale spot TV HDR\", abbiamo elaborato la seguente proposta preliminare:\n\n• Budget indicativo stimato: € 14.500.\n• Finestra di consegna: Entro 1 settimana\n• Condizioni: 50% all'accettazione e saldo alla consegna dei master 4K.\n\n[Bozza generata da automazione CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nDADO Creative Studio",
+      "category": "CUSTOM_OR_NEGOTIATION",
+      "subType": "draft_only",
+      "autoSend": false,
+      "reason": "Trattativa complessa / preventivo personalizzato: salvato nelle BOZZE per revisione manuale (Non inviato in automatico)",
+      "status": "draft",
+      "requiresReview": true,
+      "createdAt": "2026-09-28T01:38:00.496Z",
+      "sentAt": null
+    },
+    {
       "id": "draft-1790559420379-353",
       "emailId": "sim-1790559419976-3",
       "company": "NextMedia Agency",
@@ -7860,6 +7928,22 @@
     }
   ],
   "sentEmails": [
+    {
+      "id": "draft-1790559540463-23",
+      "emailId": "sim-1790559539979-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:39:00.463Z",
+      "sentAt": "2026-09-28T01:39:00.463Z"
+    },
     {
       "id": "draft-1790559420379-353",
       "emailId": "sim-1790559419976-3",
