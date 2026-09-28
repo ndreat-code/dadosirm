@@ -1067,24 +1067,25 @@ export default function Dashboard() {
             </div>
 
             {/* Sezione Output Allargata (Risposta OpenAI & Impegni Calendar Week) — Orientamento Orizzontale fino a Google Drive & Preventivi */}
+            {/* Sezione Output Allargata (Risposta OpenAI & Impegni Calendar Week) — Sviluppata in verticale, senza overflow */}
             {(aiResult || aiLoading || selectedCalendarDay) && (
               <div
-                className="flex-1 min-w-0 flex flex-col justify-between p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-stretch"
+                className="flex-1 min-w-0 flex flex-col justify-between p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-stretch overflow-hidden"
                 style={{
-                  backgroundColor: 'rgba(0, 42, 26, 0.94)',
+                  backgroundColor: 'rgba(0, 42, 26, 0.95)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(0, 255, 170, 0.35)',
-                  boxShadow: '0 16px 40px -10px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.18)',
-                  height: '240px',
-                  minHeight: '240px',
+                  border: '1.5px solid rgba(0, 255, 170, 0.45)',
+                  boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+                  minHeight: '280px',
+                  maxHeight: '370px',
                   fontFamily: '"Jost", "Inter", sans-serif',
                 }}
               >
-                {/* Header Sezione Output */}
-                <div className="flex items-center justify-between pb-2 border-b border-white/15 gap-4">
+                {/* Header Sezione Output con spazi ben organizzati */}
+                <div className="flex items-center justify-between pb-2.5 mb-1.5 border-b border-white/15 gap-4 flex-shrink-0">
                   {/* Sinistra: Titolo o Tab Switcher */}
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#00ffaa] animate-pulse" />
+                  <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#00ffaa] animate-pulse flex-shrink-0" />
 
                     {/* Switcher Tab se entrambi attivi (AI + Giorno) */}
                     {aiResult && selectedCalendarDay ? (
@@ -1113,28 +1114,28 @@ export default function Dashboard() {
                         </button>
                       </div>
                     ) : selectedCalendarDay && activeOutputTab !== 'ai' ? (
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <CalendarIcon size={16} className="text-[#00ffaa]" />
+                      <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+                        <CalendarIcon size={18} className="text-[#00ffaa] flex-shrink-0" />
                         <span
-                          className="text-white font-bold tracking-wide uppercase text-[15px]"
-                          style={{ fontFamily: '"Goldman", sans-serif' }}
+                          className="text-white font-black tracking-wider uppercase text-[15px] sm:text-[16px] truncate"
+                          style={{ fontFamily: '"Goldman", sans-serif', letterSpacing: '0.07em' }}
                         >
                           Attività Programmate
                         </span>
                         {currentDaySchedule?.tag && (
-                          <span className="text-[10.5px] font-mono px-2 py-0.5 rounded-full bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40 font-bold">
+                          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#00ffaa]/15 text-[#00ffaa] border border-[#00ffaa]/35 font-bold uppercase tracking-wider whitespace-nowrap">
                             {currentDaySchedule.tag}
                           </span>
                         )}
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <Sparkles size={16} className="text-[#d8ff00]" />
-                        <span className="text-white/95 font-bold tracking-wide text-[15px]">
+                      <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+                        <Sparkles size={16} className="text-[#d8ff00] flex-shrink-0" />
+                        <span className="text-white/95 font-bold tracking-wide text-[15px] truncate">
                           {aiLoading ? 'Analisi in corso...' : 'Indagine CRM & Punti in Comune (OpenAI)'}
                         </span>
                         {aiResult && (
-                          <span className="text-[10.5px] font-mono text-white/50 px-2 py-0.5 rounded bg-white/5">
+                          <span className="text-[10.5px] font-mono text-white/50 px-2 py-0.5 rounded bg-white/5 whitespace-nowrap">
                             {aiResult.timestamp}
                           </span>
                         )}
@@ -1142,20 +1143,8 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                  {/* Destra: Azioni (Apri in Calendario + Chiudi) */}
+                  {/* Destra: solo pulsante Chiudi (rimosso il testo "Apri nel Calendario") */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {/* Link veloce per andare al Calendario completo */}
-                    {selectedCalendarDay && activeOutputTab !== 'ai' && (
-                      <Link
-                        to={`/calendar?date=${selectedCalendarDay.date}&day=${selectedCalendarDay.day}`}
-                        className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#00ffaa]/20 border border-[#00ffaa]/60 text-[#00ffaa] hover:bg-[#00ffaa] hover:text-[#111111] transition-all text-[11px] font-bold font-mono tracking-wide"
-                        title="Apri nel Calendario completo per modificare note e caricare allegati"
-                      >
-                        <span>Apri nel Calendario</span>
-                        <ArrowRight size={12} />
-                      </Link>
-                    )}
-
                     <button
                       onClick={() => {
                         setPinnedCalendarDay(null)
@@ -1166,7 +1155,7 @@ export default function Dashboard() {
                           window.dispatchEvent(new CustomEvent('dado-ai-reset'))
                         }
                       }}
-                      className="text-white/60 hover:text-white hover:bg-white/10 text-[11px] px-2 py-0.5 rounded-full transition-colors tracking-wide font-mono cursor-pointer"
+                      className="text-white/70 hover:text-white hover:bg-white/10 text-xs px-2.5 py-1 rounded-full transition-colors tracking-wide font-mono cursor-pointer border border-white/15"
                       title="Chiudi e libera lo spazio"
                     >
                       ✕ chiudi
@@ -1174,83 +1163,94 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Corpo del Contenuto Orizzontale (Griglia a colonne orizzontali per sfruttare la larghezza) */}
-                <div className="flex-1 overflow-y-auto pr-2 mt-2 space-y-2 leading-relaxed">
+                {/* Corpo del Contenuto Sviluppato in Verticale (senza overflow all'esterno) */}
+                <div
+                  className="flex-1 overflow-y-auto overflow-x-hidden pr-2 mt-1 space-y-2.5 leading-relaxed"
+                  style={{
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgba(0, 255, 170, 0.4) transparent',
+                  }}
+                >
                   {selectedCalendarDay && activeOutputTab !== 'ai' && currentDaySchedule ? (
-                    <div className="space-y-2.5">
-                      {/* Elenco Attività Programmate: griglia con orario, cliente, luogo, materiali */}
-                      <div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                          {currentDaySchedule.events.map((ev, idx) => (
-                            <div
-                              key={idx}
-                              className="bg-black/50 border border-white/15 rounded-xl p-3 flex flex-col justify-between hover:border-[#00ffaa]/50 transition-colors shadow-sm text-left"
-                            >
-                              {/* 1. Header Evento: Orario & Cliente */}
-                              <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-white/10">
-                                <span className="text-[12px] font-mono font-black px-2.5 py-1 rounded bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40 whitespace-nowrap shadow-sm">
-                                  ⏰ {ev.time}
+                    <div className="flex flex-col gap-2.5 w-full">
+                      {/* Elenco Attività Programmate: disposto in verticale, a piena larghezza */}
+                      <div className="flex flex-col gap-2.5 w-full">
+                        {currentDaySchedule.events.map((ev, idx) => (
+                          <div
+                            key={idx}
+                            className="bg-black/55 border border-white/15 rounded-xl p-3 flex flex-col gap-2 hover:border-[#00ffaa]/50 transition-colors shadow-sm text-left overflow-hidden w-full"
+                          >
+                            {/* 1. Riga Superiore: Orario & Cliente */}
+                            <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-white/10">
+                              <span className="text-[11.5px] font-mono font-black px-2 py-0.5 rounded bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40 whitespace-nowrap shadow-sm">
+                                ⏰ {ev.time}
+                              </span>
+                              <span className="text-white font-bold text-[14px] truncate flex-1 text-right tracking-tight">
+                                {ev.company}
+                              </span>
+                              {ev.category && (
+                                <span className="text-[9.5px] font-mono uppercase px-2 py-0.5 rounded bg-white/10 text-white/80 border border-white/15 whitespace-nowrap">
+                                  {ev.category}
                                 </span>
-                                <span className="text-white font-black text-[13.5px] truncate flex-1 text-right tracking-tight">
-                                  {ev.company}
-                                </span>
-                              </div>
-
-                              {/* 2. Dettagli: Luogo & Materiali */}
-                              <div className="space-y-1.5 text-[12px] leading-snug">
-                                {ev.location && (
-                                  <div className="flex items-start gap-1.5 text-sky-200">
-                                    <span className="text-[13px] flex-shrink-0">📍</span>
-                                    <span className="font-semibold text-slate-100 line-clamp-1">
-                                      <strong className="text-sky-300 font-mono text-[10.5px] uppercase mr-1">Luogo:</strong>
-                                      {ev.location}
-                                    </span>
-                                  </div>
-                                )}
-                                {ev.materials && (
-                                  <div className="flex items-start gap-1.5 text-amber-200">
-                                    <span className="text-[13px] flex-shrink-0">🎒</span>
-                                    <span className="font-semibold text-slate-200 line-clamp-2">
-                                      <strong className="text-amber-300 font-mono text-[10.5px] uppercase mr-1">Materiali:</strong>
-                                      {ev.materials}
-                                    </span>
-                                  </div>
-                                )}
-                                {ev.title && (
-                                  <p className="text-slate-300 text-[11.5px] italic line-clamp-1 mt-0.5">
-                                    {ev.title}
-                                  </p>
-                                )}
-                              </div>
+                              )}
                             </div>
-                          ))}
-                        </div>
+
+                            {/* 2. Dettagli Chiave: Luogo & Materiali distribuiti verticalmente */}
+                            <div className="space-y-1.5 text-[12px] leading-snug">
+                              {ev.location && (
+                                <div className="flex items-start gap-1.5 text-slate-100">
+                                  <span className="text-sky-300 font-bold font-mono text-[10.5px] uppercase tracking-wide flex-shrink-0">
+                                    📍 Luogo:
+                                  </span>
+                                  <span className="font-medium text-slate-100 break-words flex-1">
+                                    {ev.location}
+                                  </span>
+                                </div>
+                              )}
+                              {ev.materials && (
+                                <div className="flex items-start gap-1.5 text-slate-100">
+                                  <span className="text-amber-300 font-bold font-mono text-[10.5px] uppercase tracking-wide flex-shrink-0">
+                                    🎒 Materiali:
+                                  </span>
+                                  <span className="font-medium text-amber-100 break-words flex-1">
+                                    {ev.materials}
+                                  </span>
+                                </div>
+                              )}
+                              {ev.title && (
+                                <p className="text-slate-300 text-[11.5px] italic border-t border-white/10 pt-1 mt-0.5 break-words">
+                                  {ev.title}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
 
-                      {/* Note & Allegati disposti in riga orizzontale */}
+                      {/* Note & Allegati disposti in verticale / orizzontale compatto */}
                       {(currentDaySchedule.notes || (currentDaySchedule.files && currentDaySchedule.files.length > 0)) && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 border-t border-white/10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 border-t border-white/10 w-full">
                           {currentDaySchedule.notes && (
-                            <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-lg p-2 flex items-start gap-2">
-                              <span className="text-emerald-400 text-xs">📝</span>
-                              <div className="flex-1 text-[12px] text-white/95 leading-tight">
+                            <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-lg p-2.5 flex items-start gap-2 overflow-hidden">
+                              <span className="text-emerald-400 text-xs flex-shrink-0">📝</span>
+                              <div className="flex-1 text-[12px] text-white/95 leading-tight break-words">
                                 <span className="font-bold text-[#00ffaa] uppercase text-[10px] font-mono block mb-0.5">Note:</span>
                                 {currentDaySchedule.notes}
                               </div>
                             </div>
                           )}
                           {currentDaySchedule.files && currentDaySchedule.files.length > 0 && (
-                            <div className="bg-black/30 border border-white/10 rounded-lg p-2 flex flex-col justify-center">
+                            <div className="bg-black/30 border border-white/10 rounded-lg p-2.5 flex flex-col justify-center overflow-hidden">
                               <span className="font-bold text-[#00ffaa] uppercase text-[10px] font-mono block mb-1">File ({currentDaySchedule.files.length}):</span>
                               <div className="flex flex-wrap gap-1.5">
                                 {currentDaySchedule.files.map((file, fIdx) => (
                                   <div
                                     key={fIdx}
-                                    className="bg-black/40 border border-white/15 px-2 py-0.5 rounded flex items-center gap-1.5 text-[11px] text-white/90"
+                                    className="bg-black/40 border border-white/15 px-2 py-0.5 rounded flex items-center gap-1.5 text-[11px] text-white/90 max-w-full"
                                   >
-                                    <Paperclip size={11} className="text-[#00ffaa]" />
-                                    <span className="font-mono font-medium truncate max-w-[120px]">{file.name}</span>
-                                    <span className="text-white/40 text-[9px]">({file.size})</span>
+                                    <Paperclip size={11} className="text-[#00ffaa] flex-shrink-0" />
+                                    <span className="font-mono font-medium truncate max-w-[140px]">{file.name}</span>
+                                    <span className="text-white/40 text-[9px] flex-shrink-0">({file.size})</span>
                                   </div>
                                 ))}
                               </div>

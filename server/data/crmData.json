@@ -46,7 +46,7 @@
         "need": "Produzione contenuti audiovisivi",
         "timeline": "Entro 1 settimana"
       },
-      "lastContact": "2026-09-28T01:53:00.376Z"
+      "lastContact": "2026-09-28T02:02:00.619Z"
     },
     {
       "id": "comp-1790554140763",
@@ -157,7 +157,7 @@
         "isResolved": "Risolto",
         "resolution": "Intervista spostata nella sala controllo insonorizzata con finestra vetrata panoramica sui macchinari + applicazione di voice-isolation neurale in post-produzione. Resa audio limpida."
       },
-      "lastContact": "2026-09-28T01:58:00.662Z",
+      "lastContact": "2026-09-28T02:03:00.796Z",
       "bant": {
         "budget": "€ 9.200",
         "need": "Shooting video corporate stabilimento con drone 4K",
@@ -294,7 +294,7 @@
         "isResolved": "Risolto",
         "resolution": "Impiegato il tempo d'attesa per calibrare al millimetro i contrasti luce con la controfigura e scattare gli accessori secondari; nessun minuto perso sul set effettivo."
       },
-      "lastContact": "2026-09-28T01:56:01.079Z",
+      "lastContact": "2026-09-28T02:01:00.793Z",
       "bant": {
         "authority": "Referente aziendale",
         "need": "Pianificazione call tecnica e coordinamento studio",
@@ -1972,6 +1972,96 @@
     }
   ],
   "emails": [
+    {
+      "id": "sim-1790560979999-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e approvazione budget deliberato",
+      "snippet": "Buongiorno team Dado, vi confermiamo che il consiglio ha deliberato il preventivo di € 9.200......",
+      "body": "Buongiorno team Dado, vi confermiamo con piacere che il consiglio ha deliberato e approvato il preventivo di € 9.200 per lo shooting corporate e le riprese drone indoor. Attendiamo vostra conferma per avvio produzione e dettagli logistici.",
+      "date": "2026-09-28T02:02:59.999Z",
+      "aiSummary": "Richiesta rilevata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790560919999-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T02:01:59.999Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790560859998-2",
+      "from": "Chiara Rossi <c.rossi@alphastudiomilano.com>",
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "company": "Alpha Studio Milano",
+      "subject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci",
+      "snippet": "Ciao DADO team, potremmo fare una video call o incontro Lunedì alle 10:00?......",
+      "body": "Ciao DADO team, vorremmo concordare una video call o appuntamento in studio per Lunedì mattina alle ore 10:00 per discutere i test fondale e la calibrazione monitor Atomos Ninja. Ci confermate se siete liberi a calendario?",
+      "date": "2026-09-28T02:00:59.998Z",
+      "aiSummary": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Pianificazione call tecnica e coordinamento studio",
+        "timeline": "Urgente entro 3 giorni"
+      },
+      "priority": "urgent_3d"
+    },
+    {
+      "id": "sim-1790560799997-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T01:59:59.997Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790560739996-5",
+      "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
+      "senderEmail": "m.colombo@fashionbrand.it",
+      "company": "Fashion Brand Milano",
+      "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
+      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
+      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
+      "date": "2026-09-28T01:58:59.996Z",
+      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Ing. Marco Riva (Managing Director)",
+        "need": "Produzione contenuti audiovisivi",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
     {
       "id": "sim-1790560679995-1",
       "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
@@ -6797,6 +6887,86 @@
   ],
   "drafts": [
     {
+      "id": "draft-1790560980796-991",
+      "emailId": "sim-1790560979999-1",
+      "company": "Officine Meccaniche Riva",
+      "recipient": "marco.riva@officineriva.it",
+      "subject": "Conferma accordo e avvio produzione - DADO Creative Studio",
+      "body": "Gentile Ing. Marco Riva,\n\nconfermiamo con piacere la ricezione dell'approvazione del preventivo per Officine Meccaniche Riva (€ 9.200).\nAbbiamo registrato l'accordo nel nostro CRM e predisposto il piano di produzione per le riprese video e l'impiego del drone 4K.\n\nNei prossimi giorni vi invieremo la documentazione per il kick-off, le liberatorie e il piano di lavoro operativo dettagliato.\n\nRestiamo a vostra completa disposizione.\n\nCordiali saluti,\nTeam DADO Creative Studio\nMilano | www.dadostudio.it",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "positive",
+      "autoSend": true,
+      "reason": "Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T02:03:00.796Z",
+      "sentAt": "2026-09-28T02:03:00.796Z"
+    },
+    {
+      "id": "draft-1790560920619-404",
+      "emailId": "sim-1790560919999-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T02:02:00.619Z",
+      "sentAt": "2026-09-28T02:02:00.619Z"
+    },
+    {
+      "id": "draft-1790560860797-581",
+      "emailId": "sim-1790560859998-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T02:01:00.797Z",
+      "sentAt": "2026-09-28T02:01:00.797Z"
+    },
+    {
+      "id": "draft-1790560800641-615",
+      "emailId": "sim-1790560799997-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T02:00:00.641Z",
+      "sentAt": "2026-09-28T02:00:00.641Z"
+    },
+    {
+      "id": "draft-1790560740583-930",
+      "emailId": "sim-1790560739996-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:59:00.583Z",
+      "sentAt": "2026-09-28T01:59:00.583Z"
+    },
+    {
       "id": "draft-1790560680662-574",
       "emailId": "sim-1790560679995-1",
       "company": "Officine Meccaniche Riva",
@@ -8574,6 +8744,86 @@
     }
   ],
   "sentEmails": [
+    {
+      "id": "draft-1790560980796-991",
+      "emailId": "sim-1790560979999-1",
+      "company": "Officine Meccaniche Riva",
+      "recipient": "marco.riva@officineriva.it",
+      "subject": "Conferma accordo e avvio produzione - DADO Creative Studio",
+      "body": "Gentile Ing. Marco Riva,\n\nconfermiamo con piacere la ricezione dell'approvazione del preventivo per Officine Meccaniche Riva (€ 9.200).\nAbbiamo registrato l'accordo nel nostro CRM e predisposto il piano di produzione per le riprese video e l'impiego del drone 4K.\n\nNei prossimi giorni vi invieremo la documentazione per il kick-off, le liberatorie e il piano di lavoro operativo dettagliato.\n\nRestiamo a vostra completa disposizione.\n\nCordiali saluti,\nTeam DADO Creative Studio\nMilano | www.dadostudio.it",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "positive",
+      "autoSend": true,
+      "reason": "Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T02:03:00.796Z",
+      "sentAt": "2026-09-28T02:03:00.796Z"
+    },
+    {
+      "id": "draft-1790560920619-404",
+      "emailId": "sim-1790560919999-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T02:02:00.619Z",
+      "sentAt": "2026-09-28T02:02:00.619Z"
+    },
+    {
+      "id": "draft-1790560860797-581",
+      "emailId": "sim-1790560859998-2",
+      "company": "Alpha Studio Milano",
+      "recipient": "c.rossi@alphastudiomilano.com",
+      "subject": "Disponibilità a calendario per incontro - DADO Creative Studio",
+      "body": "Gentile Chiara Rossi,\n\ngrazie per la richiesta di incontro.\nAbbiamo verificato i nostri impegni a calendario: per la fascia oraria indicata abbiamo già una sessione programmata (\"Briefing Alpha Studio Milano campagna FW26\").\n\nVi proponiamo con piacere il seguente slot alternativo libero: Lunedì 28 Settembre alle ore 11:30 oppure Martedì 29 Settembre alle ore 10:30.\n\nFateci sapere se l'orario vi è congeniale per inviarvi l'invito Google Calendar definitivo.\n\nUn cordiale saluto,\nTeam DADO Creative Studio",
+      "category": "MEETING_CONFIRMATION",
+      "subType": "slot_rescheduled",
+      "autoSend": true,
+      "reason": "Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T02:01:00.797Z",
+      "sentAt": "2026-09-28T02:01:00.797Z"
+    },
+    {
+      "id": "draft-1790560800641-615",
+      "emailId": "sim-1790560799997-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T02:00:00.641Z",
+      "sentAt": "2026-09-28T02:00:00.641Z"
+    },
+    {
+      "id": "draft-1790560740583-930",
+      "emailId": "sim-1790560739996-5",
+      "company": "Fashion Brand Milano",
+      "recipient": "m.colombo@fashionbrand.it",
+      "subject": "Riscontro proposta e ringraziamenti - DADO Creative Studio",
+      "body": "Gentile Matteo Colombo,\n\nvi ringraziamo per il tempo dedicato e per aver valutato la nostra proposta di collaborazione per Fashion Brand Milano.\nPrendiamo atto con dispiacere della decisione di non procedere al momento per motivi di budget.\n\nI nostri canali restano aperti qualora si presentassero future opportunità di shooting o produzioni video.\n\nI migliori auguri per le vostre prossime iniziative,\nTeam DADO Creative Studio",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "negative",
+      "autoSend": true,
+      "reason": "Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T01:59:00.583Z",
+      "sentAt": "2026-09-28T01:59:00.583Z"
+    },
     {
       "id": "draft-1790560680662-574",
       "emailId": "sim-1790560679995-1",
