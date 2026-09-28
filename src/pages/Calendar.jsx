@@ -383,39 +383,33 @@ export default function Calendar() {
 
         </div>
 
-        {/* ── BARRA DI NAVIGAZIONE IN FONDO: SPOSTAMENTO DI 2 SETTIMANE IN 2 SETTIMANE ── */}
-        {/* Riquadri con le frecce SEMPRE GRIGI e frecce NERE, con dal-al e mese corrente */}
-        <div className="flex items-center justify-center pt-3 pb-2 select-none">
-          <div className="bg-[#e5e7eb] border border-slate-300 rounded-2xl flex items-stretch shadow-md overflow-hidden">
+        {/* ── BARRA DI NAVIGAZIONE IN FONDO COMPATTA: DAL AL (SENZA ANNO E SENZA MESE CORRENTE) ── */}
+        <div className="flex items-center justify-center pt-2 pb-2 select-none">
+          <div className="bg-[#e5e7eb] border border-slate-300 rounded-2xl flex items-stretch shadow-sm overflow-hidden h-[52px]">
             
-            {/* Freccia Sinistra (Riquadro Grigio, Freccia Nera) */}
+            {/* Freccia Sinistra (Riquadro Grigio stretto, Freccia Nera Grande) */}
             <button
               onClick={handlePrevTwoWeeks}
-              className="w-20 sm:w-24 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group border-r border-slate-300"
+              className="w-14 sm:w-16 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group border-r border-slate-300"
               title="Due settimane precedenti"
             >
-              <ChevronLeft className="w-7 h-7 text-black group-hover:-translate-x-1 transition-transform stroke-[2.8]" />
+              <ChevronLeft className="w-8 h-8 text-black group-hover:-translate-x-1 transition-transform stroke-[3]" />
             </button>
 
-            {/* Display Centrale: (dal al e mese corrente) */}
-            <div className="bg-[#f3f4f6] px-6 sm:px-10 py-3 flex flex-col items-center justify-center text-center min-w-[300px]">
-              <div className="text-xs sm:text-sm font-black font-mono text-slate-900 tracking-wide flex items-center gap-2">
-                <span>DAL {startDay.dayNum} {MONTH_NAMES[startDay.monthNum]?.toUpperCase()}</span>
-                <span className="text-slate-400 font-bold">—</span>
-                <span>AL {endDay.dayNum} {MONTH_NAMES[endDay.monthNum]?.toUpperCase()} {endDay.year}</span>
-              </div>
-              <div className="text-[11px] font-mono font-bold text-slate-600 mt-1 uppercase tracking-wider">
-                MESE CORRENTE: {currentMonthName}
-              </div>
+            {/* Display Centrale Ristretto: Testo più grande "DAL 28 SET AL 11 OTTOBRE" (senza 2026 e senza scritta mese corrente) */}
+            <div className="bg-[#f3f4f6] px-5 sm:px-7 flex items-center justify-center text-center">
+              <span className="text-base sm:text-[17px] font-black font-mono text-slate-900 tracking-wide uppercase whitespace-nowrap">
+                DAL {startDay.dayNum} {MONTH_NAMES[startDay.monthNum]?.slice(0, 3).toUpperCase()} AL {endDay.dayNum} {MONTH_NAMES[endDay.monthNum]?.toUpperCase()}
+              </span>
             </div>
 
-            {/* Freccia Destra (Riquadro Grigio, Freccia Nera) */}
+            {/* Freccia Destra (Riquadro Grigio stretto, Freccia Nera Grande) */}
             <button
               onClick={handleNextTwoWeeks}
-              className="w-20 sm:w-24 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group border-l border-slate-300"
+              className="w-14 sm:w-16 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group border-l border-slate-300"
               title="Due settimane successive"
             >
-              <ChevronRight className="w-7 h-7 text-black group-hover:translate-x-1 transition-transform stroke-[2.8]" />
+              <ChevronRight className="w-8 h-8 text-black group-hover:translate-x-1 transition-transform stroke-[3]" />
             </button>
 
           </div>
