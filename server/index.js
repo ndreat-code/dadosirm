@@ -529,9 +529,50 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
 
     let answer = ''
     let usingOpenAi = false
+    let usingOllama = false
     let openAiError = null
+    let activeEngine = 'NLP Interno'
 
-    if (process.env.OPENAI_API_KEY || process.env.OPENAI_BASE_URL) {
+    // ── 1. RILEVAMENTO AUTOMATICO OLLAMA LOCALE (Gratis & Illimitato su http://127.0.0.1:11434) ──
+    try {
+      const ollamaCheck = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(1000) })
+      if (ollamaCheck.ok) {
+        const tagsData = await ollamaCheck.json()
+        const availableModels = tagsData.models || []
+        if (availableModels.length > 0) {
+          const selectedModel = availableModels.find(m => m.name.includes('llama') || m.name.includes('mistral') || m.name.includes('qwen'))?.name || availableModels[0].name
+          console.log(`🦙 Interrogazione Ollama locale con modello: ${selectedModel}...`)
+
+          const ollamaRes = await fetch('http://127.0.0.1:11434/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: selectedModel,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: prompt }
+              ],
+              stream: false,
+              options: { temperature: 0.7 }
+            })
+          })
+
+          if (ollamaRes.ok) {
+            const ollamaJson = await ollamaRes.json()
+            if (ollamaJson.message?.content) {
+              answer = ollamaJson.message.content
+              usingOllama = true
+              activeEngine = `Ollama Locale (${selectedModel})`
+            }
+          }
+        }
+      }
+    } catch (ollamaErr) {
+      // Ollama non ancora avviato o nessun modello scaricato, si prosegue
+    }
+
+    // ── 2. SE OLLAMA NON È ATTIVO: TENTA OPENAI CON CHIAVE ──
+    if (!answer && (process.env.OPENAI_API_KEY || process.env.OPENAI_BASE_URL)) {
       try {
         const modelName = process.env.OPENAI_MODEL || (process.env.OPENAI_BASE_URL ? 'llama3.1' : 'gpt-4o-mini')
         const completion = await openai.chat.completions.create({
@@ -544,7 +585,10 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
           max_tokens: 1200,
         })
         answer = completion.choices[0]?.message?.content || ''
-        if (answer) usingOpenAi = true
+        if (answer) {
+          usingOpenAi = true
+          activeEngine = `OpenAI (${modelName})`
+        }
       } catch (apiErr) {
         console.warn('OpenAI API non disponibile (' + apiErr.message + '), attivazione motore CRM analitico avanzato.')
         if (apiErr.code === 'credit_balance_exhausted' || apiErr.status === 429) {
@@ -555,14 +599,16 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
       }
     }
 
+    // ── 3. FALLBACK: MOTORE CRM EURISTICO LOCALE DADO ──
     if (!answer) {
       answer = generateLocalCrmAnalysis(prompt, crmData)
+      activeEngine = 'Motore NLP Studio DADO'
       if (openAiError === 'credit_exhausted') {
-        answer += `\n\n──────────────────────────────────────\n💡 [Nota di servizio: Risposta calcolata dal motore locale DADO Studio. Per abilitare GPT-4o su qualsiasi domanda esterna al CRM, ricarica il saldo su platform.openai.com/settings/organization/billing/]`
+        answer += `\n\n──────────────────────────────────────\n💡 [Nota: Risposta calcolata dal motore analitico DADO Studio. Una volta avviato Ollama con un modello come llama3.2, il CRM si collegherà automaticamente in locale a costo zero.]`
       }
     }
 
-    res.json({ answer, prompt, usingOpenAi, openAiError, timestamp: new Date().toISOString() })
+    res.json({ answer, prompt, usingOpenAi, usingOllama, activeEngine, openAiError, timestamp: new Date().toISOString() })
   } catch (err) {
     console.error('Errore gestione richiesta AI:', err)
     res.status(500).json({ 
