@@ -74,35 +74,55 @@ function ClockDriveBox() {
   }, [])
 
   const hhmm = time.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  const digits = hhmm.replace(/[^0-9]/g, '')
+  const d1 = digits[0] || '0'
+  const d2 = digits[1] || '0'
+  const d3 = digits[2] || '0'
+  const d4 = digits[3] || '0'
+
+  const colorYellow = '#b45309' // Giallo/Ambra profondo vivido
+  const colorPurple = '#7e22ce' // Viola profondo vivido
+  const colorBlue   = '#0284c7' // Blu DADO profondo vivido
+  const colorOrange = '#ea580c' // Arancione DADO profondo vivido
 
   return (
     <div
-      className="border border-[#00c8c8] rounded-[6px] py-2 px-3 text-center cursor-pointer hover:border-cyan-400 transition-all relative overflow-hidden group select-none shadow-sm flex flex-col items-center justify-center min-h-[64px]"
+      className="border border-[#e2e8f0] hover:border-slate-300 rounded-[12px] py-2 px-3 text-center cursor-pointer transition-all relative overflow-hidden group select-none shadow-xs hover:shadow-md hover:scale-[1.01] flex flex-col items-center justify-center min-h-[64px] bg-white"
       style={{ backgroundColor: '#ffffff' }}
       onClick={() => window.open('https://drive.google.com', '_blank')}
       title="Clicca per aprire Google Drive"
     >
-      {/* Sfondo: Logo Google Drive attuale (2026) ingrandito e centrato, contenuto solo nel riquadro */}
+      {/* Sfondo: Logo Google Drive nitido in watermark con blend multiply su fondo bianco */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
         <img
           src="/google-drive-logo.jpg"
           alt="Google Drive Logo"
-          className="w-[130px] h-[130px] object-contain opacity-40 group-hover:opacity-60 transition-opacity transform scale-135"
+          className="w-[90px] h-[90px] object-contain opacity-25 group-hover:opacity-40 transition-opacity"
           style={{ mixBlendMode: 'multiply' }}
         />
       </div>
 
-      {/* Contenuto testuale ingrandito: ORE (18px) è 2 punti più grande di Google Drive (16px) */}
-      <div className="relative z-10">
+      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu, Arancione su fondo bianco */}
+      <div className="relative z-10 flex flex-col items-center justify-center">
         <div
-          className="font-black tracking-wider text-[#111111] leading-tight"
-          style={{ fontSize: '18px' }}
+          className="flex items-center justify-center leading-none tracking-wider select-none"
+          style={{
+            fontFamily: '"Switzer", sans-serif',
+            fontSize: '22px',
+            fontWeight: 900,
+            letterSpacing: '0.04em',
+            WebkitFontSmoothing: 'antialiased'
+          }}
         >
-          ORE: {hhmm}
+          <span style={{ color: colorYellow }}>{d1}</span>
+          <span style={{ color: colorPurple }}>{d2}</span>
+          <span className="text-slate-700 mx-[2px] font-bold animate-pulse text-[18px]">:</span>
+          <span style={{ color: colorBlue }}>{d3}</span>
+          <span style={{ color: colorOrange }}>{d4}</span>
         </div>
         <div
-          className="font-bold text-[#111111] mt-1 tracking-wide leading-tight"
-          style={{ fontFamily: 'Goldman, sans-serif', fontSize: '16px' }}
+          className="font-bold text-slate-700 mt-1 tracking-wide leading-tight text-[12px]"
+          style={{ fontFamily: '"Switzer", sans-serif' }}
         >
           Google Drive
         </div>
