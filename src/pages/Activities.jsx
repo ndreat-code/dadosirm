@@ -490,9 +490,6 @@ export default function Activities() {
               <p style={{ marginTop: '4px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 600, letterSpacing: '-0.02em' }}>
                 <span style={{ color: '#00e5ff' }}>Production pipeline & </span>
                 <span style={{ color: '#00e575' }}>next actions</span>
-                <span style={{ color: '#ffffff', fontSize: '13px', fontFamily: '"Switzer", sans-serif', marginLeft: '14px', fontWeight: 500, letterSpacing: '-0.01em' }}>
-                  Hello there, we are DADO C.S.
-                </span>
               </p>
             </div>
 

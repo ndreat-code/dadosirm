@@ -386,9 +386,6 @@ export default function Companies() {
                 <span style={{ color: '#ffffff', fontSize: '13.5px', fontFamily: '"Space Mono", monospace', marginLeft: '14px', fontWeight: 400 }}>
                   ({filteredCompanies.length} partner)
                 </span>
-                <span className="hidden md:inline-block ml-3 text-xs tracking-wider uppercase font-semibold text-white/40" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                  • Hello there, we are DADO C.S.
-                </span>
               </p>
             </div>
 

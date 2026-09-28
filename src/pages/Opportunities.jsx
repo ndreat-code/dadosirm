@@ -785,7 +785,6 @@ export default function Opportunities() {
               </h1>
               <p className="text-xs md:text-sm text-gray-400 font-mono mt-0.5">
                 <span>Istogramma trattative aperte, vinte e perse nel corso del mese</span>
-                <span className="text-[#00ffaa] ml-2 font-medium" style={{ fontFamily: '"Switzer", sans-serif' }}>• Hello there, we are DADO C.S.</span>
               </p>
             </div>
           </div>

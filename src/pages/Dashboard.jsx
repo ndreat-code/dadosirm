@@ -748,26 +748,12 @@ export default function Dashboard() {
                   </span>
                 </h1>
 
-                {/* Sottotitolo con il font Switzer di DADO Studio */}
+                {/* Sottotitolo "Go get it today" (nascosto in Focus Mode per compattezza) */}
                 {!isAiFocusMode && (
-                  <div style={{ marginTop: 'calc(16px + 1.2cm)', marginBottom: '6px' }}>
-                    <div
-                      style={{
-                        fontFamily: '"Switzer", sans-serif',
-                        fontWeight: 600,
-                        fontSize: '20px',
-                        letterSpacing: '-0.03em',
-                        lineHeight: 1.1,
-                        color: '#ffffff',
-                      }}
-                    >
-                      Hello there, we are <span style={{ color: '#00e5ff' }}>DADO C.S.</span>
-                    </div>
-                    <p style={{ marginTop: '2px', fontSize: '13px', fontFamily: '"Switzer", sans-serif', fontWeight: 500, letterSpacing: '-0.01em' }}>
-                      <span style={{ color: '#00ffaa' }}>Go get it today</span>
-                      <span style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '8px' }}>— Stories that stick, Content that moves.</span>
-                    </p>
-                  </div>
+                  <p style={{ marginTop: 'calc(22px + 1.3cm)', marginBottom: '6px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 700, letterSpacing: '-0.02em' }}>
+                    <span style={{ color: '#00e5ff' }}>Go get it </span>
+                    <span style={{ color: '#00e575' }}>today</span>
+                  </p>
                 )}
               </div>
             </div>
