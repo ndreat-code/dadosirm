@@ -595,28 +595,6 @@ export default function Companies() {
                               <span>{relStatus.emoji}</span>
                               <strong className="font-extrabold">{relStatus.tag}</strong>
                             </span>
-
-                            {/* BANT Logo Mark compatto con lettere bold */}
-                            <BantLogoMark size="sm" bant={bant} />
-
-                            {/* Qualificazione BANT */}
-                            {bant.isComplete ? (
-                              <span
-                                className="inline-flex items-center gap-1 text-xs font-bold text-[#16a34a]"
-                                title="BANT 4/4 completo"
-                              >
-                                <span>🟢</span>
-                                <strong>4/4 QUALIFICATO</strong>
-                              </span>
-                            ) : (
-                              <span
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200"
-                                title={`Mancanti: ${bant.missingLabel}`}
-                              >
-                                <span>⚠️</span>
-                                <strong>{bant.score}/4 • MANCA {bant.missingList[0]?.toUpperCase()}</strong>
-                              </span>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -647,7 +625,11 @@ export default function Companies() {
 
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : comp.id)}
-                          className="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-[#0284c7] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer rounded-xl border border-sky-200"
+                          className={`px-4 py-2 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer rounded-xl border ${
+                            isExpanded
+                              ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
+                              : 'bg-sky-50 hover:bg-sky-100 text-[#0284c7] border-sky-200'
+                          }`}
                           style={{ fontFamily: '"Switzer", sans-serif' }}
                         >
                           <strong className="font-extrabold">{isExpanded ? 'CHIUDI' : 'DETTAGLI'}</strong>
@@ -657,15 +639,15 @@ export default function Companies() {
 
                     </div>
 
-                    {/* ── 2. LAYOUT APERTO E FLUIDO (SENZA RIQUADRINI E SENZA SCATOLETTE) ── */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-3.5 text-sm">
+                    {/* ── 2. LAYOUT APERTO E FLUIDO A 3 COLONNE (SENZA RIQUADRO BANT) ── */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-3.5 text-sm">
                       
-                      {/* Sezione 1: Referente & Recapiti Diretti */}
+                      {/* Sezione 1: Referente, Recapiti Diretti & Canale */}
                       <div className="flex flex-col justify-between">
                         <div>
                           <div className="text-xs font-black uppercase tracking-wider text-[#0284c7] flex items-center gap-1.5 mb-1">
                             <User className="w-3.5 h-3.5" />
-                            <strong>REFERENTE</strong>
+                            <strong>REFERENTE & ACQUISIZIONE</strong>
                           </div>
                           <div className="font-bold text-slate-900 text-sm truncate" title={comp.contactPerson?.name}>
                             {comp.contactPerson?.name || 'Referente non indicato'}
@@ -675,43 +657,49 @@ export default function Companies() {
                           </div>
                         </div>
 
-                        {/* Recapiti veloci con etichette corte in bold */}
-                        <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-sky-100/80 flex-wrap">
-                          {contactEmail && (
-                            <button
-                              type="button"
-                              onClick={(e) => handleCopy(contactEmail, `${comp.id}-email`, e)}
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer border ${
-                                copiedField === `${comp.id}-email`
-                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold'
-                                  : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
-                              }`}
-                              title={`Copia email: ${contactEmail}`}
-                            >
-                              <Mail className="w-3 h-3 text-[#0284c7]" />
-                              <strong>{copiedField === `${comp.id}-email` ? 'COPIATA' : 'MAIL'}</strong>
-                            </button>
-                          )}
-                          {contactPhone && (
-                            <button
-                              type="button"
-                              onClick={(e) => handleCopy(contactPhone, `${comp.id}-phone`, e)}
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer border ${
-                                copiedField === `${comp.id}-phone`
-                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold'
-                                  : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
-                              }`}
-                              title={`Copia telefono: ${contactPhone}`}
-                            >
-                              <Phone className="w-3 h-3 text-[#0284c7]" />
-                              <strong>{copiedField === `${comp.id}-phone` ? 'COPIATO' : 'TEL'}</strong>
-                            </button>
-                          )}
+                        {/* Recapiti veloci con etichette corte in bold + Canale */}
+                        <div className="flex items-center justify-between gap-1.5 mt-2.5 pt-2 border-t border-sky-100/80 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            {contactEmail && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleCopy(contactEmail, `${comp.id}-email`, e)}
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer border ${
+                                  copiedField === `${comp.id}-email`
+                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold'
+                                    : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
+                                }`}
+                                title={`Copia email: ${contactEmail}`}
+                              >
+                                <Mail className="w-3 h-3 text-[#0284c7]" />
+                                <strong>{copiedField === `${comp.id}-email` ? 'COPIATA' : 'MAIL'}</strong>
+                              </button>
+                            )}
+                            {contactPhone && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleCopy(contactPhone, `${comp.id}-phone`, e)}
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer border ${
+                                  copiedField === `${comp.id}-phone`
+                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold'
+                                    : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
+                                }`}
+                                title={`Copia telefono: ${contactPhone}`}
+                              >
+                                <Phone className="w-3 h-3 text-[#0284c7]" />
+                                <strong>{copiedField === `${comp.id}-phone` ? 'COPIATO' : 'TEL'}</strong>
+                              </button>
+                            )}
+                          </div>
+
+                          <span className="text-xs text-slate-500 font-medium truncate">
+                            Canale: <strong className="text-slate-800 uppercase">{acq?.shortChannel || 'INBOUND'}</strong>
+                          </span>
                         </div>
                       </div>
 
                       {/* Sezione 2: Lavoro Imminente & Calendario */}
-                      <div className="flex flex-col justify-between pl-0 lg:pl-3 lg:border-l lg:border-sky-100">
+                      <div className="flex flex-col justify-between pl-0 md:pl-4 md:border-l md:border-sky-100">
                         <div>
                           <div className="text-xs font-black uppercase tracking-wider text-[#d97706] flex items-center gap-1.5 mb-1">
                             <Calendar className="w-3.5 h-3.5" />
@@ -735,52 +723,8 @@ export default function Companies() {
                         </div>
                       </div>
 
-                      {/* Sezione 3: Parametri B.A.N.T. Schematizzati in modo aperto */}
-                      <div className="flex flex-col justify-between pl-0 lg:pl-3 lg:border-l lg:border-sky-100">
-                        <div>
-                          <div className="text-xs font-black uppercase tracking-wider text-[#16a34a] flex items-center justify-between mb-1">
-                            <span className="flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <strong>PARAMETRI B.A.N.T.</strong>
-                            </span>
-                            <strong className="text-slate-500 text-xs">{bant.score}/4</strong>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
-                            <div className="truncate" title={`Budget: ${bant.budget}`}>
-                              <strong className="text-[#16a34a]">B:</strong>{' '}
-                              <span className={bant.hasB ? 'text-slate-800 font-bold' : 'text-amber-600 font-bold'}>
-                                {bant.hasB ? bant.budget : 'Assente'}
-                              </span>
-                            </div>
-                            <div className="truncate" title={`Authority: ${bant.authority}`}>
-                              <strong className="text-[#dc2626]">A:</strong>{' '}
-                              <span className={bant.hasA ? 'text-slate-800 font-bold' : 'text-amber-600 font-bold'}>
-                                {bant.hasA ? (bant.authority?.split(' ')[0] || 'OK') : 'Assente'}
-                              </span>
-                            </div>
-                            <div className="truncate" title={`Need: ${bant.need}`}>
-                              <strong className="text-[#0284c7]">N:</strong>{' '}
-                              <span className={bant.hasN ? 'text-slate-800 font-bold' : 'text-amber-600 font-bold'}>
-                                {bant.hasN ? 'DEFINITO' : 'Assente'}
-                              </span>
-                            </div>
-                            <div className="truncate" title={`Timeline: ${bant.timeline}`}>
-                              <strong className="text-[#d97706]">T:</strong>{' '}
-                              <span className={bant.hasT ? 'text-slate-800 font-bold' : 'text-amber-600 font-bold'}>
-                                {bant.hasT ? (bant.timeline?.slice(0, 10) || 'OK') : 'Assente'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-2.5 pt-2 border-t border-sky-100/80 text-xs text-slate-500 truncate">
-                          Canale: <strong className="text-slate-800 uppercase">{acq?.shortChannel || 'INBOUND'}</strong>
-                        </div>
-                      </div>
-
-                      {/* Sezione 4: Contratto & Criticità */}
-                      <div className="flex flex-col justify-between pl-0 lg:pl-3 lg:border-l lg:border-sky-100">
+                      {/* Sezione 3: Contratto, Firma & Criticità */}
+                      <div className="flex flex-col justify-between pl-0 md:pl-4 md:border-l md:border-sky-100">
                         <div>
                           <div className="text-xs font-black uppercase tracking-wider text-[#ea580c] flex items-center gap-1.5 mb-1">
                             <FileText className="w-3.5 h-3.5" />
@@ -798,10 +742,10 @@ export default function Companies() {
                           {comp.issues?.isResolved === 'Risolto' ? (
                             <span className="text-emerald-700 font-bold flex items-center gap-1">
                               <Check className="w-3 h-3 stroke-[3]" />
-                              <strong>RISOLTO (100%)</strong>
+                              <strong>CRITICITÀ RISOLTA (100%)</strong>
                             </span>
                           ) : (
-                            <span className="text-slate-400 font-medium">Nessuna criticità</span>
+                            <span className="text-slate-400 font-medium">Nessuna criticità emersa</span>
                           )}
                         </div>
                       </div>
