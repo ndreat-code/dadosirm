@@ -487,11 +487,11 @@ export default function Activities() {
                 </span>
               </h1>
 
-              <p style={{ marginTop: '4px', fontSize: '18px', fontFamily: '"Goldman", sans-serif', fontWeight: 700 }}>
+              <p style={{ marginTop: '4px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 600, letterSpacing: '-0.02em' }}>
                 <span style={{ color: '#00e5ff' }}>Production pipeline & </span>
                 <span style={{ color: '#00e575' }}>next actions</span>
-                <span style={{ color: '#ffffff', fontSize: '13px', fontFamily: '"Space Mono", monospace', marginLeft: '14px', fontWeight: 400 }}>
-                  No races. Keep your pace.
+                <span style={{ color: '#ffffff', fontSize: '13px', fontFamily: '"Switzer", sans-serif', marginLeft: '14px', fontWeight: 500, letterSpacing: '-0.01em' }}>
+                  Hello there, we are DADO C.S.
                 </span>
               </p>
             </div>
@@ -578,76 +578,80 @@ export default function Activities() {
           {/* ── SELEZIONE CONTENUTO: TASKS OPPURE BOZZE/INVII AUTOMATICI ── */}
           {mainTab === 'tasks' ? (
             <div>
-              {/* ── RIGA 4 CARD METRICHE KPI (Stile KpiCard Dashboard: #111111, viola #9c27b0, verde #00ffaa) ── */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              {/* ── RIGA 4 CARD METRICHE KPI (Stile KpiCard con font Switzer DADO Studio) ── */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" style={{ fontFamily: '"Switzer", sans-serif' }}>
             
-            {/* Card 1: TODAY'S FOCUS (Nero #111111 e Arancione #ff6f43 come TO DO nella Dashboard) */}
+            {/* Card 1: TODAY'S FOCUS */}
             <div
               onClick={() => { setStatusFilter('pending'); setCategoryFilter('all'); }}
               className="p-3.5 bg-[#111111] rounded-[6px] shadow-sm flex flex-col justify-between cursor-pointer hover:opacity-95 transition-all min-h-[85px] border border-black"
+              style={{ fontFamily: '"Switzer", sans-serif' }}
             >
-              <span className="font-black uppercase tracking-[0.12em] block leading-tight text-[#ff6f43] text-[12px] font-mono">
+              <span className="font-bold uppercase tracking-[0.05em] block leading-tight text-[#ff6f43] text-[13px]">
                 TODAY'S FOCUS
               </span>
               <div className="mt-1 flex items-baseline justify-between">
-                <span className="font-black leading-none text-[#ff6f43] text-[32px] font-mono">
+                <span className="font-extrabold leading-none text-[#ff6f43] text-[34px]" style={{ letterSpacing: '-0.03em' }}>
                   {stats.dueToday}
                 </span>
-                <span className="text-[11px] font-bold text-[#888888] font-mono">
+                <span className="text-[12px] font-medium text-[#aaaaaa]">
                   in scadenza oggi
                 </span>
               </div>
             </div>
 
-            {/* Card 2: SHOOTING & SET (Viola DADO #9c27b0 come la Dashboard) */}
+            {/* Card 2: SHOOTING & SET */}
             <div
               onClick={() => { setStatusFilter('pending'); setCategoryFilter('shooting'); }}
               className="p-3.5 bg-[#9c27b0] rounded-[6px] shadow-sm flex flex-col justify-between cursor-pointer hover:opacity-95 transition-all min-h-[85px]"
+              style={{ fontFamily: '"Switzer", sans-serif' }}
             >
-              <span className="font-black uppercase tracking-[0.12em] block leading-tight text-[#00ff66] text-[12px] font-mono">
+              <span className="font-bold uppercase tracking-[0.05em] block leading-tight text-[#00ff66] text-[13px]">
                 SHOOTING & SET
               </span>
               <div className="mt-1 flex items-baseline justify-between">
-                <span className="font-black leading-none text-[#00ff66] text-[32px] font-mono">
+                <span className="font-extrabold leading-none text-[#00ff66] text-[34px]" style={{ letterSpacing: '-0.03em' }}>
                   {stats.shootings}
                 </span>
-                <span className="text-[11px] font-bold text-[#00e5ff]">
+                <span className="text-[12px] font-medium text-[#00e5ff]">
                   sul campo
                 </span>
               </div>
             </div>
 
-            {/* Card 3: IN PROGRAMMA (Sfondo #111111 con ciano) */}
+            {/* Card 3: IN PROGRAMMA */}
             <div
               onClick={() => { setStatusFilter('pending'); setCategoryFilter('all'); }}
               className="p-3.5 bg-[#111111] rounded-[6px] shadow-sm flex flex-col justify-between cursor-pointer hover:opacity-95 transition-all min-h-[85px] border border-black"
+              style={{ fontFamily: '"Switzer", sans-serif' }}
             >
-              <span className="font-black uppercase tracking-[0.12em] block leading-tight text-white/80 text-[12px] font-mono">
+              <span className="font-bold uppercase tracking-[0.05em] block leading-tight text-white/90 text-[13px]">
                 IN PROGRAMMA
               </span>
               <div className="mt-1 flex items-baseline justify-between">
-                <span className="font-black leading-none text-white text-[32px] font-mono">
+                <span className="font-extrabold leading-none text-white text-[34px]" style={{ letterSpacing: '-0.03em' }}>
                   {stats.pending}
                 </span>
-                <span className="text-[11px] font-bold text-white/50">
+                <span className="text-[12px] font-medium text-white/60">
                   in pipeline
                 </span>
               </div>
             </div>
 
-            {/* Card 4: COMPLETATE (Verde brillante #00ffaa come ACTIVE CLIENTS della Dashboard) */}
+            {/* Card 4: COMPLETATE */}
             <div
               onClick={() => { setStatusFilter('completed'); }}
               className="p-3.5 bg-[#00ffaa] rounded-[6px] shadow-sm flex flex-col justify-between cursor-pointer hover:opacity-95 transition-all min-h-[85px]"
+              style={{ fontFamily: '"Switzer", sans-serif' }}
             >
-              <span className="font-black uppercase tracking-[0.12em] block leading-tight text-[#111111] text-[12px] font-mono">
+              <span className="font-bold uppercase tracking-[0.05em] block leading-tight text-[#111111] text-[13px]">
                 CONCLUSE
               </span>
               <div className="mt-1 flex items-baseline justify-between">
-                <span className="font-black leading-none text-[#111111] text-[32px] font-mono">
+                <span className="font-extrabold leading-none text-[#111111] text-[34px]" style={{ letterSpacing: '-0.03em' }}>
                   {stats.completed}
                 </span>
-                <span className="text-[11px] font-bold text-[#111111]/70 font-mono">
+                <span className="text-[12px] font-medium text-[#111111]/80">
                   archivio
                 </span>
               </div>

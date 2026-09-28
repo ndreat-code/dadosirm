@@ -30,19 +30,20 @@ function KpiCard({
         height: height || undefined,
         flex: width ? 'none' : flex,
         width: width || undefined,
+        fontFamily: '"Switzer", sans-serif',
       }}
     >
       {/* Titolo card */}
       <span
-        className="font-black uppercase tracking-[0.12em] block leading-tight whitespace-nowrap"
-        style={{ color: labelColor, fontSize: labelSize }}
+        className="font-black uppercase tracking-[0.08em] block leading-tight whitespace-nowrap"
+        style={{ color: labelColor, fontSize: labelSize, fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.01em' }}
       >
         {label}
       </span>
       <div className="mt-1">
         <span
           className="font-black leading-none block"
-          style={{ color: valueColor, fontSize: valueSize }}
+          style={{ color: valueColor, fontSize: valueSize, fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.03em' }}
         >
           {value}
         </span>
@@ -50,7 +51,7 @@ function KpiCard({
         {sub && (
           <span
             className="font-bold block mt-1.5 leading-tight whitespace-nowrap"
-            style={{ color: subColor || 'rgba(255,255,255,0.7)', fontSize: subSize }}
+            style={{ color: subColor || 'rgba(255,255,255,0.7)', fontSize: subSize, fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.01em' }}
           >
             {sub}
           </span>
@@ -737,12 +738,26 @@ export default function Dashboard() {
                   </span>
                 </h1>
 
-                {/* Sottotitolo "Go get it today" (nascosto in Focus Mode per compattezza) */}
+                {/* Sottotitolo con il font Switzer di DADO Studio */}
                 {!isAiFocusMode && (
-                  <p style={{ marginTop: 'calc(22px + 1.3cm)', marginBottom: '6px', fontSize: '18px', fontFamily: '"Goldman", sans-serif', fontWeight: 700 }}>
-                    <span style={{ color: '#00e5ff' }}>Go get it </span>
-                    <span style={{ color: '#00e575' }}>today</span>
-                  </p>
+                  <div style={{ marginTop: 'calc(16px + 1.2cm)', marginBottom: '6px' }}>
+                    <div
+                      style={{
+                        fontFamily: '"Switzer", sans-serif',
+                        fontWeight: 600,
+                        fontSize: '20px',
+                        letterSpacing: '-0.03em',
+                        lineHeight: 1.1,
+                        color: '#ffffff',
+                      }}
+                    >
+                      Hello there, we are <span style={{ color: '#00e5ff' }}>DADO C.S.</span>
+                    </div>
+                    <p style={{ marginTop: '2px', fontSize: '13px', fontFamily: '"Switzer", sans-serif', fontWeight: 500, letterSpacing: '-0.01em' }}>
+                      <span style={{ color: '#00ffaa' }}>Go get it today</span>
+                      <span style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '8px' }}>— Stories that stick, Content that moves.</span>
+                    </p>
+                  </div>
                 )}
               </div>
             </div>

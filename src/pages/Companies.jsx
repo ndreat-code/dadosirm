@@ -379,12 +379,15 @@ export default function Companies() {
                 </span>
               </h1>
 
-              {/* Sottotitolo Goldman: Abbinamento Blu Mare Tenue (#00e5ff) e Arancione (#ff6f43) */}
-              <p style={{ marginTop: '4px', fontSize: '18px', fontFamily: '"Goldman", sans-serif', fontWeight: 700 }}>
+              {/* Sottotitolo Switzer & Goldman */}
+              <p style={{ marginTop: '4px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 600 }}>
                 <span style={{ color: '#00e5ff' }}>Client database & </span>
                 <span style={{ color: '#ff6f43' }}>contracts</span>
                 <span style={{ color: '#ffffff', fontSize: '13.5px', fontFamily: '"Space Mono", monospace', marginLeft: '14px', fontWeight: 400 }}>
                   ({filteredCompanies.length} partner)
+                </span>
+                <span className="hidden md:inline-block ml-3 text-xs tracking-wider uppercase font-semibold text-white/40" style={{ fontFamily: '"Switzer", sans-serif' }}>
+                  • Hello there, we are DADO C.S.
                 </span>
               </p>
             </div>
@@ -401,7 +404,7 @@ export default function Companies() {
               <button
                 onClick={() => setShowAddModal(true)}
                 className="px-4 py-2 bg-[#ff6f43] hover:bg-[#ff5722] text-[#111111] text-xs font-bold uppercase tracking-wider rounded-none flex items-center gap-2 transition-transform active:scale-95 shadow-sm"
-                style={{ fontFamily: '"Goldman", sans-serif' }}
+                style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 800 }}
               >
                 <Plus className="w-4 h-4 stroke-[3]" />
                 <span>+ Nuova Azienda</span>
@@ -409,7 +412,7 @@ export default function Companies() {
             </div>
           </div>
 
-          {/* ── KPI METRICS CARDS (COLORI IDENTICI A DASHBOARD: NERO, BIANCO, MENTA, ARANCIO) ── */}
+          {/* ── KPI METRICS CARDS (COLORI IDENTICI A DASHBOARD: NERO, BIANCO, MENTA, ARANCIO IN SWITZER) ── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
             
             {/* Card 1: Aziende Totali (Nero puro #111111 con Arancione #ff6f43) */}
@@ -418,7 +421,7 @@ export default function Companies() {
               style={{ backgroundColor: '#111111', borderRadius: '4px' }}
             >
               <div className="flex items-center justify-between">
-                <span style={{ color: '#ff6f43', fontFamily: '"Goldman", sans-serif', fontSize: '12.5px', fontWeight: 700 }}>
+                <span style={{ color: '#ff6f43', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
                   AZIENDE A DATABASE
                 </span>
                 <Building2 className="w-4 h-4 text-[#ff6f43]" />
@@ -426,7 +429,7 @@ export default function Companies() {
               <div className="mt-2 text-3xl font-black font-mono text-white leading-none">
                 {stats.total}
               </div>
-              <div className="mt-1 text-xs text-[#00e5ff]" style={{ fontFamily: '"Jost", sans-serif' }}>
+              <div className="mt-1 text-xs text-[#00e5ff]" style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 500 }}>
                 11 schede verificate nel CRM
               </div>
             </div>
@@ -437,7 +440,7 @@ export default function Companies() {
               style={{ backgroundColor: '#00ffaa', borderRadius: '4px' }}
             >
               <div className="flex items-center justify-between">
-                <span style={{ color: '#111111', fontFamily: '"Goldman", sans-serif', fontSize: '12.5px', fontWeight: 700 }}>
+                <span style={{ color: '#111111', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
                   VOLUME CONTRATTI
                 </span>
                 <DollarSign className="w-4 h-4 text-[#111111]" />
@@ -445,7 +448,7 @@ export default function Companies() {
               <div className="mt-2 text-3xl font-black font-mono text-[#111111] leading-none">
                 {stats.totalRevenue}
               </div>
-              <div className="mt-1 text-xs text-[#111111]/80 font-bold" style={{ fontFamily: '"Jost", sans-serif' }}>
+              <div className="mt-1 text-xs text-[#111111]/80 font-bold" style={{ fontFamily: '"Switzer", sans-serif' }}>
                 {stats.fullyPaid} contratti già saldati
               </div>
             </div>
@@ -456,7 +459,7 @@ export default function Companies() {
               style={{ backgroundColor: '#111111', borderRadius: '4px' }}
             >
               <div className="flex items-center justify-between">
-                <span style={{ color: '#00e5ff', fontFamily: '"Goldman", sans-serif', fontSize: '12.5px', fontWeight: 700 }}>
+                <span style={{ color: '#00e5ff', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
                   PROBLEMI RISOLTI
                 </span>
                 <CheckCircle2 className="w-4 h-4 text-[#00e5ff]" />
@@ -464,7 +467,7 @@ export default function Companies() {
               <div className="mt-2 text-3xl font-black font-mono text-white leading-none">
                 100%
               </div>
-              <div className="mt-1 text-xs text-[#00e575]" style={{ fontFamily: '"Jost", sans-serif' }}>
+              <div className="mt-1 text-xs text-[#00e575]" style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 500 }}>
                 {stats.withResolvedIssues} criticità gestite con successo
               </div>
             </div>
@@ -475,7 +478,7 @@ export default function Companies() {
               style={{ backgroundColor: '#ffffff', borderRadius: '4px' }}
             >
               <div className="flex items-center justify-between">
-                <span style={{ color: '#111111', fontFamily: '"Goldman", sans-serif', fontSize: '12.5px', fontWeight: 700 }}>
+                <span style={{ color: '#111111', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
                   FORMATO CONTRATTI
                 </span>
                 <FileText className="w-4 h-4 text-[#ff6f43]" />
@@ -483,7 +486,7 @@ export default function Companies() {
               <div className="mt-2 text-3xl font-black font-mono text-[#111111] leading-none">
                 PDF Digitali
               </div>
-              <div className="mt-1 text-xs text-[#ff6f43] font-bold" style={{ fontFamily: '"Jost", sans-serif' }}>
+              <div className="mt-1 text-xs text-[#ff6f43] font-bold" style={{ fontFamily: '"Switzer", sans-serif' }}>
                 Firma elettronica qualificata / PEC
               </div>
             </div>

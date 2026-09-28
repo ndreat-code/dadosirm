@@ -147,7 +147,7 @@ const INITIAL_OPPORTUNITIES = [
     date: '2026-09-14',
     company: 'E-Commerce Fashion Hub',
     title: 'Pacchetto 30 Reels TikTok & Stories',
-    value: 5200,
+    value: 4000,
     status: 'lost',
     stage: 'Rifiutato per prezzo',
     notes: 'Cliente ha scelto gestione interna con smartphone e montaggio generico.',
@@ -225,10 +225,10 @@ const INITIAL_OPPORTUNITIES = [
     date: '2026-09-23',
     company: 'Pharma Nord Italia',
     title: 'Docufilm Istituzionale Ricerca',
-    value: 6800,
-    status: 'lost',
-    stage: 'Scelto competitor',
-    notes: 'Preferita agenzia locale con sede vicina ai loro stabilimenti.',
+    value: 10000,
+    status: 'won',
+    stage: 'Contratto firmato',
+    notes: 'Accordo siglato per docufilm 4K e valorizzazione laboratori R&D.',
     materials: 'Docufilm 4K, Color grading DaVinci',
     owner: 'Matteo'
   },
@@ -461,7 +461,7 @@ const MONTHS_LIST = [
 export default function Opportunities() {
   const [opportunities, setOpportunities] = useState(() => {
     try {
-      const saved = localStorage.getItem('dado_opportunities_store')
+      const saved = localStorage.getItem('dado_opportunities_store_v3')
       if (saved) return JSON.parse(saved)
     } catch (e) {
       // fallback
@@ -488,7 +488,7 @@ export default function Opportunities() {
   // Salva nello store locale
   useEffect(() => {
     try {
-      localStorage.setItem('dado_opportunities_store', JSON.stringify(opportunities))
+      localStorage.setItem('dado_opportunities_store_v3', JSON.stringify(opportunities))
     } catch (e) {
       // ignore
     }
@@ -780,11 +780,12 @@ export default function Opportunities() {
               <BarChart3 className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2" style={{ fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.03em' }}>
                 Pipeline Opportunità
               </h1>
               <p className="text-xs md:text-sm text-gray-400 font-mono mt-0.5">
-                Istogramma trattative aperte, vinte e perse nel corso del mese
+                <span>Istogramma trattative aperte, vinte e perse nel corso del mese</span>
+                <span className="text-[#00ffaa] ml-2 font-medium" style={{ fontFamily: '"Switzer", sans-serif' }}>• Hello there, we are DADO C.S.</span>
               </p>
             </div>
           </div>
@@ -865,7 +866,7 @@ export default function Opportunities() {
 
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-bold text-white tracking-tight" style={{ fontFamily: '"Goldman", sans-serif' }}>
+                <span className="text-sm font-bold text-white tracking-tight" style={{ fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.02em' }}>
                   Pipeline Background
                 </span>
                 <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-black/80 text-[#00ffaa] border border-[#00ffaa]/30">
@@ -879,7 +880,7 @@ export default function Opportunities() {
                     <span>Gmail: <strong>{googleAuth.email || 'Collegato'}</strong></span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/40">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/40">
                     <span>⚠️ Feed Live Autonomo</span>
                   </span>
                 )}
@@ -961,8 +962,8 @@ export default function Opportunities() {
         </div>
       </div>
 
-      {/* ── KPI CARDS DI RIEPILOGO DEL MESE ─────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+      {/* ── KPI CARDS DI RIEPILOGO DEL MESE CON FONT SWITZER ─────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5" style={{ fontFamily: '"Switzer", sans-serif' }}>
         {/* Card 1: Aperte */}
         <div
           onClick={() => setStatusFilter(statusFilter === 'open' ? 'all' : 'open')}
@@ -972,23 +973,24 @@ export default function Opportunities() {
           style={{
             backgroundColor: '#161922',
             borderColor: STATUS_CONFIG.open.border,
+            fontFamily: '"Switzer", sans-serif',
           }}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#3b82f6] font-mono">
+            <span className="text-xs font-bold uppercase tracking-[0.06em] text-[#3b82f6]">
               Trattative Aperte
             </span>
             <div className="w-2.5 h-2.5 rounded-full bg-[#3b82f6] shadow-sm shadow-[#3b82f6]/50" />
           </div>
           <div className="mt-2.5 flex items-baseline justify-between">
-            <span className="text-2xl md:text-3xl font-black text-white leading-none">
+            <span className="text-2xl md:text-3xl font-extrabold text-white leading-none" style={{ letterSpacing: '-0.03em' }}>
               € {(stats.open.value / 1000).toFixed(1)}k
             </span>
             <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#3b82f6]/15 text-[#3b82f6]">
               {stats.open.count} {stats.open.count === 1 ? 'deal' : 'deals'}
             </span>
           </div>
-          <span className="text-[11px] text-gray-400 block mt-1.5 truncate">
+          <span className="text-[12px] text-gray-400 block mt-1.5 truncate">
             In negoziazione attiva nel mese
           </span>
         </div>
@@ -1002,23 +1004,24 @@ export default function Opportunities() {
           style={{
             backgroundColor: '#131e1a',
             borderColor: STATUS_CONFIG.won.border,
+            fontFamily: '"Switzer", sans-serif',
           }}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#10b981] font-mono">
+            <span className="text-xs font-bold uppercase tracking-[0.06em] text-[#10b981]">
               Trattative Vinte
             </span>
             <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] shadow-sm shadow-[#10b981]/50" />
           </div>
           <div className="mt-2.5 flex items-baseline justify-between">
-            <span className="text-2xl md:text-3xl font-black text-white leading-none">
+            <span className="text-2xl md:text-3xl font-extrabold text-white leading-none" style={{ letterSpacing: '-0.03em' }}>
               € {(stats.won.value / 1000).toFixed(1)}k
             </span>
             <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#10b981]/15 text-[#10b981]">
               {stats.won.count} {stats.won.count === 1 ? 'deal' : 'deals'}
             </span>
           </div>
-          <span className="text-[11px] text-gray-400 block mt-1.5 truncate">
+          <span className="text-[12px] text-gray-400 block mt-1.5 truncate">
             Contratti siglati e convertiti
           </span>
         </div>
@@ -1032,44 +1035,45 @@ export default function Opportunities() {
           style={{
             backgroundColor: '#20161a',
             borderColor: STATUS_CONFIG.lost.border,
+            fontFamily: '"Switzer", sans-serif',
           }}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#f43f5e] font-mono">
+            <span className="text-xs font-bold uppercase tracking-[0.06em] text-[#f43f5e]">
               Trattative Perse
             </span>
             <div className="w-2.5 h-2.5 rounded-full bg-[#f43f5e] shadow-sm shadow-[#f43f5e]/50" />
           </div>
           <div className="mt-2.5 flex items-baseline justify-between">
-            <span className="text-2xl md:text-3xl font-black text-white leading-none">
+            <span className="text-2xl md:text-3xl font-extrabold text-white leading-none" style={{ letterSpacing: '-0.03em' }}>
               € {(stats.lost.value / 1000).toFixed(1)}k
             </span>
             <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#f43f5e]/15 text-[#f43f5e]">
               {stats.lost.count} {stats.lost.count === 1 ? 'deal' : 'deals'}
             </span>
           </div>
-          <span className="text-[11px] text-gray-400 block mt-1.5 truncate">
+          <span className="text-[12px] text-gray-400 block mt-1.5 truncate">
             Non concluse o posticipate
           </span>
         </div>
 
         {/* Card 4: Tasso di Conversione Win Rate */}
-        <div className="p-4 rounded-xl bg-[#18181b] border border-white/10 select-none">
+        <div className="p-4 rounded-xl bg-[#18181b] border border-white/10 select-none" style={{ fontFamily: '"Switzer", sans-serif' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-purple-400 font-mono">
+            <span className="text-xs font-bold uppercase tracking-[0.06em] text-purple-400">
               Win Rate Mese
             </span>
             <TrendingUp className="w-4 h-4 text-purple-400" />
           </div>
           <div className="mt-2.5 flex items-baseline justify-between">
-            <span className="text-2xl md:text-3xl font-black text-white leading-none">
+            <span className="text-2xl md:text-3xl font-extrabold text-white leading-none" style={{ letterSpacing: '-0.03em' }}>
               {stats.winRate}%
             </span>
             <span className="text-xs font-mono font-bold text-gray-400">
               Tot: € {(stats.totalVal / 1000).toFixed(1)}k
             </span>
           </div>
-          <span className="text-[11px] text-gray-400 block mt-1.5 truncate">
+          <span className="text-[12px] text-gray-400 block mt-1.5 truncate">
             Su {stats.open.count + stats.won.count + stats.lost.count} trattative registrate
           </span>
         </div>
