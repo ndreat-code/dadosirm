@@ -673,11 +673,12 @@ export default function Companies() {
             </div>
           ) : (
             <div className="flex flex-col gap-3.5 pb-8">
-              {filteredCompanies.map((comp, idx) => {
+              {filteredCompanies.map((comp) => {
                 const isExpanded = expandedId === comp.id
                 const compDate = comp.workSchedule?.recentDate || comp.lastContact?.split('T')[0]
                 const relStatus = getCompanyRelationshipStatus(comp)
                 const bant = getCompanyBant(comp)
+                const acq = getCompanyAcquisitionChannel(comp)
                 const contactEmail = comp.contact?.directEmail || comp.contact?.email
                 const contactPhone = comp.contact?.mobile || comp.contact?.phone
 
@@ -687,22 +688,20 @@ export default function Companies() {
                     className="p-4 md:p-5 shadow-sm transition-all text-white relative overflow-hidden"
                     style={{
                       backgroundColor: '#111111',
-                      borderRadius: '4px',
+                      borderRadius: '6px',
                       border: isExpanded ? '1px solid #00e5ff' : '1px solid rgba(255,255,255,0.08)',
                     }}
                   >
-                    {/* (Linea colorata superiore rimossa definitivamente su richiesta utente) */}
-
-                    {/* ── RIGA TESTATA CARD AZIENDA ── */}
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mt-1">
+                    {/* ── 1. TESTATA SCHEDA: NOME AZIENDA, STATUS & RETRIBUZIONE ── */}
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-white/10">
                       
-                      {/* Nome Azienda, Settore, Referente, Date e Valutazione */}
-                      <div className="flex items-start gap-3">
+                      {/* Icona Azienda, Nome, Settore, Relazione e BANT */}
+                      <div className="flex items-center gap-3">
                         <div
-                          className="w-10 h-10 bg-white/10 flex items-center justify-center flex-shrink-0 text-base font-bold text-[#00ffaa]"
-                          style={{ fontFamily: '"Space Mono", monospace' }}
+                          className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/15 flex items-center justify-center flex-shrink-0 text-[#00e5ff] shadow-inner"
+                          title={`Scheda Anagrafica: ${comp.name}`}
                         >
-                          {idx + 1}
+                          <Building2 className="w-5 h-5 text-[#00e5ff]" />
                         </div>
 
                         <div>
@@ -713,6 +712,31 @@ export default function Companies() {
                             >
                               {comp.name}
                             </h2>
+
+                            {/* Settore Aziendale */}
+                            <span
+                              className="px-2 py-0.5 bg-white/10 text-white/90 text-[11px] font-semibold rounded"
+                              style={{ fontFamily: '"Space Mono", monospace' }}
+                            >
+                              {comp.industry}
+                            </span>
+
+                            {/* Badge Stato Relazione & Pagamento */}
+                            <span
+                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold"
+                              style={{
+                                backgroundColor: relStatus.bg,
+                                color: relStatus.color,
+                                border: relStatus.border === 'transparent' ? 'none' : `1px solid ${relStatus.border}`,
+                                fontFamily: '"Space Mono", monospace',
+                              }}
+                              title={`Stato attuale: ${relStatus.label}`}
+                            >
+                              <span>{relStatus.emoji}</span>
+                              <span>{relStatus.label}</span>
+                            </span>
+
+                            {/* BANT Logo Mark compatto */}
                             <BantLogoMark size="sm" bant={bant} />
 
                             {/* Badge Stato Qualificazione B.A.N.T. */}
@@ -726,143 +750,34 @@ export default function Companies() {
                               </span>
                             ) : (
                               <span
-                                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/50"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/50"
                                 title={`Attenzione: mancano ${bant.missingList.length} parametri B.A.N.T.: ${bant.missingLabel}`}
                               >
                                 <span>⚠️</span>
                                 <span>{bant.score}/4 • Manca {bant.missingLabel}</span>
                               </span>
                             )}
-                            <span
-                              className="px-2 py-0.5 bg-white/10 text-white/90 text-[11px] font-semibold"
-                              style={{ fontFamily: '"Space Mono", monospace' }}
-                            >
-                              {comp.industry}
-                            </span>
-
-                            {/* Badge Stato Relazione & Pagamento (Emoticon + 2 parole chiare) */}
-                            <span
-                              className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${
-                                relStatus.key === 'lavoro_concluso' ? 'px-0 py-0' : 'px-2.5 py-0.5 rounded'
-                              }`}
-                              style={{
-                                backgroundColor: relStatus.bg,
-                                color: relStatus.color,
-                                border: relStatus.border === 'transparent' ? 'none' : `1px solid ${relStatus.border}`,
-                                fontFamily: '"Space Mono", monospace',
-                              }}
-                              title={`Stato attuale: ${relStatus.label}`}
-                            >
-                              <span>{relStatus.emoji}</span>
-                              <span>{relStatus.label}</span>
-                            </span>
-                          </div>
-
-                          {/* Referente con recapiti Email e Telefono ed icona di Copia Automatica */}
-                          <div className="flex items-center gap-2 mt-1.5 flex-wrap text-xs" style={{ fontFamily: '"Jost", sans-serif' }}>
-                            <div className="flex items-center gap-1.5 text-white/90 font-medium bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                              <User className="w-3.5 h-3.5 text-[#00e5ff] flex-shrink-0" />
-                              <span className="font-bold text-white">{comp.contactPerson?.name || 'Referente non indicato'}</span>
-                              {comp.contactPerson?.role && (
-                                <span className="text-white/40 text-[11px] hidden sm:inline">• {comp.contactPerson.role}</span>
-                              )}
-                            </div>
-
-                            {/* Email con Copia Automatica */}
-                            {contactEmail && (
-                              <button
-                                type="button"
-                                onClick={(e) => handleCopy(contactEmail, `${comp.id}-email`, e)}
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono transition-all border cursor-pointer select-none ${
-                                  copiedField === `${comp.id}-email`
-                                    ? 'bg-[#00ffaa]/25 text-[#00ffaa] border-[#00ffaa]'
-                                    : 'bg-white/10 text-white/80 hover:bg-[#00ffaa]/20 hover:text-[#00ffaa] border-white/15'
-                                }`}
-                                title={`Clicca per copiare l'email: ${contactEmail}`}
-                              >
-                                {copiedField === `${comp.id}-email` ? (
-                                  <>
-                                    <Check className="w-3 h-3 text-[#00ffaa]" />
-                                    <span className="font-bold">Email Copiata!</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Mail className="w-3.5 h-3.5 text-[#00ffaa]" />
-                                    <span className="truncate max-w-[170px] hidden md:inline">{contactEmail}</span>
-                                    <span className="text-[9px] opacity-60 ml-0.5">📋</span>
-                                  </>
-                                )}
-                              </button>
-                            )}
-
-                            {/* Telefono con Copia Automatica */}
-                            {contactPhone && (
-                              <button
-                                type="button"
-                                onClick={(e) => handleCopy(contactPhone, `${comp.id}-phone`, e)}
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono transition-all border cursor-pointer select-none ${
-                                  copiedField === `${comp.id}-phone`
-                                    ? 'bg-[#00e5ff]/25 text-[#00e5ff] border-[#00e5ff]'
-                                    : 'bg-white/10 text-white/80 hover:bg-[#00e5ff]/20 hover:text-[#00e5ff] border-white/15'
-                                }`}
-                                title={`Clicca per copiare il telefono: ${contactPhone}`}
-                              >
-                                {copiedField === `${comp.id}-phone` ? (
-                                  <>
-                                    <Check className="w-3 h-3 text-[#00e5ff]" />
-                                    <span className="font-bold">Tel Copiato!</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Phone className="w-3.5 h-3.5 text-[#00e5ff]" />
-                                    <span className="hidden md:inline">{contactPhone}</span>
-                                    <span className="text-[9px] opacity-60 ml-0.5">📋</span>
-                                  </>
-                                )}
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Data lavoro, orario e stelle feedback */}
-                          <div className="flex items-center gap-2.5 mt-1.5 text-xs text-white/70 flex-wrap" style={{ fontFamily: '"Jost", sans-serif' }}>
-                            <span className="flex items-center gap-1.5 text-white/90 font-medium">
-                              <Calendar className="w-3.5 h-3.5 text-[#00e5ff]" />
-                              {comp.workSchedule?.datesFormatted || compDate}
-                            </span>
-                            <span>•</span>
-                            <span
-                              className="text-[11px] font-bold text-[#c084fc]"
-                              style={{ fontFamily: '"Space Mono", monospace' }}
-                            >
-                              ⏱️ {comp.workSchedule?.scheduleType}
-                            </span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1 text-amber-300 font-bold" style={{ fontFamily: '"Space Mono", monospace' }}>
-                              <Star className="w-3.5 h-3.5 fill-amber-300" />
-                              {comp.feedback?.rating ? comp.feedback.rating.toFixed(1) : '5.0'} / 5.0
-                            </span>
                           </div>
                         </div>
                       </div>
 
                       {/* Retribuzione e Pulsante Dettagli */}
-                      <div className="flex items-center justify-between lg:justify-end gap-4 border-t lg:border-t-0 pt-2 lg:pt-0 border-white/10">
+                      <div className="flex items-center justify-between lg:justify-end gap-4">
                         <div className="text-left lg:text-right">
                           <div
-                            className="text-[10px] uppercase text-white/50 tracking-wider"
-                            style={{ fontFamily: '"Space Mono", monospace' }}
+                            className="text-[9.5px] uppercase text-white/50 tracking-wider font-mono"
                           >
                             RETRIBUZIONE
                           </div>
                           <div
-                            className="text-2xl font-black leading-none mt-0.5"
-                            style={{ fontFamily: '"Space Mono", monospace', color: '#00ffaa' }}
+                            className="text-xl md:text-2xl font-black leading-none mt-0.5 font-mono"
+                            style={{ color: '#00ffaa' }}
                           >
                             € {(comp.compensation?.amount || 0).toLocaleString('it-IT')}
                           </div>
                           <div className="mt-1">
                             <span
-                              className={`text-[9.5px] font-bold px-2 py-0.5 uppercase tracking-wider ${
+                              className={`text-[9.5px] font-bold px-2 py-0.5 uppercase tracking-wider rounded ${
                                 comp.compensation?.status === 'Saldato'
                                   ? 'bg-[#007a50] text-white'
                                   : 'bg-[#ff6f43] text-black font-extrabold'
@@ -876,7 +791,7 @@ export default function Companies() {
 
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : comp.id)}
-                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer rounded"
                           style={{ fontFamily: '"Goldman", sans-serif' }}
                         >
                           <span>{isExpanded ? 'CHIUDI' : 'DETTAGLI'}</span>
@@ -886,76 +801,153 @@ export default function Companies() {
 
                     </div>
 
-                    {/* ── SINTESI COLLASSATA: B.A.N.T., CONTRATTO & CRITICITÀ ── */}
-                    {!isExpanded && (
-                      <div className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-2">
-                        {/* 4 Parametri B.A.N.T. compatti */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                          {/* B */}
-                          <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded shadow-sm transition-all ${
-                            bant.hasB
-                              ? 'bg-black/60 border border-[#53ba75]/40'
-                              : 'bg-amber-950/30 border-2 border-dashed border-amber-400/90 text-amber-200'
-                          }`}>
-                            <span className={`font-black font-mono text-[11px] ${bant.hasB ? 'text-[#53ba75]' : 'text-amber-400'}`}>B:</span>
-                            <span className={`font-mono text-xs truncate ${bant.hasB ? 'text-white font-bold' : 'text-amber-300 font-bold'}`}>
-                              {bant.hasB ? bant.budget : '⚠️ Manca Budget'}
-                            </span>
+                    {/* ── 2. GRIGLIA SCHEMATIZZATA A 4 BLOCCHI MODULARI ── */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mt-3">
+                      
+                      {/* Blocco 1: Referente & Recapiti */}
+                      <div className="p-3 bg-white/[0.03] border border-white/10 rounded flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#00e5ff] flex items-center gap-1.5 mb-1.5">
+                            <User className="w-3.5 h-3.5" />
+                            <span>REFERENTE</span>
                           </div>
-
-                          {/* A */}
-                          <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded shadow-sm transition-all ${
-                            bant.hasA
-                              ? 'bg-black/60 border border-[#ea3824]/40'
-                              : 'bg-amber-950/30 border-2 border-dashed border-amber-400/90 text-amber-200'
-                          }`}>
-                            <span className={`font-black font-mono text-[11px] ${bant.hasA ? 'text-[#ea3824]' : 'text-amber-400'}`}>A:</span>
-                            <span className={`text-xs truncate ${bant.hasA ? 'text-white' : 'text-amber-300 font-bold'}`} title={bant.authority}>
-                              {bant.hasA ? bant.authority : '⚠️ Referente ignoto'}
-                            </span>
+                          <div className="font-bold text-xs text-white truncate" title={comp.contactPerson?.name}>
+                            {comp.contactPerson?.name || 'Referente non indicato'}
                           </div>
-
-                          {/* N */}
-                          <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded shadow-sm transition-all ${
-                            bant.hasN
-                              ? 'bg-black/60 border border-[#1bb7ed]/40'
-                              : 'bg-amber-950/30 border-2 border-dashed border-amber-400/90 text-amber-200'
-                          }`}>
-                            <span className={`font-black font-mono text-[11px] ${bant.hasN ? 'text-[#1bb7ed]' : 'text-amber-400'}`}>N:</span>
-                            <span className={`text-xs truncate ${bant.hasN ? 'text-white' : 'text-amber-300 font-bold'}`} title={bant.need}>
-                              {bant.hasN ? bant.need : '⚠️ Esigenza da definire'}
-                            </span>
-                          </div>
-
-                          {/* T */}
-                          <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded shadow-sm transition-all ${
-                            bant.hasT
-                              ? 'bg-black/60 border border-[#fac429]/40'
-                              : 'bg-amber-950/30 border-2 border-dashed border-amber-400/90 text-amber-200'
-                          }`}>
-                            <span className={`font-black font-mono text-[11px] ${bant.hasT ? 'text-[#fac429]' : 'text-amber-400'}`}>T:</span>
-                            <span className={`font-mono text-xs truncate ${bant.hasT ? 'text-white font-bold' : 'text-amber-300 font-bold'}`}>
-                              {bant.hasT ? bant.timeline : '⚠️ Scadenza da concordare'}
-                            </span>
+                          <div className="text-[11px] text-white/50 truncate">
+                            {comp.contactPerson?.role || comp.contact?.role || 'Referente aziendale'}
                           </div>
                         </div>
 
-                        {/* Contratto & Criticità */}
-                        <div
-                          className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs text-white/80 pt-1"
-                          style={{ fontFamily: '"Jost", sans-serif', fontSize: '14px' }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-3.5 h-3.5 text-[#ff6f43] flex-shrink-0" />
-                            <span className="truncate font-mono text-xs"><strong>Contratto:</strong> {comp.contract?.fileName}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#00ffaa] flex-shrink-0" />
-                            <span className="truncate"><strong>Criticità gestita:</strong> {comp.issues?.isResolved === 'Risolto' ? comp.issues?.description : 'Nessuna criticità'}</span>
-                          </div>
+                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-white/5 flex-wrap">
+                          {contactEmail && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleCopy(contactEmail, `${comp.id}-email`, e)}
+                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border transition-all cursor-pointer ${
+                                copiedField === `${comp.id}-email`
+                                  ? 'bg-[#00ffaa]/25 text-[#00ffaa] border-[#00ffaa]'
+                                  : 'bg-white/5 text-white/80 hover:bg-white/10 border-white/15'
+                              }`}
+                              title={`Copia email: ${contactEmail}`}
+                            >
+                              <Mail className="w-3 h-3 text-[#00ffaa]" />
+                              <span>{copiedField === `${comp.id}-email` ? 'Copiata!' : 'Email'}</span>
+                            </button>
+                          )}
+                          {contactPhone && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleCopy(contactPhone, `${comp.id}-phone`, e)}
+                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border transition-all cursor-pointer ${
+                                copiedField === `${comp.id}-phone`
+                                  ? 'bg-[#00e5ff]/25 text-[#00e5ff] border-[#00e5ff]'
+                                  : 'bg-white/5 text-white/80 hover:bg-white/10 border-white/15'
+                              }`}
+                              title={`Copia telefono: ${contactPhone}`}
+                            >
+                              <Phone className="w-3 h-3 text-[#00e5ff]" />
+                              <span>{copiedField === `${comp.id}-phone` ? 'Copiato!' : 'Tel'}</span>
+                            </button>
+                          )}
                         </div>
                       </div>
-                    )}
+
+                      {/* Blocco 2: Produzione & Calendario */}
+                      <div className="p-3 bg-white/[0.03] border border-white/10 rounded flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#fac429] flex items-center gap-1.5 mb-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>SET & CALENDARIO</span>
+                          </div>
+                          <div className="font-bold text-xs text-white truncate" title={comp.workSchedule?.datesFormatted || compDate}>
+                            {comp.workSchedule?.datesFormatted || compDate || 'Data da pianificare'}
+                          </div>
+                          <div className="text-[11px] text-[#c084fc] font-mono mt-0.5 truncate">
+                            ⏱️ {comp.workSchedule?.scheduleType || 'Sessione da definire'}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5 text-[10.5px] font-mono">
+                          <span className="text-white/40">Feedback:</span>
+                          <span className="flex items-center gap-1 text-amber-300 font-bold">
+                            <Star className="w-3 h-3 fill-amber-300" />
+                            {comp.feedback?.rating ? comp.feedback.rating.toFixed(1) : '5.0'} / 5.0
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Blocco 3: Qualificazione B.A.N.T. Schematizzata */}
+                      <div className="p-3 bg-white/[0.03] border border-white/10 rounded flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#53ba75] flex items-center justify-between mb-1.5">
+                            <span className="flex items-center gap-1.5">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>B.A.N.T. STATUS</span>
+                            </span>
+                            <span className="text-[9px] text-white/50">{bant.score}/4</span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-1 text-[11px] font-mono">
+                            <div className="truncate" title={`Budget: ${bant.budget || 'Mancante'}`}>
+                              <span className="font-black text-[#53ba75]">B:</span>{' '}
+                              <span className={bant.hasB ? 'text-white' : 'text-amber-400 font-bold'}>
+                                {bant.hasB ? bant.budget : 'Assente'}
+                              </span>
+                            </div>
+                            <div className="truncate" title={`Authority: ${bant.authority || 'Mancante'}`}>
+                              <span className="font-black text-[#ea3824]">A:</span>{' '}
+                              <span className={bant.hasA ? 'text-white' : 'text-amber-400 font-bold'}>
+                                {bant.hasA ? (bant.authority?.split(' ')[0] || 'Ok') : 'Assente'}
+                              </span>
+                            </div>
+                            <div className="truncate" title={`Need: ${bant.need || 'Mancante'}`}>
+                              <span className="font-black text-[#1bb7ed]">N:</span>{' '}
+                              <span className={bant.hasN ? 'text-white' : 'text-amber-400 font-bold'}>
+                                {bant.hasN ? 'Definito' : 'Assente'}
+                              </span>
+                            </div>
+                            <div className="truncate" title={`Timeline: ${bant.timeline || 'Mancante'}`}>
+                              <span className="font-black text-[#fac429]">T:</span>{' '}
+                              <span className={bant.hasT ? 'text-white' : 'text-amber-400 font-bold'}>
+                                {bant.hasT ? (bant.timeline?.slice(0, 10) || 'Ok') : 'Assente'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 pt-2 border-t border-white/5 text-[10.5px] font-mono truncate text-white/50">
+                          Canale: <span className="text-white/80">{acq?.channel ? acq.channel.split(' ')[0] : 'Inbound'}</span>
+                        </div>
+                      </div>
+
+                      {/* Blocco 4: Contratto & Criticità */}
+                      <div className="p-3 bg-white/[0.03] border border-white/10 rounded flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#ff6f43] flex items-center gap-1.5 mb-1.5">
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>CONTRATTO & NOTE</span>
+                          </div>
+                          <div className="font-mono text-xs text-white truncate" title={comp.contract?.fileName}>
+                            {comp.contract?.fileName || comp.contract?.code || 'CTR-DADO-2026'}
+                          </div>
+                          <div className="text-[11px] text-white/50 truncate mt-0.5">
+                            Stato: <span className="text-white/80">{comp.contract?.status || 'Archiviato'}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 pt-2 border-t border-white/5 text-[10.5px] truncate">
+                          {comp.issues?.isResolved === 'Risolto' ? (
+                            <span className="text-[#00ffaa] flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Criticità gestita
+                            </span>
+                          ) : (
+                            <span className="text-white/40">Nessuna criticità</span>
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
 
                     {/* ── DETTAGLI COMPLETI ESPANSI (FONT JOST & SPACE MONO) ── */}
                     {isExpanded && (

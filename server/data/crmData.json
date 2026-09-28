@@ -94,7 +94,7 @@
         "need": "Shooting video corporate stabilimento con drone 4K",
         "timeline": "Entro 1 settimana"
       },
-      "lastContact": "2026-09-28T20:05:29.347Z"
+      "lastContact": "2026-09-28T20:12:29.236Z"
     },
     {
       "id": "comp-3",
@@ -157,7 +157,7 @@
         "isResolved": "Risolto",
         "resolution": "Intervista spostata nella sala controllo insonorizzata con finestra vetrata panoramica sui macchinari + applicazione di voice-isolation neurale in post-produzione. Resa audio limpida."
       },
-      "lastContact": "2026-09-28T20:08:29.736Z",
+      "lastContact": "2026-09-28T20:10:29.255Z",
       "bant": {
         "budget": "€ 9.200",
         "need": "Shooting video corporate stabilimento con drone 4K",
@@ -226,7 +226,7 @@
         "isResolved": "Risolto",
         "resolution": "Riorganizzata la timeline di ripresa anticipando le scene a terra con i tecnici e le interviste; riprese aeree completate nel tardo pomeriggio quando il vento è sceso a 8 nodi."
       },
-      "lastContact": "2026-09-28T20:06:29.068Z",
+      "lastContact": "2026-09-28T20:13:29.720Z",
       "bant": {
         "budget": "€ 14.500.",
         "authority": "Referente aziendale",
@@ -1959,6 +1959,78 @@
     }
   ],
   "emails": [
+    {
+      "id": "sim-1790626408545-4",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.",
+      "date": "2026-09-28T20:13:28.545Z",
+      "aiSummary": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790626348545-3",
+      "from": "Sara Moretti <s.moretti@nextmedia.agency>",
+      "senderEmail": "s.moretti@nextmedia.agency",
+      "company": "NextMedia Agency",
+      "subject": "Richiesta info servizi video, showreel e opportunità di collaborazione",
+      "snippet": "Buongiorno DADO Studio, vi scriviamo per richiedere maggiori informazioni sui vostri servizi video e showreel......",
+      "body": "Buongiorno DADO Studio, siamo una nuova agenzia di comunicazione e seguiamo diversi brand moda e lifestyle. Vi scriviamo per richiedere maggiori informazioni sui vostri servizi di produzione video corporate, disponibilità drone e per proporvi una collaborazione continuativa (collab). Potete inviarci il vostro showreel aggiornato?",
+      "date": "2026-09-28T20:12:28.545Z",
+      "aiSummary": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato.",
+      "bant": {
+        "budget": "Non specificato",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790626288543-4",
+      "from": "Elena Fontana <e.fontana@solarisgreen.eu>",
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "company": "Solaris Green Energy",
+      "subject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "snippet": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot......",
+      "body": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.",
+      "date": "2026-09-28T20:11:28.543Z",
+      "aiSummary": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500..",
+      "bant": {
+        "budget": "€ 14.500.",
+        "authority": "Referente aziendale",
+        "need": "Revisione economica e contrattuale spot TV HDR",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
+    {
+      "id": "sim-1790626228542-1",
+      "from": "Ing. Marco Riva <marco.riva@officineriva.it>",
+      "senderEmail": "marco.riva@officineriva.it",
+      "company": "Officine Meccaniche Riva",
+      "subject": "Conferma shooting stabilimento e approvazione budget deliberato",
+      "snippet": "Buongiorno team Dado, vi confermiamo che il consiglio ha deliberato il preventivo di € 9.200......",
+      "body": "Buongiorno team Dado, vi confermiamo con piacere che il consiglio ha deliberato e approvato il preventivo di € 9.200 per lo shooting corporate e le riprese drone indoor. Attendiamo vostra conferma per avvio produzione e dettagli logistici.",
+      "date": "2026-09-28T20:10:28.542Z",
+      "aiSummary": "Richiesta rilevata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K. Budget: € 9.200.",
+      "bant": {
+        "budget": "€ 9.200",
+        "authority": "Referente aziendale",
+        "need": "Shooting video corporate stabilimento con drone 4K",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
+    },
     {
       "id": "sim-1790626168541-5",
       "from": "Matteo Colombo <m.colombo@fashionbrand.it>",
@@ -15982,6 +16054,70 @@
   ],
   "drafts": [
     {
+      "id": "draft-1790626409720-753",
+      "emailId": "sim-1790626408545-4",
+      "company": "Solaris Green Energy",
+      "recipient": "e.fontana@solarisgreen.eu",
+      "subject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "body": "Gentile Elena Fontana,\n\nin riferimento alla vostra richiesta per Solaris Green Energy relativa a \"Revisione economica e contrattuale spot TV HDR\", abbiamo elaborato la seguente proposta preliminare:\n\n• Budget indicativo stimato: € 14.500.\n• Finestra di consegna: Entro 1 settimana\n• Condizioni: 50% all'accettazione e saldo alla consegna dei master 4K.\n\n[Bozza generata da automazione CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nDADO Creative Studio",
+      "category": "CUSTOM_OR_NEGOTIATION",
+      "subType": "draft_only",
+      "autoSend": false,
+      "reason": "Trattativa complessa / preventivo personalizzato: salvato nelle BOZZE per revisione manuale (Non inviato in automatico)",
+      "status": "draft",
+      "requiresReview": true,
+      "createdAt": "2026-09-28T20:13:29.720Z",
+      "sentAt": null
+    },
+    {
+      "id": "draft-1790626349237-631",
+      "emailId": "sim-1790626348545-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T20:12:29.237Z",
+      "sentAt": "2026-09-28T20:12:29.237Z"
+    },
+    {
+      "id": "draft-1790626292516-385",
+      "emailId": "sim-1790626288543-4",
+      "company": "Solaris Green Energy",
+      "recipient": "e.fontana@solarisgreen.eu",
+      "subject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "body": "Gentile Elena Fontana,\n\nin riferimento alla vostra richiesta per Solaris Green Energy relativa a \"Revisione economica e contrattuale spot TV HDR\", abbiamo elaborato la seguente proposta preliminare:\n\n• Budget indicativo stimato: € 14.500.\n• Finestra di consegna: Entro 1 settimana\n• Condizioni: 50% all'accettazione e saldo alla consegna dei master 4K.\n\n[Bozza generata da automazione CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nDADO Creative Studio",
+      "category": "CUSTOM_OR_NEGOTIATION",
+      "subType": "draft_only",
+      "autoSend": false,
+      "reason": "Trattativa complessa / preventivo personalizzato: salvato nelle BOZZE per revisione manuale (Non inviato in automatico)",
+      "status": "draft",
+      "requiresReview": true,
+      "createdAt": "2026-09-28T20:11:32.516Z",
+      "sentAt": null
+    },
+    {
+      "id": "draft-1790626229255-318",
+      "emailId": "sim-1790626228542-1",
+      "company": "Officine Meccaniche Riva",
+      "recipient": "marco.riva@officineriva.it",
+      "subject": "Conferma accordo e avvio produzione - DADO Creative Studio",
+      "body": "Gentile Ing. Marco Riva,\n\nconfermiamo con piacere la ricezione dell'approvazione del preventivo per Officine Meccaniche Riva (€ 9.200).\nAbbiamo registrato l'accordo nel nostro CRM e predisposto il piano di produzione per le riprese video e l'impiego del drone 4K.\n\nNei prossimi giorni vi invieremo la documentazione per il kick-off, le liberatorie e il piano di lavoro operativo dettagliato.\n\nRestiamo a vostra completa disposizione.\n\nCordiali saluti,\nTeam DADO Creative Studio\nMilano | www.dadostudio.it",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "positive",
+      "autoSend": true,
+      "reason": "Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T20:10:29.255Z",
+      "sentAt": "2026-09-28T20:10:29.255Z"
+    },
+    {
       "id": "draft-1790626169568-211",
       "emailId": "sim-1790626168541-5",
       "company": "Fashion Brand Milano",
@@ -25935,6 +26071,38 @@
     }
   ],
   "sentEmails": [
+    {
+      "id": "draft-1790626349237-631",
+      "emailId": "sim-1790626348545-3",
+      "company": "NextMedia Agency",
+      "recipient": "s.moretti@nextmedia.agency",
+      "subject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "body": "Gentile Sara Moretti,\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio",
+      "category": "INFO_COLLAB_REQUEST",
+      "subType": "service_intro",
+      "autoSend": true,
+      "reason": "Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T20:12:29.237Z",
+      "sentAt": "2026-09-28T20:12:29.237Z"
+    },
+    {
+      "id": "draft-1790626229255-318",
+      "emailId": "sim-1790626228542-1",
+      "company": "Officine Meccaniche Riva",
+      "recipient": "marco.riva@officineriva.it",
+      "subject": "Conferma accordo e avvio produzione - DADO Creative Studio",
+      "body": "Gentile Ing. Marco Riva,\n\nconfermiamo con piacere la ricezione dell'approvazione del preventivo per Officine Meccaniche Riva (€ 9.200).\nAbbiamo registrato l'accordo nel nostro CRM e predisposto il piano di produzione per le riprese video e l'impiego del drone 4K.\n\nNei prossimi giorni vi invieremo la documentazione per il kick-off, le liberatorie e il piano di lavoro operativo dettagliato.\n\nRestiamo a vostra completa disposizione.\n\nCordiali saluti,\nTeam DADO Creative Studio\nMilano | www.dadostudio.it",
+      "category": "DEAL_CONFIRMATION",
+      "subType": "positive",
+      "autoSend": true,
+      "reason": "Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato)",
+      "status": "sent",
+      "requiresReview": false,
+      "createdAt": "2026-09-28T20:10:29.255Z",
+      "sentAt": "2026-09-28T20:10:29.255Z"
+    },
     {
       "id": "draft-1790626169568-211",
       "emailId": "sim-1790626168541-5",
