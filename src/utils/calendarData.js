@@ -7,20 +7,13 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
     tag: 'Shooting & Set',
     events: [
       {
-        time: '07:30 - 13:00',
+        time: '07:30 - 18:00',
         company: 'Officine Meccaniche Riva',
         location: 'Brescia - Stabilimento Riva (Via Industriale 14)',
-        materials: 'Sony FX3, Drone DJI Mavic 3 Cine, Gimbal RS3 Pro, Ottiche Cine Prime 24/50mm',
-        category: 'Shooting Day 1',
-        title: 'Shooting video corporate linee robotizzate e precision tooling.'
-      },
-      {
-        time: '14:30 - 18:00',
-        company: 'Officine Meccaniche Riva',
-        location: 'Brescia - Reparto Collaudo & Metrologia',
-        materials: 'Sony FX3 + Sony A7 IV, Luci Nanlite 500W, Mic Sennheiser AVX',
-        category: 'Interviste',
-        title: 'Interviste responsabili produzione e b-roll tecnici.'
+        materials: 'Sony FX3, Drone DJI Mavic 3 Cine, Gimbal RS3 Pro, Luci Nanlite 500W, Mic Sennheiser',
+        people: 'Marco Riva (Resp. Produzione), Team Video DADO',
+        category: 'Shooting Corporate',
+        title: 'Shooting video corporate linee robotizzate e precision tooling con interviste e b-roll tecnici.'
       }
     ],
     notes: 'Shooting video corporate Officine Riva. Ritrovo alle 07:30 in studio per carico furgone. Drone + FX3.',
@@ -32,20 +25,13 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
     tag: 'Shooting Day 2',
     events: [
       {
-        time: '14:00 - 18:30',
+        time: '14:00 - 19:30',
         company: 'Officine Meccaniche Riva',
         location: 'Brescia - Stabilimento Riva & Area Testing',
-        materials: 'Sony FX3, Gimbal DJI RS3 Pro, Schede CFexpress Type A, Stativi',
-        category: 'Shooting Day 2',
-        title: 'Giornata 2 riprese Riva, transcodifica ProRes 422 e backup doppio SSD T7.'
-      },
-      {
-        time: '18:45 - 19:30',
-        company: 'Solaris Green Energy',
-        location: 'Milano - DADO Studio (Call Remota)',
-        materials: 'Workstation Mac Studio M3 Max, Storyboard TV',
-        category: 'Commerciale',
-        title: 'Call allineamento revisione storyboard spot TV locale + Digital ADS.'
+        materials: 'Sony FX3, Gimbal DJI RS3 Pro, Schede CFexpress Type A, Doppio SSD T7',
+        people: 'Ing. Elena Bossi, Team Post-Prod DADO',
+        category: 'Shooting Day 2 & Backup',
+        title: 'Giornata 2 riprese Riva, transcodifica master ProRes 422 e backup ridondato doppio SSD.'
       }
     ],
     notes: 'Giornata 2 riprese Riva (pomeriggio dalle 14:00). A seguire transcodifica ProRes 422 e backup su doppio SSD T7.',
@@ -58,20 +44,13 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
     tag: 'Sopralluogo & Set',
     events: [
       {
-        time: '10:00 - 13:00',
+        time: '10:00 - 16:30',
         company: 'Alpha Studio Milano',
         location: 'Milano - Studio B (Via Tortona 15)',
-        materials: 'Luxmetro Sekonic, Sony A7 IV, Fondali e stativi Avenger',
-        category: 'Sopralluogo',
-        title: 'Sopralluogo set luci studio B e test fondale per riprese moda autunno.'
-      },
-      {
-        time: '14:30 - 17:00',
-        company: 'Manutenzione Tecnica DADO',
-        location: 'Milano - Laboratorio DADO Studio',
-        materials: 'Sonda X-Rite i1Display, Monitor Atomos Ninja V, Ottiche Cine Prime',
-        category: 'Manutenzione',
-        title: 'Controllo calibrazione monitor e pulizia sensori e lenti.'
+        materials: 'Luxmetro Sekonic, Sony A7 IV, Fondali e stativi Avenger, Monitor Atomos Ninja',
+        people: 'Chiara Rossi (Art Director), Team Luci DADO',
+        category: 'Sopralluogo & Set',
+        title: 'Sopralluogo set luci studio B, test fondale per riprese moda autunno e calibrazione monitor.'
       }
     ],
     notes: 'Revisione preventivi in scadenza e controllo calibrazione monitor Atomos Ninja.',
@@ -81,20 +60,13 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
     tag: 'Live Event & Regia',
     events: [
       {
-        time: '15:00 - 21:30',
+        time: '15:00 - 23:00',
         company: 'Vogue Events & Wedding',
         location: 'Firenze - Villa Cora (Viale Machiavelli 18)',
         materials: 'Sony FX3 + 2x Sony A7 IV, Gimbal RS3 Pro, Drone DJI Mavic 3 Cine, Audio Sennheiser',
-        category: 'Regia Live',
-        title: 'Setup riprese e regia matrimonio esclusivo Villa Cora con copertura aerea.'
-      },
-      {
-        time: '22:00 - 23:30',
-        company: 'Ingest & Backup Immediato',
-        location: 'Postazione Mobile DADO',
-        materials: 'MacBook Pro, 2x SSD SanDisk Extreme Pro 4TB',
-        category: 'Archiviazione',
-        title: 'Riversamento immediato schede di memoria e creazione copia master sicura.'
+        people: 'Valentina Neri (Event Manager), Regia DADO',
+        category: 'Regia Live & Evento',
+        title: 'Setup riprese e regia matrimonio esclusivo Villa Cora con copertura aerea e riversamento master.'
       }
     ],
     notes: 'Setup riprese matrimonio Villa Cora ore 15:00. Attrezzatura completa con drone autorizzato.',
@@ -106,28 +78,13 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
     tag: 'Riprese & Pre-Prod',
     events: [
       {
-        time: '09:30 - 13:00',
+        time: '09:30 - 16:00',
         company: 'Alpha Studio Milano',
         location: 'Milano - Studio B (Via Tortona 15)',
         materials: 'Sony FX3, Kit Luci Nanlite Forza 500W, Softbox Octa 120, Stativi C-Stand',
-        category: 'Pre-Prod & Shooting',
-        title: 'Briefing nuova campagna ADV moda e shooting test moodboard FW26.'
-      },
-      {
-        time: '14:30 - 17:30',
-        company: 'Officine Meccaniche Riva',
-        location: 'Milano - DADO Studio (Sala Post-Produzione)',
-        materials: 'Workstation DaVinci Resolve Studio, Monitor Eizo ColorEdge, Speed Editor',
-        category: 'Post-Prod',
-        title: 'Consegna prima bozza montaggio spot video corporate e revisione cliente.'
-      },
-      {
-        time: '18:00 - 19:15',
-        company: 'Solaris Green Energy',
-        location: 'Milano - Headquarter Solaris (Piazza Affari 4)',
-        materials: 'MacBook Pro, Presentazione PDF, Campioni girato 4K HDR',
-        category: 'Commerciale',
-        title: 'Call allineamento preventivo corporate e approvazione piano riprese.'
+        people: 'Chiara Rossi (Direzione Creativa), Team Produzione DADO',
+        category: 'Campagna ADV Moda',
+        title: 'Shooting campagna ADV moda autunno, test moodboard FW26 e revisione prima bozza video.'
       }
     ],
     notes: 'Briefing con Alpha Studio Milano per nuova campagna autunno moda e verifica consegna bozza Riva.',
@@ -139,20 +96,13 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
     tag: 'Shooting Aereo & Drone',
     events: [
       {
-        time: '09:00 - 13:30',
+        time: '09:00 - 15:30',
         company: 'Solaris Green Energy',
         location: 'Bergamo - Parco Fotovoltaico Solaris (Loc. Seriate)',
         materials: 'DJI Mavic 3 Cine, Sony FX3, Filtri ND PolarPro, Monitor Alta Luminosità',
-        category: 'Shooting Esterno',
+        people: 'Ing. Luca Fontana (Solaris), Pilota Drone DADO',
+        category: 'Shooting Aereo & Drone',
         title: 'Riprese aeree 4K HDR e b-roll tecnici per spot TV ed eco-sostenibilità.'
-      },
-      {
-        time: '15:00 - 18:30',
-        company: 'NextMedia Agency',
-        location: 'Milano - DADO Creative Studio (Sala Montaggio)',
-        materials: 'Postazione DaVinci Studio, Monitor Reference, Mixer Audio',
-        category: 'Post-Produzione',
-        title: 'Color grading e montaggio teaser spot social per campagne Instagram e TikTok.'
       }
     ],
     notes: 'Shooting parco fotovoltaico Solaris. Verificare NOTAM e autorizzazioni volo ENAC.',
@@ -161,69 +111,57 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
     ]
   },
   '2026-09-30': {
-    tag: 'Food Shooting & Sound Design',
+    tag: 'Food Shooting & Audio',
     events: [
       {
         time: '10:00 - 14:00',
         company: 'Gusto & Tradizione Food',
         location: 'Milano - Cucina Lab & Studio (Corso Sempione 32)',
         materials: 'Sony FX3 + Sony A7 IV, Ottica Macro 90mm f/2.8, Ring Light LED, Sliders',
+        people: 'Chef Marco Bianchi, Operatore DADO',
         category: 'Shooting Food',
         title: 'Shooting food styling e riprese 10 video ricette con chef stellato.'
       },
       {
         time: '16:00 - 19:00',
         company: 'Officine Meccaniche Riva',
-        location: 'Milano - DADO Creative Studio (Cabina Regia Audio)',
+        location: 'Milano - DADO Studio (Cabina Regia Audio)',
         materials: 'Microfono Shure SM7B, Scheda Audio Apollo Twin X, Cuffie Beyerdynamic',
+        people: 'Voice Talent, Fonico DADO',
         category: 'Audio & Mix',
-        title: 'Registrazione speakeraggio voce narrante istituzionale e sound design per spot.'
+        title: 'Registrazione speakeraggio voce narrante e sound design spot corporate.'
       }
     ],
     notes: 'Shooting ricette chef e finalizzazione audio Riva.',
     files: []
   },
   '2026-10-01': {
-    tag: 'Shooting Day 2 & Backup',
+    tag: 'Shooting Industriale',
     events: [
       {
-        time: '08:30 - 14:00',
+        time: '08:30 - 16:30',
         company: 'Officine Meccaniche Riva',
         location: 'Brescia - Stabilimento Riva (Reparto Robotica)',
         materials: 'Sony FX3, Gimbal DJI RS3 Pro, Ottiche Cine Prime, Microfoni Wireless AVX',
+        people: 'Direttore Stabilimento, Team Video DADO',
         category: 'Shooting Industriale',
         title: 'Shooting linee robotizzate ad alta precisione e interviste dirigenti aziendali.'
-      },
-      {
-        time: '15:30 - 18:30',
-        company: 'Alpha Studio Milano',
-        location: 'Milano - Hub Moda (Via Savona 55)',
-        materials: 'MacBook Pro M3 Max, Disco LaCie Rugged 4TB, Cavi Tethering Pro',
-        category: 'Verifica & Ingest',
-        title: 'Verifica e selezione scatti digitali e backup ridondato su doppio SSD.'
       }
     ],
     notes: 'Shooting reparti robotici Riva e coordinamento con direzione Alpha Studio.',
     files: []
   },
   '2026-10-02': {
-    tag: 'Shooting Executive & Sopralluogo',
+    tag: 'Corporate Video',
     events: [
       {
-        time: '09:30 - 13:00',
+        time: '09:30 - 16:00',
         company: 'Solaris Green Energy',
         location: 'Milano - Sede Centrale Solaris (Piazza Affari 4)',
         materials: 'Sony FX3, Gimbal DJI RS3 Pro, Luci Nanlite Pavotube, Mic Sennheiser AVX',
+        people: 'CEO Solaris, Team DADO Studio',
         category: 'Corporate Video',
-        title: 'Intervista CEO e riprese executive board per bilancio di sostenibilità.'
-      },
-      {
-        time: '14:30 - 18:30',
-        company: 'Vogue Events & Wedding',
-        location: 'Como - Villa del Balbianello (Tremezzina)',
-        materials: 'Sony FX3, 2x Sony A7 IV, DJI RS3 Pro, Drone Mavic 3 Cine, Stativi C-Stand',
-        category: 'Sopralluogo & Test',
-        title: 'Sopralluogo tecnico location, test luce dorata lago e verifica piano di volo drone.'
+        title: 'Intervista CEO e riprese executive board per bilancio di sostenibilità aziendale.'
       }
     ],
     notes: 'Sopralluogo lago di Como e intervista CEO Solaris.',
@@ -248,9 +186,9 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
 export function getCalendarDayData(dateIso) {
   if (!dateIso) return null
 
-  // 1. Controlla prima nel localStorage (modifiche apportate dall'utente in tempo reale)
+  // 1. Controlla prima nel localStorage (modifiche utente)
   try {
-    const saved = localStorage.getItem('dado_crm_calendar_store')
+    const saved = localStorage.getItem('dado_crm_calendar_store_v2')
     if (saved) {
       const parsed = JSON.parse(saved)
       if (parsed[dateIso]) {
@@ -282,36 +220,10 @@ export function getCalendarDayData(dateIso) {
   }
 }
 
-function generateFallbackEvents(dateIso) {
-  const [y, m, d] = dateIso.split('-').map(Number)
-  const seed = (y * 372 + m * 31 + d) % GENERIC_COMPANIES.length
-  const c1 = GENERIC_COMPANIES[seed]
-  const c2 = GENERIC_COMPANIES[(seed + 2) % GENERIC_COMPANIES.length]
-
-  return [
-    {
-      time: '09:30 - 13:00',
-      company: c1.name,
-      location: c1.loc,
-      materials: c1.mat,
-      category: 'Produzione',
-      title: 'Shooting e riprese tecniche per produzione contenuti corporate.'
-    },
-    {
-      time: '15:00 - 18:00',
-      company: c2.name,
-      location: c2.loc,
-      materials: c2.mat,
-      category: 'Post-Prod',
-      title: 'Montaggio, color grading e revisione avanzamento commessa.'
-    }
-  ]
-}
-
 export function saveCalendarDayData(dateIso, updatedData) {
   try {
     let currentStore = {}
-    const saved = localStorage.getItem('dado_crm_calendar_store')
+    const saved = localStorage.getItem('dado_crm_calendar_store_v2')
     if (saved) {
       currentStore = JSON.parse(saved)
     }
@@ -320,7 +232,7 @@ export function saveCalendarDayData(dateIso, updatedData) {
       ...currentDay,
       ...updatedData
     }
-    localStorage.setItem('dado_crm_calendar_store', JSON.stringify(currentStore))
+    localStorage.setItem('dado_crm_calendar_store_v2', JSON.stringify(currentStore))
     window.dispatchEvent(new CustomEvent('dado-calendar-update', { detail: { dateIso } }))
     return true
   } catch (e) {

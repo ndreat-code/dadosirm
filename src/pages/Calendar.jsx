@@ -231,137 +231,128 @@ export default function Calendar() {
   const endDay = twoWeeksDays[13]
   const currentMonthName = MONTH_NAMES[realTimeNow.getMonth()]?.toUpperCase()
 
-  // Render di una settimana (7 colonne con linee fini, formato orizzontale e leggibile)
+  // Render di una settimana (7 caselle con perimetro colorato con colori brand, senza riquadri interni)
   function renderWeekRow(weekDays, weekLabel) {
     return (
       <div className="w-full mb-3.5 overflow-x-auto">
-        <div className="min-w-[1080px] w-full">
-          {/* Intestazione giorni settimana orizzontale ed elegante */}
-          <div className="grid grid-cols-7 border-t border-x border-slate-300 divide-x divide-slate-200 bg-slate-100/95 text-slate-700 select-none">
-            {weekDays.map((day) => (
+        <div className="min-w-[1080px] w-full grid grid-cols-7 gap-2.5">
+          {weekDays.map((day) => {
+            const dayData = getCalendarDayData(day.iso)
+            const events = dayData?.events || []
+            const hasEvents = events.length > 0
+            const hasNotes = Boolean(dayData?.notes && dayData.notes.trim())
+            const isToday = day.isToday
+            const isHighlighted = highlightedDayIso === day.iso
+            const baseCadence = commitmentCadenceMap[day.iso] ?? 0
+            const dayBorderColor = hasEvents ? BRAND_COLORS[baseCadence % BRAND_COLORS.length] : '#e2e8f0'
+
+            return (
               <div
                 key={day.iso}
-                className={`py-1.5 px-3 flex items-center justify-between transition-colors ${
-                  day.isToday ? 'bg-[#007a50]/15 text-[#007a50]' : ''
+                onClick={() => {
+                  setHighlightedDayIso(day.iso)
+                  openDayEditor(day)
+                }}
+                className={`min-h-[195px] max-h-[300px] p-3 flex flex-col justify-start overflow-y-auto cursor-pointer transition-all hover:shadow-md relative ${
+                  isHighlighted
+                    ? 'ring-2 ring-[#00a8ff] shadow-md'
+                    : ''
                 }`}
+                style={{
+                  border: hasEvents ? `2.5px solid ${dayBorderColor}` : '1.5px solid #e2e8f0',
+                  borderRadius: '12px',
+                  backgroundColor: isToday ? '#fbfdfc' : '#ffffff',
+                  boxShadow: hasEvents ? '0 2px 6px rgba(0, 0, 0, 0.04)' : 'none',
+                }}
+                title={`Clicca per aprire dettagli (${day.shortName} ${day.dayNum})`}
               >
-                <span className="text-[11.5px] font-mono font-bold tracking-wider uppercase">
-                  {day.shortName}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  {day.isToday && (
-                    <span className="bg-[#007a50] text-white text-[8.5px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider">
-                      Oggi
-                    </span>
-                  )}
-                  <span className={`text-[16px] font-mono font-black leading-none ${
-                    day.isToday ? 'text-[#007a50]' : 'text-slate-900'
-                  }`}>
-                    {day.dayNum}
+                {/* 1. Intestazione Giorno orizzontale in cima alla casella */}
+                <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-100 select-none">
+                  <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-slate-500">
+                    {day.shortName}
                   </span>
+                  <div className="flex items-center gap-1.5">
+                    {day.isToday && (
+                      <span className="bg-[#007a50] text-white text-[8px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                        Oggi
+                      </span>
+                    )}
+                    <span className={`text-[16px] font-mono font-black leading-none ${
+                      day.isToday ? 'text-[#007a50]' : 'text-slate-900'
+                    }`}>
+                      {day.dayNum}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
 
-          {/* Griglia delle celle dei 7 giorni — Più grandi, orizzontali e spaziose */}
-          <div className="grid grid-cols-7 border-b border-x border-slate-300 divide-x divide-slate-200 bg-white">
-            {weekDays.map((day) => {
-              const dayData = getCalendarDayData(day.iso)
-              const events = dayData?.events || []
-              const hasNotes = Boolean(dayData?.notes && dayData.notes.trim())
-              const isToday = day.isToday
-              const isHighlighted = highlightedDayIso === day.iso
-              const baseCadence = commitmentCadenceMap[day.iso] ?? 0
-
-              return (
-                <div
-                  key={day.iso}
-                  onClick={() => {
-                    setHighlightedDayIso(day.iso)
-                    openDayEditor(day)
-                  }}
-                  className={`min-h-[190px] max-h-[300px] p-2 flex flex-col justify-start gap-2.5 overflow-y-auto cursor-pointer transition-all hover:bg-slate-50/70 relative group ${
-                    isHighlighted
-                      ? 'ring-2 ring-inset ring-[#00a8ff] bg-sky-50/20'
-                      : isToday
-                      ? 'bg-emerald-50/10'
-                      : ''
-                  }`}
-                  title={`Clicca per gestire note o allegati (${day.shortName} ${day.dayNum})`}
-                >
-                  {/* Elenco Riquadri Impegni: formattati in orizzontale e con font più grandi e chiari */}
-                  {events.length > 0 ? (
-                    events.map((ev, evIdx) => {
-                      const borderColor = BRAND_COLORS[(baseCadence + evIdx) % BRAND_COLORS.length]
-                      return (
-                        <div
-                          key={evIdx}
-                          className="bg-white rounded-xl p-2.5 text-left transition-all hover:shadow-md select-text"
+                {/* 2. Contenuto impegni che riempie direttamente la casella (senza riquadri stondati interni) */}
+                {hasEvents ? (
+                  events.map((ev, evIdx) => (
+                    <div
+                      key={evIdx}
+                      className={`text-left select-text ${
+                        evIdx > 0 ? 'pt-2 mt-2 border-t border-slate-200' : ''
+                      }`}
+                    >
+                      {/* Orario (dalle - alle) */}
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <span
+                          className="font-mono font-black text-[10px] px-2 py-0.5 rounded leading-none whitespace-nowrap"
                           style={{
-                            border: `2px solid ${borderColor}`,
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
+                            backgroundColor: `${dayBorderColor}20`,
+                            color: '#0f172a',
+                            border: `1px solid ${dayBorderColor}60`,
                           }}
                         >
-                          {/* 1. Orario (dalle - alle) & Azienda su riga orizzontale */}
-                          <div className="flex items-center justify-between gap-1.5 mb-1.5">
-                            <span
-                              className="font-mono font-black text-[10px] px-2 py-0.5 rounded leading-none whitespace-nowrap"
-                              style={{
-                                backgroundColor: `${borderColor}20`,
-                                color: '#0f172a',
-                                border: `1px solid ${borderColor}60`,
-                              }}
-                            >
-                              ⏰ {ev.time}
-                            </span>
-                            <span className="font-black text-slate-900 text-[11.5px] truncate text-right flex-1" title={ev.company}>
-                              {ev.company}
-                            </span>
-                          </div>
+                          ⏰ {ev.time}
+                        </span>
+                      </div>
 
-                          {/* 2. Azione da svolgere in evidenza */}
-                          <div className="text-[10.5px] font-bold text-slate-800 leading-snug mb-1.5 line-clamp-2">
-                            {ev.title || ev.category || 'Attività programmata'}
-                          </div>
+                      {/* Nome Azienda */}
+                      <div className="font-black text-slate-900 text-[12.5px] leading-tight mb-1" title={ev.company}>
+                        {ev.company}
+                      </div>
 
-                          {/* 3. Persone interessate & Luogo disposti orizzontalmente */}
-                          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[9.5px] text-slate-600 mb-1">
-                            <span className="flex items-center gap-1 truncate max-w-[55%]">
-                              <span className="text-slate-400 font-bold">👥</span>
-                              <span className="truncate">{ev.people || ev.attendees || ev.contact || 'Team DADO'}</span>
-                            </span>
-                            {ev.location && (
-                              <span className="flex items-center gap-1 truncate max-w-[45%]">
-                                <span className="text-slate-400 font-bold">📍</span>
-                                <span className="truncate">{ev.location}</span>
-                              </span>
-                            )}
-                          </div>
+                      {/* Azione da svolgere */}
+                      <div className="text-[11px] font-bold text-slate-800 leading-snug mb-2 line-clamp-2">
+                        {ev.title || ev.category || 'Attività programmata'}
+                      </div>
 
-                          {/* 4. Note e materiali tecnici */}
-                          {(ev.notes || ev.materials) && (
-                            <div className="text-[9px] text-slate-500 italic flex items-center gap-1 pt-1 border-t border-slate-100 truncate">
-                              <span className="text-slate-400 font-bold">📝</span>
-                              <span className="truncate">{ev.notes || ev.materials}</span>
-                            </div>
-                          )}
+                      {/* Persone interessate & Luogo */}
+                      <div className="flex flex-col gap-0.5 text-[9.5px] text-slate-600 mb-1.5">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span className="text-slate-400 font-bold">👥</span>
+                          <span className="truncate">{ev.people || ev.attendees || ev.contact || 'Team DADO Studio'}</span>
                         </div>
-                      )
-                    })
-                  ) : hasNotes ? (
-                    <div className="p-2.5 bg-slate-50 rounded-lg border border-dashed border-slate-300 text-[10.5px] text-slate-700 leading-relaxed italic">
-                      "{dayData.notes}"
+                        {ev.location && (
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="text-slate-400 font-bold">📍</span>
+                            <span className="truncate">{ev.location}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Note e materiali tecnici */}
+                      {(ev.notes || ev.materials) && (
+                        <div className="text-[9px] text-slate-500 italic flex items-center gap-1.5 pt-1 border-t border-slate-100 truncate">
+                          <span className="text-slate-400 font-bold">📝</span>
+                          <span className="truncate">{ev.notes || ev.materials}</span>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center opacity-0 group-hover:opacity-40 transition-opacity">
-                      <Plus className="w-4 h-4 text-slate-400" />
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                  ))
+                ) : hasNotes ? (
+                  <div className="p-2 bg-slate-50 rounded-lg border border-dashed border-slate-200 text-[10.5px] text-slate-700 leading-relaxed italic">
+                    "{dayData.notes}"
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center opacity-0 hover:opacity-40 transition-opacity">
+                    <Plus className="w-4 h-4 text-slate-300" />
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     )
