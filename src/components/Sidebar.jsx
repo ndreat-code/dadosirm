@@ -76,55 +76,64 @@ function AnimatedDashboardIcon({ isClicked }) {
       strokeLinecap="round"
       strokeLinejoin="round"
       className="transition-all duration-300 group-hover:scale-105"
+      style={{ overflow: 'visible' }}
     >
-      <g
-        className={isClicked ? 'animate-dashboard-lap' : ''}
-        style={{
-          transformBox: 'fill-box',
-          transformOrigin: 'center',
-        }}
-      >
-        {/* Riquadro 1 (in alto a sinistra) */}
-        <rect
-          width="7"
-          height="9"
-          x="3"
-          y="3"
-          rx="1.5"
-          className="transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5"
-          style={{ transformOrigin: 'center' }}
-        />
-        {/* Riquadro 2 (in alto a destra) */}
-        <rect
-          width="7"
-          height="5"
-          x="14"
-          y="3"
-          rx="1.5"
-          className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-          style={{ transformOrigin: 'center' }}
-        />
-        {/* Riquadro 3 (in basso a destra) */}
-        <rect
-          width="7"
-          height="9"
-          x="14"
-          y="12"
-          rx="1.5"
-          className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5"
-          style={{ transformOrigin: 'center' }}
-        />
-        {/* Riquadro 4 (in basso a sinistra) */}
-        <rect
-          width="7"
-          height="5"
-          x="3"
-          y="16"
-          rx="1.5"
-          className="transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5"
-          style={{ transformOrigin: 'center' }}
-        />
-      </g>
+      {/* Riquadro 1 (in alto a sinistra) — Si allontana verso l'alto a sx e ingrandisce */}
+      <rect
+        width="7"
+        height="9"
+        x="3"
+        y="3"
+        rx="1.5"
+        className={
+          isClicked
+            ? 'animate-tile-burst-1'
+            : 'transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5'
+        }
+        style={{ transformOrigin: 'center' }}
+      />
+      {/* Riquadro 2 (in alto a destra) — Si allontana verso l'alto a dx e ingrandisce */}
+      <rect
+        width="7"
+        height="5"
+        x="14"
+        y="3"
+        rx="1.5"
+        className={
+          isClicked
+            ? 'animate-tile-burst-2'
+            : 'transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5'
+        }
+        style={{ transformOrigin: 'center' }}
+      />
+      {/* Riquadro 3 (in basso a destra) — Si allontana verso il basso a dx e ingrandisce */}
+      <rect
+        width="7"
+        height="9"
+        x="14"
+        y="12"
+        rx="1.5"
+        className={
+          isClicked
+            ? 'animate-tile-burst-3'
+            : 'transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5'
+        }
+        style={{ transformOrigin: 'center' }}
+      />
+      {/* Riquadro 4 (in basso a sinistra) — Si allontana verso il basso a sx e ingrandisce */}
+      <rect
+        width="7"
+        height="5"
+        x="3"
+        y="16"
+        rx="1.5"
+        className={
+          isClicked
+            ? 'animate-tile-burst-4'
+            : 'transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5'
+        }
+        style={{ transformOrigin: 'center' }}
+      />
     </svg>
   )
 }
@@ -150,7 +159,7 @@ export default function Sidebar() {
       setIsDashboardClicked(true)
       setTimeout(() => {
         setIsDashboardClicked(false)
-      }, 500)
+      }, 540)
     })
   }
 
