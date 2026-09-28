@@ -48,13 +48,13 @@ body {
   animation: spin-fast 0.7s cubic-bezier(0.12, 0.8, 0.25, 1.25) forwards;
 }
 
-/* Allontanamento (burst ~1.2cm) e ingrandimento dei 4 elementi dell'icona Dashboard al click, con rientro al loro posto */
+/* Allontanamento (burst max 0.6cm) e ingrandimento dei 4 elementi dell'icona Dashboard al click, con rientro morbido a velocità dimezzata (1.05s) */
 @keyframes tile-burst-1 {
   0% {
     transform: translate(0px, 0px) scale(1);
   }
   38% {
-    transform: translate(-30px, -24px) scale(1.28);
+    transform: translate(-14px, -11px) scale(1.22);
   }
   100% {
     transform: translate(0px, 0px) scale(1);
@@ -66,7 +66,7 @@ body {
     transform: translate(0px, 0px) scale(1);
   }
   38% {
-    transform: translate(30px, -24px) scale(1.28);
+    transform: translate(14px, -11px) scale(1.22);
   }
   100% {
     transform: translate(0px, 0px) scale(1);
@@ -78,7 +78,7 @@ body {
     transform: translate(0px, 0px) scale(1);
   }
   38% {
-    transform: translate(30px, 24px) scale(1.28);
+    transform: translate(14px, 11px) scale(1.22);
   }
   100% {
     transform: translate(0px, 0px) scale(1);
@@ -90,7 +90,7 @@ body {
     transform: translate(0px, 0px) scale(1);
   }
   38% {
-    transform: translate(-30px, 24px) scale(1.28);
+    transform: translate(-14px, 11px) scale(1.22);
   }
   100% {
     transform: translate(0px, 0px) scale(1);
@@ -101,26 +101,26 @@ body {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
-  animation: tile-burst-1 0.52s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  animation: tile-burst-1 1.05s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
 }
 
 .animate-tile-burst-2 {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
-  animation: tile-burst-2 0.52s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  animation: tile-burst-2 1.05s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
 }
 
 .animate-tile-burst-3 {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
-  animation: tile-burst-3 0.52s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  animation: tile-burst-3 1.05s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
 }
 
 .animate-tile-burst-4 {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
-  animation: tile-burst-4 0.52s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  animation: tile-burst-4 1.05s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
 }

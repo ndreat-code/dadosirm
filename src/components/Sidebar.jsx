@@ -142,6 +142,8 @@ export default function Sidebar() {
   const location = useLocation()
   const isDashboard = location.pathname === '/' || location.pathname === '/dashboard-a' || location.pathname === '/dashboard-b'
   const isDifferentSection = !isDashboard
+  const isSubSection = ['/activities', '/companies', '/calendar', '/inventory', '/inventario'].some(path => location.pathname.startsWith(path))
+
   const [isAiFocus, setIsAiFocus] = useState(false)
   const [isSettingsSpinning, setIsSettingsSpinning] = useState(false)
   const [isDashboardClicked, setIsDashboardClicked] = useState(false)
@@ -159,7 +161,7 @@ export default function Sidebar() {
       setIsDashboardClicked(true)
       setTimeout(() => {
         setIsDashboardClicked(false)
-      }, 540)
+      }, 1080)
     })
   }
 
@@ -178,8 +180,8 @@ export default function Sidebar() {
         width: isAiFocus ? '0px' : 'calc(280px - 2cm)',
         paddingLeft: isAiFocus ? '0px' : '1rem',
         paddingRight: isAiFocus ? '0px' : '1rem',
-        paddingTop: isAiFocus ? '0px' : '1.5rem',
-        paddingBottom: isAiFocus ? '0px' : '1.5rem',
+        paddingTop: isAiFocus ? '0px' : isSubSection ? '1rem' : '1.5rem',
+        paddingBottom: isAiFocus ? '0px' : isSubSection ? '1rem' : '1.5rem',
         opacity: isAiFocus ? 0 : 1,
         transform: isAiFocus ? 'translateX(-100%)' : 'translateX(0)',
         overflow: 'hidden',
@@ -190,16 +192,16 @@ export default function Sidebar() {
       {/* Logo in alto */}
       <DadoLogo />
 
-      {/* Pulsante Dashboard — Riquadri che si interscambiano con giro fluido e tornano al posto al click */}
+      {/* Pulsante Dashboard — Riquadri che si allontanano max 0.6cm con movimento rallentato a metà velocità e tornano al posto al click */}
       <NavLink
         to="/"
         end
         onClick={handleDashboardClick}
-        className="w-[100px] h-[58px] mb-8 self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer"
+        className={`${isSubSection ? 'w-[88px] h-[50px] mb-4' : 'w-[100px] h-[58px] mb-6'} self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer`}
         style={{
           backgroundColor: '#d8ff00',
           color: '#111111',
-          marginTop: 'calc(1rem + 1cm - 21px)',
+          marginTop: isSubSection ? 'calc(0.5rem + 0.3cm)' : 'calc(1rem + 1cm - 21px)',
           marginLeft: '8px',
         }}
         title="Dashboard"
@@ -207,17 +209,17 @@ export default function Sidebar() {
         <AnimatedDashboardIcon isClicked={isDashboardClicked} />
       </NavLink>
 
-      {/* Menu di navigazione — Voci Companies, Activities, etc. ben spaziate */}
-      <nav className="flex flex-col gap-6">
+      {/* Menu di navigazione — Voci ben spaziate e compatte nelle sottosezioni */}
+      <nav className={`flex flex-col ${isSubSection ? 'gap-3' : 'gap-5'}`}>
         {navLinks.map(({ to, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `text-[17px] font-medium tracking-wide transition-colors ${
+              `${isSubSection ? 'text-[15px]' : 'text-[17px]'} font-medium tracking-wide transition-colors ${
                 isActive
-                  ? 'text-white font-semibold border border-[#00a8ff] px-3 py-1 w-fit rounded-none'
-                  : 'text-[#888888] hover:text-white px-3 py-1'
+                  ? 'text-white font-semibold border border-[#00a8ff] px-2.5 py-0.5 w-fit rounded-none'
+                  : 'text-[#888888] hover:text-white px-2.5 py-0.5'
               }`
             }
           >
@@ -230,7 +232,7 @@ export default function Sidebar() {
           to="/settings"
           onClick={handleSettingsClick}
           className={({ isActive }) =>
-            `w-[100px] h-[58px] self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] active:scale-95 cursor-pointer ${
+            `${isSubSection ? 'w-[88px] h-[46px]' : 'w-[100px] h-[58px]'} self-start flex items-center justify-center rounded-2xl transition-all shadow-sm group hover:scale-[1.04] cursor-pointer ${
               isActive ? 'ring-2 ring-[#00a8ff]' : ''
             }`
           }
@@ -242,7 +244,7 @@ export default function Sidebar() {
           title="Settings (Clicca per far girare la rotella veloce)"
         >
           <SettingsIcon
-            size={28}
+            size={isSubSection ? 24 : 28}
             strokeWidth={2.3}
             className={`transition-transform duration-300 ${
               isSettingsSpinning ? 'animate-spin-fast' : 'group-hover:rotate-90'
@@ -251,22 +253,22 @@ export default function Sidebar() {
         </NavLink>
       </nav>
 
-      {/* Collegamento a Google Drive con orario sotto Settings — Escluso quando si è nella Dashboard */}
+      {/* Collegamento a Google Drive con orario sotto Settings — Rimpicciolito nelle sezioni affinché non scompaia mai */}
       {!isDashboard && (
-        <div className="mt-7 w-full">
-          <ClockDriveBox width="100%" height="calc(58px + 1.5cm)" />
+        <div className={isSubSection ? 'mt-3 w-full' : 'mt-6 w-full'}>
+          <ClockDriveBox compact={isSubSection} width="100%" height={isSubSection ? '48px' : 'calc(58px + 1.5cm)'} />
         </div>
       )}
 
-      {/* Pulsante Opportunities — Lettere ulteriormente distanziate (letterSpacing 0.14cm) e ben contenute */}
+      {/* Pulsante Opportunities — Rimpicciolito nelle sezioni affinché né Drive né Opportunities scompaiano mai */}
       <NavLink
         to="/opportunities"
-        className="text-center py-2 px-2 rounded-2xl transition-all block hover:opacity-95 shadow-sm"
+        className={`text-center ${isSubSection ? 'py-1.5 px-2 rounded-xl' : 'py-2 px-2 rounded-2xl'} transition-all block hover:opacity-95 shadow-sm`}
         style={{
           backgroundColor: '#007a50',
           color: '#ffffff',
           width: '100%',
-          marginTop: isDashboard ? 'calc(2rem + 3cm)' : 'calc(1.5rem + 1cm)',
+          marginTop: isDashboard ? 'calc(2rem + 3cm)' : isSubSection ? '10px' : 'calc(1.5rem + 1cm)',
         }}
       >
         <span
@@ -274,8 +276,8 @@ export default function Sidebar() {
           style={{
             fontFamily: '"Goldman", sans-serif',
             fontWeight: 400,
-            fontSize: '0.76rem',
-            letterSpacing: '0.14cm',
+            fontSize: isSubSection ? '0.64rem' : '0.76rem',
+            letterSpacing: isSubSection ? '0.08cm' : '0.14cm',
             lineHeight: 1,
             textTransform: 'lowercase',
           }}
