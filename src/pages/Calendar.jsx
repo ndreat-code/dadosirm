@@ -314,23 +314,21 @@ export default function Calendar() {
               }}
               title={`Clicca per gestire dettagli (${day.shortName} ${day.dayNum})`}
             >
-              {/* 1. Intestazione Giorno: Nome e Data (+2pt font, pulito senza icone né riquadri) */}
-              <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 flex-shrink-0">
+              {/* 1. Intestazione Giorno: Nome e Data centrati e vicini (non spostato a destra) */}
+              <div className="flex items-center justify-center gap-2 pb-1.5 border-b border-slate-100 flex-shrink-0">
                 <span className="text-[13px] font-bold tracking-wider uppercase text-slate-500 font-switzer">
                   {day.shortName}
                 </span>
-                <div className="flex items-center gap-1.5">
-                  {day.isToday && (
-                    <span className="bg-[#007a50] text-white text-[9.5px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                      Oggi
-                    </span>
-                  )}
-                  <span className={`text-[17px] font-black leading-none ${
-                    day.isToday ? 'text-[#007a50]' : 'text-slate-900'
-                  }`}>
-                    {day.dayNum}
+                <span className={`text-[17px] font-black leading-none ${
+                  day.isToday ? 'text-[#007a50]' : 'text-slate-900'
+                }`}>
+                  {day.dayNum}
+                </span>
+                {day.isToday && (
+                  <span className="bg-[#007a50] text-white text-[9.5px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ml-0.5">
+                    Oggi
                   </span>
-                </div>
+                )}
               </div>
 
               {/* 2. Contenuto impegni: massimo spazio a disposizione, +2pt font, NO icone, NO riquadri colorati */}

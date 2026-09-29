@@ -1263,17 +1263,17 @@ export default function Dashboard() {
                         </Link>
                       </div>
 
-                      {/* 2. Riquadro Bianco Note */}
+                      {/* 2. Riquadro Bianco Leads */}
                       <div className="w-full flex justify-center">
                         <Link
-                          to="/activities?tab=notes"
+                          to="/leads"
                           className="bg-white rounded-full px-4 py-1 w-full flex items-center justify-center shadow-sm hover:scale-[1.02] transition-transform block"
-                          title="Apri le Note e Annotazioni"
+                          title="Apri la sezione Leads"
                         >
                           <span
                             style={{
                               fontFamily: '"Goldman", sans-serif',
-                              color: '#111111',
+                              color: '#0b1626',
                               fontWeight: 700,
                               fontSize: '1.20rem',
                               letterSpacing: '0.04em',
@@ -1281,7 +1281,7 @@ export default function Dashboard() {
                               display: 'inline-block',
                             }}
                           >
-                            Note
+                            Leads
                           </span>
                         </Link>
                       </div>
