@@ -786,9 +786,9 @@ export default function Dashboard() {
         duration={650}
       />
 
-      {/* Canvas Verde principale che occupa tutta l'area con angoli sinistri esterni arrotondati adagiati sulla barra metallica */}
+      {/* Canvas Grigio Metallizzato principale (stesso grigio #e2e8f0 del testo CRM) che occupa tutta l'area con angoli sinistri esterni arrotondati adagiati sulla barra metallica */}
       <div
-        className="h-full flex-1 bg-[#007a50] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden"
+        className="h-full flex-1 bg-[#e2e8f0] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden"
         style={{
           boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
         }}
@@ -811,7 +811,7 @@ export default function Dashboard() {
               <div>
                 {/* Sottotitolo "Go get it today" (nascosto in Focus Mode per compattezza) */}
                 {!isAiFocusMode && (
-                  <p style={{ marginTop: '4px', marginBottom: '6px', fontSize: '18px', fontFamily: '"Goldman", sans-serif', fontWeight: 700 }}>
+                  <p style={{ marginTop: '4px', marginBottom: '6px', fontSize: '18px', fontFamily: '"Goldman", sans-serif', fontWeight: 700, textShadow: '0 1px 2px rgba(0, 0, 0, 0.45)' }}>
                     <span style={{ color: '#00e5ff' }}>Go get it </span>
                     <span style={{ color: '#00e575' }}>today</span>
                   </p>
@@ -1055,42 +1055,42 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Riga Inferiore: Next actions (sinistra) + Box 2: Opportunità e Clienti Attivi (destra) */}
-                <div className="flex items-start gap-4">
+                {/* Riga Inferiore: Next actions (sinistra) + Box 2: Opportunità e Clienti Attivi (destra) — spostata verso il basso verso la banda bianca */}
+                <div className="flex items-start gap-4" style={{ marginTop: '2rem' }}>
 
-            {/* Box 1: Next actions — Accorciato di 0,3cm (calc(260px - 1.3cm)), riga 'No races..' preservata su una riga */}
+            {/* Box 1: Next actions — Ingrandito del 15% (242px x 276px) */}
             <div
-              className="bg-[#111111] px-3 py-3 flex flex-col justify-between flex-shrink-0 shadow-sm"
+              className="bg-[#111111] px-3.5 py-3.5 flex flex-col justify-between flex-shrink-0 shadow-sm"
               style={{
-                width: 'calc(260px - 1.3cm)',
-                height: '240px',
-                borderRadius: '6px',
+                width: '242px',
+                height: '276px',
+                borderRadius: '7px',
               }}
             >
               <div>
                 {/* Intestazione Next actions (senza collegamento e senza punto) */}
                 <h2
                   className="text-white font-bold leading-tight"
-                  style={{ fontSize: '17px' }}
+                  style={{ fontSize: '19.5px' }}
                 >
                   Next actions
                 </h2>
                 {/* Testo "no races.." protetto su una sola riga senza andare a capo */}
                 <p
                   className="mt-0.5 font-medium leading-tight whitespace-nowrap"
-                  style={{ color: '#ffffff', fontSize: '12.5px', letterSpacing: '-0.02em' }}
+                  style={{ color: '#ffffff', fontSize: '14px', letterSpacing: '-0.02em' }}
                 >
                   No races. Keep your pace.
                 </p>
               </div>
 
               {/* Contenitore azioni con collegamenti cliccabili a Calendar */}
-              <div className="flex flex-col gap-3 flex-1" style={{ marginTop: '10px' }}>
+              <div className="flex flex-col gap-3.5 flex-1" style={{ marginTop: '12px' }}>
                 {/* 1. Today — Cliccabile collegato a Calendar */}
                 <div className="w-full flex justify-center">
                   <Link
                     to="/calendar?date=2026-09-25&day=today"
-                    className="border-2 border-[#ff4500] px-3.5 py-0.5 w-fit shadow-sm block hover:scale-105 transition-transform"
+                    className="border-2 border-[#ff4500] px-4 py-1 w-fit shadow-sm block hover:scale-105 transition-transform"
                     style={{
                       backgroundColor: 'transparent',
                       transform: 'skewX(-20deg)',
@@ -1105,7 +1105,7 @@ export default function Dashboard() {
                         WebkitTextStroke: '1.2px #ff6600',
                         textShadow: '0 0 2px #ff4500',
                         fontWeight: 800,
-                        fontSize: '1.18rem',
+                        fontSize: '1.35rem',
                         display: 'inline-block',
                         letterSpacing: '0.04em',
                         lineHeight: 1.15,
@@ -1120,7 +1120,7 @@ export default function Dashboard() {
                 <div className="w-full flex justify-end">
                   <Link
                     to={`/calendar?date=${tomorrowIso}&day=tomorrow`}
-                    className="bg-white rounded-full px-4 py-0.5 w-full flex items-center justify-end shadow-sm hover:scale-[1.02] transition-transform block"
+                    className="bg-white rounded-full px-4.5 py-1 w-full flex items-center justify-end shadow-sm hover:scale-[1.02] transition-transform block"
                     title={`Apri Domani (${tomorrowIso}) nel Calendario`}
                   >
                     <span
@@ -1128,7 +1128,7 @@ export default function Dashboard() {
                         fontFamily: '"Goldman", sans-serif',
                         color: '#00c853',
                         fontWeight: 400,
-                        fontSize: '1.3rem',
+                        fontSize: '1.45rem',
                         letterSpacing: '0.04em',
                         lineHeight: 1,
                         display: 'inline-block',
@@ -1143,10 +1143,10 @@ export default function Dashboard() {
                 <div className="w-full flex justify-start">
                   <Link
                     to="/leads"
-                    className="px-2.5 rounded-none flex items-center justify-start w-[112px] shadow-sm hover:scale-105 transition-transform block overflow-hidden"
+                    className="px-3 rounded-none flex items-center justify-start w-[129px] shadow-sm hover:scale-105 transition-transform block overflow-hidden"
                     style={{
                       backgroundColor: '#d8a882',
-                      height: '28px',
+                      height: '32px',
                     }}
                     title="Apri la sezione Leads (Funnel & Inbound)"
                   >
@@ -1154,7 +1154,7 @@ export default function Dashboard() {
                       style={{
                         fontFamily: '"Goldman", sans-serif',
                         color: '#1e78d6',
-                        fontSize: '1.18rem',
+                        fontSize: '1.35rem',
                         fontWeight: 400,
                         letterSpacing: '0.04em',
                         lineHeight: 1,
@@ -1171,7 +1171,7 @@ export default function Dashboard() {
                 <div className="w-full flex justify-end">
                   <Link
                     to="/opportunities"
-                    className="w-full h-[33px] relative flex items-center justify-end shadow-sm overflow-visible block hover:opacity-90 transition-opacity"
+                    className="w-full h-[38px] relative flex items-center justify-end shadow-sm overflow-visible block hover:opacity-90 transition-opacity"
                     title="Apri la sezione Nuove Opportunità"
                   >
                     {/* Sfondo Freccia Viola sfumata con clip-path a punta */}
@@ -1179,7 +1179,7 @@ export default function Dashboard() {
                       className="absolute inset-0 pointer-events-none"
                       style={{
                         background: 'linear-gradient(90deg, rgba(17,17,17,0) 0%, rgba(17,17,17,0) 8%, #2d0442 16%, #4e0682 32%, #680bae 55%, #560088 100%)',
-                        clipPath: 'polygon(0% 0%, calc(100% - 28px) 0%, 100% 50%, calc(100% - 28px) 100%, 0% 100%)',
+                        clipPath: 'polygon(0% 0%, calc(100% - 32px) 0%, 100% 50%, calc(100% - 32px) 100%, 0% 100%)',
                       }}
                     />
 
@@ -1187,9 +1187,9 @@ export default function Dashboard() {
                     <span
                       className="relative z-10 flex items-baseline select-none"
                       style={{
-                        marginRight: 'calc(24px - 0.1cm)',
+                        marginRight: 'calc(26px - 0.1cm)',
                         fontFamily: '"Revalia", cursive, sans-serif',
-                        fontSize: '0.86rem',
+                        fontSize: '0.98rem',
                         letterSpacing: '0.04em',
                         background: 'linear-gradient(90deg, #2b2310 0%, #3e3114 10%, #685014 24%, #a07d16 42%, #d4a916 64%, #ffd700 82%, #ffff00 100%)',
                         WebkitBackgroundClip: 'text',
@@ -1211,7 +1211,7 @@ export default function Dashboard() {
               className="flex flex-col gap-2 flex-shrink-0"
               style={{
                 width: '185px',
-                height: '240px',
+                height: '276px',
               }}
             >
               {/* Card 1: LEADS (Inbound & Qualificazione BANT) */}
@@ -1623,7 +1623,7 @@ export default function Dashboard() {
               />
             </div>
             <span
-              className="w-full text-right text-[11px] font-mono text-white/90 group-hover:text-white font-bold select-none pr-0"
+              className="w-full text-right text-[11px] font-mono text-slate-700 group-hover:text-slate-900 font-bold select-none pr-0"
               style={{ letterSpacing: '0.1em' }}
             >
               ® 2026
