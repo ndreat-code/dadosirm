@@ -1139,12 +1139,40 @@ export default function Dashboard() {
                   </Link>
                 </div>
 
-                {/* 3. Sunday: Cliccabile collegato a Calendar, con punta arrow calibrata, 'y' a 0,2 cm dall'inclinazione con gambo inclinato e visibile al 100% */}
+                {/* 3. Card Leads — Stessa formattazione del riquadro monday */}
+                <div className="w-full flex justify-start">
+                  <Link
+                    to="/leads"
+                    className="px-2.5 rounded-none flex items-center justify-start w-[112px] shadow-sm hover:scale-105 transition-transform block overflow-hidden"
+                    style={{
+                      backgroundColor: '#d8a882',
+                      height: '28px',
+                    }}
+                    title="Apri la sezione Leads (Funnel & Inbound)"
+                  >
+                    <span
+                      style={{
+                        fontFamily: '"Goldman", sans-serif',
+                        color: '#1e78d6',
+                        fontSize: '1.18rem',
+                        fontWeight: 400,
+                        letterSpacing: '0.04em',
+                        lineHeight: 1,
+                        display: 'inline-block',
+                        transform: 'translateY(2px)',
+                      }}
+                    >
+                      leads
+                    </span>
+                  </Link>
+                </div>
+
+                {/* 4. Card New Opportunities (sotto Leads) — Sostituisce Sunday con la stessa formattazione del riquadro sunday */}
                 <div className="w-full flex justify-end">
                   <Link
-                    to={`/calendar?date=${sundayIso}&day=sunday`}
+                    to="/opportunities"
                     className="w-full h-[33px] relative flex items-center justify-end shadow-sm overflow-visible block hover:opacity-90 transition-opacity"
-                    title={`Apri Sunday (${sundayIso}) nel Calendario`}
+                    title="Apri la sezione Nuove Opportunità"
                   >
                     {/* Sfondo Freccia Viola sfumata con clip-path a punta */}
                     <div
@@ -1155,52 +1183,26 @@ export default function Dashboard() {
                       }}
                     />
 
-                    {/* Testo Sunday: parola completa con la Y visibile al 100%, trascinata di 0,3 cm verso destra all'interno del box */}
+                    {/* Testo New Opportunities con gradiente oro metallizzato */}
                     <span
                       className="relative z-10 flex items-baseline select-none"
                       style={{
                         marginRight: 'calc(24px - 0.1cm)',
                         fontFamily: '"Revalia", cursive, sans-serif',
-                        fontSize: '1.22rem',
-                        letterSpacing: '0.07em',
+                        fontSize: '0.86rem',
+                        letterSpacing: '0.04em',
                         background: 'linear-gradient(90deg, #2b2310 0%, #3e3114 10%, #685014 24%, #a07d16 42%, #d4a916 64%, #ffd700 82%, #ffff00 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         fontWeight: 400,
                         lineHeight: 1.25,
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      Sunday
+                      New Opportunities
                     </span>
                   </Link>
                 </div>
-
-                {/* 4. monday — Cliccabile collegato a Calendar */}
-                <Link
-                  to="/calendar?date=2026-09-28&day=monday"
-                  className="px-2.5 rounded-none flex items-center justify-start w-[112px] shadow-sm hover:scale-105 transition-transform block overflow-hidden"
-                  style={{
-                    backgroundColor: '#d8a882',
-                    height: '28px',
-                    marginTop: '4px',
-                  }}
-                  title="Apri monday (Lunedì 28 Set) nel Calendario"
-                >
-                  <span
-                    style={{
-                      fontFamily: '"Goldman", sans-serif',
-                      color: '#1e78d6',
-                      fontSize: '1.18rem',
-                      fontWeight: 400,
-                      letterSpacing: '0.04em',
-                      lineHeight: 1,
-                      display: 'inline-block',
-                      transform: 'translateY(2px)',
-                    }}
-                  >
-                    monday
-                  </span>
-                </Link>
               </div>
             </div>
 
