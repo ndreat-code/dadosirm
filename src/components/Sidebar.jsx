@@ -50,19 +50,19 @@ function DadoBrandMark({ size = 18 }) {
 
 function DadoLogo({ isDashboard = true }) {
   if (!isDashboard) {
-    // In modalità ristretta: brand logo geometrico spostato e scritta CRM visibile sopra le icone
+    // In modalità ristretta: brand logo geometrico spostato e scritta CRM visibile sopra le icone (grigio metallizzato leggermente più chiaro)
     return (
-      <div className="mb-4 flex items-center justify-center w-full select-none">
+      <div className="mb-2.5 flex items-center justify-center w-full select-none">
         <span
           className="inline-flex items-center justify-center tracking-wider"
           style={{
             fontFamily: 'Sixtyfour, monospace',
-            color: '#cbd5e1',
+            color: '#e2e8f0', // grigio metallizzato leggermente più chiaro
             fontSize: '1.15rem',
             lineHeight: 1,
             height: '20px',
             letterSpacing: '0.04em',
-            textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
+            textShadow: '0 1px 2px rgba(255, 255, 255, 0.2), 0 2px 5px rgba(0, 0, 0, 0.6)',
           }}
         >
           CRM
@@ -71,9 +71,9 @@ function DadoLogo({ isDashboard = true }) {
     )
   }
 
-  // In Dashboard: Logo completo D △ D O a colori + CRM affiancato
+  // In Dashboard: Logo completo D △ D O a colori + CRM affiancato (grigio metallizzato leggermente più chiaro)
   return (
-    <div className="mb-4 flex items-center justify-start gap-3 w-full pl-0.5">
+    <div className="mb-2.5 flex items-center justify-start gap-3 w-full pl-0.5">
       <div className="flex items-center justify-center flex-shrink-0">
         <DadoBrandMark size={20} />
       </div>
@@ -81,14 +81,14 @@ function DadoLogo({ isDashboard = true }) {
         className="inline-flex items-center justify-center tracking-wider select-none"
         style={{
           fontFamily: 'Sixtyfour, monospace',
-          color: '#cbd5e1',
+          color: '#e2e8f0', // grigio metallizzato leggermente più chiaro
           fontSize: '1.30rem',
           lineHeight: 1,
           height: '20px',
           letterSpacing: '0.04em',
           flexShrink: 0,
           transform: 'translateY(1px)',
-          textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
+          textShadow: '0 1px 2px rgba(255, 255, 255, 0.2), 0 2px 5px rgba(0, 0, 0, 0.6)',
         }}
       >
         CRM
@@ -245,6 +245,16 @@ export default function Sidebar() {
       {/* Intestazione Logo: completo in Dashboard, scritta CRM centrata sopra le icone nelle sottosezioni */}
       <DadoLogo isDashboard={isDashboard} />
 
+      {/* Collegamento a Google Drive con orario sovrapposto spostato sotto la scritta CRM */}
+      <div className={`mb-3 w-full flex ${isDashboard ? 'justify-start pl-[8px]' : 'justify-center'}`}>
+        <ClockDriveBox
+          width={isDashboard ? '96px' : '52px'}
+          height="48px"
+          compact={!isDashboard}
+          onlyTime={true}
+        />
+      </div>
+
       {/* Pulsante Dashboard — Visibile solo per chi ha accesso alla Dashboard */}
       {hasDashboardAccess && (
         <NavLink
@@ -259,7 +269,7 @@ export default function Sidebar() {
             }`
           }
           style={({ isActive }) => ({
-            marginTop: isDashboard ? 'calc(1rem + 1cm - 21px)' : '0.5rem',
+            marginTop: '0.25rem',
             background: isActive
               ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
               : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
@@ -335,17 +345,6 @@ export default function Sidebar() {
         </NavLink>
       </nav>
 
-      {/* Collegamento a Google Drive con orario sotto Settings (nascosto quando ci troviamo nella pagina della dashboard) */}
-      {!isDashboard && (
-        <div className="mt-3.5 w-full flex justify-center">
-          <ClockDriveBox
-            width="52px"
-            height="48px"
-            compact={true}
-            onlyTime={true}
-          />
-        </div>
-      )}
 
       {/* Profilo Attivo & Switcher Veloce in Fondo alla Barra */}
       <div className="mt-auto pt-3 border-t border-[#383e49]/80 w-full flex flex-col items-center">

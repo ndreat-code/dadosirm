@@ -23,16 +23,16 @@ export default function ClockDriveBox({
   const d4 = digits[3] || '0'
 
   // Colori ordinati:
-  // 1ª cifra: 🟡 Giallo/Ambra (#b45309, contrasto netto e nitido su bianco)
+  // 1ª cifra: 🟡 Giallo canarino (#facc15)
   // 2ª cifra: 🟣 Viola profondo (#7e22ce)
   // Separatore : in antracite pulito (#334155)
   // 3ª cifra: 🔵 Blu tenue / Azzurro (#0ea5e9)
   // 4ª cifra: 🌸 Rosa tenue (#ec4899)
-  const colorYellow     = '#b45309'
-  const colorPurple     = '#7e22ce'
-  const colorAnthracite = '#334155'
-  const colorSoftBlue   = '#0ea5e9'
-  const colorSoftPink   = '#ec4899'
+  const colorCanaryYellow = '#facc15' // Giallo canarino vivo
+  const colorPurple       = '#7e22ce'
+  const colorAnthracite   = '#334155'
+  const colorSoftBlue     = '#0ea5e9'
+  const colorSoftPink     = '#ec4899'
 
   if (compact) {
     return (
@@ -59,7 +59,7 @@ export default function ClockDriveBox({
           />
         </div>
 
-        {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu (tenue), Rosa (tenue) */}
+        {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino, Viola, Blu (tenue), Rosa (tenue) */}
         <div
           className="relative z-10 leading-none flex items-center justify-center select-none"
           style={{
@@ -70,8 +70,8 @@ export default function ClockDriveBox({
             WebkitFontSmoothing: 'antialiased'
           }}
         >
-          {/* Cifra 1: Giallo */}
-          <span style={{ color: colorYellow }}>
+          {/* Cifra 1: Giallo canarino */}
+          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(180, 83, 9, 0.35)' }}>
             {d1}
           </span>
           {/* Cifra 2: Viola */}
@@ -120,7 +120,7 @@ export default function ClockDriveBox({
         />
       </div>
 
-      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu (tenue), Rosa (tenue) */}
+      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino, Viola, Blu (tenue), Rosa (tenue) */}
       <div className="relative z-10 leading-none flex items-center justify-center">
         <div
           className="leading-none flex items-center justify-center tracking-wider"
@@ -132,8 +132,8 @@ export default function ClockDriveBox({
             WebkitFontSmoothing: 'antialiased'
           }}
         >
-          {/* Cifra 1: Giallo */}
-          <span style={{ color: colorYellow }}>
+          {/* Cifra 1: Giallo canarino */}
+          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(180, 83, 9, 0.35)' }}>
             {d1}
           </span>
           {/* Cifra 2: Viola */}

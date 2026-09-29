@@ -80,11 +80,11 @@ function ClockDriveBox() {
   const d3 = digits[2] || '0'
   const d4 = digits[3] || '0'
 
-  const colorYellow     = '#b45309' // 🟡 Giallo/Ambra (#b45309)
-  const colorPurple     = '#7e22ce' // 🟣 Viola profondo (#7e22ce)
-  const colorAnthracite = '#334155' // Separatore : in antracite pulito
-  const colorSoftBlue   = '#0ea5e9' // 🔵 Blu tenue / Azzurro (#0ea5e9)
-  const colorSoftPink   = '#ec4899' // 🌸 Rosa tenue (#ec4899)
+  const colorCanaryYellow = '#facc15' // 🟡 Giallo canarino vivo
+  const colorPurple       = '#7e22ce' // 🟣 Viola profondo (#7e22ce)
+  const colorAnthracite   = '#334155' // Separatore : in antracite pulito
+  const colorSoftBlue     = '#0ea5e9' // 🔵 Blu tenue / Azzurro (#0ea5e9)
+  const colorSoftPink     = '#ec4899' // 🌸 Rosa tenue (#ec4899)
 
   return (
     <div
@@ -103,7 +103,7 @@ function ClockDriveBox() {
         />
       </div>
 
-      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu (tenue), Rosa (tenue) su fondo bianco */}
+      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino, Viola, Blu (tenue), Rosa (tenue) su fondo bianco */}
       <div className="relative z-10 flex flex-col items-center justify-center">
         <div
           className="flex items-center justify-center leading-none tracking-wider select-none"
@@ -115,7 +115,7 @@ function ClockDriveBox() {
             WebkitFontSmoothing: 'antialiased'
           }}
         >
-          <span style={{ color: colorYellow }}>{d1}</span>
+          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(180, 83, 9, 0.35)' }}>{d1}</span>
           <span style={{ color: colorPurple }}>{d2}</span>
           <span style={{ color: colorAnthracite }} className="mx-[2px] font-bold animate-pulse text-[18px]">:</span>
           <span style={{ color: colorSoftBlue }}>{d3}</span>
