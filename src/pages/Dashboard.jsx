@@ -302,162 +302,67 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk }) {
   )
 }
 
-// ── Box NOTE PER SVILUPPATORE (Grigio metallizzato, testo nero bold, tasto INVIA nero in rilievo) ──
-function DeveloperNotesBox() {
-  const { canSendDevNotes, currentUser } = useAuth()
+// ── Campo Barra di Ricerca per Note Sviluppatore (visibile solo per Director e Amministratore) ──
+function DeveloperNotesSearchBar() {
+  const { currentUser, isAdmin } = useAuth()
   const [note, setNote] = useState('')
-  const [status, setStatus] = useState(null) // 'sending', 'sent', 'blocked'
+  const [sentStatus, setSentStatus] = useState(false)
 
-  async function handleSendNote(e) {
+  const isDirectorOrAdmin =
+    isAdmin ||
+    currentUser?.badgeRole === 'Director' ||
+    currentUser?.role === 'Director' ||
+    currentUser?.badgeRole === 'Amministratore' ||
+    currentUser?.id === 'usr-admin' ||
+    currentUser?.id === 'usr-dipendente'
+
+  if (!isDirectorOrAdmin) return null
+
+  const handleSend = async (e) => {
     if (e) e.preventDefault()
-    if (!canSendDevNotes) {
-      setStatus('blocked')
-      setTimeout(() => setStatus(null), 3000)
-      return
-    }
     const textToSend = note.trim()
-    if (!textToSend || status === 'sending') return
+    if (!textToSend) return
 
-    setStatus('sending')
-    // Il testo NON rimane lì: si svuota subito lasciando la sezione pronta
     setNote('')
+    setSentStatus(true)
+    setTimeout(() => setSentStatus(false), 3000)
 
     try {
-      fetch('/api/developer-notes', {
+      await fetch('/api/developer-notes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-user-role': currentUser?.badgeRole || currentUser?.role || '',
         },
         body: JSON.stringify({ note: textToSend }),
-      }).catch(err => console.warn('Salvataggio server:', err))
-
-      setStatus('sent')
-      setTimeout(() => setStatus(null), 3500)
+      })
     } catch (err) {
-      setStatus(null)
+      console.warn('Salvataggio nota:', err)
     }
   }
 
   return (
-    <div
-      className="w-full px-3 py-2 flex flex-col justify-between shadow-sm transition-all select-none"
-      style={{
-        background: 'linear-gradient(135deg, #e4e7eb 0%, #cbd2d8 50%, #b2b9c0 100%)', // Grigio metallizzato
-        border: '1px solid rgba(255, 255, 255, 0.7)',
-        borderRadius: '6px',
-        height: '120px', // Altezza proporzionata tra preventivi e logo
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
-      }}
-    >
-      <div>
-        {/* Titolo orizzontale */}
-        <div className="text-center pt-0.5 whitespace-nowrap px-0.5 flex items-center justify-center gap-1.5">
-          <span
-            style={{
-              fontFamily: '"Space Mono", monospace',
-              color: '#000000',
-              fontSize: '10px',
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              display: 'inline-block',
-              lineHeight: 1,
-              textTransform: 'uppercase',
-            }}
-          >
-            NOTE SVILUPPATORE
-          </span>
-          {!canSendDevNotes && (
-            <span className="text-[8px] font-bold px-1 rounded bg-amber-200 text-amber-900 border border-amber-400">
-              🔒 BLOCCO DIPENDENTE
-            </span>
-          )}
-        </div>
-
-        {/* Separatore */}
-        <div
-          className="mx-auto"
-          style={{
-            width: '2.5cm',
-            height: '1px',
-            backgroundColor: '#000000',
-            marginTop: '4px',
-            marginBottom: '4px',
-          }}
+    <div className="flex items-center gap-3 select-none">
+      {/* Campo Barra di Ricerca */}
+      <form onSubmit={handleSend} className="relative flex items-center">
+        <input
+          type="text"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={sentStatus ? "✓ Nota inviata allo sviluppatore!" : "Scrivi una nota..."}
+          className="w-[240px] sm:w-[280px] h-[28px] pl-8 pr-3 text-[11.5px] rounded-full bg-white/95 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#00ffaa] shadow-sm transition-all"
+          style={{ fontFamily: '"Switzer", sans-serif' }}
         />
-      </div>
+        <Search size={13} className="absolute left-2.5 text-slate-400 pointer-events-none" />
+      </form>
 
-      {/* Area testo o stato inviato */}
-      <div className="flex-1 flex flex-col my-1 relative min-h-0">
-        {status === 'sent' ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-1 bg-black/85 rounded border border-white/20">
-            <span className="text-[10px] font-bold text-[#00ffaa] leading-tight">
-              ✓ Inviata a<br />n.drea.t@gmail.com
-            </span>
-          </div>
-        ) : status === 'blocked' ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-1 bg-amber-950/90 rounded border border-amber-500/40">
-            <span className="text-[10px] font-bold text-amber-300 leading-tight">
-              🔒 Funzione riservata all’Amministratore
-            </span>
-          </div>
-        ) : (
-          <textarea
-            value={note}
-            disabled={!canSendDevNotes}
-            onChange={(e) => setNote(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleSendNote(e)
-              }
-            }}
-            placeholder={canSendDevNotes ? "Scrivi una nota..." : "🔒 Invio note disabilitato per il profilo Dipendente"}
-            className={`w-full h-full p-1.5 text-[11px] font-bold rounded-none focus:outline-none resize-none leading-tight ${
-              canSendDevNotes
-                ? 'text-black placeholder:text-black placeholder:font-bold'
-                : 'text-gray-500 placeholder:text-gray-500/80 cursor-not-allowed italic'
-            }`}
-            style={{
-              backgroundColor: canSendDevNotes ? 'rgba(255, 255, 255, 0.82)' : 'rgba(230, 233, 238, 0.75)',
-              border: '1px solid rgba(0, 0, 0, 0.25)',
-              fontFamily: '"Space Mono", monospace',
-              fontWeight: 700,
-            }}
-          />
-        )}
-      </div>
-
-      {/* Tasto Invia nero scuro puro (#000000) in rilievo con testo grigio metallizzato NON bold */}
-      <button
-        type="button"
-        disabled={!canSendDevNotes || !note.trim() || status === 'sending'}
-        onClick={handleSendNote}
-        title={!canSendDevNotes ? "Invio note riservato all'Amministratore" : "Invia nota allo sviluppatore"}
-        className={`w-full py-1.5 tracking-wider uppercase transition-all flex items-center justify-center gap-1 select-none ${
-          canSendDevNotes
-            ? 'hover:brightness-125 active:translate-y-0.5 cursor-pointer'
-            : 'opacity-40 cursor-not-allowed'
-        }`}
-        style={{
-          backgroundColor: '#000000',
-          background: '#000000',
-          fontFamily: '"Space Mono", monospace',
-          borderRadius: '3px',
-          border: '1px solid #000000',
-          boxShadow: canSendDevNotes
-            ? '0 3px 6px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 1)'
-            : 'none',
-          color: '#cbd2d8',
-          fontWeight: 400,
-          fontSize: '10px',
-        }}
+      {/* Dicitura a destra: Note per sviluppatore */}
+      <span
+        className="text-[12px] font-semibold text-white/90 whitespace-nowrap tracking-wide"
+        style={{ fontFamily: '"Switzer", sans-serif' }}
       >
-        <span style={{ color: '#cbd2d8', fontWeight: 400 }}>
-          {status === 'sending' ? 'Invio...' : canSendDevNotes ? 'INVIA' : '🔒 NON CONSENTITO'}
-        </span>
-        {canSendDevNotes && <span className="text-[9px]" style={{ color: '#cbd2d8' }}>✉</span>}
-      </button>
+        Note per sviluppatore
+      </span>
     </div>
   )
 }
@@ -1630,19 +1535,21 @@ export default function Dashboard() {
 
       </div>
 
-      {/* ── Banda Inferiore: stessa tonalità di grigio della barra laterale (#2d3139) e taglio netto a 90° col display in basso a destra ── */}
+      {/* ── Banda Inferiore: stessa tonalità di grigio della barra laterale (#2d3139), campo ricerca note sviluppatore a destra e taglio netto a 90° col display ── */}
       <div className="w-full flex justify-end flex-shrink-0 mt-auto">
         <div
-          className="rounded-tl-2xl rounded-tr-none rounded-br-none rounded-bl-none w-[calc(100%-2.5rem)]"
+          className="rounded-tl-2xl rounded-tr-none rounded-br-none rounded-bl-none w-[calc(100%-2.5rem)] flex items-center justify-end px-6 overflow-hidden py-1"
           style={{
-            height: 'calc(3rem - 0.5cm)',
+            height: '42px',
             backgroundColor: '#2d3139',
             borderTopLeftRadius: '1rem',
             borderTopRightRadius: '0px',
             borderBottomRightRadius: '0px',
             borderBottomLeftRadius: '0px',
           }}
-        />
+        >
+          <DeveloperNotesSearchBar />
+        </div>
       </div>
 
       </div>
