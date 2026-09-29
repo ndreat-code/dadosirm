@@ -80,10 +80,10 @@ function ClockDriveBox() {
   const d3 = digits[2] || '0'
   const d4 = digits[3] || '0'
 
-  const colorYellow = '#b45309' // Giallo/Ambra profondo vivido
-  const colorPurple = '#7e22ce' // Viola profondo vivido
-  const colorBlue   = '#0284c7' // Blu DADO profondo vivido
-  const colorOrange = '#ea580c' // Arancione DADO profondo vivido
+  const colorYellow   = '#b45309' // Giallo/Ambra profondo vivido
+  const colorPurple   = '#7e22ce' // Viola profondo vivido
+  const colorOrange   = '#ea580c' // Arancione DADO vivido
+  const colorSoftBlue = '#0ea5e9' // Blu tenue (Sky/Azzurro tenue luminoso)
 
   return (
     <div
@@ -102,7 +102,7 @@ function ClockDriveBox() {
         />
       </div>
 
-      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu, Arancione su fondo bianco */}
+      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Arancione, Blu (tenue) su fondo bianco */}
       <div className="relative z-10 flex flex-col items-center justify-center">
         <div
           className="flex items-center justify-center leading-none tracking-wider select-none"
@@ -117,8 +117,8 @@ function ClockDriveBox() {
           <span style={{ color: colorYellow }}>{d1}</span>
           <span style={{ color: colorPurple }}>{d2}</span>
           <span className="text-slate-700 mx-[2px] font-bold animate-pulse text-[18px]">:</span>
-          <span style={{ color: colorBlue }}>{d3}</span>
-          <span style={{ color: colorOrange }}>{d4}</span>
+          <span style={{ color: colorOrange }}>{d3}</span>
+          <span style={{ color: colorSoftBlue }}>{d4}</span>
         </div>
         <div
           className="font-bold text-slate-700 mt-1 tracking-wide leading-tight text-[12px]"

@@ -22,11 +22,11 @@ export default function ClockDriveBox({
   const d3 = digits[2] || '0'
   const d4 = digits[3] || '0'
 
-  // Colori ad alto contrasto e nitidezza su sfondo bianco: Giallo, Viola, Blu, Arancione
-  const colorYellow = '#b45309' // Giallo/Ambra profondo vivido (ottimo contrasto su bianco)
-  const colorPurple = '#7e22ce' // Viola profondo vivido
-  const colorBlue   = '#0284c7' // Blu DADO profondo vivido
-  const colorOrange = '#ea580c' // Arancione DADO profondo vivido
+  // Colori ordinati: Giallo, Viola, Arancione, Blu (tenue)
+  const colorYellow   = '#b45309' // Giallo/Ambra profondo vivido (alto contrasto su bianco)
+  const colorPurple   = '#7e22ce' // Viola profondo vivido
+  const colorOrange   = '#ea580c' // Arancione DADO vivido
+  const colorSoftBlue = '#0ea5e9' // Blu tenue (Sky/Azzurro tenue luminoso)
 
   if (compact) {
     return (
@@ -53,7 +53,7 @@ export default function ClockDriveBox({
           />
         </div>
 
-        {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu, Arancione */}
+        {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Arancione, Blu (tenue) */}
         <div
           className="relative z-10 leading-none flex items-center justify-center select-none"
           style={{
@@ -76,12 +76,12 @@ export default function ClockDriveBox({
           <span className="text-slate-700 mx-[1.5px] font-bold animate-pulse text-[15px]">
             :
           </span>
-          {/* Cifra 3: Blu */}
-          <span style={{ color: colorBlue }}>
+          {/* Cifra 3: Arancione */}
+          <span style={{ color: colorOrange }}>
             {d3}
           </span>
-          {/* Cifra 4: Arancione */}
-          <span style={{ color: colorOrange }}>
+          {/* Cifra 4: Blu (tenue) */}
+          <span style={{ color: colorSoftBlue }}>
             {d4}
           </span>
         </div>
@@ -114,7 +114,7 @@ export default function ClockDriveBox({
         />
       </div>
 
-      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu, Arancione */}
+      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Arancione, Blu (tenue) */}
       <div className="relative z-10 leading-none flex items-center justify-center">
         <div
           className="leading-none flex items-center justify-center tracking-wider"
@@ -138,12 +138,12 @@ export default function ClockDriveBox({
           <span className="text-slate-700 mx-[2px] font-bold animate-pulse text-[18px]">
             :
           </span>
-          {/* Cifra 3: Blu */}
-          <span style={{ color: colorBlue }}>
+          {/* Cifra 3: Arancione */}
+          <span style={{ color: colorOrange }}>
             {d3}
           </span>
-          {/* Cifra 4: Arancione */}
-          <span style={{ color: colorOrange }}>
+          {/* Cifra 4: Blu (tenue) */}
+          <span style={{ color: colorSoftBlue }}>
             {d4}
           </span>
         </div>
