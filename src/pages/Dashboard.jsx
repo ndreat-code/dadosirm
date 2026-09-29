@@ -805,9 +805,15 @@ export default function Dashboard() {
         }}
       >
 
-        {/* ── Banda Bianca Superiore: spessore diminuito di 0,5cm ── */}
+        {/* ── Banda Superiore: bianca sfumata in nero verso l'incontro con ASK TO OPENAI ── */}
         <div className="w-full flex justify-end flex-shrink-0">
-          <div className="bg-white rounded-bl-2xl w-[calc(100%-2.5rem)]" style={{ height: 'calc(3rem - 0.5cm)' }} />
+          <div
+            className="rounded-bl-2xl w-[calc(100%-2.5rem)]"
+            style={{
+              height: 'calc(3rem - 0.5cm)',
+              background: 'linear-gradient(90deg, #ffffff 0%, #ffffff calc(100% - 310px), #333842 calc(100% - 170px), #111111 100%)',
+            }}
+          />
         </div>
 
         {/* ── Contenuto Principale della Dashboard (allineato orizzontalmente e verticalmente sotto la banda bianca) ── */}
@@ -965,41 +971,41 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ── IN VISUALE STANDARD: Riga 1 + Riga 2 a sinistra, Pop-up ad altezza Calendar Week a destra ── */}
+          {/* ── IN VISUALE STANDARD: Riga 1 (TO DO + Week + Active Clients) + Riga 2 (Next actions + Pop-up estesa al centro) ── */}
           {!isAiFocusMode && (
-            <div className="flex items-start gap-4 mb-1 flex-1 min-w-0">
+            <div className="flex flex-col gap-2 mb-1 flex-1 min-w-0">
 
-              {/* Colonna Sinistra Fissa: Riga Superiore (TO DO + Calendario Week) + Riga Inferiore (Next actions + Opportunities/Clients) */}
-              <div className="flex flex-col gap-2 flex-shrink-0">
-                {/* Riga Superiore: Card TO DO e Calendario Week */}
-                <div className="flex gap-2.5 items-stretch">
-                  {/* Card: TO DO — Colore arancione #ff6f43 */}
-                  <KpiCard
-                    label="TO DO"
-                    value="4"
-                    bg="#111111"
-                    labelColor="#ff6f43"
-                    valueColor="#ff6f43"
-                    sub="2 in scadenza oggi"
-                    subColor="#888888"
-                    width="160px"
-                    labelSize="15px"
-                    valueSize="36px"
-                    subSize="14px"
-                  />
+              {/* Riga Superiore: Card TO DO, Calendario Week e Card ACTIVE CLIENTS */}
+              <div className="flex gap-2.5 items-stretch flex-shrink-0">
+                {/* Card: TO DO — Sfondo Blu Notte in armonia con l'arancione #ff6f43 */}
+                <KpiCard
+                  label="TO DO"
+                  value="4"
+                  bg="#0b1626"
+                  labelColor="#ff6f43"
+                  valueColor="#ff6f43"
+                  sub="2 in scadenza oggi"
+                  subColor="#94a3b8"
+                  width="160px"
+                  minHeight="104px"
+                  height="104px"
+                  labelSize="15px"
+                  valueSize="36px"
+                  subSize="14px"
+                />
 
-                  {/* Calendario accanto alla card TO DO (spigoloso con angoli retti dal lato interno verso il centro dashboard e allargato all'estremità delle card sottostanti) */}
-                  <div
-                    ref={calendarContainerRef}
-                    onMouseEnter={handleCalendarMouseEnter}
-                    onMouseLeave={handleCalendarMouseLeave}
-                    className="p-2.5 bg-white shadow-sm flex flex-col justify-between min-h-[104px] h-[104px] border border-black/10 select-none shrink-0"
-                    style={{
-                      backgroundColor: '#ffffff',
-                      width: 'calc(260px - 1.3cm + 16px + 185px - 160px - 10px)',
-                      borderRadius: '6px 0px 0px 6px',
-                    }}
-                  >
+                {/* Calendario accanto alla card TO DO */}
+                <div
+                  ref={calendarContainerRef}
+                  onMouseEnter={handleCalendarMouseEnter}
+                  onMouseLeave={handleCalendarMouseLeave}
+                  className="p-2.5 bg-white shadow-sm flex flex-col justify-between min-h-[104px] h-[104px] border border-black/10 select-none shrink-0"
+                  style={{
+                    backgroundColor: '#ffffff',
+                    width: '240px',
+                    borderRadius: '6px',
+                  }}
+                >
                     {/* Header Sezione: Nome del mese corrente ingrandito (senza "calendar week" e senza anno) */}
                     <div className="flex items-center px-0.5">
                       <span
@@ -1063,10 +1069,34 @@ export default function Dashboard() {
                       })}
                     </div>
                   </div>
+
+                  {/* Card ACTIVE CLIENTS posizionata accanto a Calendar Week in proporzione alla card TO DO */}
+                  <Link
+                    to="/companies"
+                    className="block hover:opacity-90 transition-opacity flex flex-col group cursor-pointer shrink-0"
+                    title="Apri il Database Aziende & Contratti"
+                  >
+                    <KpiCard
+                      label="ACTIVE CLIENTS"
+                      value="11"
+                      bg="#00ffaa"
+                      labelColor="#111111"
+                      valueColor="#111111"
+                      sub="11 clienti attivi"
+                      subColor="rgba(0, 0, 0, 0.7)"
+                      width="160px"
+                      minHeight="104px"
+                      height="104px"
+                      labelSize="13px"
+                      valueSize="36px"
+                      subSize="12.5px"
+                      padding="p-3"
+                    />
+                  </Link>
                 </div>
 
-                {/* Riga Inferiore: Next actions (sinistra) + Box 2: Opportunità e Clienti Attivi (destra) — spostata verso il basso verso la banda bianca */}
-                <div className="flex items-start gap-4" style={{ marginTop: '2rem' }}>
+                {/* Riga Inferiore: Next actions (sinistra) + Finestra Pop-up estesa al centro della dashboard */}
+                <div className="flex items-start gap-4 flex-1 min-w-0" style={{ marginTop: '2rem' }}>
                   {/* Box 1: Next actions — Ingrandito a 262px x 296px per ospitare perfettamente la card New Opportunities con punta affilata */}
                   <div
                     className="bg-[#111111] px-4 py-3.5 flex flex-col justify-between flex-shrink-0 shadow-sm"
@@ -1225,237 +1255,207 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Box 2: Card Clienti Attivi (ACTIVE CLIENTS) — Rimozione cards Leads e New Opportunities originali */}
-                  <div
-                    className="flex flex-col flex-shrink-0"
-                    style={{
-                      width: '185px',
-                      height: '296px',
-                    }}
-                  >
-                    <Link
-                      to="/companies"
-                      className="block hover:opacity-90 transition-opacity h-full flex flex-col group cursor-pointer"
-                      title="Apri il Database Aziende & Contratti"
-                    >
-                      <KpiCard
-                        label="ACTIVE CLIENTS"
-                        value="11"
-                        bg="#00ffaa"
-                        labelColor="#111111"
-                        valueColor="#111111"
-                        sub="11 clienti attivi"
-                        subColor="rgba(0, 0, 0, 0.7)"
-                        width="100%"
-                        height="100%"
-                        minHeight="0"
-                        padding="p-4"
-                        labelSize="13px"
-                        valueSize="44px"
-                        subSize="13px"
-                      />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sezione Output Allargata (Risposta OpenAI & Impegni Calendar Week) — Spostata in alto raggiungendo l'altezza del Calendar Week! */}
-              {(aiResult || aiLoading || (selectedCalendarDay && currentDaySchedule?.events?.length > 0)) && (
-                <div
-                  ref={popupContainerRef}
-                  onMouseEnter={handlePopupMouseEnter}
-                  onMouseLeave={handlePopupMouseLeave}
-                  className="flex-1 min-w-0 flex flex-col p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-start overflow-hidden"
-                  style={{
-                    backgroundColor: 'rgba(0, 42, 26, 0.95)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1.5px solid rgba(0, 255, 170, 0.45)',
-                    boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
-                    height: '352px',
-                    maxHeight: '352px',
-                    fontFamily: '"Jost", "Inter", sans-serif',
-                    overscrollBehavior: 'contain',
-                  }}
-                >
-                  {/* Header Sezione Output: solo testo "Attività Programmate", senza cerchi, senza icone e senza "✕ chiudi" per massima ottimizzazione */}
-                  <div className="flex items-center pb-2 mb-1.5 border-b border-white/15 flex-shrink-0">
-                    {selectedCalendarDay && activeOutputTab !== 'ai' ? (
-                      <span
-                        className="text-white font-black tracking-wider uppercase text-[15px] sm:text-[16px]"
-                        style={{ fontFamily: '"Goldman", sans-serif', letterSpacing: '0.08em' }}
-                      >
-                        Attività Programmate
-                      </span>
-                    ) : aiResult && selectedCalendarDay ? (
-                      <div className="flex items-center gap-1.5 bg-black/50 p-1 rounded-lg border border-white/10">
-                        <button
-                          onClick={() => setActiveOutputTab('day')}
-                          className={`px-3 py-0.5 rounded text-xs font-bold transition-all cursor-pointer ${
-                            activeOutputTab === 'day'
-                              ? 'bg-[#00ffaa] text-[#111111] shadow'
-                              : 'text-white/70 hover:text-white'
-                          }`}
-                        >
-                          Attività Programmate
-                        </button>
-                        <button
-                          onClick={() => setActiveOutputTab('ai')}
-                          className={`px-3 py-0.5 rounded text-xs font-bold transition-all cursor-pointer ${
-                            activeOutputTab === 'ai'
-                              ? 'bg-[#00ffaa] text-[#111111] shadow'
-                              : 'text-white/70 hover:text-white'
-                          }`}
-                        >
-                          Risposta OpenAI
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-white/95 font-bold tracking-wide text-[15px] truncate">
-                        {aiLoading ? 'Analisi in corso...' : 'Indagine CRM & Punti in Comune (OpenAI)'}
-                      </span>
-                    )}
-                  </div>
-
-                {/* Corpo del Contenuto Sviluppato in Verticale (senza overflow all'esterno) con supporto scroll rotella fluido e barra visibile */}
-                <div
-                  ref={popupScrollRef}
-                  className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-2 mt-1 space-y-2.5 leading-relaxed custom-popup-scrollbar overscroll-contain select-text"
-                  style={{
-                    overscrollBehavior: 'contain',
-                  }}
-                >
-                  {selectedCalendarDay && activeOutputTab !== 'ai' && currentDaySchedule ? (
-                    <div className="flex flex-col gap-2.5 w-full">
-                      {/* Elenco Attività Programmate: disposto in verticale, a piena larghezza */}
-                      <div className="flex flex-col gap-2.5 w-full">
-                        {currentDaySchedule.events.map((ev, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-black/55 border border-white/15 rounded-xl p-3 flex flex-col gap-2 hover:border-[#00ffaa]/50 transition-colors shadow-sm text-left overflow-hidden w-full"
-                          >
-                            {/* 1. Riga Superiore: Orario & Cliente */}
-                            <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-white/10">
-                              <span className="text-[11.5px] font-mono font-black px-2 py-0.5 rounded bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40 whitespace-nowrap shadow-sm">
-                                ⏰ {ev.time}
-                              </span>
-                              <span className="text-white font-bold text-[14px] truncate flex-1 text-right tracking-tight">
-                                {ev.company}
-                              </span>
-                              {ev.category && (
-                                <span className="text-[9.5px] font-mono uppercase px-2 py-0.5 rounded bg-white/10 text-white/80 border border-white/15 whitespace-nowrap">
-                                  {ev.category}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* 2. Dettagli Chiave: Luogo & Materiali distribuiti verticalmente */}
-                            <div className="space-y-1.5 text-[12px] leading-snug">
-                              {ev.location && (
-                                <div className="flex items-start gap-1.5 text-slate-100">
-                                  <span className="text-sky-300 font-bold font-mono text-[10.5px] uppercase tracking-wide flex-shrink-0">
-                                    📍 Luogo:
-                                  </span>
-                                  <span className="font-medium text-slate-100 break-words flex-1">
-                                    {ev.location}
-                                  </span>
-                                </div>
-                              )}
-                              {ev.materials && (
-                                <div className="flex items-start gap-1.5 text-slate-100">
-                                  <span className="text-amber-300 font-bold font-mono text-[10.5px] uppercase tracking-wide flex-shrink-0">
-                                    🎒 Materiali:
-                                  </span>
-                                  <span className="font-medium text-amber-100 break-words flex-1">
-                                    {ev.materials}
-                                  </span>
-                                </div>
-                              )}
-                              {ev.title && (
-                                <p className="text-slate-300 text-[11.5px] italic border-t border-white/10 pt-1 mt-0.5 break-words">
-                                  {ev.title}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Note & Allegati disposti in verticale / orizzontale compatto */}
-                      {(currentDaySchedule.notes || (currentDaySchedule.files && currentDaySchedule.files.length > 0)) && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 border-t border-white/10 w-full">
-                          {currentDaySchedule.notes && (
-                            <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-lg p-2.5 flex items-start gap-2 overflow-hidden">
-                              <span className="text-emerald-400 text-xs flex-shrink-0">📝</span>
-                              <div className="flex-1 text-[12px] text-white/95 leading-tight break-words">
-                                <span className="font-bold text-[#00ffaa] uppercase text-[10px] font-mono block mb-0.5">Note:</span>
-                                {currentDaySchedule.notes}
-                              </div>
-                            </div>
-                          )}
-                          {currentDaySchedule.files && currentDaySchedule.files.length > 0 && (
-                            <div className="bg-black/30 border border-white/10 rounded-lg p-2.5 flex flex-col justify-center overflow-hidden">
-                              <span className="font-bold text-[#00ffaa] uppercase text-[10px] font-mono block mb-1">File ({currentDaySchedule.files.length}):</span>
-                              <div className="flex flex-wrap gap-1.5">
-                                {currentDaySchedule.files.map((file, fIdx) => (
-                                  <div
-                                    key={fIdx}
-                                    className="bg-black/40 border border-white/15 px-2 py-0.5 rounded flex items-center gap-1.5 text-[11px] text-white/90 max-w-full"
-                                  >
-                                    <Paperclip size={11} className="text-[#00ffaa] flex-shrink-0" />
-                                    <span className="font-mono font-medium truncate max-w-[140px]">{file.name}</span>
-                                    <span className="text-white/40 text-[9px] flex-shrink-0">({file.size})</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    /* Contenuto AI OpenAI distribuito in orizzontale */
+                  {/* Sezione Output / Pop-up Allargata nello spazio guadagnato al centro della dashboard */}
+                  {(aiResult || aiLoading || (selectedCalendarDay && currentDaySchedule?.events?.length > 0)) && (
                     <div
+                      ref={popupContainerRef}
+                      onMouseEnter={handlePopupMouseEnter}
+                      onMouseLeave={handlePopupMouseLeave}
+                      onWheel={(e) => {
+                        e.stopPropagation()
+                        if (popupScrollRef.current) popupScrollRef.current.scrollTop += e.deltaY
+                      }}
+                      className="flex-1 min-w-[320px] max-w-[580px] flex flex-col p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-start overflow-hidden"
                       style={{
-                        fontSize: '13.5px',
-                        color: '#f4f2ea',
-                        fontWeight: 400,
+                        backgroundColor: 'rgba(0, 42, 26, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1.5px solid rgba(0, 255, 170, 0.45)',
+                        boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+                        height: '296px',
+                        maxHeight: '296px',
+                        fontFamily: '"Jost", "Inter", sans-serif',
+                        overscrollBehavior: 'contain',
                       }}
                     >
-                      {aiLoading ? (
-                        <div className="h-36 flex flex-col items-center justify-center text-white/75 gap-2">
-                          <div className="w-6 h-6 border-2 border-[#00ffaa] border-t-transparent rounded-full animate-spin" />
-                          <span className="text-[13px] font-mono animate-pulse">
-                            Interrogazione database in tempo reale con OpenAI...
+                      {/* Header Sezione Output: solo testo "Attività Programmate", senza cerchi, senza icone e senza "✕ chiudi" per massima ottimizzazione */}
+                      <div className="flex items-center pb-2 mb-1.5 border-b border-white/15 flex-shrink-0">
+                        {selectedCalendarDay && activeOutputTab !== 'ai' ? (
+                          <span
+                            className="text-white font-black tracking-wider uppercase text-[15px] sm:text-[16px]"
+                            style={{ fontFamily: '"Goldman", sans-serif', letterSpacing: '0.08em' }}
+                          >
+                            Attività Programmate
                           </span>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {aiResult?.question && (
-                            <div className="p-2 bg-black/45 rounded-lg border border-white/12 text-xs font-mono text-emerald-300 flex items-center gap-2">
-                              <span className="text-white/50 text-[10px] uppercase tracking-wider">Domanda:</span>
-                              <span className="text-white font-bold">"{aiResult.question}"</span>
-                            </div>
-                          )}
-                          <div className="leading-relaxed whitespace-pre-line text-[13px] text-[#f4f2ea] bg-black/25 p-3 rounded-lg border border-white/5 max-h-[140px] overflow-y-auto">
-                            {aiResult?.content}
-                          </div>
-                          <div className="flex justify-end pt-1">
+                        ) : aiResult && selectedCalendarDay ? (
+                          <div className="flex items-center gap-1.5 bg-black/50 p-1 rounded-lg border border-white/10">
                             <button
-                              type="button"
-                              onClick={() => triggerEnterFocus()}
-                              className="text-[11px] font-mono text-[#00ffaa] hover:underline flex items-center gap-1 cursor-pointer"
+                              onClick={() => setActiveOutputTab('day')}
+                              className={`px-3 py-0.5 rounded text-xs font-bold transition-all cursor-pointer ${
+                                activeOutputTab === 'day'
+                                  ? 'bg-[#00ffaa] text-[#111111] shadow'
+                                  : 'text-white/70 hover:text-white'
+                              }`}
                             >
-                              <span>⛶ Espandi Schermata Intera [ESC]</span>
+                              Attività Programmate
+                            </button>
+                            <button
+                              onClick={() => setActiveOutputTab('ai')}
+                              className={`px-3 py-0.5 rounded text-xs font-bold transition-all cursor-pointer ${
+                                activeOutputTab === 'ai'
+                                  ? 'bg-[#00ffaa] text-[#111111] shadow'
+                                  : 'text-white/70 hover:text-white'
+                              }`}
+                            >
+                              Risposta OpenAI
                             </button>
                           </div>
+                        ) : (
+                          <span className="text-white/95 font-bold tracking-wide text-[15px] truncate">
+                            {aiLoading ? 'Analisi in corso...' : 'Indagine CRM & Punti in Comune (OpenAI)'}
+                          </span>
+                        )}
+                      </div>
+
+                    {/* Corpo del Contenuto Sviluppato in Verticale (senza overflow all'esterno) con supporto scroll rotella fluido e barra visibile */}
+                    <div
+                      ref={popupScrollRef}
+                      className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-2 mt-1 space-y-2.5 leading-relaxed custom-popup-scrollbar overscroll-contain select-text"
+                      style={{
+                        overscrollBehavior: 'contain',
+                      }}
+                    >
+                      {selectedCalendarDay && activeOutputTab !== 'ai' && currentDaySchedule ? (
+                        <div className="flex flex-col gap-2.5 w-full">
+                          {/* Elenco Attività Programmate: disposto in verticale, a piena larghezza */}
+                          <div className="flex flex-col gap-2.5 w-full">
+                            {currentDaySchedule.events.map((ev, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-black/55 border border-white/15 rounded-xl p-3 flex flex-col gap-2 hover:border-[#00ffaa]/50 transition-colors shadow-sm text-left overflow-hidden w-full"
+                              >
+                                {/* 1. Riga Superiore: Orario & Cliente */}
+                                <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-white/10">
+                                  <span className="text-[11.5px] font-mono font-black px-2 py-0.5 rounded bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40 whitespace-nowrap shadow-sm">
+                                    ⏰ {ev.time}
+                                  </span>
+                                  <span className="text-white font-bold text-[14px] truncate flex-1 text-right tracking-tight">
+                                    {ev.company}
+                                  </span>
+                                  {ev.category && (
+                                    <span className="text-[9.5px] font-mono uppercase px-2 py-0.5 rounded bg-white/10 text-white/80 border border-white/15 whitespace-nowrap">
+                                      {ev.category}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* 2. Dettagli Chiave: Luogo & Materiali distribuiti verticalmente */}
+                                <div className="space-y-1.5 text-[12px] leading-snug">
+                                  {ev.location && (
+                                    <div className="flex items-start gap-1.5 text-slate-100">
+                                      <span className="text-sky-300 font-bold font-mono text-[10.5px] uppercase tracking-wide flex-shrink-0">
+                                        📍 Luogo:
+                                      </span>
+                                      <span className="font-medium text-slate-100 break-words flex-1">
+                                        {ev.location}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {ev.materials && (
+                                    <div className="flex items-start gap-1.5 text-slate-100">
+                                      <span className="text-amber-300 font-bold font-mono text-[10.5px] uppercase tracking-wide flex-shrink-0">
+                                        🎒 Materiali:
+                                      </span>
+                                      <span className="font-medium text-amber-100 break-words flex-1">
+                                        {ev.materials}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {ev.title && (
+                                    <p className="text-slate-300 text-[11.5px] italic border-t border-white/10 pt-1 mt-0.5 break-words">
+                                      {ev.title}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Note & Allegati disposti in verticale / orizzontale compatto */}
+                          {(currentDaySchedule.notes || (currentDaySchedule.files && currentDaySchedule.files.length > 0)) && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 border-t border-white/10 w-full">
+                              {currentDaySchedule.notes && (
+                                <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-lg p-2.5 flex items-start gap-2 overflow-hidden">
+                                  <span className="text-emerald-400 text-xs flex-shrink-0">📝</span>
+                                  <div className="flex-1 text-[12px] text-white/95 leading-tight break-words">
+                                    <span className="font-bold text-[#00ffaa] uppercase text-[10px] font-mono block mb-0.5">Note:</span>
+                                    {currentDaySchedule.notes}
+                                  </div>
+                                </div>
+                              )}
+                              {currentDaySchedule.files && currentDaySchedule.files.length > 0 && (
+                                <div className="bg-black/30 border border-white/10 rounded-lg p-2.5 flex flex-col justify-center overflow-hidden">
+                                  <span className="font-bold text-[#00ffaa] uppercase text-[10px] font-mono block mb-1">File ({currentDaySchedule.files.length}):</span>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {currentDaySchedule.files.map((file, fIdx) => (
+                                      <div
+                                        key={fIdx}
+                                        className="bg-black/40 border border-white/15 px-2 py-0.5 rounded flex items-center gap-1.5 text-[11px] text-white/90 max-w-full"
+                                      >
+                                        <Paperclip size={11} className="text-[#00ffaa] flex-shrink-0" />
+                                        <span className="font-mono font-medium truncate max-w-[140px]">{file.name}</span>
+                                        <span className="text-white/40 text-[9px] flex-shrink-0">({file.size})</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Contenuto AI OpenAI distribuito in orizzontale */
+                        <div
+                          style={{
+                            fontSize: '13.5px',
+                            color: '#f4f2ea',
+                            fontWeight: 400,
+                          }}
+                        >
+                          {aiLoading ? (
+                            <div className="h-36 flex flex-col items-center justify-center text-white/75 gap-2">
+                              <div className="w-6 h-6 border-2 border-[#00ffaa] border-t-transparent rounded-full animate-spin" />
+                              <span className="text-[13px] font-mono animate-pulse">
+                                Interrogazione database in tempo reale con OpenAI...
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {aiResult?.question && (
+                                <div className="p-2 bg-black/45 rounded-lg border border-white/12 text-xs font-mono text-emerald-300 flex items-center gap-2">
+                                  <span className="text-white/50 text-[10px] uppercase tracking-wider">Domanda:</span>
+                                  <span className="text-white font-bold">"{aiResult.question}"</span>
+                                </div>
+                              )}
+                              <div className="leading-relaxed whitespace-pre-line text-[13px] text-[#f4f2ea] bg-black/25 p-3 rounded-lg border border-white/5 max-h-[140px] overflow-y-auto">
+                                {aiResult?.content}
+                              </div>
+                              <div className="flex justify-end pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => triggerEnterFocus()}
+                                  className="text-[11px] font-mono text-[#00ffaa] hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                  <span>⛶ Espandi Schermata Intera [ESC]</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            )}
-
             </div>
           )}
 
@@ -1598,9 +1598,15 @@ export default function Dashboard() {
 
       </div>
 
-      {/* ── Banda Bianca Inferiore: spessore diminuito di 0,5cm, speculare a quella superiore ── */}
+      {/* ── Banda Inferiore: bianca sfumata in nero verso l'estremità destra ── */}
       <div className="w-full flex justify-end flex-shrink-0 mt-auto">
-        <div className="bg-white rounded-tl-2xl w-[calc(100%-2.5rem)]" style={{ height: 'calc(3rem - 0.5cm)' }} />
+        <div
+          className="rounded-tl-2xl w-[calc(100%-2.5rem)]"
+          style={{
+            height: 'calc(3rem - 0.5cm)',
+            background: 'linear-gradient(90deg, #ffffff 0%, #ffffff calc(100% - 310px), #333842 calc(100% - 170px), #111111 100%)',
+          }}
+        />
       </div>
 
       </div>
