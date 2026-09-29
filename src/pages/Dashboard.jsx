@@ -77,6 +77,9 @@ function ClockDriveBox() {
   const digits = hhmm.replace(/[^0-9]/g, '')
   const d1 = digits[0] || '0'
   const d2 = digits[1] || '0'
+  const d3 = digits[2] || '0'
+  const d4 = digits[3] || '0'
+
   const colorCanaryYellow = '#ffd600' // 🟡 Giallo canarino brillante e luminoso
   const colorPurple       = '#7e22ce' // 🟣 Viola profondo (#7e22ce)
   const colorAnthracite   = '#334155' // Separatore : in antracite pulito
