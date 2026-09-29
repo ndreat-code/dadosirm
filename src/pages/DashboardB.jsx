@@ -1395,18 +1395,37 @@ export default function Dashboard() {
                                 </div>
                               )}
                               {currentDaySchedule.files && currentDaySchedule.files.length > 0 && (
-                                <div className="flex flex-col gap-1">
-                                  <span className="font-semibold text-slate-400 uppercase text-[10.5px] tracking-wide block">
+                                <div
+                                  className="rounded-lg p-2.5 flex flex-col gap-1.5 overflow-hidden"
+                                  style={{
+                                    border: '1.2px solid #e2e8f0',
+                                    boxShadow: '0 0 10px rgba(226, 232, 240, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                  }}
+                                >
+                                  <span
+                                    className="font-semibold uppercase text-[10.5px] tracking-wide block"
+                                    style={{
+                                      color: '#e2e8f0',
+                                      textShadow: '0 0 6px rgba(255, 255, 255, 0.3)',
+                                      fontFamily: '"Switzer", sans-serif',
+                                    }}
+                                  >
                                     File ({currentDaySchedule.files.length}):
                                   </span>
                                   <div className="flex flex-wrap gap-1.5">
                                     {currentDaySchedule.files.map((file, fIdx) => (
                                       <div
                                         key={fIdx}
-                                        className="bg-white/10 px-2.5 py-1 rounded flex items-center gap-1.5 text-[11px] text-white/90 max-w-full"
+                                        className="px-2.5 py-1 rounded flex items-center gap-1.5 text-[11px] text-white/90 max-w-full"
+                                        style={{
+                                          backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                          border: '1px solid rgba(226, 232, 240, 0.35)',
+                                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+                                        }}
                                       >
                                         <span className="font-medium truncate max-w-[150px]">{file.name}</span>
-                                        <span className="text-white/40 text-[9px] flex-shrink-0">({file.size})</span>
+                                        <span className="text-white/50 text-[9px] flex-shrink-0">({file.size})</span>
                                       </div>
                                     ))}
                                   </div>
