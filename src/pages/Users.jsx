@@ -12,7 +12,6 @@ import {
   Check,
   Building2,
   CalendarDays,
-  Backpack,
   ListTodo,
   TrendingUp,
   Cpu,
@@ -20,6 +19,7 @@ import {
   Mail,
   Zap,
 } from 'lucide-react'
+import Backpack3DIcon from '../components/Backpack3DIcon'
 import { useAuth } from '../context/AuthContext'
 
 // Moduli e permessi configurabili nel CRM
@@ -28,7 +28,7 @@ const PERMISSION_MODULES = [
   { id: 'companies',   label: 'Aziende & Contratti',     desc: 'Schede clienti, contratti, acconti e saldi',         icon: Building2 },
   { id: 'activities',  label: 'Attività & Task',         desc: 'To-do, priorità e scadenze commerciali',             icon: ListTodo },
   { id: 'calendar',    label: 'Calendario Produzioni',   desc: 'Pianificazione set, shooting, date e orari',        icon: CalendarDays },
-  { id: 'inventory',   label: 'Inventario & Noleggi',    desc: 'Disponibilità camere, lenti, luci e droni',          icon: Backpack },
+  { id: 'inventory',   label: 'Inventario & Noleggi',    desc: 'Disponibilità camere, lenti, luci e droni',          icon: Backpack3DIcon },
   { id: 'leads',       label: 'Pipeline & Opportunità',  desc: 'Trattative in corso, preventivi e BANT',            icon: Shield },
   { id: 'ai',          label: 'AI Intelligence Assistant', desc: 'Assistente intelligente e automazioni',            icon: Cpu },
   { id: 'devNotes',    label: 'Note Sviluppatore',       desc: 'Invio note allo sviluppatore (n.drea.t@gmail.com)',  icon: Mail },

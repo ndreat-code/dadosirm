@@ -4,20 +4,20 @@ import {
   Building2,
   ListTodo,
   CalendarDays,
-  Backpack,
   Users as UsersIcon,
   Settings as SettingsIcon,
   ShieldCheck,
   UserCheck,
 } from 'lucide-react'
 import ClockDriveBox from './ClockDriveBox'
+import Backpack3DIcon from './Backpack3DIcon'
 import { useAuth } from '../context/AuthContext'
 
 const navItems = [
   { to: '/companies',  permission: 'companies',  label: 'Companies',   title: 'Companies (Aziende & Contratti)', icon: Building2 },
   { to: '/activities', permission: 'activities', label: 'Activities',  title: 'Activities (Attività & Task)',   icon: ListTodo },
   { to: '/calendar',   permission: 'calendar',   label: 'Calendar',    title: 'Calendar (Calendario Set)',      icon: CalendarDays },
-  { to: '/inventory',  permission: 'inventory',  label: 'Inventario',  title: 'Inventario (Attrezzature)',       icon: Backpack },
+  { to: '/inventory',  permission: 'inventory',  label: 'Inventario',  title: 'Inventario (Attrezzature)',       icon: Backpack3DIcon },
   { to: '/users',      permission: 'users',      label: 'Utenti',      title: 'Utenti & Permessi di Accesso',    icon: UsersIcon },
 ]
 
