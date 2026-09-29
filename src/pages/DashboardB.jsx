@@ -794,13 +794,13 @@ export default function Dashboard() {
         }}
       >
 
-        {/* ── Banda Superiore: bianca sfumata in nero verso l'incontro con ASK TO OPENAI ── */}
+        {/* ── Banda Superiore: nera da sinistra, sfuma in bianco all'incontro con ASK OPENAI ── */}
         <div className="w-full flex justify-end flex-shrink-0">
           <div
             className="rounded-bl-2xl w-[calc(100%-2.5rem)]"
             style={{
               height: 'calc(3rem - 0.5cm)',
-              background: 'linear-gradient(90deg, #ffffff 0%, #ffffff calc(100% - 310px), #333842 calc(100% - 170px), #111111 100%)',
+              background: 'linear-gradient(90deg, #111111 0%, #111111 calc(100% - 310px), #4b5563 calc(100% - 220px), #ffffff calc(100% - 160px), #ffffff 100%)',
             }}
           />
         </div>
@@ -1589,13 +1589,13 @@ export default function Dashboard() {
 
       </div>
 
-      {/* ── Banda Inferiore: bianca sfumata in nero verso l'estremità destra ── */}
+      {/* ── Banda Inferiore: nera da sinistra, sfuma in bianco all'incontro con ASK OPENAI ── */}
       <div className="w-full flex justify-end flex-shrink-0 mt-auto">
         <div
           className="rounded-tl-2xl w-[calc(100%-2.5rem)]"
           style={{
             height: 'calc(3rem - 0.5cm)',
-            background: 'linear-gradient(90deg, #ffffff 0%, #ffffff calc(100% - 310px), #333842 calc(100% - 170px), #111111 100%)',
+            background: 'linear-gradient(90deg, #111111 0%, #111111 calc(100% - 310px), #4b5563 calc(100% - 220px), #ffffff calc(100% - 160px), #ffffff 100%)',
           }}
         />
       </div>
