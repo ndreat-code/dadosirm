@@ -23,16 +23,16 @@ export default function ClockDriveBox({
   const d4 = digits[3] || '0'
 
   // Colori ordinati:
-  // 1ª cifra: 🟡 Giallo canarino (#facc15)
+  // 1ª cifra: 🟡 Giallo canarino luminoso ad alta brillantezza (#ffd600)
   // 2ª cifra: 🟣 Viola profondo (#7e22ce)
   // Separatore : in antracite pulito (#334155)
   // 3ª cifra: 🔵 Blu tenue / Azzurro (#0ea5e9)
-  // 4ª cifra: 🌸 Rosa tenue (#ec4899)
-  const colorCanaryYellow = '#facc15' // Giallo canarino vivo
+  // 4ª cifra: 🍑 Rosa pesca caldo (#f67280)
+  const colorCanaryYellow = '#ffd600' // Giallo canarino brillante e luminoso
   const colorPurple       = '#7e22ce'
   const colorAnthracite   = '#334155'
   const colorSoftBlue     = '#0ea5e9'
-  const colorSoftPink     = '#ec4899'
+  const colorPeachPink    = '#f67280' // Rosa pesca caldo e tenue
 
   if (compact) {
     return (
@@ -59,7 +59,7 @@ export default function ClockDriveBox({
           />
         </div>
 
-        {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino, Viola, Blu (tenue), Rosa (tenue) */}
+        {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino luminoso, Viola, Blu (tenue), Rosa pesca */}
         <div
           className="relative z-10 leading-none flex items-center justify-center select-none"
           style={{
@@ -70,8 +70,8 @@ export default function ClockDriveBox({
             WebkitFontSmoothing: 'antialiased'
           }}
         >
-          {/* Cifra 1: Giallo canarino */}
-          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(180, 83, 9, 0.35)' }}>
+          {/* Cifra 1: Giallo canarino luminoso */}
+          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(161, 98, 7, 0.4), 0 0 8px rgba(255, 214, 0, 0.45)' }}>
             {d1}
           </span>
           {/* Cifra 2: Viola */}
@@ -86,8 +86,8 @@ export default function ClockDriveBox({
           <span style={{ color: colorSoftBlue }}>
             {d3}
           </span>
-          {/* Cifra 4: Rosa (tenue) */}
-          <span style={{ color: colorSoftPink }}>
+          {/* Cifra 4: Rosa pesca */}
+          <span style={{ color: colorPeachPink }}>
             {d4}
           </span>
         </div>
@@ -120,7 +120,7 @@ export default function ClockDriveBox({
         />
       </div>
 
-      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino, Viola, Blu (tenue), Rosa (tenue) */}
+      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino luminoso, Viola, Blu (tenue), Rosa pesca */}
       <div className="relative z-10 leading-none flex items-center justify-center">
         <div
           className="leading-none flex items-center justify-center tracking-wider"
@@ -132,8 +132,8 @@ export default function ClockDriveBox({
             WebkitFontSmoothing: 'antialiased'
           }}
         >
-          {/* Cifra 1: Giallo canarino */}
-          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(180, 83, 9, 0.35)' }}>
+          {/* Cifra 1: Giallo canarino luminoso */}
+          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(161, 98, 7, 0.4), 0 0 8px rgba(255, 214, 0, 0.45)' }}>
             {d1}
           </span>
           {/* Cifra 2: Viola */}
@@ -148,8 +148,8 @@ export default function ClockDriveBox({
           <span style={{ color: colorSoftBlue }}>
             {d3}
           </span>
-          {/* Cifra 4: Rosa (tenue) */}
-          <span style={{ color: colorSoftPink }}>
+          {/* Cifra 4: Rosa pesca */}
+          <span style={{ color: colorPeachPink }}>
             {d4}
           </span>
         </div>
