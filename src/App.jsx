@@ -25,9 +25,14 @@ function MainLayout() {
   const ActiveDashboard = isPort3005 ? DashboardB : Dashboard
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#111111]">
+    <div
+      className="flex h-screen overflow-hidden"
+      style={{
+        background: 'linear-gradient(180deg, #2d3139 0%, #22262d 42%, #191b20 100%)',
+      }}
+    >
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-transparent">
         <Routes>
           <Route
             path="/"

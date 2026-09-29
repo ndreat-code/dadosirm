@@ -384,7 +384,7 @@ export default function Companies() {
     <div
       className="h-full min-h-screen md:min-h-0 flex flex-col flex-1 relative overflow-hidden"
       style={{
-        backgroundColor: '#eaf4fb',
+        backgroundColor: 'transparent',
         fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
@@ -394,6 +394,7 @@ export default function Companies() {
         style={{
           background: 'linear-gradient(180deg, #f0f8fd 0%, #e5f3fa 100%)',
           borderLeft: '1.5px solid #d4ebf9',
+          boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
         }}
       >
         {/* ── AREA PRINCIPALE: CONTENUTO IMMEDIATO SENZA TITOLONE IN ALTO PER MASSIMA VISIBILITÀ ── */}

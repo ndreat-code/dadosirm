@@ -366,10 +366,15 @@ export default function Inventory() {
   }
 
   return (
-    <div className="h-full min-h-screen md:min-h-0 bg-[#111111] flex flex-col flex-1 relative overflow-hidden">
+    <div className="h-full min-h-screen md:min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden">
       
       {/* ── CANVAS VERDE TAVOLO DA BILIARDO (#007a50) IDENTICO AL CRM ── */}
-      <div className="h-full flex-1 bg-[#007a50] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden">
+      <div
+        className="h-full flex-1 bg-[#007a50] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden"
+        style={{
+          boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+        }}
+      >
 
         {/* ── Banda Bianca Superiore Decorativa ── */}
         <div className="w-full flex justify-end flex-shrink-0">

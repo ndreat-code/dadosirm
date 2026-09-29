@@ -399,11 +399,14 @@ export default function Calendar() {
   }
 
   return (
-    <div className="h-full min-h-screen md:min-h-0 bg-[#111111] flex flex-col flex-1 relative overflow-hidden font-sans">
+    <div className="h-full min-h-screen md:min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden font-sans">
       
       {/* ── CANVAS BIANCO ("FOGLIO") DALL'ESTREMITÀ PER GUADAGNARE TUTTO LO SPAZIO ── */}
       <div
         className="h-full flex-1 bg-white rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden text-slate-800 p-2 sm:p-2.5"
+        style={{
+          boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+        }}
       >
 
         {/* ── RETICOLO BISETTIMANALE CONTINUO: DIVISORI LATERALI COLORATI E SCORREVOLE A ROTELLINA ── */}

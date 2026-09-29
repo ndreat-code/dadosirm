@@ -235,10 +235,10 @@ export default function Sidebar() {
         transform: isAiFocus ? 'translateX(-100%)' : 'translateX(0)',
         overflow: 'hidden',
         pointerEvents: isAiFocus ? 'none' : 'auto',
-        // Finitura grigio metallizzato satinato con riflessi armonizzati
-        background: 'linear-gradient(180deg, #2d3139 0%, #22262d 42%, #191b20 100%)',
-        borderRight: '1px solid #383e49',
-        boxShadow: 'inset -1px 0 0 rgba(0, 0, 0, 0.4), inset 1px 0 0 rgba(255, 255, 255, 0.05)',
+        // Finitura grigio metallizzato satinato che fluisce continua negli spazi curvi
+        background: 'transparent',
+        borderRight: 'none',
+        boxShadow: 'none',
       }}
     >
       

@@ -778,7 +778,7 @@ export default function Dashboard() {
   }, [selectedCalendarDay])
 
   return (
-    <div className="h-full min-h-screen md:min-h-0 bg-[#111111] flex flex-col flex-1 relative overflow-hidden">
+    <div className="h-full min-h-screen md:min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden">
       {/* Automazione otturatore macchina fotografica Cine/Foto */}
       <CameraShutter
         trigger={shutterTrigger}
@@ -786,8 +786,13 @@ export default function Dashboard() {
         duration={650}
       />
 
-      {/* Canvas Verde principale che occupa tutta l'area con angoli sinistri esterni arrotondati */}
-      <div className="h-full flex-1 bg-[#007a50] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden">
+      {/* Canvas Verde principale che occupa tutta l'area con angoli sinistri esterni arrotondati adagiati sulla barra metallica */}
+      <div
+        className="h-full flex-1 bg-[#007a50] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden"
+        style={{
+          boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+        }}
+      >
 
         {/* ── Banda Bianca Superiore: spessore diminuito di 0,5cm ── */}
         <div className="w-full flex justify-end flex-shrink-0">
