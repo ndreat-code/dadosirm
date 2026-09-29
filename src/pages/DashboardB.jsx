@@ -901,7 +901,7 @@ export default function Dashboard() {
                   className="p-2.5 bg-white shadow-sm flex flex-col justify-between min-h-[104px] h-[104px] border border-black/10 select-none shrink-0"
                   style={{
                     backgroundColor: '#ffffff',
-                    width: '240px',
+                    width: 'calc(240px + 3cm)',
                     borderRadius: '6px',
                   }}
                 >
@@ -918,8 +918,8 @@ export default function Dashboard() {
                     </span>
                   </div>
 
-                  {/* 7 Caselle Giorni: solo prima lettera (L M M G V S D) con segna giorno dinamico */}
-                  <div className="grid grid-cols-7 gap-1 mt-1 flex-1 items-stretch">
+                  {/* 7 Caselle Giorni estese per maggiore facilità di click: prima lettera (L M M G V S D) con segna giorno dinamico */}
+                  <div className="grid grid-cols-7 gap-1.5 mt-1 flex-1 items-stretch">
                     {currentWeekDays.map((d) => {
                       const isSelected = selectedCalendarDay?.date === d.date
                       const isPinned = pinnedCalendarDay?.date === d.date
@@ -942,7 +942,7 @@ export default function Dashboard() {
                               setActiveOutputTab('day')
                             }
                           }}
-                          className={`flex flex-col items-center justify-center rounded transition-all group py-1 border cursor-pointer ${
+                          className={`flex flex-col items-center justify-center rounded-md transition-all group py-1 border cursor-pointer ${
                             isSelected
                               ? 'ring-2 ring-[#00ffaa] bg-emerald-50 shadow-md border-[#00c853]'
                               : d.isToday
@@ -952,7 +952,7 @@ export default function Dashboard() {
                           title={`Posiziona il cursore o clicca per visualizzare gli impegni di ${d.name}`}
                         >
                           <span
-                            className="text-base font-black leading-none block"
+                            className="text-[17px] font-black leading-none block"
                             style={{
                               fontFamily: '"Goldman", sans-serif',
                               color: isSelected ? '#007a50' : d.isToday ? '#007a50' : '#334155',
@@ -995,7 +995,7 @@ export default function Dashboard() {
               </div>
 
               {/* Riga Inferiore: Next actions (sinistra) + Finestra Pop-up estesa al centro della dashboard */}
-              <div className="flex items-start gap-4 flex-1 min-w-0" style={{ marginTop: '2rem' }}>
+              <div className="flex items-start gap-4 flex-1 min-w-0" style={{ marginTop: '2rem', marginBottom: '0.2cm' }}>
 
             {/* Box 1: Next actions — Ingrandito a 262px x 296px con sfondo blu notte #0b1626 (stessa tonalità della card TO DO) */}
             <div
@@ -1172,7 +1172,8 @@ export default function Dashboard() {
                         border: 'none',
                         boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
                         height: '390px',
-                        maxHeight: '390px',
+                        maxHeight: 'calc(100% - 0.2cm)',
+                        marginBottom: '0.2cm',
                         fontFamily: '"Switzer", sans-serif',
                         overscrollBehavior: 'contain',
                       }}
