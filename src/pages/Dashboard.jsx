@@ -880,21 +880,25 @@ export default function Dashboard() {
         duration={650}
       />
 
-      {/* Canvas Grigio Metallizzato principale (stesso grigio #e2e8f0 del testo CRM) che occupa tutta l'area con angoli sinistri esterni arrotondati adagiati sulla barra metallica */}
+      {/* Canvas Grigio Metallizzato principale con angoli sinistri esterni arrotondati adagiati sulla barra metallica e angolo destro a taglio netto a 90° dritto col confine dello display */}
       <div
-        className="h-full flex-1 bg-[#e2e8f0] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden"
+        className="h-full flex-1 bg-[#e2e8f0] rounded-tl-[48px] rounded-bl-[48px] rounded-tr-none rounded-br-none flex flex-col justify-between relative min-w-0 overflow-hidden"
         style={{
           boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+          borderTopRightRadius: '0px',
+          borderBottomRightRadius: '0px',
         }}
       >
 
         {/* ── Banda Superiore: stessa tonalità di grigio della barra laterale (#2d3139), sfuma in bianco prima di giungere ad ASK OPENAI ── */}
         <div className="w-full flex justify-end flex-shrink-0">
           <div
-            className="rounded-bl-2xl w-[calc(100%-2.5rem)]"
+            className="rounded-bl-2xl rounded-tl-none rounded-tr-none rounded-br-none w-[calc(100%-2.5rem)]"
             style={{
               height: 'calc(3rem - 0.5cm)',
               background: 'linear-gradient(90deg, #2d3139 0%, #2d3139 calc(100% - 480px), #64748b calc(100% - 400px), #cbd5e1 calc(100% - 340px), #ffffff calc(100% - 295px), #ffffff 100%)',
+              borderTopRightRadius: '0px',
+              borderBottomRightRadius: '0px',
             }}
           />
         </div>
@@ -1714,13 +1718,17 @@ export default function Dashboard() {
 
       </div>
 
-      {/* ── Banda Inferiore: stessa tonalità di grigio della barra laterale (#2d3139) con logo DADO sfumato all'88% ── */}
+      {/* ── Banda Inferiore: stessa tonalità di grigio della barra laterale (#2d3139) con logo DADO sfumato all'88% e taglio netto a 90° col display in basso a destra ── */}
       <div className="w-full flex justify-end flex-shrink-0 mt-auto">
         <div
-          className="rounded-tl-2xl w-[calc(100%-2.5rem)] flex items-center justify-center overflow-hidden py-1.5"
+          className="rounded-tl-2xl rounded-tr-none rounded-br-none rounded-bl-none w-[calc(100%-2.5rem)] flex items-center justify-center overflow-hidden py-1.5"
           style={{
             height: '80px',
             backgroundColor: '#2d3139',
+            borderTopLeftRadius: '1rem',
+            borderTopRightRadius: '0px',
+            borderBottomRightRadius: '0px',
+            borderBottomLeftRadius: '0px',
           }}
         >
           <DadoFooterLogo size={66} />

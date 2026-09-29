@@ -32,7 +32,7 @@ function MainLayout() {
       }}
     >
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-transparent">
+      <main className="flex-1 overflow-y-auto bg-transparent no-scrollbar">
         <Routes>
           <Route
             path="/"
