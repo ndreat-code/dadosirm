@@ -175,7 +175,7 @@ export default function Sidebar() {
   const location = useLocation()
   const { currentUser, canAccess, isAdmin, isDipendente, switchUser } = useAuth()
 
-  const isDashboard = location.pathname === '/' || location.pathname === '/dashboard-a' || location.pathname === '/dashboard-b'
+  const isDashboard = location.pathname === '/' || location.pathname === '' || location.pathname.startsWith('/dashboard')
   const isSubSection = ['/activities', '/companies', '/leads', '/calendar', '/inventory', '/inventario', '/users', '/utenti', '/settings'].some(path => location.pathname.startsWith(path))
 
   const [isAiFocus, setIsAiFocus] = useState(false)
@@ -245,15 +245,17 @@ export default function Sidebar() {
       {/* Intestazione Logo: completo in Dashboard, scritta CRM centrata sopra le icone nelle sottosezioni */}
       <DadoLogo isDashboard={isDashboard} />
 
-      {/* Collegamento a Google Drive con orario sovrapposto spostato sotto la scritta CRM */}
-      <div className={`mb-3 w-full flex ${isDashboard ? 'justify-start pl-[8px]' : 'justify-center'}`}>
-        <ClockDriveBox
-          width={isDashboard ? '96px' : '52px'}
-          height="48px"
-          compact={!isDashboard}
-          onlyTime={true}
-        />
-      </div>
+      {/* Collegamento a Google Drive con orario sovrapposto sotto la scritta CRM (visibile solo nelle pagine interne, rimosso in Dashboard) */}
+      {!isDashboard && (
+        <div className="mb-3 w-full flex justify-center">
+          <ClockDriveBox
+            width="52px"
+            height="48px"
+            compact={true}
+            onlyTime={true}
+          />
+        </div>
+      )}
 
       {/* Pulsante Dashboard — Visibile solo per chi ha accesso alla Dashboard */}
       {hasDashboardAccess && (
@@ -269,7 +271,7 @@ export default function Sidebar() {
             }`
           }
           style={({ isActive }) => ({
-            marginTop: '0.25rem',
+            marginTop: isDashboard ? '0.75rem' : '0.25rem',
             background: isActive
               ? 'linear-gradient(145deg, #3a424e 0%, #252a33 100%)'
               : 'linear-gradient(145deg, #323741 0%, #21252c 100%)',
