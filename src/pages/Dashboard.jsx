@@ -1097,9 +1097,9 @@ export default function Dashboard() {
 
                 {/* Riga Inferiore: Next actions (sinistra) + Finestra Pop-up estesa al centro della dashboard */}
                 <div className="flex items-start gap-4 flex-1 min-w-0" style={{ marginTop: '2rem' }}>
-                  {/* Box 1: Next actions — Ingrandito a 262px x 296px per ospitare perfettamente la card New Opportunities con punta affilata */}
+                  {/* Box 1: Next actions — Ingrandito a 262px x 296px con sfondo blu notte #0b1626 (stessa tonalità della card TO DO) */}
                   <div
-                    className="bg-[#111111] px-4 py-3.5 flex flex-col justify-between flex-shrink-0 shadow-sm"
+                    className="bg-[#0b1626] px-4 py-3.5 flex flex-col justify-between flex-shrink-0 shadow-sm"
                     style={{
                       width: '262px',
                       height: '296px',
