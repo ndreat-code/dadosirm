@@ -26,13 +26,13 @@ export default function ClockDriveBox({
   // 1ª cifra: 🟡 Giallo/Ambra (#b45309, contrasto netto e nitido su bianco)
   // 2ª cifra: 🟣 Viola profondo (#7e22ce)
   // Separatore : in antracite pulito (#334155)
-  // 3ª cifra: 🟠 Arancione vivo (#ea580c)
-  // 4ª cifra: 🔵 Blu tenue / Azzurro (#0ea5e9)
+  // 3ª cifra: 🔵 Blu tenue / Azzurro (#0ea5e9)
+  // 4ª cifra: 🌸 Rosa tenue (#ec4899)
   const colorYellow     = '#b45309'
   const colorPurple     = '#7e22ce'
   const colorAnthracite = '#334155'
-  const colorOrange     = '#ea580c'
   const colorSoftBlue   = '#0ea5e9'
+  const colorSoftPink   = '#ec4899'
 
   if (compact) {
     return (
@@ -59,7 +59,7 @@ export default function ClockDriveBox({
           />
         </div>
 
-        {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Arancione, Blu (tenue) */}
+        {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu (tenue), Rosa (tenue) */}
         <div
           className="relative z-10 leading-none flex items-center justify-center select-none"
           style={{
@@ -82,12 +82,12 @@ export default function ClockDriveBox({
           <span style={{ color: colorAnthracite }} className="mx-[1.5px] font-bold animate-pulse text-[15px]">
             :
           </span>
-          {/* Cifra 3: Arancione */}
-          <span style={{ color: colorOrange }}>
+          {/* Cifra 3: Blu (tenue) */}
+          <span style={{ color: colorSoftBlue }}>
             {d3}
           </span>
-          {/* Cifra 4: Blu (tenue) */}
-          <span style={{ color: colorSoftBlue }}>
+          {/* Cifra 4: Rosa (tenue) */}
+          <span style={{ color: colorSoftPink }}>
             {d4}
           </span>
         </div>
@@ -120,7 +120,7 @@ export default function ClockDriveBox({
         />
       </div>
 
-      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Arancione, Blu (tenue) */}
+      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu (tenue), Rosa (tenue) */}
       <div className="relative z-10 leading-none flex items-center justify-center">
         <div
           className="leading-none flex items-center justify-center tracking-wider"
@@ -144,12 +144,12 @@ export default function ClockDriveBox({
           <span style={{ color: colorAnthracite }} className="mx-[2px] font-bold animate-pulse text-[18px]">
             :
           </span>
-          {/* Cifra 3: Arancione */}
-          <span style={{ color: colorOrange }}>
+          {/* Cifra 3: Blu (tenue) */}
+          <span style={{ color: colorSoftBlue }}>
             {d3}
           </span>
-          {/* Cifra 4: Blu (tenue) */}
-          <span style={{ color: colorSoftBlue }}>
+          {/* Cifra 4: Rosa (tenue) */}
+          <span style={{ color: colorSoftPink }}>
             {d4}
           </span>
         </div>

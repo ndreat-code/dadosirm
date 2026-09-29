@@ -83,8 +83,8 @@ function ClockDriveBox() {
   const colorYellow     = '#b45309' // 🟡 Giallo/Ambra (#b45309)
   const colorPurple     = '#7e22ce' // 🟣 Viola profondo (#7e22ce)
   const colorAnthracite = '#334155' // Separatore : in antracite pulito
-  const colorOrange     = '#ea580c' // 🟠 Arancione vivo (#ea580c)
-  const colorSoftBlue   = '#0ea5e9' // 🔵 Blu tenue / Azzurro
+  const colorSoftBlue   = '#0ea5e9' // 🔵 Blu tenue / Azzurro (#0ea5e9)
+  const colorSoftPink   = '#ec4899' // 🌸 Rosa tenue (#ec4899)
 
   return (
     <div
@@ -103,7 +103,7 @@ function ClockDriveBox() {
         />
       </div>
 
-      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Arancione, Blu (tenue) su fondo bianco */}
+      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo, Viola, Blu (tenue), Rosa (tenue) su fondo bianco */}
       <div className="relative z-10 flex flex-col items-center justify-center">
         <div
           className="flex items-center justify-center leading-none tracking-wider select-none"
@@ -118,8 +118,8 @@ function ClockDriveBox() {
           <span style={{ color: colorYellow }}>{d1}</span>
           <span style={{ color: colorPurple }}>{d2}</span>
           <span style={{ color: colorAnthracite }} className="mx-[2px] font-bold animate-pulse text-[18px]">:</span>
-          <span style={{ color: colorOrange }}>{d3}</span>
-          <span style={{ color: colorSoftBlue }}>{d4}</span>
+          <span style={{ color: colorSoftBlue }}>{d3}</span>
+          <span style={{ color: colorSoftPink }}>{d4}</span>
         </div>
         <div
           className="font-bold text-slate-700 mt-1 tracking-wide leading-tight text-[12px]"
