@@ -32,12 +32,12 @@ export const DEFAULT_USERS = [
     status: 'active',
     accessType: 'restricted',
     permissions: {
-      dashboard: false,  // Non accede alla Dashboard
+      dashboard: true,   // DASHBOARD: ABILITATO PER DIRECTOR
       companies: false,  // Non accede ad Aziende
       activities: true,  // ATTIVITÀ: ABILITATO
       calendar: true,    // CALENDARIO: ABILITATO
       inventory: false,  // Non accede all'inventario
-      leads: false,      // Non accede ai Lead
+      leads: true,       // LEADS & OPPORTUNITÀ: ABILITATO PER DIRECTOR
       ai: false,         // Non accede ad AI
       devNotes: false,   // BLOCCATO: Non può inviare note sviluppatore
       askOpenAi: false,  // BLOCCATO: Non può usare Ask OpenAI
@@ -49,13 +49,13 @@ export const DEFAULT_USERS = [
 
 const AuthContext = createContext(null)
 
-const USERS_STORAGE_KEY = 'dado_crm_users_v3'
-const ACTIVE_USER_ID_KEY = 'dado_crm_active_user_id_v3'
+const USERS_STORAGE_KEY = 'dado_crm_users_v4'
+const ACTIVE_USER_ID_KEY = 'dado_crm_active_user_id_v4'
 
 export function AuthProvider({ children }) {
   const [users, setUsers] = useState(() => {
     try {
-      const saved = localStorage.getItem(USERS_STORAGE_KEY) || localStorage.getItem('dado_crm_users_v2')
+      const saved = localStorage.getItem(USERS_STORAGE_KEY) || localStorage.getItem('dado_crm_users_v3') || localStorage.getItem('dado_crm_users_v2')
       if (saved) {
         const parsed = JSON.parse(saved)
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -71,6 +71,11 @@ export function AuthProvider({ children }) {
                   role: (u.role === 'Dipendente Operativo' || u.role === 'Collaboratore') ? 'Director' : u.role,
                   badgeRole: (u.badgeRole === 'Dipendente' || u.badgeRole === 'Collaboratore') ? 'Director' : u.badgeRole,
                   email: u.email === 'dipendente@dadocreativestudio.com' ? 'davide@dadocreativestudio.com' : u.email,
+                  permissions: {
+                    ...u.permissions,
+                    dashboard: true,
+                    leads: true,
+                  },
                 }
               }
               return u

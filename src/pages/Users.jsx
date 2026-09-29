@@ -172,7 +172,7 @@ export default function Users() {
               </div>
               {!isAdmin && (
                 <p className="text-xs text-amber-300/90 font-sans mt-0.5">
-                  ⚠️ Modalità Director: Accesso consentito solo ad <strong>Attività</strong> e <strong>Calendario</strong>. Note Sviluppatore e Ask OpenAI sono disabilitate.
+                  ⚠️ Modalità Director: Accesso consentito a <strong>Dashboard</strong>, <strong>Leads</strong>, <strong>Attività</strong> e <strong>Calendario</strong>. Note Sviluppatore e Ask OpenAI sono disabilitate.
                 </p>
               )}
             </div>
