@@ -22,7 +22,21 @@ function KpiCard({
   subSize = '13px',
   minHeight = '90px',
   padding = 'p-3',
+  fontFamily = '"Red Rose", serif',
+  labelFontFamily,
+  valueFontFamily,
+  subFontFamily,
+  labelStroke,
+  labelShadow,
+  valueStroke,
+  valueShadow,
+  letterSpacing = '0.04em',
+  valueWeight = 900,
 }) {
+  const effectiveLabelFont = labelFontFamily || fontFamily
+  const effectiveValueFont = valueFontFamily || fontFamily
+  const effectiveSubFont = subFontFamily || fontFamily
+
   return (
     <div
       className={`${padding} flex flex-col justify-between min-w-0 shadow-sm`}
@@ -33,19 +47,36 @@ function KpiCard({
         height: height || undefined,
         flex: width ? 'none' : flex,
         width: width || undefined,
+        fontFamily,
       }}
     >
       {/* Titolo card */}
       <span
-        className="font-black uppercase tracking-[0.10em] block leading-tight whitespace-nowrap"
-        style={{ color: labelColor, fontSize: labelSize }}
+        className="font-black uppercase tracking-[0.08em] block leading-tight whitespace-nowrap"
+        style={{
+          color: labelColor,
+          fontSize: labelSize,
+          fontFamily: effectiveLabelFont,
+          letterSpacing,
+          WebkitTextStroke: labelStroke || undefined,
+          textShadow: labelShadow || undefined,
+        }}
       >
         {label}
       </span>
       <div className="mt-0.5">
         <span
-          className="font-black leading-none block font-mono"
-          style={{ color: valueColor, fontSize: valueSize }}
+          className="font-black leading-none block"
+          style={{
+            color: valueColor,
+            fontSize: valueSize,
+            fontFamily: effectiveValueFont,
+            fontWeight: valueWeight || 900,
+            letterSpacing,
+            WebkitTextStroke: valueStroke || undefined,
+            textShadow: valueShadow || undefined,
+            paintOrder: 'stroke fill',
+          }}
         >
           {value}
         </span>
@@ -53,7 +84,12 @@ function KpiCard({
         {sub && (
           <span
             className="font-bold block mt-1 leading-tight whitespace-nowrap"
-            style={{ color: subColor || 'rgba(255,255,255,0.7)', fontSize: subSize }}
+            style={{
+              color: subColor || 'rgba(255,255,255,0.7)',
+              fontSize: subSize,
+              fontFamily: effectiveSubFont,
+              letterSpacing: '-0.01em',
+            }}
           >
             {sub}
           </span>
@@ -63,8 +99,13 @@ function KpiCard({
   )
 }
 
-// ── Box Orologio con Bordo Ciano e Logo Google Drive come sfondo ─────
-function ClockDriveBox() {
+// ── Box Collegamento Google Drive con Orologio (A filo inferiore con le cards superiori) ─────
+function ClockDriveBox({
+  width = '160px',
+  height = '78px',
+  minHeight,
+  className = '',
+} = {}) {
   const [time, setTime] = useState(new Date())
 
   useEffect(() => {
@@ -79,52 +120,48 @@ function ClockDriveBox() {
   const d3 = digits[2] || '0'
   const d4 = digits[3] || '0'
 
-  const colorCanaryYellow = '#ffd600' // 🟡 Giallo canarino brillante e luminoso
-  const colorPurple       = '#7e22ce' // 🟣 Viola profondo (#7e22ce)
-  const colorAnthracite   = '#334155' // Separatore : in antracite pulito
-  const colorSoftBlue     = '#0ea5e9' // 🔵 Blu tenue / Azzurro (#0ea5e9)
-  const colorPeachPink    = '#f67280' // 🍑 Rosa pesca caldo (#f67280)
-
   return (
     <div
-      className="border border-[#e2e8f0] hover:border-slate-300 rounded-[12px] py-2 px-3 text-center cursor-pointer transition-all relative overflow-hidden group select-none shadow-xs hover:shadow-md hover:scale-[1.01] flex flex-col items-center justify-center min-h-[64px] bg-white"
-      style={{ backgroundColor: '#ffffff' }}
+      className={`border border-black/10 hover:border-slate-400 rounded-[6px] py-1.5 px-3 text-center cursor-pointer transition-all relative overflow-hidden group select-none shadow-sm hover:shadow-md hover:scale-[1.01] flex flex-col justify-center items-center shrink-0 bg-white ${className}`}
+      style={{
+        backgroundColor: '#ffffff',
+        width,
+        height,
+        minHeight: minHeight || height,
+        borderRadius: '6px',
+      }}
       onClick={() => window.open('https://drive.google.com', '_blank')}
       title="Clicca per aprire Google Drive"
     >
-      {/* Sfondo: Logo Google Drive nitido in watermark con blend multiply su fondo bianco */}
+      {/* Sfondo: Logo Google Drive dai colori vivi e meno trasparenti con blend multiply su fondo bianco */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
         <img
           src="/google-drive-logo.jpg"
           alt="Google Drive Logo"
-          className="w-[90px] h-[90px] object-contain opacity-25 group-hover:opacity-40 transition-opacity"
+          className="w-[66px] h-[66px] object-contain opacity-75 group-hover:opacity-90 transition-opacity"
           style={{ mixBlendMode: 'multiply' }}
         />
       </div>
 
-      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino luminoso, Viola, Blu (tenue), Rosa pesca su fondo bianco */}
-      <div className="relative z-10 flex flex-col items-center justify-center">
+      {/* Cifre NERE non trasparenti dell'orario centrate: font "Red Rose" dalla card ACTIVE CLIENTS e più grandi */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center">
         <div
-          className="flex items-center justify-center leading-none tracking-wider select-none"
+          className="flex items-center justify-center leading-none tracking-wider select-none text-[#000000]"
           style={{
-            fontFamily: '"Switzer", sans-serif',
-            fontSize: '22px',
-            fontWeight: 900,
+            fontFamily: '"Red Rose", serif',
+            fontSize: '35px',
+            fontWeight: 700,
             letterSpacing: '0.04em',
-            WebkitFontSmoothing: 'antialiased'
+            color: '#000000',
+            textShadow: '0 0 5px #ffffff, 0 0 10px #ffffff',
+            WebkitFontSmoothing: 'antialiased',
           }}
         >
-          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(161, 98, 7, 0.4), 0 0 8px rgba(255, 214, 0, 0.45)' }}>{d1}</span>
-          <span style={{ color: colorPurple }}>{d2}</span>
-          <span style={{ color: colorAnthracite }} className="mx-[2px] font-bold animate-pulse text-[18px]">:</span>
-          <span style={{ color: colorSoftBlue }}>{d3}</span>
-          <span style={{ color: colorPeachPink }}>{d4}</span>
-        </div>
-        <div
-          className="font-bold text-slate-700 mt-1 tracking-wide leading-tight text-[12px]"
-          style={{ fontFamily: '"Switzer", sans-serif' }}
-        >
-          Google Drive
+          <span style={{ color: '#000000' }}>{d1}</span>
+          <span style={{ color: '#000000' }}>{d2}</span>
+          <span style={{ color: '#000000' }} className="mx-[1.5px] font-semibold animate-pulse text-[28px] leading-none">:</span>
+          <span style={{ color: '#000000' }}>{d3}</span>
+          <span style={{ color: '#000000' }}>{d4}</span>
         </div>
       </div>
     </div>
@@ -366,6 +403,87 @@ function DeveloperNotesSearchBar() {
   )
 }
 
+// ── Box NOTE sotto Google Drive: tipo pagina girata di un libro completamente bianca con piega a destra in rilievo ──
+function TurnedPageNoteBox() {
+  const [noteText, setNoteText] = useState('')
+  const [saved, setSaved] = useState(false)
+  const { currentUser } = useAuth()
+
+  const handleSave = async (e) => {
+    if (e) e.preventDefault()
+    const text = noteText.trim()
+    if (!text) return
+    setSaved(true)
+    setNoteText('')
+    setTimeout(() => setSaved(false), 2500)
+
+    try {
+      await fetch('/api/developer-notes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': currentUser?.badgeRole || currentUser?.role || '',
+        },
+        body: JSON.stringify({ note: text }),
+      })
+    } catch (err) {
+      console.warn('Salvataggio nota:', err)
+    }
+  }
+
+  return (
+    <div className="w-full relative select-none">
+      {/* Foglio bianco con angolo tagliato a 45° in alto a destra */}
+      <div
+        className="w-full bg-white shadow-md hover:shadow-lg transition-all"
+        style={{
+          borderRadius: '6px 0 6px 6px',
+          padding: '10px 14px 12px 14px',
+          clipPath: 'polygon(0% 0%, calc(100% - 22px) 0%, 100% 22px, 100% 100%, 0% 100%)',
+          minHeight: '74px',
+        }}
+      >
+        {/* Intestazione Note */}
+        <div className="flex items-center justify-between">
+          <span
+            className="text-[#0f172a] font-bold text-[14.5px] tracking-wide"
+            style={{ fontFamily: '"Switzer", sans-serif' }}
+          >
+            Note
+          </span>
+          <span className="text-[10px] font-mono text-slate-400 mr-4 font-semibold tracking-wider uppercase">
+            {saved ? '✓ Salvata' : 'Studio'}
+          </span>
+        </div>
+
+        {/* Campo inserimento nota / promemoria */}
+        <form onSubmit={handleSave} className="mt-1.5 border-b border-slate-200 pb-1">
+          <input
+            type="text"
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder={saved ? "✓ Nota registrata!" : "Scrivi una nota..."}
+            className="w-full bg-transparent border-none outline-none text-[11.5px] text-slate-800 placeholder:text-slate-400 font-sans"
+            style={{ fontFamily: '"Switzer", sans-serif' }}
+          />
+        </form>
+      </div>
+
+      {/* Pagina girata sulla destra con lieve rilievo 3D */}
+      <div
+        className="absolute top-0 right-0 pointer-events-none"
+        style={{
+          width: '22px',
+          height: '22px',
+          background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 45%, #cbd5e1 100%)',
+          clipPath: 'polygon(0% 0%, 0% 100%, 100% 100%)',
+          filter: 'drop-shadow(-2px 3px 2.5px rgba(0, 0, 0, 0.24))',
+        }}
+      />
+    </div>
+  )
+}
+
 function DadoBrandMark({ size = 18, color = '#111111' }) {
   const w = size * 0.78
   const h = size
@@ -479,6 +597,67 @@ export default function Dashboard() {
   const calendarContainerRef = useRef(null)
   const popupContainerRef = useRef(null)
   const popupScrollRef = useRef(null)
+  const mondayButtonRef = useRef(null)
+  const nextActionsRef = useRef(null)
+  const askOpenAiRef = useRef(null)
+  const colonnaDestraRef = useRef(null)
+  const clockDriveRef = useRef(null)
+  const noteBoxRef = useRef(null)
+  const [nextActionsWidth, setNextActionsWidth] = useState(223)
+  const [preventiviMarginTop, setPreventiviMarginTop] = useState(null)
+  const [clockDriveHeight, setClockDriveHeight] = useState(null)
+
+  useEffect(() => {
+    function updateMeasurements() {
+      // 1. Allinea larghezza Next actions fino alla fine del riquadro Lunedì
+      if (mondayButtonRef.current && nextActionsRef.current) {
+        const mondayRect = mondayButtonRef.current.getBoundingClientRect()
+        const parentRect = nextActionsRef.current.parentElement.getBoundingClientRect()
+        const measuredWidth = Math.round(mondayRect.right - parentRect.left)
+        if (measuredWidth > 170) {
+          setNextActionsWidth(measuredWidth)
+        }
+      }
+
+      // 2. Calcola altezza Google Drive portando la parte inferiore esattamente a filo delle cards superiori
+      if (calendarContainerRef.current && clockDriveRef.current) {
+        const cardRect = calendarContainerRef.current.getBoundingClientRect()
+        const driveRect = clockDriveRef.current.getBoundingClientRect()
+        const targetH = Math.round(cardRect.bottom - driveRect.top)
+        if (targetH > 50 && targetH < 150) {
+          setClockDriveHeight(targetH)
+        }
+      }
+
+      // 3. Allinea inizio Box Preventivi alla medesima altezza verticale di Next actions (posizionato sotto a Google Drive e Note)
+      if (nextActionsRef.current && noteBoxRef.current) {
+        const nextRect = nextActionsRef.current.getBoundingClientRect()
+        const noteRect = noteBoxRef.current.getBoundingClientRect()
+        const offset = Math.round(nextRect.top - noteRect.bottom)
+        setPreventiviMarginTop(Math.max(0, offset))
+      } else if (nextActionsRef.current && clockDriveRef.current) {
+        const nextRect = nextActionsRef.current.getBoundingClientRect()
+        const driveRect = clockDriveRef.current.getBoundingClientRect()
+        const offset = Math.round(nextRect.top - driveRect.bottom)
+        setPreventiviMarginTop(Math.max(12, offset))
+      } else if (nextActionsRef.current && askOpenAiRef.current) {
+        const nextRect = nextActionsRef.current.getBoundingClientRect()
+        const askRect = askOpenAiRef.current.getBoundingClientRect()
+        const offset = Math.round(nextRect.top - askRect.bottom)
+        setPreventiviMarginTop(Math.max(12, offset))
+      }
+    }
+
+    updateMeasurements()
+    window.addEventListener('resize', updateMeasurements)
+    const t1 = setTimeout(updateMeasurements, 60)
+    const t2 = setTimeout(updateMeasurements, 250)
+    return () => {
+      window.removeEventListener('resize', updateMeasurements)
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [selectedCalendarDay])
 
   const handleDayMouseEnter = useCallback((d) => {
     // Se un giorno è fissato/bloccato dal click, non cambiare al passaggio del mouse
@@ -691,13 +870,21 @@ export default function Dashboard() {
         duration={650}
       />
 
-      {/* Canvas Grigio Metallizzato principale con angoli sinistri esterni arrotondati adagiati sulla barra metallica e angolo destro a taglio netto a 90° dritto col confine dello display */}
+      {/* Canvas Principale con sfondo Parquet Rovere di lusso e angoli sinistri esterni arrotondati adagiati sulla barra metallica e angolo destro a taglio netto a 90° dritto col confine dello display */}
       <div
-        className="h-full flex-1 bg-[#e2e8f0] rounded-tl-[48px] rounded-bl-[48px] rounded-tr-none rounded-br-none flex flex-col justify-between relative min-w-0 overflow-hidden"
+        className="h-full flex-1 rounded-tl-[48px] rounded-bl-[48px] rounded-tr-none rounded-br-none flex flex-col justify-between relative min-w-0 overflow-hidden"
         style={{
           boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
           borderTopRightRadius: '0px',
           borderBottomRightRadius: '0px',
+          backgroundColor: '#ede3d4',
+          backgroundImage: `
+            radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 55%, rgba(120, 100, 80, 0.08) 100%),
+            url('/dashboard-parquet.jpg?v=beige1')
+          `,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
       >
 
@@ -715,7 +902,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Contenuto Principale della Dashboard (allineato orizzontalmente e verticalmente sotto la banda bianca) ── */}
-        <div className="flex-1 min-h-0 pl-10 pr-8 py-2 flex gap-6 min-w-0 items-stretch overflow-y-auto">
+        <div className="flex-1 min-h-0 pl-10 pr-8 pt-2 pb-0 flex gap-6 min-w-0 items-stretch overflow-y-auto">
 
         {/* ══ COLONNA SINISTRA & CENTRALE (allineata sotto la banda bianca) ══ */}
         <div className="flex-1 flex flex-col gap-2.5 min-w-0 relative">
@@ -872,24 +1059,32 @@ export default function Dashboard() {
 
           {/* ── IN VISUALE STANDARD: Riga 1 (TO DO + Week + Active Clients) + Riga 2 (Next actions + Pop-up estesa al centro) ── */}
           {!isAiFocusMode && (
-            <div className="flex flex-col gap-2 mb-1 flex-1 min-w-0">
+            <div className="flex flex-col mb-1 flex-1 min-w-0">
 
               {/* Riga Superiore: Card TO DO, Calendario Week e Card ACTIVE CLIENTS */}
               <div className="flex gap-2.5 items-stretch flex-shrink-0">
-                {/* Card: TO DO — Sfondo Blu Notte in armonia con l'arancione #ff6f43 */}
+                {/* Card: TO DO — Sfondo Blu Notte con testo in Red Rose e numero 4 grassotto in Switzer (stile preventivi) */}
                 <KpiCard
                   label="TO DO"
                   value="4"
                   bg="#0b1626"
-                  labelColor="#ff6f43"
-                  valueColor="#ff6f43"
+                  labelColor="#ff0000"
+                  valueColor="#ff0000"
+                  labelStroke="1.2px #ff6600"
+                  labelShadow="0 0 2px #ff4500"
+                  valueStroke="1px #ff6600"
+                  valueShadow="0 0 2px #ff4500"
+                  fontFamily='"Red Rose", serif'
+                  valueFontFamily='"Red Rose", serif'
+                  valueWeight={700}
+                  letterSpacing="0.04em"
                   sub="2 in scadenza oggi"
                   subColor="#94a3b8"
                   width="160px"
                   minHeight="104px"
                   height="104px"
                   labelSize="15px"
-                  valueSize="36px"
+                  valueSize="38px"
                   subSize="14px"
                 />
 
@@ -920,12 +1115,13 @@ export default function Dashboard() {
 
                   {/* 7 Caselle Giorni estese per maggiore facilità di click: prima lettera (L M M G V S D) con segna giorno dinamico */}
                   <div className="grid grid-cols-7 gap-1.5 mt-1 flex-1 items-stretch">
-                    {currentWeekDays.map((d) => {
+                    {currentWeekDays.map((d, index) => {
                       const isSelected = selectedCalendarDay?.date === d.date
                       const isPinned = pinnedCalendarDay?.date === d.date
                       return (
                         <button
                           key={d.date}
+                          ref={index === 0 ? mondayButtonRef : null}
                           type="button"
                           onMouseEnter={() => handleDayMouseEnter(d)}
                           onClick={() => {
@@ -981,6 +1177,8 @@ export default function Dashboard() {
                     bg="#00ffaa"
                     labelColor="#111111"
                     valueColor="#111111"
+                    fontFamily='"Red Rose", serif'
+                    letterSpacing="0.04em"
                     sub="11 clienti attivi"
                     subColor="rgba(0, 0, 0, 0.7)"
                     width="160px"
@@ -995,15 +1193,17 @@ export default function Dashboard() {
               </div>
 
               {/* Riga Inferiore: Next actions (sinistra) + Finestra Pop-up estesa al centro della dashboard */}
-              <div className="flex items-start gap-4 flex-1 min-w-0" style={{ marginTop: '2rem', marginBottom: '0.2cm' }}>
+              <div className="flex items-start gap-4 flex-1 min-h-0" style={{ marginTop: '0.4cm', marginBottom: '0.3cm' }}>
 
-            {/* Box 1: Next actions — Ingrandito a 262px x 296px con sfondo blu notte #0b1626 (stessa tonalità della card TO DO) */}
+            {/* Box 1: Next actions — Ristretto fino alla fine del riquadro Lunedì del Calendar Week e sfalsato più in basso di 1cm */}
             <div
-              className="bg-[#0b1626] px-4 py-3.5 flex flex-col justify-between flex-shrink-0 shadow-sm"
+              ref={nextActionsRef}
+              className="bg-[#0b1626] px-3.5 py-3 flex flex-col justify-between flex-shrink-0 shadow-sm"
               style={{
-                width: '262px',
+                width: nextActionsWidth ? `${nextActionsWidth}px` : '223px',
                 height: '296px',
                 borderRadius: '8px',
+                marginTop: '1cm',
               }}
             >
               <div>
@@ -1017,7 +1217,7 @@ export default function Dashboard() {
                 {/* Testo "no races.." protetto su una sola riga senza andare a capo */}
                 <p
                   className="mt-0.5 font-medium leading-tight whitespace-nowrap"
-                  style={{ color: '#ffffff', fontSize: '14px', letterSpacing: '-0.02em' }}
+                  style={{ color: '#ffffff', fontSize: '12.5px', letterSpacing: '-0.02em' }}
                 >
                   No races. Keep your pace.
                 </p>
@@ -1028,8 +1228,8 @@ export default function Dashboard() {
                 {/* 1. Today — Cliccabile collegato a Calendar */}
                 <div className="w-full flex justify-center">
                   <Link
-                    to="/calendar?date=2026-09-25&day=today"
-                    className="border-2 border-[#ff4500] px-4 py-1 w-fit shadow-sm block hover:scale-105 transition-transform"
+                    to={`/calendar?date=${todayIso}&day=today`}
+                    className="border-2 border-[#ff4500] px-3.5 py-1 w-fit shadow-sm block hover:scale-105 transition-transform"
                     style={{
                       backgroundColor: 'transparent',
                       transform: 'skewX(-20deg)',
@@ -1055,96 +1255,78 @@ export default function Dashboard() {
                   </Link>
                 </div>
 
-                {/* 2. Domani — Cliccabile collegato a Calendar */}
-                <div className="w-full flex justify-end">
+                {/* 2. Riquadro Bianco Note */}
+                <div className="w-full flex justify-center">
                   <Link
-                    to={`/calendar?date=${tomorrowIso}&day=tomorrow`}
-                    className="bg-white rounded-full px-5 py-1 w-full flex items-center justify-end shadow-sm hover:scale-[1.02] transition-transform block"
-                    title={`Apri Domani (${tomorrowIso}) nel Calendario`}
+                    to="/activities?tab=notes"
+                    className="bg-white rounded-full px-4 py-1 w-full flex items-center justify-center shadow-sm hover:scale-[1.02] transition-transform block"
+                    title="Apri le Note e Annotazioni"
                   >
                     <span
                       style={{
                         fontFamily: '"Goldman", sans-serif',
-                        color: '#00c853',
-                        fontWeight: 400,
-                        fontSize: '1.48rem',
+                        color: '#111111',
+                        fontWeight: 700,
+                        fontSize: '1.20rem',
                         letterSpacing: '0.04em',
                         lineHeight: 1,
                         display: 'inline-block',
                       }}
                     >
-                      Domani
+                      Note
                     </span>
                   </Link>
                 </div>
 
-                {/* 3. Card Leads — Forma card con angoli arrotondati */}
-                <div className="w-full flex justify-start">
+                {/* 3. Call Reports — Forma capsula metallica */}
+                <div className="w-full flex justify-center">
                   <Link
-                    to="/leads"
-                    className="px-3.5 rounded-[7px] flex items-center justify-start w-[138px] shadow-sm hover:scale-105 transition-transform block overflow-hidden"
+                    to="/activities?type=call"
+                    className="px-4 rounded-full flex items-center justify-center w-full shadow-sm hover:scale-105 transition-transform block overflow-hidden"
                     style={{
-                      backgroundColor: '#d8a882',
-                      height: '34px',
+                      background: 'linear-gradient(135deg, #dce1e5 0%, #b8bfc6 35%, #9aa1a9 70%, #b4bac1 100%)',
+                      boxShadow: 'inset 0 1px 1.5px rgba(255, 255, 255, 0.8), 0 2px 5px rgba(0, 0, 0, 0.3)',
+                      border: '1px solid rgba(255, 255, 255, 0.5)',
+                      height: '32px',
                     }}
-                    title="Apri la sezione Leads (Funnel & Inbound)"
+                    title="Visualizza Call Reports"
                   >
                     <span
+                      className="text-center"
                       style={{
                         fontFamily: '"Goldman", sans-serif',
-                        color: '#1e78d6',
-                        fontSize: '1.38rem',
-                        fontWeight: 400,
+                        color: '#2ec1db',
+                        fontSize: '1.08rem',
+                        fontWeight: 700,
                         letterSpacing: '0.04em',
                         lineHeight: 1,
                         display: 'inline-block',
-                        transform: 'translateY(2px)',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.35)',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      leads
+                      call reports
                     </span>
                   </Link>
                 </div>
 
-                {/* 4. Card New Opportunities — Card con angoli a sinistra leggermente stondati e punta a freccia affilata a destra */}
-                <div className="w-full flex justify-end">
+                {/* 4. New Opportunities — Senza riquadro, testo lilla tendente al viola */}
+                <div className="w-full flex justify-center pt-0.5">
                   <Link
                     to="/opportunities"
-                    className="w-full h-[40px] relative flex items-center justify-end shadow-sm overflow-visible block hover:opacity-95 transition-opacity"
+                    className="flex items-center justify-center hover:opacity-90 hover:scale-105 transition-all block text-center"
                     title="Apri la sezione Nuove Opportunità"
                   >
-                    {/* Sfondo Card Nuove Opportunità: corpo con angoli sinistri stondati e punta a freccia affilata a destra */}
-                    <div className="absolute inset-0 flex items-stretch pointer-events-none">
-                      {/* Corpo rettangolare con angoli sinistri stondati */}
-                      <div
-                        className="h-full flex-1 rounded-l-[7px]"
-                        style={{
-                          background: 'linear-gradient(90deg, #32024b 0%, #4a0572 25%, #620997 60%, #760bb6 100%)',
-                        }}
-                      />
-                      {/* Punta della freccia affilata e proporzionata all'altezza della card */}
-                      <div
-                        className="h-full w-[24px] -ml-[1px] flex-shrink-0"
-                        style={{
-                          backgroundColor: '#760bb6',
-                          clipPath: 'polygon(0% 0%, 100% 50%, 0% 100%)',
-                        }}
-                      />
-                    </div>
-
-                    {/* Testo New Opportunities con gradiente oro metallizzato posizionato con distacco dalla punta */}
                     <span
-                      className="relative z-10 flex items-baseline select-none"
                       style={{
-                        marginRight: '28px',
-                        fontFamily: '"Revalia", cursive, sans-serif',
-                        fontSize: '0.96rem',
+                        fontFamily: '"Goldman", sans-serif',
+                        fontSize: '1.05rem',
+                        fontWeight: 700,
                         letterSpacing: '0.04em',
-                        background: 'linear-gradient(90deg, #2b2310 0%, #3e3114 10%, #685014 24%, #a07d16 42%, #d4a916 64%, #ffd700 82%, #ffff00 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        fontWeight: 400,
-                        lineHeight: 1.25,
+                        lineHeight: 1,
+                        display: 'inline-block',
+                        color: '#b388ff',
+                        textShadow: '0 0 10px rgba(179, 136, 255, 0.4)',
                         whiteSpace: 'nowrap',
                       }}
                     >
@@ -1165,15 +1347,15 @@ export default function Dashboard() {
                         e.stopPropagation()
                         if (popupScrollRef.current) popupScrollRef.current.scrollTop += e.deltaY
                       }}
-                      className="flex-1 min-w-[320px] max-w-[580px] flex flex-col p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-start overflow-hidden"
+                      className="flex-1 min-w-[320px] max-w-[580px] flex flex-col p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-stretch overflow-hidden"
                       style={{
                         backgroundColor: '#0b1626',
                         backdropFilter: 'blur(20px)',
                         border: 'none',
                         boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
-                        height: '390px',
-                        maxHeight: 'calc(100% - 0.2cm)',
-                        marginBottom: '0.2cm',
+                        height: 'calc(100vh - 280px)',
+                        minHeight: '380px',
+                        maxHeight: 'calc(100vh - 280px)',
                         fontFamily: '"Switzer", sans-serif',
                         overscrollBehavior: 'contain',
                       }}
@@ -1396,10 +1578,10 @@ export default function Dashboard() {
         </div>
 
         {/* ══ COLONNA DESTRA (w-64: ClockDriveBox e Box Preventivi a tutta larghezza 256px) ══ */}
-        <div className="self-stretch flex-shrink-0 flex flex-col gap-3 min-w-0 items-end w-64 relative">
+        <div ref={colonnaDestraRef} className="self-stretch flex-shrink-0 flex flex-col gap-3 min-w-0 items-end w-64 relative">
 
           {/* 1. Box ASK OPEN AI (Sfondo bianco, collegato alla sezione output) */}
-          <div className="w-full">
+          <div ref={askOpenAiRef} className="w-full">
             <AskOpenAiBox
               onStartAsk={(text) => {
                 triggerEnterFocus()
@@ -1421,19 +1603,30 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* 2. Box Preventivi (Esteso verso l'alto con minimo distacco da ASK OpenAI, base Verde Menta #00ffaa, tutti cliccabili) */}
+          {/* 2. Box Collegamento Google Drive con Orologio (Centrato sotto Ask OpenAI, parte inferiore a filo delle cards) */}
+          <div ref={clockDriveRef} className="w-full flex justify-center">
+            <ClockDriveBox height={clockDriveHeight ? `${clockDriveHeight}px` : '78px'} />
+          </div>
+
+          {/* Box Note sotto Google Drive: tipo pagina girata di un libro completamente bianca con piega a destra in rilievo */}
+          <div ref={noteBoxRef} className="w-full">
+            <TurnedPageNoteBox />
+          </div>
+
+          {/* 3. Box Preventivi (Abbassato alla medesima altezza della sezione Next actions, colori tenui dal brand logo DADO, tutti cliccabili) */}
           <div
             className="w-full flex flex-col shadow-sm overflow-hidden"
             style={{
-              backgroundColor: '#00ffaa',
+              backgroundColor: '#6cc280',
               borderRadius: '6px',
+              marginTop: preventiviMarginTop !== null ? `${preventiviMarginTop}px` : '12px',
             }}
           >
-            {/* 1. preventivi in scadenza: Cliccabile */}
+            {/* 1. preventivi in scadenza: Cliccabile — tonalità tenue corallo/rosso dalla lettera A del brand logo DADO (#ee3922) */}
             <Link
               to="/opportunities?status=scadenza"
               className="px-3.5 py-3 min-h-[50px] flex items-center gap-2.5 hover:opacity-90 transition-opacity block group"
-              style={{ backgroundColor: '#ff6f43' }}
+              style={{ backgroundColor: '#ee523f' }}
               title="Visualizza preventivi in scadenza"
             >
               <div className="flex items-center gap-2.5">
@@ -1450,11 +1643,11 @@ export default function Dashboard() {
             {/* Linea orizzontale continua nera */}
             <div className="border-b border-[#111111]" />
 
-            {/* 2. preventivi inviati: Cliccabile — riempimento azzurro #00e5ff come nel testo today */}
+            {/* 2. preventivi inviati: Cliccabile — tonalità tenue turchese/ciano dalla 2^ D del brand logo DADO (#2ec1db) */}
             <Link
               to="/opportunities?status=inviati"
               className="px-3.5 py-3 min-h-[50px] flex items-center gap-2.5 hover:opacity-90 transition-opacity block group"
-              style={{ backgroundColor: '#00e5ff' }}
+              style={{ backgroundColor: '#2ec1db' }}
               title="Visualizza preventivi inviati"
             >
               <div className="flex items-center gap-2.5">
@@ -1471,10 +1664,11 @@ export default function Dashboard() {
             {/* Linea orizzontale continua nera */}
             <div className="border-b border-[#111111]" />
 
-            {/* 3. ultimo preventivo: Cliccabile */}
+            {/* 3. ultimo preventivo: Cliccabile — tonalità tenue verde salvia dalla 1^ D del brand logo DADO (#6cc280) */}
             <Link
               to="/opportunities?sort=latest"
               className="px-3.5 py-3 min-h-[50px] flex items-center gap-2.5 hover:opacity-90 transition-opacity block group"
+              style={{ backgroundColor: '#6cc280' }}
               title="Visualizza ultimo preventivo"
             >
               <div className="flex items-center gap-2.5">
@@ -1489,19 +1683,14 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {/* 4. Box Orologio + Google Drive */}
-          <div className="w-full">
-            <ClockDriveBox />
-          </div>
-
-          {/* 5. Logo DADO Creative Studio collegato a dadocreative.studio con dicitura ® 2026 a filo destro */}
+          {/* 3. Logo DADO Creative Studio collegato a dadocreative.studio con dicitura ® 2026 a filo destro */}
           <a
             href="https://dadocreative.studio"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-auto w-[130px] flex flex-col items-end gap-1 group block cursor-pointer transition-all hover:opacity-95"
+            className="mt-auto w-[130px] flex flex-col items-end gap-0.5 group block cursor-pointer transition-all hover:opacity-95"
             style={{
-              marginBottom: '0.6cm', // almeno 0,5cm sopra la banda bianca
+              marginBottom: '0.2cm', // a 0,2 cm dalla banda sottostante
             }}
             title="Visita il sito ufficiale dadocreative.studio"
           >
@@ -1516,7 +1705,7 @@ export default function Dashboard() {
               />
             </div>
             <span
-              className="w-full text-right text-[11px] font-mono text-slate-700 group-hover:text-slate-900 font-bold select-none pr-0"
+              className="w-full text-right text-[11px] font-mono text-slate-700 group-hover:text-slate-900 font-bold select-none pr-0 leading-none mt-0.5"
               style={{ letterSpacing: '0.1em' }}
             >
               ® 2026
