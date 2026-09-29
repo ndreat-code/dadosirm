@@ -878,7 +878,7 @@ export default function Dashboard() {
               onWheel={handleOutputCardWheel}
               className="w-full flex-1 flex flex-col justify-between p-5 rounded-2xl shadow-2xl relative animate-fadeIn"
               style={{
-                backgroundColor: 'rgba(0, 32, 20, 0.97)',
+                backgroundColor: '#0b1626',
                 backdropFilter: 'blur(24px)',
                 border: '1.5px solid rgba(0, 255, 170, 0.55)',
                 boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.85), inset 0 1px 2px rgba(255, 255, 255, 0.25)',
@@ -1267,7 +1267,7 @@ export default function Dashboard() {
                       }}
                       className="flex-1 min-w-[320px] max-w-[580px] flex flex-col p-4 rounded-2xl transition-all animate-fadeIn shadow-2xl relative self-start overflow-hidden"
                       style={{
-                        backgroundColor: 'rgba(0, 42, 26, 0.95)',
+                        backgroundColor: '#0b1626',
                         backdropFilter: 'blur(20px)',
                         border: '1.5px solid rgba(0, 255, 170, 0.45)',
                         boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
