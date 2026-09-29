@@ -22,11 +22,17 @@ export default function ClockDriveBox({
   const d3 = digits[2] || '0'
   const d4 = digits[3] || '0'
 
-  // Colori ordinati: Giallo, Viola, Arancione, Blu (tenue)
-  const colorYellow   = '#b45309' // Giallo/Ambra profondo vivido (alto contrasto su bianco)
-  const colorPurple   = '#7e22ce' // Viola profondo vivido
-  const colorOrange   = '#ea580c' // Arancione DADO vivido
-  const colorSoftBlue = '#0ea5e9' // Blu tenue (Sky/Azzurro tenue luminoso)
+  // Colori ordinati:
+  // 1ª cifra: 🟡 Giallo/Ambra (#b45309, contrasto netto e nitido su bianco)
+  // 2ª cifra: 🟣 Viola profondo (#7e22ce)
+  // Separatore : in antracite pulito (#334155)
+  // 3ª cifra: 🟠 Arancione vivo (#ea580c)
+  // 4ª cifra: 🔵 Blu tenue / Azzurro (#0ea5e9)
+  const colorYellow     = '#b45309'
+  const colorPurple     = '#7e22ce'
+  const colorAnthracite = '#334155'
+  const colorOrange     = '#ea580c'
+  const colorSoftBlue   = '#0ea5e9'
 
   if (compact) {
     return (
@@ -72,8 +78,8 @@ export default function ClockDriveBox({
           <span style={{ color: colorPurple }}>
             {d2}
           </span>
-          {/* Separatore : */}
-          <span className="text-slate-700 mx-[1.5px] font-bold animate-pulse text-[15px]">
+          {/* Separatore : in antracite pulito */}
+          <span style={{ color: colorAnthracite }} className="mx-[1.5px] font-bold animate-pulse text-[15px]">
             :
           </span>
           {/* Cifra 3: Arancione */}
@@ -134,8 +140,8 @@ export default function ClockDriveBox({
           <span style={{ color: colorPurple }}>
             {d2}
           </span>
-          {/* Separatore : */}
-          <span className="text-slate-700 mx-[2px] font-bold animate-pulse text-[18px]">
+          {/* Separatore : in antracite pulito */}
+          <span style={{ color: colorAnthracite }} className="mx-[2px] font-bold animate-pulse text-[18px]">
             :
           </span>
           {/* Cifra 3: Arancione */}

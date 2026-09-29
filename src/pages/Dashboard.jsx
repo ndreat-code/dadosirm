@@ -80,10 +80,11 @@ function ClockDriveBox() {
   const d3 = digits[2] || '0'
   const d4 = digits[3] || '0'
 
-  const colorYellow   = '#b45309' // Giallo/Ambra profondo vivido
-  const colorPurple   = '#7e22ce' // Viola profondo vivido
-  const colorOrange   = '#ea580c' // Arancione DADO vivido
-  const colorSoftBlue = '#0ea5e9' // Blu tenue (Sky/Azzurro tenue luminoso)
+  const colorYellow     = '#b45309' // 🟡 Giallo/Ambra (#b45309)
+  const colorPurple     = '#7e22ce' // 🟣 Viola profondo (#7e22ce)
+  const colorAnthracite = '#334155' // Separatore : in antracite pulito
+  const colorOrange     = '#ea580c' // 🟠 Arancione vivo (#ea580c)
+  const colorSoftBlue   = '#0ea5e9' // 🔵 Blu tenue / Azzurro
 
   return (
     <div
@@ -116,7 +117,7 @@ function ClockDriveBox() {
         >
           <span style={{ color: colorYellow }}>{d1}</span>
           <span style={{ color: colorPurple }}>{d2}</span>
-          <span className="text-slate-700 mx-[2px] font-bold animate-pulse text-[18px]">:</span>
+          <span style={{ color: colorAnthracite }} className="mx-[2px] font-bold animate-pulse text-[18px]">:</span>
           <span style={{ color: colorOrange }}>{d3}</span>
           <span style={{ color: colorSoftBlue }}>{d4}</span>
         </div>
