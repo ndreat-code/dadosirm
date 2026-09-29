@@ -1260,109 +1260,119 @@ export default function Dashboard() {
                       style={{
                         backgroundColor: '#0b1626',
                         backdropFilter: 'blur(20px)',
-                        border: '1.5px solid rgba(0, 255, 170, 0.45)',
-                        boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
-                        height: '296px',
-                        maxHeight: '296px',
-                        fontFamily: '"Jost", "Inter", sans-serif',
+                        border: 'none',
+                        boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+                        height: '390px',
+                        maxHeight: '390px',
+                        fontFamily: '"Switzer", sans-serif',
                         overscrollBehavior: 'contain',
                       }}
                     >
-                      {/* Header Sezione Output: solo testo "Attività Programmate", senza cerchi, senza icone e senza "✕ chiudi" per massima ottimizzazione */}
-                      <div className="flex items-center pb-2 mb-1.5 border-b border-white/15 flex-shrink-0">
+                      {/* Header Sezione Output: font Switzer, senza perimetrature verdi e senza icone */}
+                      <div className="flex items-center justify-between pb-2 mb-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
                         {selectedCalendarDay && activeOutputTab !== 'ai' ? (
                           <span
-                            className="text-white font-black tracking-wider uppercase text-[15px] sm:text-[16px]"
-                            style={{ fontFamily: '"Goldman", sans-serif', letterSpacing: '0.08em' }}
+                            className="text-white font-bold tracking-wide uppercase text-[15px]"
+                            style={{ fontFamily: '"Switzer", sans-serif' }}
                           >
                             Attività Programmate
                           </span>
                         ) : aiResult && selectedCalendarDay ? (
-                          <div className="flex items-center gap-1.5 bg-black/50 p-1 rounded-lg border border-white/10">
+                          <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-lg">
                             <button
                               onClick={() => setActiveOutputTab('day')}
-                              className={`px-3 py-0.5 rounded text-xs font-bold transition-all cursor-pointer ${
+                              className={`px-3 py-0.5 rounded text-xs font-semibold transition-all cursor-pointer ${
                                 activeOutputTab === 'day'
-                                  ? 'bg-[#00ffaa] text-[#111111] shadow'
-                                  : 'text-white/70 hover:text-white'
+                                  ? 'bg-white/20 text-white shadow-sm'
+                                  : 'text-white/60 hover:text-white'
                               }`}
+                              style={{ fontFamily: '"Switzer", sans-serif' }}
                             >
                               Attività Programmate
                             </button>
                             <button
                               onClick={() => setActiveOutputTab('ai')}
-                              className={`px-3 py-0.5 rounded text-xs font-bold transition-all cursor-pointer ${
+                              className={`px-3 py-0.5 rounded text-xs font-semibold transition-all cursor-pointer ${
                                 activeOutputTab === 'ai'
-                                  ? 'bg-[#00ffaa] text-[#111111] shadow'
-                                  : 'text-white/70 hover:text-white'
+                                  ? 'bg-white/20 text-white shadow-sm'
+                                  : 'text-white/60 hover:text-white'
                               }`}
+                              style={{ fontFamily: '"Switzer", sans-serif' }}
                             >
                               Risposta OpenAI
                             </button>
                           </div>
                         ) : (
-                          <span className="text-white/95 font-bold tracking-wide text-[15px] truncate">
+                          <span
+                            className="text-white/90 font-semibold tracking-wide text-[15px] truncate"
+                            style={{ fontFamily: '"Switzer", sans-serif' }}
+                          >
                             {aiLoading ? 'Analisi in corso...' : 'Indagine CRM & Punti in Comune (OpenAI)'}
                           </span>
                         )}
                       </div>
 
-                    {/* Corpo del Contenuto Sviluppato in Verticale (senza overflow all'esterno) con supporto scroll rotella fluido e barra visibile */}
+                    {/* Corpo del Contenuto Sviluppato in Verticale con scroll rotella ovunque e font Switzer */}
                     <div
                       ref={popupScrollRef}
-                      className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-2 mt-1 space-y-2.5 leading-relaxed custom-popup-scrollbar overscroll-contain select-text"
+                      className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-2 mt-1 space-y-2 leading-relaxed custom-popup-scrollbar overscroll-contain select-text"
                       style={{
                         overscrollBehavior: 'contain',
+                        fontFamily: '"Switzer", sans-serif',
                       }}
                     >
                       {selectedCalendarDay && activeOutputTab !== 'ai' && currentDaySchedule ? (
-                        <div className="flex flex-col gap-2.5 w-full">
-                          {/* Elenco Attività Programmate: disposto in verticale, a piena larghezza */}
-                          <div className="flex flex-col gap-2.5 w-full">
+                        <div className="flex flex-col gap-2 w-full">
+                          {/* Elenco Attività Programmate: disposto senza riquadri perimetrali e senza icone */}
+                          <div className="flex flex-col w-full">
                             {currentDaySchedule.events.map((ev, idx) => (
                               <div
                                 key={idx}
-                                className="bg-black/55 border border-white/15 rounded-xl p-3 flex flex-col gap-2 hover:border-[#00ffaa]/50 transition-colors shadow-sm text-left overflow-hidden w-full"
+                                className="flex flex-col gap-1.5 py-2.5 text-left w-full"
+                                style={{
+                                  borderBottom: idx < currentDaySchedule.events.length - 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+                                  fontFamily: '"Switzer", sans-serif',
+                                }}
                               >
-                                {/* 1. Riga Superiore: Orario & Cliente */}
-                                <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-white/10">
-                                  <span className="text-[11.5px] font-mono font-black px-2 py-0.5 rounded bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40 whitespace-nowrap shadow-sm">
-                                    ⏰ {ev.time}
+                                {/* 1. Riga Superiore: Orario & Cliente senza riquadri verdi */}
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[13px] font-semibold text-white/90 whitespace-nowrap">
+                                    {ev.time}
                                   </span>
-                                  <span className="text-white font-bold text-[14px] truncate flex-1 text-right tracking-tight">
+                                  <span className="text-white font-bold text-[14px] truncate flex-1 text-right">
                                     {ev.company}
                                   </span>
                                   {ev.category && (
-                                    <span className="text-[9.5px] font-mono uppercase px-2 py-0.5 rounded bg-white/10 text-white/80 border border-white/15 whitespace-nowrap">
+                                    <span className="text-[10px] uppercase px-2 py-0.5 rounded bg-white/10 text-white/70 whitespace-nowrap">
                                       {ev.category}
                                     </span>
                                   )}
                                 </div>
 
-                                {/* 2. Dettagli Chiave: Luogo & Materiali distribuiti verticalmente */}
-                                <div className="space-y-1.5 text-[12px] leading-snug">
+                                {/* 2. Dettagli Chiave: Luogo & Materiali senza icone e senza perimetraggi */}
+                                <div className="space-y-1 text-[12.5px] leading-snug">
                                   {ev.location && (
-                                    <div className="flex items-start gap-1.5 text-slate-100">
-                                      <span className="text-sky-300 font-bold font-mono text-[10.5px] uppercase tracking-wide flex-shrink-0">
-                                        📍 Luogo:
+                                    <div className="flex items-start gap-1.5 text-slate-200">
+                                      <span className="text-slate-400 font-medium text-[11px] uppercase tracking-wide flex-shrink-0">
+                                        Luogo:
                                       </span>
-                                      <span className="font-medium text-slate-100 break-words flex-1">
+                                      <span className="font-normal text-slate-100 break-words flex-1">
                                         {ev.location}
                                       </span>
                                     </div>
                                   )}
                                   {ev.materials && (
-                                    <div className="flex items-start gap-1.5 text-slate-100">
-                                      <span className="text-amber-300 font-bold font-mono text-[10.5px] uppercase tracking-wide flex-shrink-0">
-                                        🎒 Materiali:
+                                    <div className="flex items-start gap-1.5 text-slate-200">
+                                      <span className="text-slate-400 font-medium text-[11px] uppercase tracking-wide flex-shrink-0">
+                                        Materiali:
                                       </span>
-                                      <span className="font-medium text-amber-100 break-words flex-1">
+                                      <span className="font-normal text-slate-100 break-words flex-1">
                                         {ev.materials}
                                       </span>
                                     </div>
                                   )}
                                   {ev.title && (
-                                    <p className="text-slate-300 text-[11.5px] italic border-t border-white/10 pt-1 mt-0.5 break-words">
+                                    <p className="text-slate-400 text-[11.5px] italic pt-0.5 break-words">
                                       {ev.title}
                                     </p>
                                   )}
@@ -1371,29 +1381,31 @@ export default function Dashboard() {
                             ))}
                           </div>
 
-                          {/* Note & Allegati disposti in verticale / orizzontale compatto */}
+                          {/* Note & Allegati senza riquadri perimetrali e senza icone */}
                           {(currentDaySchedule.notes || (currentDaySchedule.files && currentDaySchedule.files.length > 0)) && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 border-t border-white/10 w-full">
+                            <div className="flex flex-col gap-2.5 pt-2.5 w-full" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
                               {currentDaySchedule.notes && (
-                                <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-lg p-2.5 flex items-start gap-2 overflow-hidden">
-                                  <span className="text-emerald-400 text-xs flex-shrink-0">📝</span>
-                                  <div className="flex-1 text-[12px] text-white/95 leading-tight break-words">
-                                    <span className="font-bold text-[#00ffaa] uppercase text-[10px] font-mono block mb-0.5">Note:</span>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="font-semibold text-slate-400 uppercase text-[10.5px] tracking-wide block">
+                                    Note:
+                                  </span>
+                                  <div className="text-[12.5px] text-white/90 leading-relaxed break-words">
                                     {currentDaySchedule.notes}
                                   </div>
                                 </div>
                               )}
                               {currentDaySchedule.files && currentDaySchedule.files.length > 0 && (
-                                <div className="bg-black/30 border border-white/10 rounded-lg p-2.5 flex flex-col justify-center overflow-hidden">
-                                  <span className="font-bold text-[#00ffaa] uppercase text-[10px] font-mono block mb-1">File ({currentDaySchedule.files.length}):</span>
+                                <div className="flex flex-col gap-1">
+                                  <span className="font-semibold text-slate-400 uppercase text-[10.5px] tracking-wide block">
+                                    File ({currentDaySchedule.files.length}):
+                                  </span>
                                   <div className="flex flex-wrap gap-1.5">
                                     {currentDaySchedule.files.map((file, fIdx) => (
                                       <div
                                         key={fIdx}
-                                        className="bg-black/40 border border-white/15 px-2 py-0.5 rounded flex items-center gap-1.5 text-[11px] text-white/90 max-w-full"
+                                        className="bg-white/10 px-2.5 py-1 rounded flex items-center gap-1.5 text-[11px] text-white/90 max-w-full"
                                       >
-                                        <Paperclip size={11} className="text-[#00ffaa] flex-shrink-0" />
-                                        <span className="font-mono font-medium truncate max-w-[140px]">{file.name}</span>
+                                        <span className="font-medium truncate max-w-[150px]">{file.name}</span>
                                         <span className="text-white/40 text-[9px] flex-shrink-0">({file.size})</span>
                                       </div>
                                     ))}
@@ -1404,39 +1416,41 @@ export default function Dashboard() {
                           )}
                         </div>
                       ) : (
-                        /* Contenuto AI OpenAI distribuito in orizzontale */
+                        /* Contenuto AI OpenAI distribuito senza verde e con font Switzer */
                         <div
                           style={{
                             fontSize: '13.5px',
                             color: '#f4f2ea',
                             fontWeight: 400,
+                            fontFamily: '"Switzer", sans-serif',
                           }}
                         >
                           {aiLoading ? (
                             <div className="h-36 flex flex-col items-center justify-center text-white/75 gap-2">
-                              <div className="w-6 h-6 border-2 border-[#00ffaa] border-t-transparent rounded-full animate-spin" />
-                              <span className="text-[13px] font-mono animate-pulse">
+                              <div className="w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                              <span className="text-[13px] animate-pulse">
                                 Interrogazione database in tempo reale con OpenAI...
                               </span>
                             </div>
                           ) : (
                             <div className="space-y-2">
                               {aiResult?.question && (
-                                <div className="p-2 bg-black/45 rounded-lg border border-white/12 text-xs font-mono text-emerald-300 flex items-center gap-2">
+                                <div className="p-2 bg-white/5 rounded-lg text-xs text-slate-200 flex items-center gap-2">
                                   <span className="text-white/50 text-[10px] uppercase tracking-wider">Domanda:</span>
-                                  <span className="text-white font-bold">"{aiResult.question}"</span>
+                                  <span className="text-white font-semibold">"{aiResult.question}"</span>
                                 </div>
                               )}
-                              <div className="leading-relaxed whitespace-pre-line text-[13px] text-[#f4f2ea] bg-black/25 p-3 rounded-lg border border-white/5 max-h-[140px] overflow-y-auto">
+                              <div className="leading-relaxed whitespace-pre-line text-[13px] text-white/90 bg-white/5 p-3 rounded-lg max-h-[180px] overflow-y-auto">
                                 {aiResult?.content}
                               </div>
                               <div className="flex justify-end pt-1">
                                 <button
                                   type="button"
                                   onClick={() => triggerEnterFocus()}
-                                  className="text-[11px] font-mono text-[#00ffaa] hover:underline flex items-center gap-1 cursor-pointer"
+                                  className="text-[11.5px] text-slate-300 hover:text-white hover:underline flex items-center gap-1 cursor-pointer font-medium"
+                                  style={{ fontFamily: '"Switzer", sans-serif' }}
                                 >
-                                  <span>⛶ Espandi Schermata Intera [ESC]</span>
+                                  <span>Espandi a schermo intero [ESC]</span>
                                 </button>
                               </div>
                             </div>

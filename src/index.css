@@ -40,21 +40,21 @@ body {
   /* Scrollbar elegante e visibile per il pop-up attività */
   .custom-popup-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #00ffaa rgba(0, 0, 0, 0.4);
+    scrollbar-color: rgba(255, 255, 255, 0.25) rgba(0, 0, 0, 0.25);
   }
   .custom-popup-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
   .custom-popup-scrollbar::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.25);
     border-radius: 4px;
   }
   .custom-popup-scrollbar::-webkit-scrollbar-thumb {
-    background: #00ffaa;
+    background: rgba(255, 255, 255, 0.25);
     border-radius: 4px;
   }
   .custom-popup-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #00dd90;
+    background: rgba(255, 255, 255, 0.4);
   }
 }
 
