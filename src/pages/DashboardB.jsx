@@ -804,27 +804,9 @@ export default function Dashboard() {
           <div className="flex items-start justify-between gap-4 flex-wrap" style={{ marginTop: 'calc(-6px + 0.7cm)' }}>
             <div className="flex items-start">
               <div>
-                <h1 className="leading-none flex items-baseline gap-0.5">
-                  <span className="inline-flex items-center">
-                    <svg width="25" height="32" viewBox="0 0 16 20" fill="none">
-                      <path d="M0 0 H5 C11 0 16 4.5 16 10 C16 15.5 11 20 5 20 H0 V0 Z" fill="#111111" />
-                    </svg>
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: 'Inspiration, cursive',
-                      fontSize: isAiFocusMode ? '2.4rem' : '3.1rem',
-                      color: '#111111',
-                      lineHeight: 1,
-                    }}
-                  >
-                    ashboard
-                  </span>
-                </h1>
-
                 {/* Sottotitolo "Go get it today" (nascosto in Focus Mode per compattezza) */}
                 {!isAiFocusMode && (
-                  <p style={{ marginTop: 'calc(22px + 1.3cm)', marginBottom: '6px', fontSize: '18px', fontFamily: '"Goldman", sans-serif', fontWeight: 700 }}>
+                  <p style={{ marginTop: '4px', marginBottom: '6px', fontSize: '18px', fontFamily: '"Goldman", sans-serif', fontWeight: 700 }}>
                     <span style={{ color: '#00e5ff' }}>Go get it </span>
                     <span style={{ color: '#00e575' }}>today</span>
                   </p>

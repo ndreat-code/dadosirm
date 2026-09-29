@@ -382,23 +382,12 @@ export default function Inventory() {
           {/* ── TITOLO IN ALTO (INSPIRATION + SOTTOTITOLO SWITZER CIANO/ARANCIO) ── */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 border-b border-black/20 pb-4">
             <div>
-              <h1 className="leading-none flex items-baseline gap-2">
-                <span
-                  style={{
-                    fontFamily: 'Inspiration, cursive',
-                    fontSize: '3.6rem',
-                    color: '#111111',
-                    lineHeight: 1,
-                  }}
-                >
-                  Inventario
-                </span>
+              <div className="flex items-center gap-2 mb-1.5">
                 <span className="text-xs font-mono font-bold uppercase tracking-wider px-2.5 py-1 bg-black text-[#00ffaa] rounded-none">
                   Studio & Noleggi
                 </span>
-              </h1>
-
-              <p style={{ marginTop: '4px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 600 }}>
+              </div>
+              <p style={{ marginTop: '2px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 600 }}>
                 <span style={{ color: '#00e5ff' }}>Attrezzatura di produzione & </span>
                 <span style={{ color: '#ff6f43' }}>noleggi attivi</span>
                 <span style={{ color: '#ffffff', fontSize: '13.5px', fontFamily: '"Space Mono", monospace', marginLeft: '14px', fontWeight: 400 }}>

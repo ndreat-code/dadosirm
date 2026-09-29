@@ -230,22 +230,8 @@ export default function Settings() {
           {/* ── HEADER SETTINGS (FONT INSPIRATION + SOTTOTITOLO GOLDMAN CON VERDE FACETIME E GRIGIO METALLIZZATO) ── */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 border-b border-black/20 pb-4">
             <div>
-              {/* Titolo Principale Inspiration */}
-              <h1 className="leading-none flex items-baseline gap-0.5">
-                <span
-                  style={{
-                    fontFamily: 'Inspiration, cursive',
-                    fontSize: '3.6rem',
-                    color: '#111111',
-                    lineHeight: 1,
-                  }}
-                >
-                  Settings
-                </span>
-              </h1>
-
               {/* Sottotitolo Goldman con Verde FaceTime (#34c759) e Grigio Metallizzato Satinato */}
-              <p style={{ marginTop: '4px', fontSize: '18px', fontFamily: '"Goldman", sans-serif', fontWeight: 700 }}>
+              <p style={{ marginTop: '2px', fontSize: '18px', fontFamily: '"Goldman", sans-serif', fontWeight: 700 }}>
                 <span style={{ color: FACETIME_GREEN }}>Studio config & </span>
                 <span style={{ color: '#d5dde6' }}>system preferences</span>
               </p>
