@@ -486,6 +486,89 @@ function DadoBrandMark({ size = 18, color = '#111111' }) {
   )
 }
 
+function DadoFooterLogo({ size = 66 }) {
+  return (
+    <div className="inline-flex items-center gap-4 select-none leading-none">
+      {/* 1. D: Verde #53ba75 — bordi colore primario, interno sfumato all'88% */}
+      <svg width={size} height={size} viewBox="0 0 20 20" fill="none" className="overflow-visible">
+        <defs>
+          <radialGradient id="footer-logo-d1-b" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#53ba75" stopOpacity="0.12" />
+            <stop offset="70%" stopColor="#53ba75" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#53ba75" stopOpacity="0.88" />
+          </radialGradient>
+        </defs>
+        <path
+          d="M2.2 2.2 H7.2 C13.5 2.2 17.8 5.7 17.8 10 C17.8 14.3 13.5 17.8 7.2 17.8 H2.2 Z"
+          fill="url(#footer-logo-d1-b)"
+          stroke="#53ba75"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+          style={{ filter: 'drop-shadow(0 0 6px rgba(83, 186, 117, 0.45))' }}
+        />
+      </svg>
+
+      {/* 2. △: Rosso #ea3824 — bordi colore primario, interno sfumato all'88% */}
+      <svg width={size} height={size} viewBox="0 0 20 20" fill="none" className="overflow-visible">
+        <defs>
+          <radialGradient id="footer-logo-tri-b" cx="50%" cy="60%" r="50%">
+            <stop offset="0%" stopColor="#ea3824" stopOpacity="0.12" />
+            <stop offset="70%" stopColor="#ea3824" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#ea3824" stopOpacity="0.88" />
+          </radialGradient>
+        </defs>
+        <polygon
+          points="10 2.2, 18.2 17.8, 1.8 17.8"
+          fill="url(#footer-logo-tri-b)"
+          stroke="#ea3824"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+          style={{ filter: 'drop-shadow(0 0 6px rgba(234, 56, 36, 0.45))' }}
+        />
+      </svg>
+
+      {/* 3. D: Ciano #1bb7ed — bordi colore primario, interno sfumato all'88% */}
+      <svg width={size} height={size} viewBox="0 0 20 20" fill="none" className="overflow-visible">
+        <defs>
+          <radialGradient id="footer-logo-d2-b" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#1bb7ed" stopOpacity="0.12" />
+            <stop offset="70%" stopColor="#1bb7ed" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#1bb7ed" stopOpacity="0.88" />
+          </radialGradient>
+        </defs>
+        <path
+          d="M2.2 2.2 H7.2 C13.5 2.2 17.8 5.7 17.8 10 C17.8 14.3 13.5 17.8 7.2 17.8 H2.2 Z"
+          fill="url(#footer-logo-d2-b)"
+          stroke="#1bb7ed"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+          style={{ filter: 'drop-shadow(0 0 6px rgba(27, 183, 237, 0.45))' }}
+        />
+      </svg>
+
+      {/* 4. O: Giallo #fac429 — bordi colore primario, interno sfumato all'88% */}
+      <svg width={size} height={size} viewBox="0 0 20 20" fill="none" className="overflow-visible">
+        <defs>
+          <radialGradient id="footer-logo-o-b" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#fac429" stopOpacity="0.12" />
+            <stop offset="70%" stopColor="#fac429" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#fac429" stopOpacity="0.88" />
+          </radialGradient>
+        </defs>
+        <circle
+          cx="10"
+          cy="10"
+          r="7.8"
+          fill="url(#footer-logo-o-b)"
+          stroke="#fac429"
+          strokeWidth="2.2"
+          style={{ filter: 'drop-shadow(0 0 6px rgba(250, 196, 41, 0.45))' }}
+        />
+      </svg>
+    </div>
+  )
+}
+
 // ── Scacchiera Logo Studio (Come Screenshot 1) ────────────
 function CheckerBg({ children }) {
   return (
@@ -1622,15 +1705,17 @@ export default function Dashboard() {
 
       </div>
 
-      {/* ── Banda Inferiore: stessa tonalità di grigio della barra laterale (#2d3139) ── */}
+      {/* ── Banda Inferiore: stessa tonalità di grigio della barra laterale (#2d3139) con logo DADO sfumato all'88% ── */}
       <div className="w-full flex justify-end flex-shrink-0 mt-auto">
         <div
-          className="rounded-tl-2xl w-[calc(100%-2.5rem)]"
+          className="rounded-tl-2xl w-[calc(100%-2.5rem)] flex items-center justify-center overflow-hidden py-1.5"
           style={{
-            height: 'calc(3rem - 0.5cm)',
+            height: '80px',
             backgroundColor: '#2d3139',
           }}
-        />
+        >
+          <DadoFooterLogo size={66} />
+        </div>
       </div>
 
       </div>
