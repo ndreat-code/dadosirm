@@ -335,7 +335,7 @@ export default function Sidebar() {
               ? '0 0 12px rgba(0,210,255,0.25), inset 0 1px 0 rgba(255,255,255,0.18)'
               : '0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.09)',
           })}
-          title={isDipendente ? "Impostazioni (Profilo Dipendente: sezioni segrete protette)" : "Impostazioni Studio & Sistema (Admin)"}
+          title={isDipendente ? "Impostazioni (Profilo Director: sezioni segrete protette)" : "Impostazioni Studio & Sistema (Admin)"}
         >
           <SettingsIcon
             size={iconSize}
@@ -353,7 +353,7 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={() => switchUser(currentUser.id === 'usr-admin' ? 'usr-dipendente' : 'usr-admin')}
-          title={`Profilo attivo: ${currentUser.name} (${currentUser.badgeRole || currentUser.role}). Clicca per cambiare profilo tra Amministratore e Dipendente.`}
+          title={`Profilo attivo: ${currentUser.name} (${currentUser.badgeRole || currentUser.role}). Clicca per cambiare profilo tra Amministratore e Director.`}
           className={`flex items-center justify-center rounded-xl transition-all cursor-pointer select-none group ${
             isDashboard ? 'w-[96px] py-1.5 px-1 self-start ml-[8px]' : 'w-[52px] h-[36px] self-center mx-auto'
           } ${
@@ -365,7 +365,7 @@ export default function Sidebar() {
           {isDashboard ? (
             <div className="flex flex-col items-center justify-center w-full leading-tight text-center">
               <span className="text-[10px] font-bold truncate max-w-full">
-                {isAdmin ? '👑 ADMIN' : '👤 DIPENDENTE'}
+                {isAdmin ? '👑 ADMIN' : '🎬 DIRECTOR'}
               </span>
               <span className="text-[8px] text-gray-400 opacity-80 mt-0.5">
                 (Clicca switch)
@@ -374,7 +374,7 @@ export default function Sidebar() {
           ) : (
             <div className="flex flex-col items-center justify-center leading-none">
               <span className="text-[10px] font-mono font-bold tracking-tight">
-                {isAdmin ? 'ADM' : 'DIP'}
+                {isAdmin ? 'ADM' : 'DIR'}
               </span>
             </div>
           )}

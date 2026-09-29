@@ -25,10 +25,10 @@ export const DEFAULT_USERS = [
   },
   {
     id: 'usr-dipendente',
-    name: 'Collaboratore (Dipendente)',
-    email: 'dipendente@dadocreativestudio.com',
-    role: 'Dipendente Operativo',
-    badgeRole: 'Dipendente',
+    name: 'Davide (Director)',
+    email: 'davide@dadocreativestudio.com',
+    role: 'Director',
+    badgeRole: 'Director',
     status: 'active',
     accessType: 'restricted',
     permissions: {
@@ -49,20 +49,33 @@ export const DEFAULT_USERS = [
 
 const AuthContext = createContext(null)
 
-const USERS_STORAGE_KEY = 'dado_crm_users_v2'
-const ACTIVE_USER_ID_KEY = 'dado_crm_active_user_id_v2'
+const USERS_STORAGE_KEY = 'dado_crm_users_v3'
+const ACTIVE_USER_ID_KEY = 'dado_crm_active_user_id_v3'
 
 export function AuthProvider({ children }) {
   const [users, setUsers] = useState(() => {
     try {
-      const saved = localStorage.getItem(USERS_STORAGE_KEY)
+      const saved = localStorage.getItem(USERS_STORAGE_KEY) || localStorage.getItem('dado_crm_users_v2')
       if (saved) {
         const parsed = JSON.parse(saved)
         if (Array.isArray(parsed) && parsed.length > 0) {
           // Verifica che l'account admin e dipendente siano presenti e con i permessi corretti
           const hasAdmin = parsed.some(u => u.id === 'usr-admin')
           const hasDipendente = parsed.some(u => u.id === 'usr-dipendente')
-          if (hasAdmin && hasDipendente) return parsed
+          if (hasAdmin && hasDipendente) {
+            return parsed.map(u => {
+              if (u.id === 'usr-dipendente') {
+                return {
+                  ...u,
+                  name: u.name === 'Collaboratore (Dipendente)' ? 'Davide (Director)' : u.name.replace('Collaboratore', 'Davide').replace('(Dipendente)', '(Director)'),
+                  role: (u.role === 'Dipendente Operativo' || u.role === 'Collaboratore') ? 'Director' : u.role,
+                  badgeRole: (u.badgeRole === 'Dipendente' || u.badgeRole === 'Collaboratore') ? 'Director' : u.badgeRole,
+                  email: u.email === 'dipendente@dadocreativestudio.com' ? 'davide@dadocreativestudio.com' : u.email,
+                }
+              }
+              return u
+            })
+          }
         }
       }
     } catch (e) {
@@ -73,7 +86,7 @@ export function AuthProvider({ children }) {
 
   const [activeUserId, setActiveUserId] = useState(() => {
     try {
-      const savedId = localStorage.getItem(ACTIVE_USER_ID_KEY)
+      const savedId = localStorage.getItem(ACTIVE_USER_ID_KEY) || localStorage.getItem('dado_crm_active_user_id_v2')
       if (savedId) return savedId
     } catch (e) {
       console.warn('Errore lettura activeUserId:', e)
@@ -102,7 +115,7 @@ export function AuthProvider({ children }) {
   const currentUser = users.find((u) => u.id === activeUserId) || users[0] || DEFAULT_USERS[0]
 
   const isAdmin = currentUser.accessType === 'admin' || currentUser.badgeRole === 'Amministratore'
-  const isDipendente = currentUser.badgeRole === 'Dipendente' || currentUser.accessType === 'restricted' || currentUser.id === 'usr-dipendente'
+  const isDipendente = currentUser.badgeRole === 'Dipendente' || currentUser.badgeRole === 'Director' || currentUser.accessType === 'restricted' || currentUser.id === 'usr-dipendente'
 
   const canSendDevNotes = Boolean(currentUser.permissions?.devNotes)
   const canAskOpenAI = Boolean(currentUser.permissions?.askOpenAi)

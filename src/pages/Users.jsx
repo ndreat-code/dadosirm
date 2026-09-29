@@ -57,8 +57,8 @@ export default function Users() {
       id: 'usr-' + Date.now(),
       name: '',
       email: '',
-      role: 'Collaboratore',
-      badgeRole: 'Collaboratore',
+      role: 'Director',
+      badgeRole: 'Director',
       status: 'active',
       accessType: 'custom',
       permissions: {
@@ -172,7 +172,7 @@ export default function Users() {
               </div>
               {!isAdmin && (
                 <p className="text-xs text-amber-300/90 font-sans mt-0.5">
-                  ⚠️ Modalità Dipendente: Accesso consentito solo ad <strong>Attività</strong> e <strong>Calendario</strong>. Note Sviluppatore e Ask OpenAI sono disabilitate.
+                  ⚠️ Modalità Director: Accesso consentito solo ad <strong>Attività</strong> e <strong>Calendario</strong>. Note Sviluppatore e Ask OpenAI sono disabilitate.
                 </p>
               )}
             </div>
@@ -194,7 +194,7 @@ export default function Users() {
                 onClick={() => switchUser('usr-dipendente')}
                 className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
               >
-                <span>👤 Simula Dipendente</span>
+                <span>👤 Simula Director</span>
               </button>
             )}
           </div>
@@ -593,7 +593,7 @@ export default function Users() {
                 >
                   <option value="custom">Personalizzato (Scelta moduli)</option>
                   <option value="admin">Amministratore (Tutto abilitato)</option>
-                  <option value="restricted">Dipendente con Funzioni Limitate</option>
+                  <option value="restricted">Director con Funzioni Limitate</option>
                 </select>
               </div>
             </div>
