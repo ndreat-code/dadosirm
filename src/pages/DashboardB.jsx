@@ -1058,20 +1058,20 @@ export default function Dashboard() {
                 {/* Riga Inferiore: Next actions (sinistra) + Box 2: Opportunità e Clienti Attivi (destra) — spostata verso il basso verso la banda bianca */}
                 <div className="flex items-start gap-4" style={{ marginTop: '2rem' }}>
 
-            {/* Box 1: Next actions — Ingrandito del 15% (242px x 276px) */}
+            {/* Box 1: Next actions — Ingrandito a 262px x 296px per ospitare perfettamente la card New Opportunities con punta affilata */}
             <div
-              className="bg-[#111111] px-3.5 py-3.5 flex flex-col justify-between flex-shrink-0 shadow-sm"
+              className="bg-[#111111] px-4 py-3.5 flex flex-col justify-between flex-shrink-0 shadow-sm"
               style={{
-                width: '242px',
-                height: '276px',
-                borderRadius: '7px',
+                width: '262px',
+                height: '296px',
+                borderRadius: '8px',
               }}
             >
               <div>
                 {/* Intestazione Next actions (senza collegamento e senza punto) */}
                 <h2
                   className="text-white font-bold leading-tight"
-                  style={{ fontSize: '19.5px' }}
+                  style={{ fontSize: '20px' }}
                 >
                   Next actions
                 </h2>
@@ -1105,7 +1105,7 @@ export default function Dashboard() {
                         WebkitTextStroke: '1.2px #ff6600',
                         textShadow: '0 0 2px #ff4500',
                         fontWeight: 800,
-                        fontSize: '1.35rem',
+                        fontSize: '1.38rem',
                         display: 'inline-block',
                         letterSpacing: '0.04em',
                         lineHeight: 1.15,
@@ -1120,7 +1120,7 @@ export default function Dashboard() {
                 <div className="w-full flex justify-end">
                   <Link
                     to={`/calendar?date=${tomorrowIso}&day=tomorrow`}
-                    className="bg-white rounded-full px-4.5 py-1 w-full flex items-center justify-end shadow-sm hover:scale-[1.02] transition-transform block"
+                    className="bg-white rounded-full px-5 py-1 w-full flex items-center justify-end shadow-sm hover:scale-[1.02] transition-transform block"
                     title={`Apri Domani (${tomorrowIso}) nel Calendario`}
                   >
                     <span
@@ -1128,7 +1128,7 @@ export default function Dashboard() {
                         fontFamily: '"Goldman", sans-serif',
                         color: '#00c853',
                         fontWeight: 400,
-                        fontSize: '1.45rem',
+                        fontSize: '1.48rem',
                         letterSpacing: '0.04em',
                         lineHeight: 1,
                         display: 'inline-block',
@@ -1139,14 +1139,14 @@ export default function Dashboard() {
                   </Link>
                 </div>
 
-                {/* 3. Card Leads — Stessa formattazione del riquadro monday */}
+                {/* 3. Card Leads — Forma card con angoli arrotondati */}
                 <div className="w-full flex justify-start">
                   <Link
                     to="/leads"
-                    className="px-3 rounded-none flex items-center justify-start w-[129px] shadow-sm hover:scale-105 transition-transform block overflow-hidden"
+                    className="px-3.5 rounded-[7px] flex items-center justify-start w-[138px] shadow-sm hover:scale-105 transition-transform block overflow-hidden"
                     style={{
                       backgroundColor: '#d8a882',
-                      height: '32px',
+                      height: '34px',
                     }}
                     title="Apri la sezione Leads (Funnel & Inbound)"
                   >
@@ -1154,7 +1154,7 @@ export default function Dashboard() {
                       style={{
                         fontFamily: '"Goldman", sans-serif',
                         color: '#1e78d6',
-                        fontSize: '1.35rem',
+                        fontSize: '1.38rem',
                         fontWeight: 400,
                         letterSpacing: '0.04em',
                         lineHeight: 1,
@@ -1167,29 +1167,39 @@ export default function Dashboard() {
                   </Link>
                 </div>
 
-                {/* 4. Card New Opportunities (sotto Leads) — Sostituisce Sunday con la stessa formattazione del riquadro sunday */}
+                {/* 4. Card New Opportunities — Card con angoli a sinistra leggermente stondati e punta a freccia affilata a destra */}
                 <div className="w-full flex justify-end">
                   <Link
                     to="/opportunities"
-                    className="w-full h-[38px] relative flex items-center justify-end shadow-sm overflow-visible block hover:opacity-90 transition-opacity"
+                    className="w-full h-[40px] relative flex items-center justify-end shadow-sm overflow-visible block hover:opacity-95 transition-opacity"
                     title="Apri la sezione Nuove Opportunità"
                   >
-                    {/* Sfondo Freccia Viola sfumata con clip-path a punta */}
-                    <div
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background: 'linear-gradient(90deg, rgba(17,17,17,0) 0%, rgba(17,17,17,0) 8%, #2d0442 16%, #4e0682 32%, #680bae 55%, #560088 100%)',
-                        clipPath: 'polygon(0% 0%, calc(100% - 32px) 0%, 100% 50%, calc(100% - 32px) 100%, 0% 100%)',
-                      }}
-                    />
+                    {/* Sfondo Card Nuove Opportunità: corpo con angoli sinistri stondati e punta a freccia affilata a destra */}
+                    <div className="absolute inset-0 flex items-stretch pointer-events-none">
+                      {/* Corpo rettangolare con angoli sinistri stondati */}
+                      <div
+                        className="h-full flex-1 rounded-l-[7px]"
+                        style={{
+                          background: 'linear-gradient(90deg, #32024b 0%, #4a0572 25%, #620997 60%, #760bb6 100%)',
+                        }}
+                      />
+                      {/* Punta della freccia affilata e proporzionata all'altezza della card */}
+                      <div
+                        className="h-full w-[24px] -ml-[1px] flex-shrink-0"
+                        style={{
+                          backgroundColor: '#760bb6',
+                          clipPath: 'polygon(0% 0%, 100% 50%, 0% 100%)',
+                        }}
+                      />
+                    </div>
 
-                    {/* Testo New Opportunities con gradiente oro metallizzato */}
+                    {/* Testo New Opportunities con gradiente oro metallizzato posizionato con distacco dalla punta */}
                     <span
                       className="relative z-10 flex items-baseline select-none"
                       style={{
-                        marginRight: 'calc(26px - 0.1cm)',
+                        marginRight: '28px',
                         fontFamily: '"Revalia", cursive, sans-serif',
-                        fontSize: '0.98rem',
+                        fontSize: '0.96rem',
                         letterSpacing: '0.04em',
                         background: 'linear-gradient(90deg, #2b2310 0%, #3e3114 10%, #685014 24%, #a07d16 42%, #d4a916 64%, #ffd700 82%, #ffff00 100%)',
                         WebkitBackgroundClip: 'text',
@@ -1206,91 +1216,36 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Box 2: Card Leads, Nuove Opportunità e Clienti Attivi ridimensionate una sopra l'altra a lato di Next actions */}
+            {/* Box 2: Card Clienti Attivi (ACTIVE CLIENTS) — Rimozione cards Leads e New Opportunities originali */}
             <div
-              className="flex flex-col gap-2 flex-shrink-0"
+              className="flex flex-col flex-shrink-0"
               style={{
                 width: '185px',
-                height: '276px',
+                height: '296px',
               }}
             >
-              {/* Card 1: LEADS (Inbound & Qualificazione BANT) */}
-              <div className="flex-1 min-h-0">
-                <Link
-                  to="/leads"
-                  className="block hover:opacity-90 transition-opacity h-full flex flex-col group cursor-pointer"
-                  title="Apri la sezione Leads (Funnel & Inbound)"
-                >
-                  <KpiCard
-                    label="LEADS"
-                    value="5"
-                    bg="#ff6f43"
-                    labelColor="#111111"
-                    valueColor="#111111"
-                    sub="5 canali attivi"
-                    subColor="rgba(0, 0, 0, 0.7)"
-                    width="100%"
-                    height="100%"
-                    minHeight="0"
-                    padding="py-1.5 px-3"
-                    labelSize="9.5px"
-                    valueSize="22px"
-                    subSize="9.5px"
-                  />
-                </Link>
-              </div>
-
-              {/* Card 2: OPEN OPPORTUNITIES (Nuove Opportunità) */}
-              <div className="flex-1 min-h-0">
-                <Link
-                  to="/opportunities"
-                  className="block hover:opacity-90 transition-opacity h-full flex flex-col group cursor-pointer"
-                  title="Apri la sezione Opportunità & Trattative"
-                >
-                  <KpiCard
-                    label="NEW OPPORTUNITIES"
-                    value="10"
-                    bg="#9c27b0"
-                    labelColor="#00ff66"
-                    valueColor="#00ff66"
-                    sub="€ 52.7k potential"
-                    subColor="#00e5ff"
-                    width="100%"
-                    height="100%"
-                    minHeight="0"
-                    padding="py-1.5 px-3"
-                    labelSize="9.5px"
-                    valueSize="22px"
-                    subSize="9.5px"
-                  />
-                </Link>
-              </div>
-
-              {/* Card 3: ACTIVE CLIENTS (Clienti Attivi) */}
-              <div className="flex-1 min-h-0">
-                <Link
-                  to="/companies"
-                  className="block hover:opacity-90 transition-opacity h-full flex flex-col group cursor-pointer"
-                  title="Apri il Database Aziende & Contratti"
-                >
-                  <KpiCard
-                    label="ACTIVE CLIENTS"
-                    value="11"
-                    bg="#00ffaa"
-                    labelColor="#111111"
-                    valueColor="#111111"
-                    sub="11 clienti attivi"
-                    subColor="rgba(0, 0, 0, 0.7)"
-                    width="100%"
-                    height="100%"
-                    minHeight="0"
-                    padding="py-1.5 px-3"
-                    labelSize="9.5px"
-                    valueSize="22px"
-                    subSize="9.5px"
-                  />
-                </Link>
-              </div>
+              <Link
+                to="/companies"
+                className="block hover:opacity-90 transition-opacity h-full flex flex-col group cursor-pointer"
+                title="Apri il Database Aziende & Contratti"
+              >
+                <KpiCard
+                  label="ACTIVE CLIENTS"
+                  value="11"
+                  bg="#00ffaa"
+                  labelColor="#111111"
+                  valueColor="#111111"
+                  sub="11 clienti attivi"
+                  subColor="rgba(0, 0, 0, 0.7)"
+                  width="100%"
+                  height="100%"
+                  minHeight="0"
+                  padding="p-4"
+                  labelSize="13px"
+                  valueSize="44px"
+                  subSize="13px"
+                />
+              </Link>
             </div>
           </div>
         </div>
