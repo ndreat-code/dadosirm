@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Database, Sparkles, X, ArrowRight, Calendar as CalendarIcon, Clock, FileText, Paperclip } from 'lucide-react'
+import { Database, Sparkles, X, ArrowRight, Calendar as CalendarIcon, Clock, FileText, Paperclip } from 'lucide-react'
 import CameraShutter from '../components/CameraShutter'
 import { getCurrentWeekDays, getCurrentMonthName, getTodayIso, getTomorrowIso, getCurrentWeekSundayIso, formatDayLong } from '../utils/dateUtils'
 import { getCalendarDayData } from '../utils/calendarData'
@@ -342,17 +342,17 @@ function DeveloperNotesSearchBar() {
 
   return (
     <div className="flex items-center gap-3 select-none">
-      {/* Campo Barra di Ricerca */}
+      {/* Campo Invia una nota */}
       <form onSubmit={handleSend} className="relative flex items-center">
         <input
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder={sentStatus ? "✓ Nota inviata allo sviluppatore!" : "Scrivi una nota..."}
-          className="w-[240px] sm:w-[280px] h-[28px] pl-8 pr-3 text-[11.5px] rounded-full bg-white/95 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#00ffaa] shadow-sm transition-all"
+          placeholder={sentStatus ? "✓ Nota inviata allo sviluppatore!" : "Invia una nota"}
+          title="Scrivi la tua nota e premi Invio per inviarla allo sviluppatore"
+          className="w-[240px] sm:w-[280px] h-[28px] px-3.5 text-[11.5px] rounded-full bg-white/95 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#00ffaa] shadow-sm transition-all"
           style={{ fontFamily: '"Switzer", sans-serif' }}
         />
-        <Search size={13} className="absolute left-2.5 text-slate-400 pointer-events-none" />
       </form>
 
       {/* Dicitura a destra: Note per sviluppatore */}

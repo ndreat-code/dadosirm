@@ -4,7 +4,7 @@ import {
   Building2,
   ListTodo,
   CalendarDays,
-  Boxes,
+  Backpack,
   Users as UsersIcon,
   Settings as SettingsIcon,
   ShieldCheck,
@@ -17,7 +17,7 @@ const navItems = [
   { to: '/companies',  permission: 'companies',  label: 'Companies',   title: 'Companies (Aziende & Contratti)', icon: Building2 },
   { to: '/activities', permission: 'activities', label: 'Activities',  title: 'Activities (Attività & Task)',   icon: ListTodo },
   { to: '/calendar',   permission: 'calendar',   label: 'Calendar',    title: 'Calendar (Calendario Set)',      icon: CalendarDays },
-  { to: '/inventory',  permission: 'inventory',  label: 'Inventario',  title: 'Inventario (Attrezzature)',       icon: Boxes },
+  { to: '/inventory',  permission: 'inventory',  label: 'Inventario',  title: 'Inventario (Attrezzature)',       icon: Backpack },
   { to: '/users',      permission: 'users',      label: 'Utenti',      title: 'Utenti & Permessi di Accesso',    icon: UsersIcon },
 ]
 
