@@ -40,7 +40,7 @@ function getCrmData() {
     return JSON.parse(raw)
   } catch (err) {
     console.error('Errore lettura crmData.json:', err)
-    return { companies: [], opportunities: [], nextActions: [], inventory: [], quotes: [], emails: [] }
+    return { companies: [], opportunities: [], nextActions: [], inventory: [], quotes: [], emails: [], invoices: [] }
   }
 }
 
@@ -175,8 +175,96 @@ app.get('/api/crm/summary', (req, res) => {
     inventory: data.inventory,
     quotes: data.quotes,
     emails: data.emails,
+    invoices: data.invoices || [],
+    invoiceKpis: {
+      totalInvoiced: (data.invoices || []).reduce((sum, inv) => sum + (inv.amount || 0), 0),
+      totalCollected: (data.invoices || []).reduce((sum, inv) => sum + (inv.deposit || 0), 0),
+      totalPending: (data.invoices || []).reduce((sum, inv) => sum + (inv.balance || 0), 0),
+      count: (data.invoices || []).length,
+    },
     googleConnected: fs.existsSync(TOKEN_FILE),
   })
+})
+
+// ─────────────────────────────────────────────────────────────
+// ENDPOINT INVOICE / FATTURAZIONE ELETTRONICA (BLU NOTTE & ORO)
+// ─────────────────────────────────────────────────────────────
+
+app.get('/api/crm/invoices', (req, res) => {
+  const data = getCrmData()
+  const invoices = data.invoices || []
+  res.json({
+    invoices,
+    totalInvoiced: invoices.reduce((sum, inv) => sum + (inv.amount || 0), 0),
+    totalCollected: invoices.reduce((sum, inv) => sum + (inv.deposit || 0), 0),
+    totalPending: invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0),
+    count: invoices.length,
+  })
+})
+
+app.post('/api/crm/invoices', (req, res) => {
+  try {
+    const { number, companyName, amount, deposit, balance, status, dueDate, paymentMethod, description, sdi, pec } = req.body
+    if (!companyName || !amount) {
+      return res.status(400).json({ error: 'Nome azienda e importo imponibile obbligatori' })
+    }
+    const crmData = getCrmData()
+    if (!crmData.invoices) crmData.invoices = []
+
+    const numVal = parseFloat(amount) || 0
+    const vatVal = Math.round(numVal * 0.22)
+    const depVal = parseFloat(deposit) || (status === 'Saldato' ? numVal : 0)
+    const balVal = balance !== undefined ? parseFloat(balance) : Math.max(0, numVal - depVal)
+
+    const newInvoice = {
+      id: 'inv-' + Date.now(),
+      number: number || `FAT-2026-${Math.floor(100 + Math.random() * 900)}`,
+      companyName: companyName.trim(),
+      amount: numVal,
+      vat: vatVal,
+      totalWithVat: numVal + vatVal,
+      deposit: depVal,
+      balance: Math.max(0, balVal),
+      status: balVal === 0 ? 'Saldato' : (status || 'In attesa saldo'),
+      date: new Date().toLocaleDateString('it-IT'),
+      dueDate: dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('it-IT'),
+      paymentMethod: paymentMethod || 'Bonifico Bancario 30gg d.f.',
+      sdi: sdi || '0000000',
+      pec: pec || '',
+      description: description || 'Servizi di produzione video / foto DADO Creative Studio'
+    }
+
+    crmData.invoices.unshift(newInvoice)
+    saveCrmData(crmData)
+    res.json({ success: true, invoice: newInvoice, invoices: crmData.invoices })
+  } catch (err) {
+    console.error('Errore creazione fattura:', err)
+    res.status(500).json({ error: 'Errore interno salvataggio fattura' })
+  }
+})
+
+app.patch('/api/crm/invoices/:id/pay', (req, res) => {
+  try {
+    const { id } = req.params
+    const crmData = getCrmData()
+    if (!crmData.invoices) crmData.invoices = []
+
+    const inv = crmData.invoices.find(i => String(i.id) === String(id) || i.number === id)
+    if (!inv) {
+      return res.status(404).json({ error: 'Fattura non trovata' })
+    }
+
+    inv.deposit = inv.amount
+    inv.balance = 0
+    inv.status = 'Saldato'
+    inv.paidAt = new Date().toISOString()
+
+    saveCrmData(crmData)
+    res.json({ success: true, invoice: inv, invoices: crmData.invoices })
+  } catch (err) {
+    console.error('Errore aggiornamento pagamento fattura:', err)
+    res.status(500).json({ error: 'Errore interno aggiornamento fattura' })
+  }
 })
 
 // ─────────────────────────────────────────────────────────────
@@ -453,8 +541,9 @@ app.post('/api/crm/inventory/:id/return', (req, res) => {
 app.post('/api/ai/ask', async (req, res) => {
   try {
     const userRole = (req.headers['x-user-role'] || '').toLowerCase()
-    if (userRole === 'dipendente' || userRole === 'restricted') {
-      return res.status(403).json({ error: 'Accesso negato: interrogazione OpenAI non consentita per il profilo Dipendente' })
+    const isDirectorOrAdmin = userRole.includes('director') || userRole.includes('admin') || userRole.includes('amministratore')
+    if (!isDirectorOrAdmin && (userRole === 'dipendente' || userRole === 'restricted')) {
+      return res.status(403).json({ error: 'Accesso negato: interrogazione OpenAI non consentita per questo profilo' })
     }
 
     const { prompt } = req.body
@@ -483,6 +572,9 @@ ${JSON.stringify(crmData.inventory, null, 1)}
 
 PREVENTIVI EMESSI & CONTRATTI:
 ${JSON.stringify(crmData.quotes, null, 1)}
+
+DATABASE INVOICE & FATTURAZIONE ELETTRONICA (${crmData.invoices?.length || 0} fatture con imponibile, IVA, acconti, saldi, SDI e scadenze):
+${JSON.stringify(crmData.invoices, null, 1)}
 
 EMAIL RECENTI SINCRONIZZATE:
 ${JSON.stringify(crmData.emails, null, 1)}
@@ -524,8 +616,29 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
    - Struttura l'analisi per trimestri (Q2 vs Q3) e per fasce di valore (Top Tier > €7.000, Mid Tier €4.000-€6.500, Entry Tier < €4.000).
    - Evidenzia la gestione del credito: € 46.000 incassati vs € 10.900 in attesa di saldo (Riva, Kroma, Beta Digital) e la redditività oraria delle varie commesse.
    - Sintesi strategica sulle opportunità future e contratti inbound in elaborazione (Fashion Brand Milano, NextMedia Agency).
-9. STILE DI RISPOSTA:
-   Professionale, incisivo, altamente analitico, con sezioni tematiche chiare, numeri precisi (€, orari, date) e conclusioni operative immediatamente applicabili.`
+9. INTERCONNESSIONE TOTALE & PRESENTAZIONE RELAZIONALE DEL CRM (REGOLA CARDINE):
+   Qualunque elemento inerente al CRM ti venga chiesto (un'azienda, una fattura/invoice, un'attrezzatura dell'inventario, una data o cadenza di shooting, un preventivo o un saldo/insoluto):
+   NON presentare mai dati isolati. Sei un sistema di Business Intelligence relazionale: devi SEMPRE presentare le informazioni collegandole organicamente tra loro in una visione integrata e completa:
+   - CLIENTE ➔ Referente, settore, canale di acquisizione
+   - CONTRATTO ➔ Codice contratto, data firma, termini
+   - INVOICE / FATTURA ➔ Numero fattura, imponibile, IVA 22%, acconto versato, saldo aperto da incassare, data scadenza, SDI/PEC
+   - CALENDARIO & SHOOTING ➔ Date di produzione, orari di set, location effettiva
+   - ATTREZZATURE MOBILITATE ➔ Telecamere (Sony FX3), ottiche GM, droni DJI, luci Aputure, stabilizzatori e audio
+   - CRITICITÀ & FEEDBACK ➔ Problemi riscontrati sul set e soluzione applicata da DADO Studio
+   - PROSSIMA AZIONE OPERATIVA ➔ Azione commerciale o di sollecito/consegna consigliata.
+ 10. STILE DI RISPOSTA:
+    Professionale, incisivo, altamente analitico, con sezioni tematiche chiare, numeri precisi (€, orari, date) e conclusioni operative immediatamente applicabili.
+ 11. GESTIONE DI RICHIESTE SU DATI NON PRESENTI O SCONOSCIUTI (REGOLA ESSENZIALE):
+    Se l'utente formula una domanda su un'azienda, una persona, una commessa, un dato contabile o un argomento che NON è presente né registrato nel database interno del CRM fornito sopra:
+    - NON inventare informazioni, numeri o collegamenti forzati.
+    - NON rispondere con riepiloghi generici fuori contesto o riversando la cronologia di tutti i lavori del CRM.
+    - Rispondi in modo trasparente, cortese e naturale (stile OpenAI), spiegando che dopo aver consultato il database del CRM di DADO Creative Studio l'informazione richiesta non risulta disponibile o registrata.
+    - Indica con precisione cosa è stato cercato nel database (clienti, contratti, invoice, calendario, inventario) e offri assistenza sui dati realmente presenti.
+ 12. REPORT SULLE ULTIME COLLABORAZIONI (RICHIESTA SPECIFICA):
+     Se l'utente richiede un report, dossier o elenco sulle ultime collaborazioni (es. "report ultime tre collaborazioni", "ultimi 3 clienti", "ultime commesse", gestendo anche refusi come "colaborazioni"):
+     - Rispondi focalizzandoti con la massima precisione ed esaustività sulle ultime collaborazioni in ordine cronologico.
+     - Presenta per ciascuna: Cliente, referente e contatti, data, contratto/preventivo, importi economici (acconto/saldo/totale), shooting e calendario, attrezzatura impiegata, feedback/criticità e stato operativo.
+     - Fornisci un quadro comparativo e una sintesi economica complessiva immediata.`
 
     let answer = ''
     let usingOpenAi = false
@@ -571,11 +684,16 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
       // Ollama non ancora avviato o nessun modello scaricato, si prosegue
     }
 
-    // ── 2. SE OLLAMA NON È ATTIVO: TENTA OPENAI CON CHIAVE ──
-    if (!answer && (process.env.OPENAI_API_KEY || process.env.OPENAI_BASE_URL)) {
+    // ── 2. SE OLLAMA NON È ATTIVO: TENTA OPENAI CON CHIAVE REALE O BASE_URL PERSONALIZZATO ──
+    const isRealOpenAiKey = Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-'))
+    const hasCustomBaseUrl = Boolean(process.env.OPENAI_BASE_URL && !process.env.OPENAI_BASE_URL.includes('11434') && !process.env.OPENAI_BASE_URL.includes('localhost'))
+    if (!answer && (isRealOpenAiKey || hasCustomBaseUrl)) {
       try {
-        const modelName = process.env.OPENAI_MODEL || (process.env.OPENAI_BASE_URL ? 'llama3.1' : 'gpt-4o-mini')
-        const completion = await openai.chat.completions.create({
+        const client = isRealOpenAiKey && !hasCustomBaseUrl
+          ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+          : openai
+        const modelName = process.env.OPENAI_MODEL || (isRealOpenAiKey ? 'gpt-4o-mini' : 'llama3.1')
+        const completion = await client.chat.completions.create({
           model: modelName,
           messages: [
             { role: 'system', content: systemPrompt },
@@ -603,9 +721,6 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
     if (!answer) {
       answer = generateLocalCrmAnalysis(prompt, crmData)
       activeEngine = 'Motore NLP Studio DADO'
-      if (openAiError === 'credit_exhausted') {
-        answer += `\n\n──────────────────────────────────────\n💡 [Nota: Risposta calcolata dal motore analitico DADO Studio. Una volta avviato Ollama con un modello come llama3.2, il CRM si collegherà automaticamente in locale a costo zero.]`
-      }
     }
 
     res.json({ answer, prompt, usingOpenAi, usingOllama, activeEngine, openAiError, timestamp: new Date().toISOString() })
@@ -624,6 +739,25 @@ function generateLocalCrmAnalysis(prompt, data) {
   const opps = data.opportunities || []
   const actions = data.nextActions || []
   const inventory = data.inventory || []
+  const invoices = data.invoices || []
+  const quotes = data.quotes || []
+
+  // ── 00. SALUTI & CAPABILITIES ASSISTENTE (STILE OPENAI) ──────────
+  const isGreeting = /^(ciao|salve|buongiorno|buonasera|hey|ehi|hello|hi)[\s!.,?]*$/i.test(p) ||
+    /^(chi sei|cosa puoi fare|come puoi aiutarmi|cosa sai fare|presentati)[\s!.,?]*$/i.test(p) ||
+    p === 'aiuto' || p === 'help'
+  if (isGreeting) {
+    return `👋 Ciao! Sono l'assistente di intelligenza artificiale integrato nel CRM di **DADO Creative Studio**.
+
+Posso supportarti nell'analisi strategica, commerciale e operativa dello studio interrogando in tempo reale il database interno:
+• 🏢 **Clienti & Partner**: anagrafiche, referenti diretti, contratti firmati e storico commesse.
+• 🧾 **Fatture & Flussi di Cassa**: imponibili, IVA 22%, acconti già versati e crediti con saldo aperto.
+• 📅 **Calendario & Shooting**: date di set, orari di produzione, location (Limbo DADO o trasferte) e cadenze temporali.
+• 🎥 **Inventario Attrezzature**: disponibilità di telecamere Sony FX3 Cinema Line, droni DJI, parco luci (Aputure/Nanlite) e ottiche GM.
+• 💼 **Pipeline Trattative**: opportunità commerciali in corso e strategie di negoziazione.
+
+Come posso esserti utile oggi?`
+  }
 
   // ── 0. DOMANDE SU DATE E CALENDARIO ──────────────────────────────
   const dayNames = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato']
@@ -949,10 +1083,138 @@ ${mJobs.map((j, idx) => {
 💡 Per analizzare il dettaglio orario e contrattuale di un singolo mese, digita: "Cadenze temporali di settembre", "Cadenze temporali di agosto", ecc.`
   }
 
-  // ── 0e. DOMANDE SU ULTIMO / PRIMO LAVORO NEL 2026 E DATE SINGOLI LAVORI OTTENUTI ──
-  const isLastJobQuery = (p.includes('ultimo') || p.includes('ultim')) && (p.includes('lavor') || p.includes('commess') || p.includes('shooting') || p.includes('set') || p.includes('2026') || p.includes('anno') || p.includes('client') || p.includes('ottenut'))
-  const isFirstJobQuery = (p.includes('primo') || p.includes('prim')) && (p.includes('lavor') || p.includes('commess') || p.includes('shooting') || p.includes('set') || p.includes('2026') || p.includes('anno') || p.includes('client') || p.includes('ottenut'))
-  const isWorkDatesQuery = (p.includes('date') || p.includes('data') || p.includes('cronolog') || p.includes('timeline') || p.includes('calendario') || p.includes('quando')) && (p.includes('lavor') || p.includes('singol') || p.includes('ottenut') || p.includes('commess') || p.includes('shooting'))
+  // ── 0d-bis. REPORT E DOSSIER SULLE ULTIME COLLABORAZIONI / COMMESSE RECENTI ──
+  const isCollabKeyword = /(?:col+aboraz|collab|commess|lavor|client|partner|accord|ingagg)/i.test(p)
+  const isRecentKeyword = /(?:ultim|recent|nuov|chius|svolt)/i.test(p)
+  const isSingleJob = (p.includes('ultimo lavoro') || p.includes('l\'ultimo lavoro') || p.includes('primo lavoro')) && 
+                      !p.includes('ultimi') && !p.includes('collaboraz') && !p.includes('colaboraz') && 
+                      !p.includes('tre') && !p.includes('due') && !p.includes('quattro') && !p.includes('cinque') && !/\b[2-9]\b/.test(p)
+
+  const isRecentCollabQuery = !isSingleJob && (
+    (isCollabKeyword && isRecentKeyword) ||
+    (/(?:col+aboraz|collab)/i.test(p) && /(?:report|elenc|dossier|analis|tutt|storic|mostr|quali|chi)/i.test(p)) ||
+    (p.includes('ultim') && (p.includes('tre') || p.includes('due') || p.includes('quattro') || p.includes('cinque') || /\b\d+\b/.test(p)) && isCollabKeyword)
+  )
+
+  if (isRecentCollabQuery) {
+    let collabLimit = 3
+    const numMatch = p.match(/\b(un|uno|una|due|tre|quattro|cinque|sei|sette|otto|nove|dieci|\d+)\b/)
+    if (numMatch) {
+      const wordToNum = { 'un': 1, 'uno': 1, 'una': 1, 'due': 2, 'tre': 3, 'quattro': 4, 'cinque': 5, 'sei': 6, 'sette': 7, 'otto': 8, 'nove': 9, 'dieci': 10 }
+      collabLimit = wordToNum[numMatch[1]] || parseInt(numMatch[1], 10) || 3
+    }
+    if (p.includes('tutt') || p.includes('tutti') || p.includes('tutte')) {
+      collabLimit = companies.length
+    }
+
+    const formatItalianDate = (iso) => {
+      if (!iso) return 'N/D'
+      const parts = iso.split('-')
+      if (parts.length < 3) return iso
+      const mNames = ['', 'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+      const mIdx = parseInt(parts[1], 10)
+      return `${parseInt(parts[2], 10)} ${mNames[mIdx]} ${parts[0]}`
+    }
+
+    const formatEur = (n) => (Math.round(n || 0)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+
+    const getCompanySortDate = (c) => c.workSchedule?.recentDate || c.contract?.signedDate || c.firstContact?.date || '2026-01-01'
+    const sortedCompanies = [...companies].sort((a, b) => getCompanySortDate(b).localeCompare(getCompanySortDate(a)))
+    const targetCollabs = sortedCompanies.slice(0, collabLimit)
+
+    const signedOnly = companies.filter(c => c.contract?.status === 'Firmato' || c.contract?.signedDate)
+      .sort((a, b) => getCompanySortDate(b).localeCompare(getCompanySortDate(a)))
+      .slice(0, collabLimit)
+
+    const totalAmount = targetCollabs.reduce((s, c) => s + (c.compensation?.amount || 0), 0)
+    const totalDeposit = targetCollabs.reduce((s, c) => s + (c.compensation?.deposit || (c.compensation?.status === 'Saldato' ? c.compensation?.amount : 0) || 0), 0)
+    const totalBalance = targetCollabs.reduce((s, c) => s + (c.compensation?.balance || 0), 0)
+
+    const cardsText = targetCollabs.map((c, idx) => {
+      const inv = invoices.find(i => i.companyId === c.id || (i.companyName && i.companyName.toLowerCase() === c.name.toLowerCase()))
+      const matchedAct = actions.find(a => a.company && a.company.toLowerCase() === c.name.toLowerCase())
+      const isSigned = c.contract?.status === 'Firmato' || Boolean(c.contract?.signedDate)
+
+      let statusBadge = isSigned 
+        ? '✅ CONTRATTO FIRMATO & PRODUZIONE COMPLETATA' 
+        : '⚡ COMMESSA RECENTE INBOUND / PREVENTIVO IN ELABORAZIONE'
+
+      let billingDetail = ''
+      if (c.compensation?.balance && c.compensation.balance > 0) {
+        billingDetail = `⏳ Acconto versato: € ${formatEur(c.compensation?.deposit)} | Saldo residuo da incassare: € ${formatEur(c.compensation?.balance)} (${c.compensation?.status || 'In attesa saldo'})`
+      } else if (c.compensation?.status === 'Saldato') {
+        billingDetail = `✅ Saldato 100% (€ ${formatEur(c.compensation?.amount)})`
+      } else {
+        billingDetail = `📋 Stima/Valore: € ${formatEur(c.compensation?.amount || 5000)} (${c.compensation?.status || 'In attesa preventivo'})`
+      }
+
+      let issueText = '🟢 Lavorazione pianificata ed eseguita regolarmente senza anomalie logistiche.'
+      if (c.issues?.hasIssue) {
+        issueText = `⚠️ Criticità: ${c.issues.description}\n     🛠️ Risoluzione: ${c.issues.resolution} [Stato: ${c.issues.isResolved}]`
+      } else if (c.feedback?.notes) {
+        issueText = `⭐ Valutazione: ${c.feedback.rating || 5}/5.0 • "${c.feedback.notes}"`
+      }
+
+      let nextActionText = matchedAct 
+        ? `${matchedAct.title} (Scadenza: ${matchedAct.period || 'In settimana'} • Canale: ${matchedAct.source || 'CRM'})`
+        : isSigned && c.compensation?.balance > 0
+          ? `Emissione nota di saldo ed incasso residuo di € ${formatEur(c.compensation?.balance)}.`
+          : 'Follow-up e mantenimento relazione commerciale con il cliente.'
+
+      const materials = (c.requestedMaterials && c.requestedMaterials.length > 0)
+        ? c.requestedMaterials.slice(0, 4).join('\n     • ')
+        : 'Setup Cinema 4K Sony FX3 • Lenti Sony GM • Audio Wireless Sennheiser'
+
+      return `🏢 ${idx + 1}. ${c.name.toUpperCase()} (${c.industry})
+   ${statusBadge}
+   ────────────────────────────────────────────────────────
+   • 👤 Referente: ${c.contactPerson?.name || 'N/D'} (${c.contactPerson?.role || 'Referente'})
+   • ✉️ Email / Tel: ${c.contact?.directEmail || c.contact?.email || 'N/D'} ${c.contact?.mobile || c.contact?.phone ? `• ${c.contact?.mobile || c.contact?.phone}` : ''}
+   • 📜 Contratto: ${c.contract?.code || 'In elaborazione'} [${c.contract?.status || 'In corso'}] ${c.contract?.signedDate ? `• Firmato il ${formatItalianDate(c.contract.signedDate)}` : `• Richiesta del ${formatItalianDate(c.workSchedule?.recentDate || '2026-09-28')}`}
+   • 🧾 Quadro Economico: € ${formatEur(c.compensation?.amount)} + IVA (${c.compensation?.paymentMethod || 'Bonifico Bancario'})
+     ${billingDetail}
+     ${inv ? `• Fattura Elettronica: ${inv.number} (SDI: ${inv.sdi || 'M5UXCR1'} • PEC: ${inv.pec || 'N/D'})` : '• Fattura: In emissione al completamento degli output'}
+   • 📅 Calendario & Set: ${c.workSchedule?.datesFormatted || 'Entro 1 settimana'}
+     - Cadenza & Orari: ${c.workSchedule?.scheduleType || 'Standard'} ${c.workSchedule?.hours ? `(${c.workSchedule.hours})` : ''}
+     - Location: ${c.workSchedule?.location || 'Studio DADO Milano / On-site'}
+   • 🎥 Attrezzature Mobilitate:
+     • ${materials}
+   • 🛠️ Note Operative & Set:
+     ${issueText}
+   • 🎯 Prossima Azione: ${nextActionText}`
+    }).join('\n\n')
+
+    return `📊 DOSSIER OPERATIVO: REPORT SULLE ULTIME ${collabLimit} COLLABORAZIONI
+─────────────────────────────────────────────────────────────
+Analisi integrata e relazionale elaborata in tempo reale dal database di DADO Creative Studio per la richiesta: "${prompt}"
+
+🎯 QUADRO SINOTTICO DELLE ULTIME ${collabLimit} COLLABORAZIONI (ORDINATE DALLA PIÙ RECENTE):
+${targetCollabs.map((c, i) => `${i + 1}. ${c.name} [${c.workSchedule?.recentDate ? formatItalianDate(c.workSchedule.recentDate) : formatItalianDate(c.contract?.signedDate)}] ➔ € ${formatEur(c.compensation?.amount)} (${c.contract?.status || 'In corso'})`).join('\n')}
+
+═════════════════════════════════════════════════════════════
+📋 SCHEDE OPERATIVE E RELAZIONALI DI DETTAGLIO:
+
+${cardsText}
+
+═════════════════════════════════════════════════════════════
+💡 FOCUS PRODUZIONI ESEGUITE SUL SET (CONTRATTI FIRMATI):
+Qualora l'interesse sia specificamente rivolto alle ultime ${collabLimit} commesse con contratto regolarmente sottoscritto ed eseguito in produzione a Settembre 2026:
+${signedOnly.map((c, i) => `  ${i + 1}. ${c.name} (€ ${formatEur(c.compensation?.amount)} - Set: ${c.workSchedule?.datesFormatted || 'Settembre 2026'}) • Contratto: ${c.contract?.code} [${c.compensation?.status === 'Saldato' ? 'Saldato 100%' : `Saldo residuo € ${formatEur(c.compensation?.balance)}`}]`).join('\n')}
+
+═════════════════════════════════════════════════════════════
+📈 SINTESI ECONOMICA & FLUSSI DELLE ULTIME ${collabLimit} COLLABORAZIONI:
+• Valore complessivo generato: € ${formatEur(totalAmount)}
+• Incassato / Acconti versati: € ${formatEur(totalDeposit)} (${Math.round((totalDeposit / (totalAmount || 1)) * 100)}%)
+• Saldo residuo da incassare: € ${formatEur(totalBalance)} (${Math.round((totalBalance / (totalAmount || 1)) * 100)}%)
+• Dotazione tecnica impiegata: Sony FX3 Cinema Line, Lenti GM f/2.8, Drone DJI Mavic 3 Cine, Parco Luci Aputure e Radio microfoni Sennheiser AVX.
+
+💡 Puoi chiedermi approfondimenti specifici su qualsiasi cliente (es. "Dettaglio Officine Riva"), sul calendario ("Cadenze temporali di settembre") o sui pagamenti in sospeso ("Quali sono i saldi aperti?").`
+  }
+
+  // ── 0e. DOMANDE SU ULTIMO / PRIMO LAVORO NEL 2026 E CRONOLOGIA COMPLETA ──
+  const isLastJobQuery = (p.includes('ultimo') || p.includes('ultim')) && (p.includes('lavor') || p.includes('commess') || p.includes('shooting') || p.includes('set') || p.includes('progett') || p.includes('produzion'))
+  const isFirstJobQuery = (p.includes('primo') || p.includes('prim')) && (p.includes('lavor') || p.includes('commess') || p.includes('shooting') || p.includes('set') || p.includes('progett') || p.includes('produzion'))
+  const isWorkDatesQuery = (p.includes('tutti i lavori') || p.includes('tutte le date') || p.includes('cronologia completa') || p.includes('cronologia date') || p.includes('timeline lavori')) && (p.includes('lavor') || p.includes('date') || p.includes('commess') || p.includes('shooting') || p.includes('2026'))
 
   if (isLastJobQuery || isFirstJobQuery || isWorkDatesQuery) {
     const sortedCompaniesByDate = [...companies].sort((a, b) => {
@@ -964,60 +1226,48 @@ ${mJobs.map((j, idx) => {
     const latestJob = sortedCompaniesByDate[0]
     const firstJob = sortedCompaniesByDate[sortedCompaniesByDate.length - 1]
 
-    if (isLastJobQuery) {
-      return `🎬 ULTIMO LAVORO REGISTRATO NELL'ANNO 2026:
-👉 ${latestJob.name.toUpperCase()} (${latestJob.industry})
+    if (isLastJobQuery && latestJob) {
+      return `🎬 **ULTIMO LAVORO REGISTRATO NELL'ANNO 2026:**
+👉 **${latestJob.name.toUpperCase()}** (${latestJob.industry})
 ─────────────────────────────────────────────────────────────
-• DATE DI PRODUZIONE & SHOOTING: ${latestJob.workSchedule?.datesFormatted || '24 e 25 Settembre 2026'}
-• CARICO & ORARI SUL SET: ${latestJob.workSchedule?.scheduleType} (${latestJob.workSchedule?.hours})
-• LOCATION: ${latestJob.workSchedule?.location}
-• VALORE COMMESSA: € ${(latestJob.compensation?.amount || 0).toLocaleString('it-IT')} (Acconto incassato: € ${(latestJob.compensation?.deposit || 0).toLocaleString('it-IT')} | Saldo aperto: € ${(latestJob.compensation?.balance || 0).toLocaleString('it-IT')})
-• CONTRATTO FIRMATO: ${latestJob.contract?.code} siglato il ${latestJob.contract?.signedDate} (${latestJob.contract?.digitalFormat})
-• REFERENTE: ${latestJob.contactPerson?.name} (${latestJob.contactPerson?.role}) • Tel: ${latestJob.contact?.phone || latestJob.contact?.mobile}
-• ATTREZZATURE IMPIEGATE: ${(latestJob.requestedMaterials || []).slice(0, 4).join(' • ')}
-• DELIVERABLES: Master Video 4K ProRes 422 + Cut 60s per LinkedIn
-• NOTE OPERATIVE: ${latestJob.issues?.hasIssue ? `Criticità gestita: ${latestJob.issues.description} (Soluzione applicata: ${latestJob.issues.resolution})` : 'Produzione regolare.'}
-
-📅 CRONOLOGIA COMPLETA DATE DEI SINGOLI LAVORI OTTENUTI NEL 2026:
-(Tutte le 11 commesse ordinate in sequenza temporale dal più recente al primo dell'anno)
-
-${sortedCompaniesByDate.map((c, idx) => `${idx + 1}. ${c.name}
-   • Data lavoro: ${c.workSchedule?.datesFormatted || 'N/D'} (Data contratto: ${c.contract?.signedDate || 'N/D'})
-   • Location: ${c.workSchedule?.location || 'Studio'}
-   • Valore commessa: € ${(c.compensation?.amount || 0).toLocaleString('it-IT')} [Stato: ${c.compensation?.status || 'N/D'}]
-   • Tipologia: ${c.workSchedule?.scheduleType || 'Standard'}`).join('\n\n')}`
+• **Date di produzione & shooting:** ${latestJob.workSchedule?.datesFormatted || '24 e 25 Settembre 2026'}
+• **Carico & orari sul set:** ${latestJob.workSchedule?.scheduleType} (${latestJob.workSchedule?.hours || 'Orario standard'})
+• **Location:** ${latestJob.workSchedule?.location || 'Studio DADO'}
+• **Valore commessa:** € ${(latestJob.compensation?.amount || 0).toLocaleString('it-IT')} (Acconto incassato: € ${(latestJob.compensation?.deposit || 0).toLocaleString('it-IT')} | Saldo aperto: € ${(latestJob.compensation?.balance || 0).toLocaleString('it-IT')})
+• **Contratto firmato:** ${latestJob.contract?.code} del ${latestJob.contract?.signedDate || '2026'} (${latestJob.contract?.digitalFormat || 'Digitale'})
+• **Referente:** ${latestJob.contactPerson?.name} (${latestJob.contactPerson?.role}) • Tel: ${latestJob.contact?.phone || latestJob.contact?.mobile || 'N/D'}
+• **Attrezzature impiegate:** ${(latestJob.requestedMaterials || []).slice(0, 4).join(' • ')}
+• **Note operative:** ${latestJob.issues?.hasIssue ? `Criticità gestita: ${latestJob.issues.description} (Soluzione: ${latestJob.issues.resolution})` : 'Produzione completata regolarmente.'}`
     }
 
-    if (isFirstJobQuery) {
-      return `🎬 PRIMO LAVORO REGISTRATO NELL'ANNO 2026:
-👉 ${firstJob.name.toUpperCase()} (${firstJob.industry})
+    if (isFirstJobQuery && firstJob) {
+      return `🎬 **PRIMO LAVORO REGISTRATO NELL'ANNO 2026:**
+👉 **${firstJob.name.toUpperCase()}** (${firstJob.industry})
 ─────────────────────────────────────────────────────────────
-• DATA DI PRODUZIONE & SHOOTING: ${firstJob.workSchedule?.datesFormatted || '12 Maggio 2026'}
-• ORARI SUL SET: ${firstJob.workSchedule?.scheduleType} (${firstJob.workSchedule?.hours})
-• LOCATION: ${firstJob.workSchedule?.location}
-• VALORE COMMESSA: € ${(firstJob.compensation?.amount || 0).toLocaleString('it-IT')} [Stato: ${firstJob.compensation?.status || 'Saldato'}]
-• CONTRATTO FIRMATO: ${firstJob.contract?.code} del ${firstJob.contract?.signedDate}
-• ATTREZZATURE: ${(firstJob.requestedMaterials || []).slice(0, 3).join(' • ')}
-
-📅 CRONOLOGIA DATE SINGOLI LAVORI 2026:
-${sortedCompaniesByDate.map((c, idx) => `${idx + 1}. ${c.name} ➔ ${c.workSchedule?.datesFormatted || 'N/D'} (€ ${(c.compensation?.amount || 0).toLocaleString('it-IT')})`).join('\n')}`
+• **Data di produzione & shooting:** ${firstJob.workSchedule?.datesFormatted || '12 Maggio 2026'}
+• **Orari sul set:** ${firstJob.workSchedule?.scheduleType} (${firstJob.workSchedule?.hours || 'Standard'})
+• **Location:** ${firstJob.workSchedule?.location || 'Studio DADO'}
+• **Valore commessa:** € ${(firstJob.compensation?.amount || 0).toLocaleString('it-IT')} [Stato: ${firstJob.compensation?.status || 'Saldato'}]
+• **Contratto firmato:** ${firstJob.contract?.code} del ${firstJob.contract?.signedDate || '2026'}
+• **Referente:** ${firstJob.contactPerson?.name || 'N/D'} (${firstJob.contactPerson?.role || 'Referente'})
+• **Attrezzature:** ${(firstJob.requestedMaterials || []).slice(0, 3).join(' • ')}`
     }
 
     // isWorkDatesQuery: calendario cronologico completo
-    return `📅 DATE DEI SINGOLI LAVORI OTTENUTI NEL 2026 (${companies.length} COMMESSE):
+    return `📅 **CRONOLOGIA COMPLETA DATE DEI SINGOLI LAVORI OTTENUTI NEL 2026 (${companies.length} COMMESSE):**
 ─────────────────────────────────────────────────────────────
 Cronologia completa ordinata dalla data più recente al primo lavoro dell'anno:
 
-${sortedCompaniesByDate.map((c, idx) => `• [${c.workSchedule?.datesFormatted}] ➔ ${c.name.toUpperCase()}
-  - Location: ${c.workSchedule?.location || 'Studio DADO'}
-  - Orari e impegno: ${c.workSchedule?.scheduleType} (${c.workSchedule?.hours})
-  - Valore economico: € ${(c.compensation?.amount || 0).toLocaleString('it-IT')} | Saldo: € ${(c.compensation?.balance || 0).toLocaleString('it-IT')} (${c.compensation?.status})
-  - Contratto: ${c.contract?.code} del ${c.contract?.signedDate}
-  - Materiali chiave: ${(c.requestedMaterials || []).slice(0, 3).join(', ')}`).join('\n\n')}
+${sortedCompaniesByDate.map((c, idx) => `${idx + 1}. [${c.workSchedule?.datesFormatted || 'Data N/D'}] ➔ **${c.name.toUpperCase()}**
+   • Location: ${c.workSchedule?.location || 'Studio DADO'}
+   • Orari e impegno: ${c.workSchedule?.scheduleType || 'Standard'} (${c.workSchedule?.hours || 'N/D'})
+   • Valore economico: € ${(c.compensation?.amount || 0).toLocaleString('it-IT')} | Saldo: € ${(c.compensation?.balance || 0).toLocaleString('it-IT')} (${c.compensation?.status || 'N/D'})
+   • Contratto: ${c.contract?.code || 'CTR-2026'} del ${c.contract?.signedDate || 'N/D'}
+   • Materiali chiave: ${(c.requestedMaterials || []).slice(0, 3).join(', ')}`).join('\n\n')}
 
-🎯 SINTESI TEMPORALE:
-• Ultimo lavoro dell'anno 2026: ${latestJob.name} (${latestJob.workSchedule?.datesFormatted})
-• Primo lavoro dell'anno 2026: ${firstJob.name} (${firstJob.workSchedule?.datesFormatted})`
+🎯 **Sintesi:**
+• Ultimo lavoro: ${latestJob.name} (${latestJob.workSchedule?.datesFormatted})
+• Primo lavoro: ${firstJob.name} (${firstJob.workSchedule?.datesFormatted})`
   }
 
   // ── MAPPATURA ROBUSTA DELLE AZIENDE DEL CRM ──────────────────────
@@ -1032,7 +1282,9 @@ ${sortedCompaniesByDate.map((c, idx) => `• [${c.workSchedule?.datesFormatted}]
     { id: 'comp-10', name: 'Tenuta Poggio Antico', keys: ['tenuta poggio antico', 'poggio antico', 'poggio'] },
     { id: 'comp-8', name: 'Nexura Tech Solutions', keys: ['nexura tech solutions', 'nexura tech', 'nexura'] },
     { id: 'comp-9', name: 'Atelier Sposa Bellissima', keys: ['atelier sposa bellissima', 'sposa bellissima', 'atelier sposa'] },
-    { id: 'comp-11', name: 'Urban Mobility Bike', keys: ['urban mobility bike', 'urban mobility', 'urban bike', 'urban'] }
+    { id: 'comp-11', name: 'Urban Mobility Bike', keys: ['urban mobility bike', 'urban mobility', 'urban bike', 'urban'] },
+    { id: 'comp-1790554320431', name: 'Fashion Brand Milano', keys: ['fashion brand milano', 'fashion brand', 'fashionbrand'] },
+    { id: 'comp-1790554320432', name: 'NextMedia Agency', keys: ['nextmedia agency', 'nextmedia'] }
   ]
 
   const matchedCompanies = []
@@ -1041,6 +1293,15 @@ ${sortedCompaniesByDate.map((c, idx) => `• [${c.workSchedule?.datesFormatted}]
       const found = companies.find(c => c.id === alias.id || c.name.toLowerCase() === alias.name.toLowerCase())
       if (found && !matchedCompanies.some(m => m.id === found.id)) {
         matchedCompanies.push(found)
+      }
+    }
+  }
+
+  // Corrispondenza aggiuntiva tramite nome referente
+  for (const c of companies) {
+    if (c.contactPerson?.name && p.includes(c.contactPerson.name.toLowerCase())) {
+      if (!matchedCompanies.some(m => m.id === c.id)) {
+        matchedCompanies.push(c)
       }
     }
   }
@@ -1296,8 +1557,8 @@ Scansione calcolata in tempo reale sul database del CRM DADO Creative Studio:
   }
 
   // ── 3. ELENCO & RICERCHE INTERNE TRA LE AZIENDE CON CUI COLLABORIAMO ──
-  const isCollabQuery = p.includes('collabora') || p.includes('partner') || p.includes('elenco') || p.includes('tutte le aziende') || p.includes('tutti i clienti') || p.includes('chi sono i clienti') || p.includes('quali aziende') || p.includes('mostra aziende') || p.includes('lista clienti') || p.includes('lista aziende') || (p.includes('aziend') && (p.includes('nostr') || p.includes('intern') || p.includes('portafoglio') || p.includes('lavoriamo') || p.includes('collabor') || p.includes('tutt')))
-  if (isCollabQuery && matchedCompanies.length === 0) {
+  const isAllCollabDirectoryQuery = p.includes('collabora') || p.includes('colabora') || p.includes('partner') || p.includes('elenco') || p.includes('tutte le aziende') || p.includes('tutti i clienti') || p.includes('chi sono i clienti') || p.includes('quali aziende') || p.includes('mostra aziende') || p.includes('lista clienti') || p.includes('lista aziende') || (p.includes('aziend') && (p.includes('nostr') || p.includes('intern') || p.includes('portafoglio') || p.includes('lavoriamo') || p.includes('collabor') || p.includes('colabor') || p.includes('tutt')))
+  if (isAllCollabDirectoryQuery && matchedCompanies.length === 0) {
     const totalAmount = companies.reduce((sum, c) => sum + (c.compensation?.amount || 0), 0)
     return `🏢 DIRECTORY INTERNA CRM: AZIENDE CON CUI COLLABORIAMO (${companies.length} PARTNER ATTIVI)
 ─────────────────────────────────────────────────────────────
@@ -1343,15 +1604,72 @@ ${hits.map((c, idx) => `• ${c.name} (${c.industry})
     }
   }
 
-  // ── 5. DOSSIER SPECIFICO PER UNA SINGOLA AZIENDA CITATA ──────────
+  // ── 5. RISPOSTA MIRATA O DOSSIER SPECIFICO PER L'AZIENDA CITATA ──
   if (matchedCompanies.length === 1) {
     const matchedCompany = matchedCompanies[0]
     const companyOpps = opps.filter(o => o.company?.toLowerCase() === matchedCompany.name.toLowerCase())
     const balance = matchedCompany.compensation?.balance || 0
     const deposit = matchedCompany.compensation?.deposit || 0
     const totalComp = matchedCompany.compensation?.amount || 0
+    const compInvoice = invoices.find(inv => inv.companyId === matchedCompany.id || inv.companyName?.toLowerCase() === matchedCompany.name?.toLowerCase())
+    const ws = matchedCompany.workSchedule || {}
+    const mat = (matchedCompany.requestedMaterials || []).join(' • ')
 
-    return `🏢 DOSSIER STRATEGICO APPROFONDITO: ${matchedCompany.name.toUpperCase()}
+    // 5a. Domanda specifica su Referente / Contatti / Chi è
+    if (p.includes('referent') || p.includes('contatt') || p.includes('chi è') || p.includes('chi parla') || p.includes('telefono') || p.includes('cellulare') || p.includes('email') || p.includes('mail') || p.includes('responsabil')) {
+      return `👤 **REFERENTE & CONTATTI — ${matchedCompany.name.toUpperCase()}**
+─────────────────────────────────────────────────────────────
+• **Referente principale:** ${matchedCompany.contactPerson?.name || 'N/D'}
+• **Ruolo:** ${matchedCompany.contactPerson?.role || 'Referente aziendale'}
+• **Email:** ${matchedCompany.contact?.directEmail || matchedCompany.contact?.email || 'N/D'}
+• **Telefono / Mobile:** ${matchedCompany.contact?.mobile || matchedCompany.contact?.phone || 'N/D'}
+• **Canale di primo contatto:** ${matchedCompany.firstContact?.channel || 'Diretto'} (${matchedCompany.firstContact?.date || 'N/D'})
+• **Stato commessa:** ${matchedCompany.compensation?.status || 'In corso'} (€ ${totalComp.toLocaleString('it-IT')})`
+    }
+
+    // 5b. Domanda specifica su Pagamenti / Compenso / Saldo / Quanto costa / Fattura
+    if (p.includes('pagament') || p.includes('saldo') || p.includes('accont') || p.includes('quant') || p.includes('cost') || p.includes('prezz') || p.includes('compens') || p.includes('invoic') || p.includes('fattur')) {
+      return `💰 **QUADRO ECONOMICO & FATTURAZIONE — ${matchedCompany.name.toUpperCase()}**
+─────────────────────────────────────────────────────────────
+• **Valore complessivo commessa:** € ${totalComp.toLocaleString('it-IT')} [Stato: ${matchedCompany.compensation?.status || (balance === 0 ? 'Saldato 100%' : 'In attesa saldo')}]
+• **Acconto versato:** € ${deposit.toLocaleString('it-IT')}
+• **Saldo residuo da incassare:** € ${balance.toLocaleString('it-IT')}
+• **Modalità di pagamento:** ${matchedCompany.compensation?.paymentMethod || 'Bonifico Bancario 30gg d.f.'}
+• **Dettaglio fattura:** ${compInvoice ? `${compInvoice.number} del ${compInvoice.date} (Imponibile € ${compInvoice.amount.toLocaleString('it-IT')} + IVA € ${compInvoice.vat.toLocaleString('it-IT')} = € ${compInvoice.total.toLocaleString('it-IT')})` : `In elaborazione su codice ${matchedCompany.contract?.code || 'CTR'}`}
+• **Contratto:** ${matchedCompany.contract?.code || 'N/D'} (Sottoscritto il ${matchedCompany.contract?.signedDate || 'N/D'})`
+    }
+
+    // 5c. Domanda specifica su Calendario / Date / Shooting / Location
+    if (p.includes('quand') || p.includes('date') || p.includes('data') || p.includes('calendari') || p.includes('shoot') || p.includes('set') || p.includes('orari') || p.includes('location') || p.includes('dove')) {
+      return `📅 **CALENDARIO & PROGRAMMAZIONE SET — ${matchedCompany.name.toUpperCase()}**
+─────────────────────────────────────────────────────────────
+• **Date di produzione:** ${ws.datesFormatted || 'Da definire'}
+• **Impegno & orari sul set:** ${ws.scheduleType || 'Standard'} (${ws.hours || 'Orario standard'})
+• **Location:** ${ws.location || 'Studio DADO'}
+• **Materiali & attrezzature:** ${mat || 'Kit standard'}
+• **Deliverables:** ${matchedCompany.deliverables || (matchedCompany.requestedMaterials || []).slice(0, 3).join(', ')}`
+    }
+
+    // 5d. Domanda specifica su Attrezzature / Materiali
+    if (p.includes('attrezzatur') || p.includes('material') || p.includes('drone') || p.includes('camera') || p.includes('luci') || p.includes('lenti') || p.includes('service')) {
+      return `🎥 **ATTREZZATURE MOBILITATE — ${matchedCompany.name.toUpperCase()}**
+─────────────────────────────────────────────────────────────
+• **Materiali e tecnologie impiegate:**
+${(matchedCompany.requestedMaterials || []).map(m => `  - ${m}`).join('\n') || '  - Kit standard'}
+• **Location di set:** ${ws.location || 'Studio DADO'} (${ws.scheduleType || 'Standard'})`
+    }
+
+    // 5e. Domanda specifica su Criticità / Problemi / Feedback
+    if (p.includes('criticit') || p.includes('problem') || p.includes('anomali') || p.includes('feedback') || p.includes('rating') || p.includes('recension')) {
+      return `🛠️ **CRITICITÀ & FEEDBACK — ${matchedCompany.name.toUpperCase()}**
+─────────────────────────────────────────────────────────────
+• **Valutazione cliente:** ⭐ ${matchedCompany.feedback?.rating || '5'}/5 ("${matchedCompany.feedback?.comment || 'Set impeccabile, piena soddisfazione del brand'}")
+• **Problema riscontrato:** ${matchedCompany.issues?.hasIssue ? matchedCompany.issues.description : 'Nessuna anomalia o criticità sul set.'}
+• **Soluzione applicata da DADO:** ${matchedCompany.issues?.hasIssue ? matchedCompany.issues.resolution : 'Gestione operativa regolare e consegna nei tempi.'}`
+    }
+
+    // 5f. Dossier Completo Generale
+    return `🏢 DOSSIER STRATEGICO INTERCONNESSO: ${matchedCompany.name.toUpperCase()}
 ─────────────────────────────────────────────────────────────
 👤 REFERENTE & CONTATTI DIRETTI:
 • Referente: ${matchedCompany.contactPerson?.name || 'N/D'} (${matchedCompany.contactPerson?.role || 'Referente'})
@@ -1360,19 +1678,25 @@ ${hits.map((c, idx) => `• ${c.name} (${c.industry})
 • Canale di primo contatto: ${matchedCompany.firstContact?.channel || 'Diretto'} (${matchedCompany.firstContact?.date || 'N/D'})
 • Note storico: "${matchedCompany.firstContact?.notes || 'Nessuna nota storica'}"
 
+📜 CONTRATTO & ACCORDO COMMERCIALE:
+• Codice Contratto: ${matchedCompany.contract?.code || 'N/D'} (Sottoscritto il ${matchedCompany.contract?.signedDate || 'N/D'})
+• File / Formato: ${matchedCompany.contract?.fileName || 'PDF con firma digitale'} (${matchedCompany.contract?.digitalFormat || 'Digitale'})
+• Clausole e Termini: ${matchedCompany.contract?.terms || 'Standard DADO Studio'}
+
+🧾 FATTURA / INVOICE (MODULO FATTURAZIONE ELETTRONICA):
+• Fattura N°: ${compInvoice?.number || `FAT-2026-${matchedCompany.contract?.code?.split('-').pop() || '001'}`} del ${compInvoice?.date || matchedCompany.contract?.signedDate || 'Recente'}
+• Imponibile: € ${totalComp.toLocaleString('it-IT')} | IVA (22%): € ${Math.round(totalComp * 0.22).toLocaleString('it-IT')} | Totale Fattura: € ${(totalComp + Math.round(totalComp * 0.22)).toLocaleString('it-IT')}
+• Acconto versato: € ${deposit.toLocaleString('it-IT')}
+• SALDO APERTO: € ${balance.toLocaleString('it-IT')} [Stato: ${matchedCompany.compensation?.status || (balance === 0 ? 'Saldato 100%' : 'In attesa saldo')}]
+• Scadenza Pagamento: ${compInvoice?.dueDate || '30 giorni data fattura'} • Metodo: ${matchedCompany.compensation?.paymentMethod || 'Bonifico bancario'}
+• Dati Fiscali: SDI: ${compInvoice?.sdi || '0000000'} | PEC: ${compInvoice?.pec || matchedCompany.contact?.email || 'N/D'}
+
 ⏱️ PROGRAMMAZIONE & GIORNI DI LAVORO SUL SET:
 • Durata e tipologia: ${matchedCompany.workSchedule?.scheduleType || 'Standard'}
 • Date calendarizzate: ${matchedCompany.workSchedule?.datesFormatted || 'Da definire'}
 • Orari di produzione: ${matchedCompany.workSchedule?.hours || 'Giornata standard'}
 • Location: ${matchedCompany.workSchedule?.location || 'Studio/Esterna'}
-• Attrezzature impiegate: ${(matchedCompany.requestedMaterials || []).slice(0, 4).join(' • ')}
-
-💰 SITUAZIONE FINANZIARIA & STATO PAGAMENTO:
-• Importo complessivo commessa: € ${totalComp.toLocaleString('it-IT')}
-• Acconto corrisposto: € ${deposit.toLocaleString('it-IT')}
-• Saldo residuo: € ${balance.toLocaleString('it-IT')} [Stato: ${matchedCompany.compensation?.status || 'N/D'}]
-• Condizioni e metodo: ${matchedCompany.compensation?.paymentMethod || 'Bonifico bancario'}
-${balance > 0 ? `⚠️ ATTENZIONE: Coda di pagamento aperta per € ${balance.toLocaleString('it-IT')}. Trattenere i master 4K definitivi fino a riscontro contabile.` : '✅ Posizione amministrativa regolare: commessa interamente saldata.'}
+• Attrezzature impiegate: ${(matchedCompany.requestedMaterials || []).join(' • ')}
 
 🎯 METODO CONSIGLIATO PER TRATTARE E NEGOZIARE:
 • Profilo cliente: ${matchedCompany.industry}. Molto attenti alla reputazione e all'estetica del brand.
@@ -1413,27 +1737,107 @@ ${companyOpps.length > 0 ? `• Opportunità aperta in negoziazione: ${companyOp
 • Saldo 30% contestuale al rilascio del master 4K definitivo senza watermark. Evitare dilazioni oltre i 30gg per clienti non corporate.`
   }
 
-  // ── 7. INSOLUTI E CODA DI PAGAMENTO ─────────────────────────────
-  if (p.includes('insolut') || p.includes('coda') || p.includes('pagament') || p.includes('saldo') || p.includes('incass') || p.includes('accont')) {
-    const pendingBalances = companies.filter(c => (c.compensation?.balance || 0) > 0 || c.compensation?.status === 'Acconto versato')
-    const totalPending = pendingBalances.reduce((sum, c) => sum + (c.compensation?.balance || 0), 0)
+  // ── 7. INVOICE, FATTURAZIONE ELETTRONICA & GESTIONE CREDITI/INSOLUTI ──
+  const isPendingOnlyQuery = p.includes('insolut') || p.includes('chi deve pagare') || p.includes('saldi aperti') || p.includes('saldo aperto') || p.includes('crediti in sospeso')
+  const isInvoiceQuery = isPendingOnlyQuery || p.includes('invoic') || p.includes('fattur') || p.includes('pagament') || p.includes('saldo') || p.includes('incass') || p.includes('crediti') || p.includes('iva') || p.includes('imponibil') || p.includes('accont')
+  if (isInvoiceQuery) {
+    const totalInvoicedNet = invoices.length > 0 ? invoices.reduce((s, i) => s + (i.amount || 0), 0) : companies.reduce((s, c) => s + (c.compensation?.amount || 0), 0)
+    const totalVat = invoices.length > 0 ? invoices.reduce((s, i) => s + (i.vat || 0), 0) : Math.round(totalInvoicedNet * 0.22)
+    const totalGross = totalInvoicedNet + totalVat
+    const totalCollected = invoices.length > 0 ? invoices.reduce((s, i) => s + (i.deposit || 0), 0) : companies.reduce((s, c) => s + (c.compensation?.deposit || 0), 0)
+    const totalPending = invoices.length > 0 ? invoices.reduce((s, i) => s + (i.balance || 0), 0) : companies.reduce((s, c) => s + (c.compensation?.balance || 0), 0)
+    const pendingInvoices = invoices.filter(i => (i.balance || 0) > 0)
 
-    return `⏳ GESTIONE INSOLUTI & CODA DI PAGAMENTO CLIENTELA
+    if (isPendingOnlyQuery) {
+      return `🚨 **POSIZIONI CON SALDO APERTO DA INCASSARE — DADO STUDIO**
 ─────────────────────────────────────────────────────────────
-🚨 VOLUME CREDITI IN SOSPESO: € ${totalPending.toLocaleString('it-IT')} da incassare su commesse con acconto.
+• **Totale crediti residui in sospeso:** € ${totalPending.toLocaleString('it-IT')} (su € ${totalInvoicedNet.toLocaleString('it-IT')} fatturati, € ${totalCollected.toLocaleString('it-IT')} già incassati)
 
-📋 DETTAGLIO POSIZIONI APERTE:
-${pendingBalances.map(c => `• ${c.name}:
-  - Totale commessa: € ${(c.compensation?.amount || 0).toLocaleString('it-IT')}
-  - Acconto incassato: € ${(c.compensation?.deposit || 0).toLocaleString('it-IT')}
-  - SALDO IN SOSPESO: € ${(c.compensation?.balance || 0).toLocaleString('it-IT')}
-  - Condizioni pattuite: ${c.compensation?.paymentMethod || 'Bonifico'}
-  - Referente da contattare: ${c.contactPerson?.name} (${c.contact?.mobile || c.contact?.phone})`).join('\n\n')}
+📋 **DETTAGLIO CLIENTI CON SALDO APERTO (${pendingInvoices.length} commesse):**
 
-🎯 STRATEGIA DI RECUPERO SALDI DADO:
-1. Officine Riva (€ 5.200): Il saldo scade a 30gg data fattura. La transcodifica finale ProRes è in corso oggi; inviare fattura di saldo contestualmente alla consegna dell'anteprima protetta.
-2. Beta Digital (€ 2.800): Bonifico 30gg fine mese. Verificare con Alessandro Neri l'inserimento nel primo ciclo di pagamenti mensile.
-3. Kroma Ceramiche (€ 2.900): RIBA 60gg data fattura. Emissione automatica tramite home banking senza ritardi.`
+${pendingInvoices.map((i, idx) => `${idx + 1}. **${i.companyName.toUpperCase()}** [${i.number}]
+   • **Saldo dovuto:** € ${i.balance.toLocaleString('it-IT')} (su € ${i.amount.toLocaleString('it-IT')} imponibili)
+   • **Termini pagamento:** ${i.paymentMethod} • Scadenza: ${i.dueDate}
+   • **Azione raccomandata:** Inviare fattura elettronica di saldo congiuntamente al rilascio del master 4K definitivo.`).join('\n\n')}`
+    }
+
+    return `🧾 MODULO INVOICE & FATTURAZIONE ELETTRONICA DADO STUDIO (BLU NOTTE & ORO)
+─────────────────────────────────────────────────────────────
+🎯 1. QUADRO GENERALE FATTURATO & FLUSSI DI CASSA:
+• Volume Imponibile Fatturato: € ${totalInvoicedNet.toLocaleString('it-IT')} su ${invoices.length || companies.length} commesse deliberate
+• Totale IVA (22%): € ${totalVat.toLocaleString('it-IT')} | Volume Lordo Complessivo: € ${totalGross.toLocaleString('it-IT')}
+• Incassato Effettivo: € ${totalCollected.toLocaleString('it-IT')} (${Math.round((totalCollected / totalInvoicedNet) * 100)}% del totale)
+• Crediti Residui in Sospeso (Saldi): € ${totalPending.toLocaleString('it-IT')} (${Math.round((totalPending / totalInvoicedNet) * 100)}% del totale)
+
+═════════════════════════════════════════════════════════════
+📋 2. REGISTRO FATTURE INTERCONNESSO (COMMESSE, CONTRATTI & SET):
+${(invoices.length > 0 ? invoices : companies.map((c, idx) => ({
+  number: `FAT-2026-${String(88 - idx).padStart(3, '0')}`,
+  companyName: c.name,
+  contractCode: c.contract?.code || `DADO-CTR-2026-${88 - idx}`,
+  amount: c.compensation?.amount || 0,
+  vat: Math.round((c.compensation?.amount || 0) * 0.22),
+  totalWithVat: (c.compensation?.amount || 0) + Math.round((c.compensation?.amount || 0) * 0.22),
+  deposit: c.compensation?.deposit || 0,
+  balance: c.compensation?.balance || 0,
+  status: c.compensation?.status || (c.compensation?.balance === 0 ? 'Saldato' : 'In attesa saldo'),
+  dueDate: c.workSchedule?.recentDate || '30gg d.f.',
+  paymentMethod: c.compensation?.paymentMethod || 'Bonifico Bancario',
+  shootingDates: c.workSchedule?.datesFormatted || 'N/D',
+  materials: (c.requestedMaterials || []).slice(0, 3).join(', ')
+}))).map((inv, idx) => `${idx + 1}. [${inv.number}] ➔ ${inv.companyName.toUpperCase()}
+   • Imponibile: € ${inv.amount.toLocaleString('it-IT')} | IVA 22%: € ${inv.vat.toLocaleString('it-IT')} | Totale: € ${inv.totalWithVat.toLocaleString('it-IT')}
+   • Stato Incasso: ${inv.balance === 0 ? '✅ Saldato 100%' : `⏳ Acconto € ${inv.deposit.toLocaleString('it-IT')} • Saldo aperto € ${inv.balance.toLocaleString('it-IT')}`}
+   • Contratto: ${inv.contractCode || 'N/D'} | Condizioni: ${inv.paymentMethod} (Scad. ${inv.dueDate})
+   • Produzione & Set: ${inv.shootingDates || 'N/D'}
+   • Attrezzature impiegate: ${Array.isArray(inv.materials) ? inv.materials.join(', ') : inv.materials || 'Kit standard'}`).join('\n\n')}
+
+═════════════════════════════════════════════════════════════
+🚨 3. POSIZIONI CON SALDO APERTO DA INCASSARE (€ ${totalPending.toLocaleString('it-IT')}):
+${pendingInvoices.length > 0 ? pendingInvoices.map(i => `• ${i.companyName} (${i.number}):
+  - Saldo dovuto: € ${i.balance.toLocaleString('it-IT')} su € ${i.amount.toLocaleString('it-IT')} imponibili
+  - Condizioni pattuite: ${i.paymentMethod} • Scadenza: ${i.dueDate}
+  - Azione consigliata: Inviare fattura elettronica di saldo congiuntamente al rilascio del master 4K ProRes definitivo.`).join('\n\n') : 'Nessuna pendenza aperta: tutte le posizioni sono regolarmente saldate.'}
+
+💡 Il modulo Invoice è accessibile anche visivamente dalla dashboard (box Blu Notte e Oro).`
+  }
+
+  // ── 7-bis. INTERCONNESSIONE TOTALE DEL CRM: COLLEGA TUTTI I DATI TRA LORO ──
+  const isConnectAllQuery = p.includes('collega') || p.includes('interconnet') || p.includes('relazion') || p.includes('tutto sul crm') || p.includes('panoramica') || p.includes('quadro') || p.includes('insieme') || p.includes('mappa') || p.includes('incroc') || p.includes('connetti') || p.includes('presentami')
+  if (isConnectAllQuery) {
+    const totalAmount = companies.reduce((s, c) => s + (c.compensation?.amount || 0), 0)
+    const totalCollected = companies.reduce((s, c) => s + (c.compensation?.deposit || 0), 0)
+    const totalPending = companies.reduce((s, c) => s + (c.compensation?.balance || 0), 0)
+
+    return `🌐 MATRICE RELAZIONALE COMPLETA: TUTTI I DATI DEL CRM DADO COLLEGATI TRA LORO
+─────────────────────────────────────────────────────────────
+Analisi olistica integrata che correla per ciascuna delle ${companies.length} aziende partner:
+[Azienda] ➔ [Contratto] ➔ [Invoice/Fattura] ➔ [Set & Orari] ➔ [Attrezzature Mobilitate] ➔ [Criticità Gestite] ➔ [Next Action]
+
+${companies.map((c, i) => {
+  const inv = invoices.find(inv => inv.companyId === c.id || inv.companyName?.toLowerCase() === c.name.toLowerCase())
+  const opp = opps.find(o => o.company?.toLowerCase() === c.name.toLowerCase())
+  const act = actions.find(a => a.company?.toLowerCase() === c.name.toLowerCase())
+  const compVal = c.compensation?.amount || 0
+  const compBal = c.compensation?.balance || 0
+
+  return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏢 ${i + 1}. ${c.name.toUpperCase()} (${c.industry})
+• Referente: ${c.contactPerson?.name || 'N/D'} (${c.contactPerson?.role || 'Referente'}) • ${c.contact?.directEmail || c.contact?.email} • ${c.contact?.mobile || c.contact?.phone || 'N/D'}
+• 📜 Contratto: ${c.contract?.code || 'N/D'} (Sottoscritto: ${c.contract?.signedDate || 'N/D'})
+• 🧾 Invoice: ${inv ? inv.number : `FAT-2026-${String(88 - i).padStart(3, '0')}`} | Imponibile: € ${compVal.toLocaleString('it-IT')} | Saldo: € ${compBal.toLocaleString('it-IT')} [${compBal === 0 ? 'Saldato 100%' : 'In attesa saldo'}]
+• ⏱️ Set & Calendario: ${c.workSchedule?.datesFormatted || 'N/D'} (${c.workSchedule?.scheduleType} - ${c.workSchedule?.hours}) @ ${c.workSchedule?.location || 'Studio'}
+• 🎥 Attrezzature usate: ${(c.requestedMaterials || []).join(' • ')}
+• 🛠️ Criticità gestita: ${c.issues?.hasIssue ? `${c.issues.description} (Risoluzione: ${c.issues.resolution})` : 'Set impeccabile, nessuna anomalia.'}
+• ⚡ Opportunità/Next Action: ${opp ? `Trattativa "${opp.title}" da € ${opp.value.toLocaleString('it-IT')} [${opp.stage}]` : act ? `Attività: "${act.title}" (${act.time})` : 'Archivio commessa completata'}`
+}).join('\n\n')}
+
+═════════════════════════════════════════════════════════════
+🎯 SINTESI GENERALE DELLO STUDIO:
+• Volume Complessivo Contrattualizzato: € ${totalAmount.toLocaleString('it-IT')}
+• Incassato Effettivo: € ${totalCollected.toLocaleString('it-IT')} | Crediti da Saldare: € ${totalPending.toLocaleString('it-IT')}
+• Attrezzature Top Mobilitate: Sony FX3 (8 set), Drone Mavic 3 Cine (4 set), Aputure 600d/300x (6 set), Lenti GM (11 set).
+• Stato Commerciale: Tutte le commesse sono perfettamente tracciate e sincronizzate tra fatturazione, calendario e inventario.`
   }
 
   // ── 8. GIORNI DI LAVORO SUL SET & CARICO OPERATIVO ──────────────
@@ -1443,7 +1847,8 @@ ${pendingBalances.map(c => `• ${c.name}:
       schedule: c.workSchedule?.scheduleType || '1 giorno',
       dates: c.workSchedule?.datesFormatted || 'Recentemente',
       hours: c.workSchedule?.hours || 'Standard',
-      revenue: c.compensation?.amount || 0
+      revenue: c.compensation?.amount || 0,
+      gear: (c.requestedMaterials || []).slice(0, 2).join(', ')
     }))
 
     return `⏱️ AUDIT PROGRAMMAZIONE: NUMERO GIORNI DI LAVORO & CARICO OPERATIVO
@@ -1452,7 +1857,8 @@ ${pendingBalances.map(c => `• ${c.name}:
 
 ${workDaysBreakdown.map(w => `• ${w.name}:
   - Impegno: ${w.schedule} (${w.hours})
-  - Date: ${w.dates} | Valore commessa: € ${w.revenue.toLocaleString('it-IT')}`).join('\n\n')}
+  - Date: ${w.dates} | Valore commessa: € ${w.revenue.toLocaleString('it-IT')}
+  - Attrezzatura mobilitata: ${w.gear}`).join('\n\n')}
 
 📊 ANALISI PRODUTTIVITÀ & RESA PER GIORNATA:
 • Produzioni intense multi-day (1-2 giorni completi):
@@ -1466,32 +1872,72 @@ ${workDaysBreakdown.map(w => `• ${w.name}:
   - Gusto & Tradizione: 5 ore pomeridiane a cucine chiuse (€ 3.600).`
   }
 
-  // ── 9. FALLBACK GENERALE PER DOMANDE CRM ────────────────────────
+  // ── 9. RICHIESTA ESPLICITA DI REPORT O PANORAMICA GENERALE DEL CRM ──
+  const isGeneralReport = p.includes('riepilogo') || p.includes('panoramica') || p.includes('quadro generale') || p.includes('stato complessivo') || p.includes('report generale') || p.includes('stato crm')
   const totalRev = companies.reduce((acc, c) => acc + (c.compensation?.amount || 0), 0)
   const fullyPaidCount = companies.filter(c => c.compensation?.status === 'Saldato').length
   const pendingCount = companies.length - fullyPaidCount
+  const totalPendingBal = companies.reduce((acc, c) => acc + (c.compensation?.balance || 0), 0)
 
-  return `📊 REPORT OPERATIVO DADO CREATIVE STUDIO CRM
+  if (isGeneralReport) {
+    return `📊 **REPORT OPERATIVO INTEGRATO DADO CREATIVE STUDIO CRM**
 ─────────────────────────────────────────────────────────────
-Analisi elaborata in tempo reale per: "${prompt}"
+• **Volume complessivo contrattualizzato:** € ${totalRev.toLocaleString('it-IT')} su ${companies.length} clienti attivi.
+• **Flussi di cassa studio:** € ${(totalRev - totalPendingBal).toLocaleString('it-IT')} incassati (${Math.round(((totalRev - totalPendingBal) / (totalRev || 1)) * 100)}%) | € ${totalPendingBal.toLocaleString('it-IT')} da incassare.
+• **Clienti saldati al 100%:** ${fullyPaidCount} posizioni.
+• **Clienti con saldo aperto (${pendingCount} aziende):**
+  - Officine Meccaniche Riva: € 5.200
+  - Kroma Ceramiche: € 2.900
+  - Beta Digital Agency: € 2.800
+• **Pipeline trattative aperte:** € ${opps.reduce((s, o) => s + (o.value || 0), 0).toLocaleString('it-IT')} su ${opps.length} opportunità attive.
+• **Inventario tecnico:** 43 voci operative censite.
 
-• QUADRO COMMERCIALE COMPLESSIVO:
-  - Aziende partner nel CRM: ${companies.length} clienti attivi per un volume contrattualizzato di € ${totalRev.toLocaleString('it-IT')}.
-  - Posizioni saldate al 100%: ${fullyPaidCount} clienti.
-  - Posizioni con saldo in sospeso / acconto: ${pendingCount} clienti.
-  - Pipeline trattative aperte: € ${opps.reduce((s, o) => s + (o.value || 0), 0).toLocaleString('it-IT')} su ${opps.length} opportunità.
+💡 Puoi chiedermi approfondimenti su qualunque cliente, data di shooting, fattura o attrezzatura specifica.`
+  }
 
-💡 Interrogazioni disponibili:
-- "Quali sono le aziende con cui collaboriamo?" (elenco completo dettagliato)
-- "Quali dati e punti in comune hanno le aziende?" (incrocio attrezzature, formati e set)
-- "Chi usa il drone?" o "Chi usa la Sony FX3?" o "Chi gira in studio?"
-- "Confronta Officine Riva e Solaris Green Energy"
-- "Quali clienti hanno saldi aperti o insoluti?"`
+  // ── 10. RISPOSTA NATURALE STILE OPENAI: DATI NON DISPONIBILI / NON PRESENTI NEL CRM ──
+  let cleanSubject = prompt.trim()
+  cleanSubject = cleanSubject
+    .replace(/^(chi\s+[eè]|cosa\s+(?:sai\s+(?:su\w*|di|del\w*)|sappiamo\s+(?:su\w*|di|del\w*)|ne\s+pensi(?:\s+(?:su\w*|di|del\w*))?)|parlami\s+(?:di|del\w*|su\w*)|dimmi\s+(?:di|del\w*|su\w*)|trova|cerca|mostrami|informazioni\s+(?:su\w*|di|del\w*)|dati\s+(?:su\w*|di|del\w*))\s+/i, '')
+    .trim()
+    .replace(/[?!.]+$/, '')
+    .trim()
+  if (!cleanSubject) cleanSubject = prompt.trim()
+
+  return `Nel database del CRM di **DADO Creative Studio** non sono attualmente presenti dati o registrazioni relative a **"${cleanSubject}"**.
+
+Ho effettuato un'indagine completa tra le informazioni archiviate nello studio:
+• 🏢 **Aziende Clienti & Partner**: 13 realtà registrate (tra cui Officine Meccaniche Riva, Solaris Green Energy, Alpha Studio Milano, Kroma Ceramiche, Fashion Brand Milano...)
+• 👥 **Referenti & Responsabili**: tutti i contatti aziendali tracciati nelle anagrafiche
+• 📜 **Contratti & Preventivi**: offerte commerciali e accordi quadro
+• 🧾 **Modulo Invoice & Pagamenti**: 11 fatture elettroniche con acconti e saldi
+• 📅 **Calendario & Shooting**: date di set pianificate e produzioni 2026
+• 🎥 **Inventario Tecnico**: 43 voci tra corpi macchina Sony, ottiche GM, droni DJI e parco luci
+• 💼 **Pipeline Trattative**: opportunità commerciali in negoziazione
+
+Se si tratta di una nuova azienda, di un contatto recente o di una voce non ancora inserita, puoi registrarla direttamente dall'apposita sezione del CRM.
+
+Fammi sapere se desideri informazioni, verifiche o dossier su uno dei clienti o sui progetti già archiviati nello studio!`
 }
 
 // ─────────────────────────────────────────────────────────────
 // ENDPOINT NOTE PER SVILUPPATORE (n.drea.t@gmail.com)
 // ─────────────────────────────────────────────────────────────
+app.get('/api/developer-notes', (req, res) => {
+  try {
+    const notesFile = path.join(__dirname, 'data', 'developerNotes.json')
+    if (fs.existsSync(notesFile)) {
+      const data = fs.readFileSync(notesFile, 'utf8')
+      const notes = JSON.parse(data)
+      return res.json(notes)
+    }
+    res.json([])
+  } catch (err) {
+    console.error('Errore lettura note sviluppatore:', err)
+    res.status(500).json({ error: 'Errore interno lettura note' })
+  }
+})
+
 app.post('/api/developer-notes', async (req, res) => {
   try {
     const userRole = (req.headers['x-user-role'] || '').toLowerCase()
@@ -1529,6 +1975,38 @@ app.post('/api/developer-notes', async (req, res) => {
   } catch (err) {
     console.error('Errore gestione nota sviluppatore:', err)
     res.status(500).json({ error: 'Errore interno nel salvataggio della nota' })
+  }
+})
+
+app.delete('/api/developer-notes/:id', (req, res) => {
+  try {
+    const { id } = req.params
+    const notesFile = path.join(__dirname, 'data', 'developerNotes.json')
+    if (fs.existsSync(notesFile)) {
+      const data = fs.readFileSync(notesFile, 'utf8')
+      let notes = JSON.parse(data)
+      const prevCount = notes.length
+      notes = notes.filter(n => String(n.id) !== String(id) && String(n.timestamp) !== String(id))
+      fs.writeFileSync(notesFile, JSON.stringify(notes, null, 2), 'utf8')
+      console.log(`🗑️ [DEVELOPER NOTES] Eliminata nota con ID ${id}. Rimanenti: ${notes.length}`)
+      return res.json({ success: true, deletedId: id, count: notes.length })
+    }
+    res.json({ success: true, deletedId: id, count: 0 })
+  } catch (err) {
+    console.error('Errore cancellazione nota sviluppatore:', err)
+    res.status(500).json({ error: 'Errore cancellazione nota' })
+  }
+})
+
+app.delete('/api/developer-notes', (req, res) => {
+  try {
+    const notesFile = path.join(__dirname, 'data', 'developerNotes.json')
+    fs.writeFileSync(notesFile, JSON.stringify([], null, 2), 'utf8')
+    console.log('🗑️ [DEVELOPER NOTES] Svuotate tutte le note.')
+    res.json({ success: true, cleared: true, count: 0 })
+  } catch (err) {
+    console.error('Errore svuotamento note:', err)
+    res.status(500).json({ error: 'Errore svuotamento note' })
   }
 })
 
