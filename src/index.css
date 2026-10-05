@@ -12,11 +12,13 @@
   padding: 0;
 }
 
+html,
 body {
   background-color: #111111;
   color: #f5f5f0;
   font-family: 'Switzer', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-x: none;
 }
 
 @layer utilities {
@@ -68,13 +70,13 @@ body {
   animation: spin-fast 0.7s cubic-bezier(0.12, 0.8, 0.25, 1.25) forwards;
 }
 
-/* Allontanamento (burst max 0.6cm) e ingrandimento dei 4 elementi dell'icona Dashboard al click, con rientro morbido a velocità dimezzata (1.05s) */
+/* Allontanamento minimo e impercettibile (meno di 3mm, ~1.8mm) dei 4 elementi dell'icona Dashboard al click */
 @keyframes tile-burst-1 {
   0% {
     transform: translate(0px, 0px) scale(1);
   }
   38% {
-    transform: translate(-14px, -11px) scale(1.22);
+    transform: translate(-5.5px, -4px) scale(1.05);
   }
   100% {
     transform: translate(0px, 0px) scale(1);
@@ -86,7 +88,7 @@ body {
     transform: translate(0px, 0px) scale(1);
   }
   38% {
-    transform: translate(14px, -11px) scale(1.22);
+    transform: translate(5.5px, -4px) scale(1.05);
   }
   100% {
     transform: translate(0px, 0px) scale(1);
@@ -98,7 +100,7 @@ body {
     transform: translate(0px, 0px) scale(1);
   }
   38% {
-    transform: translate(14px, 11px) scale(1.22);
+    transform: translate(5.5px, 4px) scale(1.05);
   }
   100% {
     transform: translate(0px, 0px) scale(1);
@@ -110,7 +112,7 @@ body {
     transform: translate(0px, 0px) scale(1);
   }
   38% {
-    transform: translate(-14px, 11px) scale(1.22);
+    transform: translate(-5.5px, 4px) scale(1.05);
   }
   100% {
     transform: translate(0px, 0px) scale(1);
@@ -121,26 +123,255 @@ body {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
-  animation: tile-burst-1 1.05s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
+  animation: tile-burst-1 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-tile-burst-2 {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
-  animation: tile-burst-2 1.05s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
+  animation: tile-burst-2 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-tile-burst-3 {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
-  animation: tile-burst-3 1.05s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
+  animation: tile-burst-3 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-tile-burst-4 {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
-  animation: tile-burst-4 1.05s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
+  animation: tile-burst-4 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+/* ── Animazione Girotondo Icona Utenti & Permessi (Rotazione Orbitale 0.50s) ── */
+@keyframes girotondo-a-to-back {
+  0% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 1;
+  }
+  32% {
+    transform: translate(3.2px, 1.5px) scale(1.06);
+    opacity: 0.95;
+  }
+  68% {
+    transform: translate(6.2px, -0.6px) scale(0.93);
+    opacity: 0.82;
+  }
+  100% {
+    transform: translate(7.0px, -1.8px) scale(0.85);
+    opacity: 0.72;
+  }
+}
+
+@keyframes girotondo-b-to-front {
+  0% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 0.72;
+  }
+  32% {
+    transform: translate(-3.2px, -1.5px) scale(0.94);
+    opacity: 0.78;
+  }
+  68% {
+    transform: translate(-6.2px, 0.6px) scale(1.10);
+    opacity: 0.92;
+  }
+  100% {
+    transform: translate(-7.0px, 1.8px) scale(1.18);
+    opacity: 1;
+  }
+}
+
+@keyframes girotondo-a-to-front {
+  0% {
+    transform: translate(7.0px, -1.8px) scale(0.85);
+    opacity: 0.72;
+  }
+  32% {
+    transform: translate(3.8px, -2.6px) scale(0.88);
+    opacity: 0.78;
+  }
+  68% {
+    transform: translate(0.8px, -1.0px) scale(0.97);
+    opacity: 0.92;
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 1;
+  }
+}
+
+@keyframes girotondo-b-to-back {
+  0% {
+    transform: translate(-7.0px, 1.8px) scale(1.18);
+    opacity: 1;
+  }
+  32% {
+    transform: translate(-3.8px, 2.6px) scale(1.12);
+    opacity: 0.94;
+  }
+  68% {
+    transform: translate(-0.8px, 1.0px) scale(1.03);
+    opacity: 0.82;
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 0.72;
+  }
+}
+
+.animate-girotondo-a-to-back {
+  animation: girotondo-a-to-back 0.50s cubic-bezier(0.35, 0, 0.25, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-girotondo-b-to-front {
+  animation: girotondo-b-to-front 0.50s cubic-bezier(0.35, 0, 0.25, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-girotondo-a-to-front {
+  animation: girotondo-a-to-front 0.50s cubic-bezier(0.35, 0, 0.25, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-girotondo-b-to-back {
+  animation: girotondo-b-to-back 0.50s cubic-bezier(0.35, 0, 0.25, 1) forwards;
+  will-change: transform, opacity;
+}
+
+
+/* ── Mini-Animazione Pop Lampadina Icona Idee & Appunti ────────────────── */
+@keyframes bulb-pop {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(250, 196, 41, 0));
+  }
+  20% {
+    transform: scale(1.42);
+    filter: drop-shadow(0 0 6px rgba(250, 196, 41, 0.95)) drop-shadow(0 0 12px rgba(250, 196, 41, 0.6));
+  }
+  48% {
+    transform: scale(1.20);
+    filter: drop-shadow(0 0 4px rgba(250, 196, 41, 0.7));
+  }
+  75% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 2px rgba(250, 196, 41, 0.3));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(250, 196, 41, 0));
+  }
+}
+
+@keyframes bulb-stroke-glow {
+  0% {
+    stroke: currentColor;
+  }
+  20% {
+    stroke: #fac429;
+  }
+  50% {
+    stroke: #fac429;
+  }
+  80% {
+    stroke: #fcd34d;
+  }
+  100% {
+    stroke: currentColor;
+  }
+}
+
+.animate-bulb-pop {
+  transform-box: fill-box;
+  transform-origin: 6.2px 11.5px;
+  animation: bulb-pop 0.52s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+.animate-bulb-pop path,
+.animate-bulb-pop line {
+  animation: bulb-stroke-glow 0.52s ease forwards;
+}
+
+/* ── Scorrimento Automatico Categorie Inventario (Marquee) ── */
+@keyframes inventory-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-inventory-marquee {
+  display: flex;
+  width: max-content;
+  animation: inventory-marquee 40s linear infinite;
+  will-change: transform;
+}
+
+.animate-inventory-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ── Mini-Animazione Icona Calendario: Pagina Portata all'Indietro ── */
+@keyframes calendar-page-fold-back {
+  0% {
+    transform: perspective(240px) rotateX(0deg) translateZ(0);
+    opacity: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+  }
+  30% {
+    transform: perspective(240px) rotateX(-65deg) translateZ(6px);
+    opacity: 1;
+    filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+  }
+  65% {
+    transform: perspective(240px) rotateX(-135deg) translateZ(2px);
+    opacity: 0.85;
+    filter: drop-shadow(0 -4px 6px rgba(0, 0, 0, 0.35));
+  }
+  88% {
+    transform: perspective(240px) rotateX(-172deg) translateZ(-4px);
+    opacity: 0.4;
+  }
+  100% {
+    transform: perspective(240px) rotateX(-180deg) translateZ(-6px);
+    opacity: 0;
+  }
+}
+
+.animate-calendar-page-fold-back {
+  transform-origin: 12px 4.5px;
+  transform-box: fill-box;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  animation: calendar-page-fold-back 0.58s cubic-bezier(0.2, 0.85, 0.35, 1) forwards;
+}
+
+@keyframes calendar-revealed-glow {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.97);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-calendar-revealed {
+  transform-origin: 12px 12px;
+  animation: calendar-revealed-glow 0.58s cubic-bezier(0.2, 0.85, 0.35, 1) forwards;
+}
+
+

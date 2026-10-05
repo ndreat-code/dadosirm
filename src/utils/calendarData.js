@@ -183,19 +183,347 @@ export const DEFAULT_CALENDAR_SCHEDULE = {
   }
 }
 
-export function getCalendarDayData(dateIso) {
+// ── Attività e Task Iniziali del CRM DADO (Sincronizzate automaticamente sul Calendario) ──
+export const INITIAL_CRM_ACTIVITIES = [
+  {
+    id: 'act-1790554500409-835',
+    company: 'Alpha Studio Milano',
+    title: 'Verifica disponibilità e conferma call per Alpha Studio Milano',
+    type: 'commercial',
+    date: '2026-09-28',
+    time: '11:00',
+    period: 'Oggi',
+    due: 'today',
+    priority: 'weeks_2_3',
+    completed: false,
+    status: 'completed',
+    assignedTo: 'Chiara Rossi / Team DADO',
+    notes: 'Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio.'
+  },
+  {
+    id: 'act-1790554320431-474',
+    company: 'Fashion Brand Milano',
+    title: 'Archiviazione trattativa e riscontro cordiale a Fashion Brand Milano',
+    type: 'postprod',
+    date: '2026-09-28',
+    time: '11:00',
+    period: 'In settimana',
+    due: 'upcoming',
+    priority: 'month_1',
+    completed: false,
+    status: 'completed',
+    assignedTo: 'Matteo Colombo / Team Post-Prod',
+    notes: 'Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi.'
+  },
+  {
+    id: 'act-1790554260723-928',
+    company: 'Officine Meccaniche Riva',
+    title: 'Avvio produzione e piano riprese con Officine Meccaniche Riva',
+    type: 'postprod',
+    date: '2026-09-28',
+    time: '11:00',
+    period: 'In settimana',
+    due: 'upcoming',
+    priority: 'week_1',
+    completed: false,
+    status: 'completed',
+    assignedTo: 'Ing. Marco Riva / Team Video DADO',
+    notes: 'Richiesta rilevata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K. Budget: € 9.200.'
+  },
+  {
+    id: 'act-1790554140763-489',
+    company: 'NextMedia Agency',
+    title: 'Invio portfolio e presentazione commerciale a NextMedia Agency',
+    type: 'postprod',
+    date: '2026-09-28',
+    time: '11:00',
+    period: 'In settimana',
+    due: 'upcoming',
+    priority: 'week_1',
+    completed: false,
+    status: 'completed',
+    assignedTo: 'Sara Moretti / Commerciale',
+    notes: 'Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K.'
+  },
+  {
+    id: 'act-1790554083520-169',
+    company: 'Solaris Green Energy',
+    title: 'Predisporre bozza preventivo dettagliato per Solaris Green Energy',
+    type: 'postprod',
+    date: '2026-09-28',
+    time: '11:00',
+    period: 'In settimana',
+    due: 'upcoming',
+    priority: 'urgent_3d',
+    completed: false,
+    status: 'pending',
+    assignedTo: 'Elena Fontana / Team DADO',
+    notes: 'Revisione economica e contrattuale spot TV HDR. Budget: € 14.500.'
+  },
+  {
+    id: 'act-1790544428466-999',
+    company: 'Alpha Studio Milano',
+    title: 'Sopralluogo studio per calibrazione monitor e luci',
+    type: 'postprod',
+    date: '2026-09-27',
+    time: '16:30',
+    period: 'In settimana',
+    due: 'upcoming',
+    priority: 'urgent_3d',
+    completed: false,
+    status: 'pending',
+    assignedTo: 'Chiara Rossi (Studio Lead)',
+    notes: 'Test set luci e calibrazione monitor Atomos Ninja. Budget € 6.000 - 15.000.'
+  },
+  {
+    id: 'act-1790544188584-101',
+    company: 'Vogue Events & Wedding',
+    title: 'Setup riprese e regia matrimonio Villa Cora',
+    type: 'postprod',
+    date: '2026-09-27',
+    time: '16:30',
+    period: 'In settimana',
+    due: 'upcoming',
+    priority: 'weeks_2_3',
+    completed: false,
+    status: 'pending',
+    assignedTo: 'Giorgio Villa (Event Director)',
+    notes: 'Riprese multicam gala & audio wireless Sennheiser. Budget € 6.000.'
+  },
+  {
+    id: 'act-1790544128367-789',
+    company: 'Officine Meccaniche Riva',
+    title: 'Call conferma preventivo corporate (€ 9.200) in scadenza',
+    type: 'commercial',
+    date: '2026-09-27',
+    time: '16:30',
+    period: 'Oggi',
+    due: 'today',
+    priority: 'urgent_3d',
+    completed: false,
+    status: 'pending',
+    assignedTo: 'Marco B. (Video Editor)',
+    notes: 'Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.'
+  },
+  {
+    id: 'act-1790543951529-802',
+    company: 'Solaris Green Energy',
+    title: 'Inviare revisione storyboard spot TV locale + Digital ADS',
+    type: 'postprod',
+    date: '2026-09-27',
+    time: '16:30',
+    period: 'In settimana',
+    due: 'upcoming',
+    priority: 'week_1',
+    completed: false,
+    status: 'pending',
+    assignedTo: 'Elena Fontana (Direzione Marketing)',
+    notes: 'Revisione storyboard e montaggio spot TV. Budget: € 14.500.'
+  },
+  {
+    id: 'act-1',
+    period: 'Oggi',
+    company: 'Officine Meccaniche Riva',
+    title: 'Call conferma preventivo corporate',
+    type: 'commercial',
+    date: '2026-09-25',
+    time: '16:30',
+    due: 'today',
+    priority: 'high',
+    status: 'pending',
+    assignedTo: 'DaT. (Amministratore)',
+    notes: "Verificare se l'ing. Riva ha approvato l'integrazione per le riprese drone all'interno dello stabilimento (valore € 9.200)."
+  },
+  {
+    id: 'act-2',
+    period: 'Oggi',
+    company: 'Solaris Green Energy',
+    title: 'Inviare revisione storyboard spot',
+    type: 'postprod',
+    date: '2026-09-25',
+    time: '18:00',
+    due: 'today',
+    priority: 'high',
+    status: 'pending',
+    assignedTo: 'Giulia M. (Production Manager)',
+    notes: 'Esportare animazione bozza in 16:9 e 9:16 su Frame.io/Drive con timecode per note del cliente.'
+  },
+  {
+    id: 'act-3',
+    period: 'Domani',
+    company: 'Alpha Studio Milano',
+    title: 'Sopralluogo set luci studio B',
+    type: 'shooting',
+    date: '2026-09-26',
+    time: '10:00',
+    due: 'tomorrow',
+    priority: 'medium',
+    status: 'completed',
+    assignedTo: 'Team Luci DADO',
+    notes: 'Testare diffusione softbox Octa 120cm con Aputure 600d su limbo per lookbook moda autunno.'
+  },
+  {
+    id: 'act-4',
+    period: 'Domenica',
+    company: 'Vogue Events & Wedding',
+    title: 'Setup riprese matrimonio Villa Cora',
+    type: 'shooting',
+    date: '2026-09-28',
+    time: '15:00',
+    due: 'upcoming',
+    priority: 'high',
+    status: 'pending',
+    assignedTo: 'Regia DADO',
+    notes: 'Allestimento cabina regia mobile, verifica segnale wireless video e sincronizzazione audio con cerimonia.'
+  },
+  {
+    id: 'act-6',
+    period: 'Martedì',
+    company: 'Gusto & Tradizione Food',
+    title: 'Sollecito saldo acconto 30%',
+    type: 'admin',
+    date: '2026-09-30',
+    time: '14:00',
+    due: 'upcoming',
+    priority: 'medium',
+    status: 'pending',
+    assignedTo: 'Amministrazione DADO',
+    notes: 'Contratto DADO-CTR-2026-081 siglato. In attesa della contabile di bonifico per confermare la data di shooting culinario.'
+  },
+  {
+    id: 'act-7',
+    period: 'Completata',
+    company: 'Nexura Tech Solutions',
+    title: 'Demo Reel AI e Motion Graphics',
+    type: 'commercial',
+    date: '2026-09-24',
+    time: '17:00',
+    due: 'past',
+    priority: 'medium',
+    status: 'completed',
+    assignedTo: 'Commerciale DADO',
+    notes: 'Presentazione video riuscita con ottimo riscontro da parte del CEO per la fiera di novembre.'
+  }
+]
+
+// Mappatura leggibile delle categorie di attività
+export function formatActivityCategory(type) {
+  switch (type) {
+    case 'shooting':
+      return 'Shooting & Set'
+    case 'commercial':
+      return 'Commerciale & Call'
+    case 'postprod':
+      return 'Post-Produzione & Consegne'
+    case 'admin':
+      return 'Amministrazione & Contratti'
+    default:
+      return type ? (type.charAt(0).toUpperCase() + type.slice(1)) : 'Attività CRM'
+  }
+}
+
+// Verifica se una data ISO (YYYY-MM-DD) corrisponde all'attività
+export function doesActivityMatchDate(act, dateIso) {
+  if (!act || !dateIso) return false
+  const targetDate = act.date || act.dueDate
+  if (targetDate === dateIso) return true
+  if (act.createdAt && typeof act.createdAt === 'string' && act.createdAt.slice(0, 10) === dateIso) {
+    if (!act.date && !act.dueDate) return true
+  }
+  return false
+}
+
+// Converte un'attività CRM in un evento compatibile con il Calendario
+export function convertActivityToCalendarEvent(act) {
+  const isCompleted = act.status === 'completed' || act.completed === true
+  const timeStr = act.time || act.dueTime || '10:00'
+  const categoryLabel = formatActivityCategory(act.type)
+
+  return {
+    id: act.id,
+    activityId: act.id,
+    isCrmActivity: true,
+    time: timeStr,
+    company: act.company || 'Generale / Studio',
+    title: act.title || 'Attività CRM programmata',
+    category: categoryLabel,
+    type: act.type || 'commercial',
+    people: act.assignedTo || 'Team DADO',
+    attendees: act.assignedTo || 'Team DADO',
+    location: act.location || (act.type === 'shooting' ? 'Set DADO Studio / Esterno' : 'Studio DADO / Remote'),
+    materials: act.materials || '',
+    notes: act.notes || (Array.isArray(act.checklist) && act.checklist.length > 0 ? act.checklist.join(' • ') : ''),
+    status: isCompleted ? 'Completata' : 'In programma',
+    completed: isCompleted,
+    priority: act.priority || 'medium',
+    rawActivity: act
+  }
+}
+
+// Calcola i minuti dall'inizio della giornata per ordinare cronologicamente
+function parseTimeForSort(timeStr) {
+  if (!timeStr) return 999
+  const match = timeStr.match(/(\d{1,2}):(\d{2})/)
+  if (match) {
+    return parseInt(match[1], 10) * 60 + parseInt(match[2], 10)
+  }
+  return 999
+}
+
+// Helpers sicuri per lettura e scrittura storage
+function getFromStorage(key) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(key)
+    }
+  } catch (e) {
+    console.warn(`Errore lettura storage [${key}]:`, e)
+  }
+  return null
+}
+
+function setToStorage(key, value) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(key, value)
+      return true
+    }
+  } catch (e) {
+    console.warn(`Errore scrittura storage [${key}]:`, e)
+  }
+  return false
+}
+
+// Sincronizza l'elenco delle attività salvandole nella cache locale ed emettendo evento
+export function syncCrmActivitiesToCalendar(activities) {
+  try {
+    if (Array.isArray(activities)) {
+      setToStorage('dado_crm_activities_cache', JSON.stringify(activities))
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('dado-calendar-update', { detail: { activitiesCount: activities.length } }))
+      }
+    }
+  } catch (e) {
+    console.warn('Errore syncCrmActivitiesToCalendar:', e)
+  }
+}
+
+// ── Recupero unificato della giornata con fusione automatica di impegni ed attività CRM ──
+export function getCalendarDayData(dateIso, customActivities = null) {
   if (!dateIso) return null
 
-  // 1. Controlla prima nel localStorage (modifiche utente)
+  let baseData = null
+
+  // 1. Controlla prima nel localStorage (modifiche manuali al calendario)
   try {
-    const saved = localStorage.getItem('dado_crm_calendar_store_v2')
+    const saved = getFromStorage('dado_crm_calendar_store_v2')
     if (saved) {
       const parsed = JSON.parse(saved)
       if (parsed[dateIso]) {
         const entry = parsed[dateIso]
         const defaultEntry = DEFAULT_CALENDAR_SCHEDULE[dateIso]
-        return {
-          events: entry.events !== undefined ? entry.events : (defaultEntry?.events || []),
+        baseData = {
+          events: entry.events !== undefined ? [...entry.events] : (defaultEntry?.events ? [...defaultEntry.events] : []),
           notes: entry.notes !== undefined ? entry.notes : (defaultEntry?.notes || ''),
           files: entry.files || defaultEntry?.files || [],
           tag: entry.tag || defaultEntry?.tag || ''
@@ -207,23 +535,80 @@ export function getCalendarDayData(dateIso) {
   }
 
   // 2. Se è presente nei default curati
-  if (DEFAULT_CALENDAR_SCHEDULE[dateIso]) {
-    return DEFAULT_CALENDAR_SCHEDULE[dateIso]
+  if (!baseData) {
+    if (DEFAULT_CALENDAR_SCHEDULE[dateIso]) {
+      const def = DEFAULT_CALENDAR_SCHEDULE[dateIso]
+      baseData = {
+        events: def.events ? [...def.events] : [],
+        notes: def.notes || '',
+        files: def.files ? [...def.files] : [],
+        tag: def.tag || ''
+      }
+    } else {
+      baseData = {
+        tag: '',
+        events: [],
+        notes: '',
+        files: []
+      }
+    }
   }
 
-  // 3. Data non programmata (nessun impegno)
+  // 3. Recupera tutte le attività CRM (da parametro, da cache localStorage o fallback iniziale)
+  let activitiesList = []
+  if (Array.isArray(customActivities) && customActivities.length > 0) {
+    activitiesList = customActivities
+  } else {
+    try {
+      const cached = getFromStorage('dado_crm_activities_cache')
+      if (cached) {
+        activitiesList = JSON.parse(cached)
+      } else {
+        activitiesList = INITIAL_CRM_ACTIVITIES
+      }
+    } catch (e) {
+      activitiesList = INITIAL_CRM_ACTIVITIES
+    }
+  }
+
+  // 4. Seleziona le attività corrispondenti alla data richiesta
+  const matchingActivities = (activitiesList || []).filter(act => doesActivityMatchDate(act, dateIso))
+
+  // 5. Converti e fondi le attività con gli eventi della giornata (evitando duplicazioni per id o titolo)
+  const existingTitles = new Set(baseData.events.map(e => (e.title || '').trim().toLowerCase()))
+  const existingIds = new Set(baseData.events.map(e => e.id || e.activityId).filter(Boolean))
+
+  const activityEvents = []
+  for (const act of matchingActivities) {
+    if (existingIds.has(act.id)) continue
+    if (act.title && existingTitles.has(act.title.trim().toLowerCase())) continue
+
+    const ev = convertActivityToCalendarEvent(act)
+    activityEvents.push(ev)
+  }
+
+  const allEvents = [...baseData.events, ...activityEvents].sort((a, b) => {
+    return parseTimeForSort(a.time) - parseTimeForSort(b.time)
+  })
+
+  // Se la giornata non aveva tag esplicito ma contiene attività o eventi, imposta un tag appropriato
+  let resolvedTag = baseData.tag
+  if (!resolvedTag && allEvents.length > 0) {
+    resolvedTag = allEvents[0].category || 'Attività CRM'
+  }
+
   return {
-    tag: '',
-    events: [],
-    notes: '',
-    files: []
+    ...baseData,
+    events: allEvents,
+    crmActivities: matchingActivities,
+    tag: resolvedTag
   }
 }
 
 export function saveCalendarDayData(dateIso, updatedData) {
   try {
     let currentStore = {}
-    const saved = localStorage.getItem('dado_crm_calendar_store_v2')
+    const saved = getFromStorage('dado_crm_calendar_store_v2')
     if (saved) {
       currentStore = JSON.parse(saved)
     }
@@ -232,8 +617,10 @@ export function saveCalendarDayData(dateIso, updatedData) {
       ...currentDay,
       ...updatedData
     }
-    localStorage.setItem('dado_crm_calendar_store_v2', JSON.stringify(currentStore))
-    window.dispatchEvent(new CustomEvent('dado-calendar-update', { detail: { dateIso } }))
+    setToStorage('dado_crm_calendar_store_v2', JSON.stringify(currentStore))
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dado-calendar-update', { detail: { dateIso } }))
+    }
     return true
   } catch (e) {
     console.warn('Errore salvataggio calendar store:', e)

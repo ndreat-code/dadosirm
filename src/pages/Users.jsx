@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Users as UsersIcon,
   UserPlus,
@@ -18,9 +19,14 @@ import {
   Lock,
   Mail,
   Zap,
+  Dice5,
+  KeyRound,
+  RotateCcw,
+  LogOut,
 } from 'lucide-react'
 import Backpack3DIcon from '../components/Backpack3DIcon'
 import { useAuth } from '../context/AuthContext'
+import { generateRandomPassword } from '../utils/credentialGenerator'
 
 // Moduli e permessi configurabili nel CRM
 const PERMISSION_MODULES = [
@@ -45,6 +51,8 @@ export default function Users() {
     addUser,
     updateUser,
     deleteUser,
+    resetDefaultUsers,
+    logout,
   } = useAuth()
 
   const [modalUser, setModalUser] = useState(null)
@@ -53,10 +61,12 @@ export default function Users() {
 
   function handleOpenNewUser() {
     setIsNewUser(true)
+    const { password: rndPwd } = generateRandomPassword(12)
     setModalUser({
       id: 'usr-' + Date.now(),
       name: '',
       email: '',
+      password: rndPwd,
       role: 'Director',
       badgeRole: 'Director',
       status: 'active',
@@ -135,8 +145,29 @@ export default function Users() {
   })
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div
+      className="h-full min-h-screen md:min-h-0 flex flex-col flex-1 relative overflow-hidden"
+      style={{
+        backgroundColor: 'transparent',
+        fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      }}
+    >
+      {/* ── CANVAS CON ANGOLI A SINISTRA STONDATI ADAGIATI SULLA BARRA LATERALE ── */}
+      <div
+        className="h-full flex-1 bg-[#f8fafc] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden text-slate-800"
+        style={{
+          boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+          borderLeft: '1.5px solid rgba(255, 255, 255, 0.9)',
+          borderTop: '1.5px solid rgba(255, 255, 255, 0.75)',
+          borderBottom: '1.5px solid rgba(255, 255, 255, 0.75)',
+          borderTopLeftRadius: '48px',
+          borderBottomLeftRadius: '48px',
+          borderTopRightRadius: '0px',
+          borderBottomRightRadius: '0px',
+        }}
+      >
+        <div className="flex-1 min-h-0 px-4 md:px-7 py-4 overflow-y-auto">
+          <div className="w-full space-y-6">
 
         {/* ── BANNER PROFILO ATTIVO IN USO ── */}
         <div
@@ -172,13 +203,13 @@ export default function Users() {
               </div>
               {!isAdmin && (
                 <p className="text-xs text-amber-300/90 font-sans mt-0.5">
-                  ⚠️ Modalità Director: Accesso consentito a <strong>Dashboard</strong>, <strong>Leads</strong>, <strong>Attività</strong> e <strong>Calendario</strong>. Note Sviluppatore e Ask OpenAI sono disabilitate.
+                  ⚠️ Modalità Director: Accesso consentito a <strong>Dashboard</strong>, <strong>Leads</strong>, <strong>Attività</strong>, <strong>Calendario</strong> e <strong>Ask OpenAI</strong>. Note Sviluppatore riservate ad Admin.
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center">
+          <div className="flex items-center gap-2 self-start sm:self-center flex-wrap">
             {currentUser.id !== 'usr-admin' && (
               <button
                 type="button"
@@ -197,8 +228,18 @@ export default function Users() {
                 <span>👤 Simula Director</span>
               </button>
             )}
+            <button
+              type="button"
+              onClick={logout}
+              title="Disconnetti ed esci dal CRM (Log out)"
+              className="px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-white border border-red-500/40 hover:border-red-500/60 font-mono text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1.5 group select-none"
+            >
+              <LogOut size={14} className="text-red-400 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Esci</span>
+            </button>
           </div>
         </div>
+
 
         {/* ── HEADER SEZIONE UTENTI ── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
@@ -216,13 +257,45 @@ export default function Users() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Link
+              to="/register"
+              className="px-3.5 py-2.5 rounded-xl font-mono text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white flex items-center gap-1.5 shadow-sm transition-all transform active:scale-95 cursor-pointer"
+              title="Apri il portale di registrazione con assegnazione automatica di credenziali casuali"
+            >
+              <Dice5 className="w-4 h-4" />
+              <span>Registra con Credenziali Casuali</span>
+            </Link>
+
             <button
               onClick={handleOpenNewUser}
               className="px-4 py-2.5 rounded-xl font-mono text-xs font-black bg-[#007a50] hover:bg-[#008f5d] text-white flex items-center gap-2 shadow-sm transition-all transform active:scale-95 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               <span>+ Nuovo Utente</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (confirm('Vuoi ripristinare la lista completa degli utenti predefiniti (Super Admin, Director, Editor, Producer)?')) {
+                  resetDefaultUsers()
+                }
+              }}
+              className="px-3.5 py-2.5 rounded-xl font-mono text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center gap-1.5 shadow-sm transition-all transform active:scale-95 cursor-pointer"
+              title="Ripristina la lista completa degli account dello studio"
+            >
+              <RotateCcw className="w-4 h-4 text-slate-600" />
+              <span>Ripristina Utenti</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={logout}
+              title="Disconnetti ed esci dal CRM (Log out)"
+              className="px-3.5 py-2.5 rounded-xl font-mono text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300/80 flex items-center gap-1.5 shadow-xs transition-all transform active:scale-95 cursor-pointer"
+            >
+              <LogOut className="w-4 h-4 text-rose-600" />
+              <span>Esci</span>
             </button>
           </div>
         </div>
@@ -508,11 +581,12 @@ export default function Users() {
             </table>
           </div>
         </div>
-
       </div>
+    </div>
+  </div>
 
-      {/* ── MODALE MODIFICA / CREAZIONE UTENTE & SCELTA PERMESSI ── */}
-      {modalUser && (
+  {/* ── MODALE MODIFICA / CREAZIONE UTENTE & SCELTA PERMESSI ── */}
+  {modalUser && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white border border-slate-300 rounded-2xl p-6 sm:p-7 max-w-xl w-full text-left shadow-2xl relative animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto">
             
@@ -595,6 +669,34 @@ export default function Users() {
                   <option value="admin">Amministratore (Tutto abilitato)</option>
                   <option value="restricted">Director con Funzioni Limitate</option>
                 </select>
+              </div>
+
+              {/* Password di Accesso con Assegnazione Casuale */}
+              <div className="sm:col-span-2">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <KeyRound className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Password di Accesso (con simbolo tastiera):</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const { password: rndPwd } = generateRandomPassword(12)
+                      setModalUser({ ...modalUser, password: rndPwd })
+                    }}
+                    className="text-[11px] font-mono text-cyan-600 hover:text-cyan-700 flex items-center gap-1 cursor-pointer font-bold"
+                  >
+                    <Dice5 className="w-3 h-3" />
+                    <span>Assegna Password Casuale</span>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={modalUser.password || ''}
+                  onChange={(e) => setModalUser({ ...modalUser, password: e.target.value })}
+                  placeholder="Password di accesso..."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono bg-slate-50 focus:outline-none focus:border-[#007a50]"
+                />
               </div>
             </div>
 

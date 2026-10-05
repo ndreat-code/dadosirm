@@ -303,53 +303,55 @@ export async function fetchIncomingEmails() {
   // 4. Altre richieste complesse / preventivi -> Salvate SOLO nelle bozze
   const simulatedFeed = [
     {
-      id: `sim-${Date.now()}-1`,
+      id: 'sim-feed-1',
       source: 'feed_background',
       from: 'Ing. Marco Riva <marco.riva@officineriva.it>',
       subject: 'Conferma shooting stabilimento e approvazione budget deliberato',
-      date: new Date().toISOString(),
+      date: '2026-09-28T09:15:00.000Z',
       snippet: 'Buongiorno team Dado, vi confermiamo che il consiglio ha deliberato il preventivo di € 9.200...',
       body: 'Buongiorno team Dado, vi confermiamo con piacere che il consiglio ha deliberato e approvato il preventivo di € 9.200 per lo shooting corporate e le riprese drone indoor. Attendiamo vostra conferma per avvio produzione e dettagli logistici.'
     },
     {
-      id: `sim-${Date.now()}-2`,
+      id: 'sim-feed-2',
       source: 'feed_background',
       from: 'Chiara Rossi <c.rossi@alphastudiomilano.com>',
       subject: 'Richiesta call e appuntamento in studio per calibrazione monitor e test luci',
-      date: new Date().toISOString(),
+      date: '2026-09-28T10:00:00.000Z',
       snippet: 'Ciao DADO team, potremmo fare una video call o incontro Lunedì alle 10:00?...',
       body: 'Ciao DADO team, vorremmo concordare una video call o appuntamento in studio per Lunedì mattina alle ore 10:00 per discutere i test fondale e la calibrazione monitor Atomos Ninja. Ci confermate se siete liberi a calendario?'
     },
     {
-      id: `sim-${Date.now()}-3`,
+      id: 'sim-feed-3',
       source: 'feed_background',
       from: 'Sara Moretti <s.moretti@nextmedia.agency>',
       subject: 'Richiesta info servizi video, showreel e opportunità di collaborazione',
-      date: new Date().toISOString(),
+      date: '2026-09-28T11:20:00.000Z',
       snippet: 'Buongiorno DADO Studio, vi scriviamo per richiedere maggiori informazioni sui vostri servizi video e showreel...',
       body: 'Buongiorno DADO Studio, siamo una nuova agenzia di comunicazione e seguiamo diversi brand moda e lifestyle. Vi scriviamo per richiedere maggiori informazioni sui vostri servizi di produzione video corporate, disponibilità drone e per proporvi una collaborazione continuativa (collab). Potete inviarci il vostro showreel aggiornato?'
     },
     {
-      id: `sim-${Date.now()}-4`,
+      id: 'sim-feed-4',
       source: 'feed_background',
       from: 'Elena Fontana <e.fontana@solarisgreen.eu>',
       subject: 'Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali',
-      date: new Date().toISOString(),
+      date: '2026-09-28T14:45:00.000Z',
       snippet: 'Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot...',
       body: 'Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.'
     },
     {
-      id: `sim-${Date.now()}-5`,
+      id: 'sim-feed-5',
       source: 'feed_background',
       from: 'Matteo Colombo <m.colombo@fashionbrand.it>',
       subject: 'Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget',
-      date: new Date().toISOString(),
+      date: '2026-09-28T16:10:00.000Z',
       snippet: 'Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere...',
       body: 'Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l\'affidamento dell\'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.'
     }
   ]
 
-  return [simulatedFeed[Math.floor(Math.random() * simulatedFeed.length)]]
+  const crmData = getCrmData()
+  const unread = simulatedFeed.filter(m => !(crmData.emails || []).some(e => e.id === m.id || (e.subject === m.subject && e.from === m.from)))
+  return unread.slice(0, 1)
 }
 
 // ── 2. ANALISI SEMANTICA B.A.N.T. ─────────────────────────────
@@ -755,10 +757,10 @@ export async function ingestIntoCrm(email, analysis) {
     if (pipelineState.recentDrafts.length > 10) {
       pipelineState.recentDrafts = pipelineState.recentDrafts.slice(0, 10)
     }
-  }
 
-  // Aggiungi a crmData.drafts per visibilità completa
-  crmData.drafts.unshift(draftRecord)
+    // Aggiungi alle bozze CRM pronte per revisione o invio 1-click
+    crmData.drafts.unshift(draftRecord)
+  }
 
   // 4. PREPARAZIONE TASKS RICHIESTE POST AGGIORNAMENTO DATI CRM
   const taskExists = crmData.nextActions.some(t => 

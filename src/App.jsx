@@ -10,7 +10,11 @@ import Settings from './pages/Settings'
 import Inventory from './pages/Inventory'
 import Leads from './pages/Leads'
 import Users from './pages/Users'
+import Appunti from './pages/Appunti'
+import Login from './pages/Login'
+import Register from './pages/Register'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { useSwipeNavigation } from './hooks/useSwipeNavigation'
 
 function ProtectedRoute({ permission, children, fallback = '/calendar' }) {
   const { canAccess } = useAuth()
@@ -23,16 +27,17 @@ function ProtectedRoute({ permission, children, fallback = '/calendar' }) {
 function MainLayout() {
   const isPort3005 = typeof window !== 'undefined' && window.location.port === '3005'
   const ActiveDashboard = isPort3005 ? DashboardB : Dashboard
+  useSwipeNavigation()
 
   return (
     <div
-      className="flex h-screen overflow-hidden"
+      className="flex h-screen overflow-hidden relative"
       style={{
         background: 'linear-gradient(180deg, #2d3139 0%, #22262d 42%, #191b20 100%)',
       }}
     >
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-transparent no-scrollbar">
+      <main className="flex-1 h-screen min-h-0 overflow-hidden bg-transparent flex flex-col">
         <Routes>
           <Route
             path="/"
@@ -115,6 +120,18 @@ function MainLayout() {
             }
           />
           <Route
+            path="/appunti"
+            element={
+              <ProtectedRoute permission="dashboard">
+                <Appunti />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/idee"
+            element={<Navigate to="/appunti" replace />}
+          />
+          <Route
             path="/users"
             element={
               <ProtectedRoute permission="users">
@@ -131,17 +148,42 @@ function MainLayout() {
             }
           />
           <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/calendar" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>
   )
 }
 
+function AppRoutes() {
+  const { isAuthenticated } = useAuth()
+
+  return (
+    <Routes>
+      {/* Pagine Pubbliche di Autenticazione */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/registrazione" element={<Register />} />
+
+      {/* Tutte le altre sezioni interne del CRM */}
+      <Route
+        path="/*"
+        element={
+          isAuthenticated ? (
+            <MainLayout />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+    </Routes>
+  )
+}
+
 export default function App() {
   return (
     <AuthProvider>
-      <MainLayout />
+      <AppRoutes />
     </AuthProvider>
   )
 }

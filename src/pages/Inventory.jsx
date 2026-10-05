@@ -56,7 +56,7 @@ export function getCategoryBadge(catId) {
 
 // Calcola lo stato del noleggio e i giorni rimanenti
 export function getRentalDeadlineStatus(endDateStr) {
-  if (!endDateStr) return { status: 'unknown', label: 'Data non specificata', color: '#888888' }
+  if (!endDateStr) return { status: 'unknown', label: 'Data non specificata', color: '#64748b', bg: '#f1f5f9', border: '#cbd5e1' }
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const due = new Date(endDateStr)
@@ -71,9 +71,9 @@ export function getRentalDeadlineStatus(endDateStr) {
       status: 'expired',
       days: diffDays,
       label: `Scaduto da ${abs} ${abs === 1 ? 'giorno' : 'giorni'}`,
-      color: '#ff4444',
-      bg: 'rgba(255, 68, 68, 0.15)',
-      border: 'rgba(255, 68, 68, 0.45)'
+      color: '#b91c1c',
+      bg: '#fee2e2',
+      border: '#fca5a5'
     }
   }
   if (diffDays === 0) {
@@ -81,9 +81,9 @@ export function getRentalDeadlineStatus(endDateStr) {
       status: 'today',
       days: 0,
       label: 'Scade oggi',
-      color: '#ff9800',
-      bg: 'rgba(255, 152, 0, 0.18)',
-      border: 'rgba(255, 152, 0, 0.5)'
+      color: '#b45309',
+      bg: '#fef3c7',
+      border: '#fde68a'
     }
   }
   if (diffDays === 1) {
@@ -91,18 +91,18 @@ export function getRentalDeadlineStatus(endDateStr) {
       status: 'tomorrow',
       days: 1,
       label: 'Scade domani',
-      color: '#00e5ff',
-      bg: 'rgba(0, 229, 255, 0.15)',
-      border: 'rgba(0, 229, 255, 0.4)'
+      color: '#0369a1',
+      bg: '#e0f2fe',
+      border: '#bae6fd'
     }
   }
   return {
     status: 'upcoming',
     days: diffDays,
     label: `Scade tra ${diffDays} giorni`,
-    color: '#00e575',
-    bg: 'rgba(0, 229, 117, 0.12)',
-    border: 'rgba(0, 229, 117, 0.35)'
+    color: '#15803d',
+    bg: '#dcfce7',
+    border: '#bbf7d0'
   }
 }
 
@@ -149,133 +149,127 @@ export default function Inventory() {
     notes: ''
   })
 
-  // Caricamento dati da backend
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true)
-        const [resInv, resSum] = await Promise.all([
-          fetch('/api/crm/inventory'),
-          fetch('/api/crm/summary')
-        ])
-
-        if (resInv.ok) {
-          const dataInv = await resInv.json()
-          if (dataInv.inventory) {
-            setInventory(dataInv.inventory)
-          }
-        }
-        if (resSum.ok) {
-          const dataSum = await resSum.json()
-          if (dataSum.companies) {
-            setCompanies(dataSum.companies)
-          }
-        }
-      } catch (err) {
-        console.error('Errore caricamento dati inventario:', err)
-      } finally {
-        setLoading(false)
+  // Caricamento Dati Iniziali dal backend Express
+  const fetchInventoryData = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/crm-data')
+      if (res.ok) {
+        const data = await res.json()
+        setInventory(data.inventory || [])
+        setCompanies(data.companies || [])
       }
+    } catch (err) {
+      console.error('Errore caricamento inventario:', err)
+    } finally {
+      setLoading(false)
     }
-    loadData()
+  }
+
+  useEffect(() => {
+    fetchInventoryData()
   }, [])
 
-  // KPI Statistiche Calcolate
+  // Statistiche e KPI
   const stats = useMemo(() => {
-    const totalItems = inventory.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0)
-    const totalValue = inventory.reduce((sum, item) => sum + (Number(item.estimatedValue) || 0), 0)
-    
-    const rentedItems = inventory.filter(i => i.status === 'noleggiato')
-    const inStudioItems = inventory.filter(i => i.status === 'in_studio')
-    
-    const activeRentalsCount = rentedItems.length
-    const totalRentalRevenue = rentedItems.reduce((sum, item) => sum + (Number(item.rental?.agreedPrice) || 0), 0)
+    const totalItems = inventory.reduce((acc, curr) => acc + (Number(curr.quantity) || 1), 0)
+    const inStudioCount = inventory.filter(i => i.status === 'in_studio').length
+    const rentedItemsCount = inventory.filter(i => i.status === 'noleggiato').length
+    const totalValue = inventory.reduce((acc, curr) => acc + (Number(curr.estimatedValue) || 0), 0)
+    const totalRentalRevenue = inventory
+      .filter(i => i.status === 'noleggiato')
+      .reduce((acc, curr) => acc + (Number(curr.rental?.agreedPrice) || 0), 0)
 
-    // Noleggi in scadenza o scaduti
-    const dueSoonCount = rentedItems.filter(item => {
-      const d = getRentalDeadlineStatus(item.rental?.endDate)
-      return d.status === 'expired' || d.status === 'today' || d.status === 'tomorrow'
+    // Noleggi che scadono entro 2 giorni o scaduti
+    const dueSoonCount = inventory.filter(i => {
+      if (i.status !== 'noleggiato' || !i.rental?.endDate) return false
+      const st = getRentalDeadlineStatus(i.rental.endDate)
+      return st.status === 'expired' || st.status === 'today' || st.status === 'tomorrow'
     }).length
 
     return {
       totalItems,
+      inStudioCount,
+      rentedItemsCount,
       totalValue,
-      rentedItemsCount: activeRentalsCount,
-      inStudioCount: inStudioItems.length,
       totalRentalRevenue,
       dueSoonCount
     }
   }, [inventory])
 
-  // Filtraggio & Ordinamento
+  // Filtraggio Articoli
   const filteredInventory = useMemo(() => {
-    let list = [...inventory]
+    return inventory.filter(item => {
+      // Filtro Tab (Tutti, Noleggiati, Disponibili in Studio)
+      if (activeTab === 'rentals' && item.status !== 'noleggiato') return false
+      if (activeTab === 'available' && item.status !== 'in_studio') return false
 
-    // Filtro per Tab principale
-    if (activeTab === 'rentals') {
-      list = list.filter(item => item.status === 'noleggiato')
-    } else if (activeTab === 'available') {
-      list = list.filter(item => item.status === 'in_studio')
-    }
+      // Filtro Categoria
+      if (selectedCategory !== 'all' && item.category !== selectedCategory) return false
 
-    // Filtro per Categoria
-    if (selectedCategory !== 'all') {
-      list = list.filter(item => item.category === selectedCategory)
-    }
+      // Ricerca Testuale
+      if (search.trim()) {
+        const q = search.toLowerCase()
+        const matchName = item.name?.toLowerCase().includes(q)
+        const matchBrand = item.brand?.toLowerCase().includes(q)
+        const matchSerial = item.serialNumber?.toLowerCase().includes(q)
+        const matchLocation = item.location?.toLowerCase().includes(q)
+        const matchClient = item.rental?.clientName?.toLowerCase().includes(q)
+        const matchCompany = item.rental?.company?.toLowerCase().includes(q)
+        const matchContract = item.rental?.contractCode?.toLowerCase().includes(q)
 
-    // Filtro per Ricerca testuale
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      list = list.filter(item => {
-        return (
-          item.name?.toLowerCase().includes(q) ||
-          item.brand?.toLowerCase().includes(q) ||
-          item.serialNumber?.toLowerCase().includes(q) ||
-          item.location?.toLowerCase().includes(q) ||
-          item.notes?.toLowerCase().includes(q) ||
-          item.rental?.company?.toLowerCase().includes(q) ||
-          item.rental?.clientName?.toLowerCase().includes(q) ||
-          item.rental?.contractCode?.toLowerCase().includes(q)
-        )
-      })
-    }
+        if (!matchName && !matchBrand && !matchSerial && !matchLocation && !matchClient && !matchCompany && !matchContract) {
+          return false
+        }
+      }
 
-    // Ordinamento
-    list.sort((a, b) => {
+      return true
+    }).sort((a, b) => {
       if (sortBy === 'value_desc') {
-        return (b.estimatedValue || 0) - (a.estimatedValue || 0)
+        return (Number(b.estimatedValue) || 0) - (Number(a.estimatedValue) || 0)
       }
       if (sortBy === 'name') {
-        return (a.name || '').localeCompare(b.name || '')
+        return a.name.localeCompare(b.name)
       }
       if (sortBy === 'rental_deadline') {
-        const dateA = a.rental?.endDate ? new Date(a.rental.endDate).getTime() : Infinity
-        const dateB = b.rental?.endDate ? new Date(b.rental.endDate).getTime() : Infinity
-        return dateA - dateB
+        if (a.status === 'noleggiato' && b.status !== 'noleggiato') return -1
+        if (b.status === 'noleggiato' && a.status !== 'noleggiato') return 1
+        if (a.status === 'noleggiato' && b.status === 'noleggiato') {
+          return new Date(a.rental?.endDate || 0) - new Date(b.rental?.endDate || 0)
+        }
+        return 0
       }
-      // default: category
-      return (a.category || '').localeCompare(b.category || '')
+      return 0
     })
-
-    return list
   }, [inventory, activeTab, selectedCategory, search, sortBy])
 
-  // Azione: Crea Articolo
-  async function handleCreateArticle(e) {
+  // Gestione Creazione Articolo
+  const handleCreateArticle = async (e) => {
     e.preventDefault()
     if (!newArticle.name.trim()) return
 
+    const articleData = {
+      ...newArticle,
+      id: `inv-${Date.now()}`,
+      status: 'in_studio',
+      quantity: Number(newArticle.quantity) || 1,
+      estimatedValue: Number(newArticle.estimatedValue) || 0,
+      createdAt: new Date().toISOString()
+    }
+
     try {
-      const res = await fetch('/api/crm/inventory', {
+      const res = await fetch('/api/crm-data/inventory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newArticle)
+        body: JSON.stringify(articleData)
       })
 
       if (res.ok) {
         const data = await res.json()
         if (data.inventory) {
           setInventory(data.inventory)
+        } else {
+          setInventory(prev => [articleData, ...prev])
         }
         setShowAddModal(false)
         setNewArticle({
@@ -290,21 +284,36 @@ export default function Inventory() {
         })
       }
     } catch (err) {
-      console.error('Errore creazione articolo:', err)
+      console.error('Errore salvataggio articolo:', err)
     }
   }
 
-  // Azione: Assegna Noleggio
-  async function handleAssignRental(e) {
+  // Gestione Assegnazione Noleggio
+  const handleAssignRental = async (e) => {
     e.preventDefault()
     const targetItemId = rentForm.itemId || selectedItemForRent?.id
     if (!targetItemId) return
 
+    const rentalPayload = {
+      clientName: rentForm.clientName,
+      company: rentForm.company,
+      contactPhone: rentForm.contactPhone,
+      contactEmail: rentForm.contactEmail,
+      startDate: rentForm.startDate,
+      endDate: rentForm.endDate,
+      agreedPrice: Number(rentForm.agreedPrice) || 0,
+      pricingType: rentForm.pricingType,
+      contractCode: rentForm.contractCode,
+      deposit: rentForm.deposit,
+      notes: rentForm.notes,
+      assignedAt: new Date().toISOString()
+    }
+
     try {
-      const res = await fetch(`/api/crm/inventory/${targetItemId}/rent`, {
+      const res = await fetch(`/api/crm-data/inventory/${targetItemId}/rent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rentForm)
+        body: JSON.stringify(rentalPayload)
       })
 
       if (res.ok) {
@@ -314,24 +323,32 @@ export default function Inventory() {
         }
         setShowRentModal(false)
         setSelectedItemForRent(null)
+        setRentForm({
+          itemId: '',
+          clientName: '',
+          company: '',
+          contactPhone: '',
+          contactEmail: '',
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: '',
+          agreedPrice: '',
+          pricingType: 'Totale forfait',
+          contractCode: `DADO-RENT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+          deposit: '',
+          notes: ''
+        })
       }
     } catch (err) {
       console.error('Errore assegnazione noleggio:', err)
     }
   }
 
-  // Azione: Segna come Rientrato
-  async function handleReturnItem(itemId) {
-    if (!confirm('Confermi il rientro dell\'attrezzatura in studio?')) return
-
+  // Registra Rientro in Studio
+  const handleReturnItem = async (itemId) => {
     try {
-      const res = await fetch(`/api/crm/inventory/${itemId}/return`, {
+      const res = await fetch(`/api/crm-data/inventory/${itemId}/return`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          returnLocation: 'Studio / Armadio A1',
-          returnNotes: 'Rientrato integro e verificato dal team di produzione'
-        })
+        headers: { 'Content-Type': 'application/json' }
       })
 
       if (res.ok) {
@@ -341,16 +358,16 @@ export default function Inventory() {
         }
       }
     } catch (err) {
-      console.error('Errore rientro articolo:', err)
+      console.error('Errore registrazione rientro:', err)
     }
   }
 
-  // Azione: Elimina Articolo
-  async function handleDeleteItem(itemId) {
-    if (!confirm('Sei sicuro di voler rimuovere questo articolo dall\'inventario?')) return
+  // Elimina Articolo
+  const handleDeleteItem = async (itemId) => {
+    if (!window.confirm('Sei sicuro di voler eliminare questo articolo dall\'inventario?')) return
 
     try {
-      const res = await fetch(`/api/crm/inventory/${itemId}`, {
+      const res = await fetch(`/api/crm-data/inventory/${itemId}`, {
         method: 'DELETE'
       })
 
@@ -366,182 +383,261 @@ export default function Inventory() {
   }
 
   return (
-    <div className="h-full min-h-screen md:min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden">
+    <div
+      className="h-full min-h-screen md:min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden"
+      style={{
+        fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      }}
+    >
       
-      {/* ── CANVAS VERDE TAVOLO DA BILIARDO (#007a50) IDENTICO AL CRM ── */}
+      {/* ── CANVAS ARMONIZZATO STILE DASHBOARD CON COLORI VIVI ── */}
       <div
-        className="h-full flex-1 bg-[#007a50] rounded-tl-[48px] rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden"
+        className="h-full flex-1 rounded-tl-none rounded-bl-none flex flex-col justify-between relative min-w-0 overflow-hidden"
         style={{
           boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+          borderLeft: '1.5px solid #d4ebf9',
+          background: `
+            radial-gradient(ellipse 520px 400px at 8% 16%, rgba(83, 186, 117, 0.32) 0%, rgba(83, 186, 117, 0.08) 55%, transparent 75%),
+            radial-gradient(ellipse 560px 440px at 92% 12%, rgba(27, 183, 237, 0.35) 0%, rgba(27, 183, 237, 0.09) 55%, transparent 75%),
+            radial-gradient(ellipse 500px 400px at 45% 82%, rgba(234, 56, 36, 0.25) 0%, rgba(234, 56, 36, 0.06) 55%, transparent 75%),
+            radial-gradient(ellipse 480px 360px at 85% 78%, rgba(250, 196, 41, 0.32) 0%, rgba(250, 196, 41, 0.08) 55%, transparent 75%),
+            radial-gradient(ellipse 420px 340px at 28% 48%, rgba(27, 183, 237, 0.24) 0%, transparent 70%),
+            radial-gradient(ellipse 440px 360px at 68% 35%, rgba(83, 186, 117, 0.22) 0%, transparent 70%),
+            linear-gradient(180deg, #f0f8fd 0%, #e6f3fa 100%)
+          `,
         }}
       >
-
-        {/* ── Banda Bianca Superiore Decorativa ── */}
-        <div className="w-full flex justify-end flex-shrink-0">
-          <div className="bg-white rounded-bl-2xl w-[calc(100%-2.5rem)]" style={{ height: 'calc(3rem - 0.5cm)' }} />
+        {/* Sfere di luce d'atmosfera brand a colori vividi (stile Dashboard ma più accesi) */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
+          {/* Macchia Verde brand (#53ba75) - zona sinistra superiore */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              top: '4%',
+              left: '5%',
+              width: '460px',
+              height: '380px',
+              background: 'radial-gradient(circle, rgba(83, 186, 117, 0.38) 0%, rgba(83, 186, 117, 0.12) 50%, transparent 75%)',
+              filter: 'blur(54px)',
+              transform: 'rotate(-12deg)',
+            }}
+          />
+          {/* Macchia Ciano brand (#1bb7ed) - zona destra superiore */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              top: '6%',
+              right: '4%',
+              width: '500px',
+              height: '400px',
+              background: 'radial-gradient(circle, rgba(27, 183, 237, 0.40) 0%, rgba(27, 183, 237, 0.14) 50%, transparent 75%)',
+              filter: 'blur(58px)',
+              transform: 'rotate(18deg)',
+            }}
+          />
+          {/* Macchia Rosso Corallo brand (#ea3824) - zona inferiore centrale/sinistra */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              bottom: '4%',
+              left: '30%',
+              width: '480px',
+              height: '360px',
+              background: 'radial-gradient(circle, rgba(234, 56, 36, 0.28) 0%, rgba(234, 56, 36, 0.08) 50%, transparent 75%)',
+              filter: 'blur(60px)',
+              transform: 'rotate(25deg)',
+            }}
+          />
+          {/* Macchia Giallo Caldo brand (#fac429) - zona destra inferiore */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              bottom: '8%',
+              right: '8%',
+              width: '440px',
+              height: '340px',
+              background: 'radial-gradient(circle, rgba(250, 196, 41, 0.35) 0%, rgba(250, 196, 41, 0.10) 50%, transparent 75%)',
+              filter: 'blur(52px)',
+              transform: 'rotate(-15deg)',
+            }}
+          />
         </div>
 
         {/* ── Contenuto Principale con scroll fluido ── */}
-        <div className="flex-1 min-h-0 pl-10 pr-8 py-3 overflow-y-auto no-scrollbar">
+        <div className="flex-1 min-h-0 pl-6 md:pl-8 pr-6 md:pr-8 py-4 overflow-y-auto no-scrollbar relative z-10">
 
-          {/* ── TITOLO IN ALTO (INSPIRATION + SOTTOTITOLO SWITZER CIANO/ARANCIO) ── */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 border-b border-black/20 pb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider px-2.5 py-1 bg-black text-[#00ffaa] rounded-none">
-                  Studio & Noleggi
-                </span>
+          {/* ── TITOLO IN ALTO CON BADGE & AZIONI ── */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 border-b border-sky-200/80 pb-3.5">
+            <div className="flex items-center flex-wrap gap-y-2">
+              <h1
+                className="text-2xl sm:text-[28px] font-black text-slate-900 tracking-tight leading-none select-none"
+                style={{ fontFamily: '"Switzer", sans-serif' }}
+              >
+                Inventario
+              </h1>
+
+              {/* A 5 cm di distanza dal titolo: Nuovo Noleggio e Aggiungi Articolo senza riquadri, con font moderno e +2pt */}
+              <div
+                className="flex items-center gap-7 ml-4 md:ml-[5cm]"
+                style={{ marginLeft: '5cm' }}
+              >
+                {/* Nuovo Noleggio — Blu tenue come la lettera D del brand logo (#1bb7ed) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedItemForRent(null)
+                    setRentForm(prev => ({
+                      ...prev,
+                      itemId: inventory.find(i => i.status === 'in_studio')?.id || '',
+                      contractCode: `DADO-RENT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`
+                    }))
+                    setShowRentModal(true)
+                  }}
+                  className="group flex items-center gap-2 text-[15px] font-bold transition-all hover:opacity-75 active:scale-95 cursor-pointer bg-transparent border-0 p-0 select-none"
+                  style={{
+                    fontFamily: '"Switzer", sans-serif',
+                    color: '#1bb7ed',
+                  }}
+                  title="Registra un nuovo noleggio attrezzatura"
+                >
+                  <Clock className="w-4.5 h-4.5 stroke-[2.3] transition-transform group-hover:rotate-12" style={{ stroke: '#1bb7ed' }} />
+                  <span className="tracking-wide">Nuovo Noleggio</span>
+                </button>
+
+                {/* Aggiungi Articolo — Icona + e testo senza segno + */}
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(true)}
+                  className="group flex items-center gap-2 text-[15px] font-bold transition-all hover:opacity-75 active:scale-95 cursor-pointer bg-transparent border-0 p-0 select-none"
+                  style={{
+                    fontFamily: '"Switzer", sans-serif',
+                    color: '#059669',
+                  }}
+                  title="Aggiungi nuovo articolo a catalogo"
+                >
+                  <Plus className="w-4.5 h-4.5 stroke-[2.6] transition-transform group-hover:scale-110" style={{ stroke: '#059669' }} />
+                  <span className="tracking-wide">Aggiungi Articolo</span>
+                </button>
               </div>
-              <p style={{ marginTop: '2px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 600 }}>
-                <span style={{ color: '#00e5ff' }}>Attrezzatura di produzione & </span>
-                <span style={{ color: '#ff6f43' }}>noleggi attivi</span>
-                <span style={{ color: '#ffffff', fontSize: '13.5px', fontFamily: '"Space Mono", monospace', marginLeft: '14px', fontWeight: 400 }}>
-                  ({inventory.length} articoli registrati)
-                </span>
-              </p>
             </div>
 
-            {/* Pulsanti Azione in Alto */}
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Bottone Assegna Noleggio Rapido */}
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedItemForRent(null)
-                  setRentForm(prev => ({
-                    ...prev,
-                    itemId: inventory.find(i => i.status === 'in_studio')?.id || '',
-                    contractCode: `DADO-RENT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`
-                  }))
-                  setShowRentModal(true)
-                }}
-                className="px-4 py-2 bg-[#d8ff00] hover:bg-[#cbf000] text-[#111111] text-xs font-bold uppercase tracking-wider rounded-none flex items-center gap-2 transition-transform active:scale-95 shadow-sm"
-                style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 800 }}
-              >
-                <Clock className="w-4 h-4 stroke-[2.5]" />
-                <span>+ Nuovo Noleggio</span>
-              </button>
-
-              {/* Bottone Aggiungi Articolo */}
-              <button
-                type="button"
-                onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 bg-[#ff6f43] hover:bg-[#ff5722] text-[#111111] text-xs font-bold uppercase tracking-wider rounded-none flex items-center gap-2 transition-transform active:scale-95 shadow-sm"
-                style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 800 }}
-              >
-                <Plus className="w-4 h-4 stroke-[3]" />
-                <span>+ Aggiungi Articolo</span>
-              </button>
+            {/* Al centro destra: testo strumenti registrati in color perla */}
+            <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/85 backdrop-blur-md border border-slate-700/60 shadow-xs select-none">
+                <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+                <span
+                  className="text-[13px] font-mono font-bold tracking-wide"
+                  style={{ color: '#f0f4f8' }}
+                >
+                  {inventory.length} strumenti registrati
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* ── KPI METRICS CARDS (NERO, BIANCO, MENTA, ARANCIO) ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {/* ── KPI METRICS CARDS (ELEGANTI BIANCHE CON ACCENTI SMERALDO & AMBRA) ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
             
             {/* Card 1: Totale Attrezzatura a Catalogo */}
-            <div
-              className="p-3.5 flex flex-col justify-between shadow-sm"
-              style={{ backgroundColor: '#111111', borderRadius: '4px' }}
-            >
+            <div className="p-4 flex flex-col justify-between bg-white border border-emerald-100 rounded-2xl shadow-xs">
               <div className="flex items-center justify-between">
-                <span style={{ color: '#ff6f43', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
-                  EQUIPAGGIAMENTO TOTALE
+                <span className="text-[15px] font-bold text-slate-500 uppercase tracking-wider">
+                  Equipaggiamento Totale
                 </span>
-                <Camera className="w-4 h-4 text-[#ff6f43]" />
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#166534] flex items-center justify-center border border-emerald-100">
+                  <Camera className="w-4.5 h-4.5" />
+                </div>
               </div>
-              <div className="mt-2 text-3xl font-black font-mono text-white leading-none">
-                {stats.totalItems} <span className="text-sm font-sans font-normal text-white/60">pezzi</span>
+              <div className="mt-2 text-[27px] font-black text-slate-900 leading-none">
+                {stats.totalItems} <span className="text-[15px] font-normal text-slate-500">pezzi</span>
               </div>
-              <div className="mt-1 text-xs text-[#00e5ff]" style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 500 }}>
+              <div className="mt-1.5 text-[15px] text-emerald-700 font-semibold">
                 Valore stimato: € {stats.totalValue.toLocaleString('it-IT')}
               </div>
             </div>
 
             {/* Card 2: Attrezzatura in Studio Disponibile */}
-            <div
-              className="p-3.5 flex flex-col justify-between shadow-sm"
-              style={{ backgroundColor: '#00ffaa', borderRadius: '4px' }}
-            >
+            <div className="p-4 flex flex-col justify-between bg-white border border-emerald-100 rounded-2xl shadow-xs">
               <div className="flex items-center justify-between">
-                <span style={{ color: '#111111', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
-                  DISPONIBILE IN STUDIO
+                <span className="text-[15px] font-bold text-slate-500 uppercase tracking-wider">
+                  Disponibile in Studio
                 </span>
-                <CheckCircle2 className="w-4 h-4 text-[#111111]" />
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                  <CheckCircle2 className="w-4.5 h-4.5" />
+                </div>
               </div>
-              <div className="mt-2 text-3xl font-black font-mono text-[#111111] leading-none">
-                {stats.inStudioCount} <span className="text-sm font-sans font-bold text-[#111111]/70">articoli</span>
+              <div className="mt-2 text-[27px] font-black text-emerald-700 leading-none">
+                {stats.inStudioCount} <span className="text-[15px] font-bold text-slate-500">articoli</span>
               </div>
-              <div className="mt-1 text-xs text-[#111111]/90 font-bold" style={{ fontFamily: '"Switzer", sans-serif' }}>
+              <div className="mt-1.5 text-[15px] text-slate-600 font-medium">
                 Pronti subito per shooting & set
               </div>
             </div>
 
             {/* Card 3: Oggetti Dati a Noleggio */}
-            <div
-              className="p-3.5 flex flex-col justify-between shadow-sm"
-              style={{ backgroundColor: '#111111', borderRadius: '4px' }}
-            >
+            <div className="p-4 flex flex-col justify-between bg-white border border-emerald-100 rounded-2xl shadow-xs">
               <div className="flex items-center justify-between">
-                <span style={{ color: '#00e5ff', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
-                  OGGETTI A NOLEGGIO
+                <span className="text-[15px] font-bold text-slate-500 uppercase tracking-wider">
+                  Oggetti a Noleggio
                 </span>
-                <Clock className="w-4 h-4 text-[#00e5ff]" />
+                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+                  <Clock className="w-4.5 h-4.5" />
+                </div>
               </div>
-              <div className="mt-2 text-3xl font-black font-mono text-white leading-none">
-                {stats.rentedItemsCount} <span className="text-sm font-sans font-normal text-white/60">in comodato</span>
+              <div className="mt-2 text-[27px] font-black text-amber-700 leading-none">
+                {stats.rentedItemsCount} <span className="text-[15px] font-normal text-slate-500">in comodato</span>
               </div>
-              <div className="mt-1 text-xs text-[#ff9800]" style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 500 }}>
-                {stats.dueSoonCount > 0 ? `${stats.dueSoonCount} rientro/i in scadenza` : 'Nessuna criticità di rientro'}
+              <div className="mt-1.5 text-[15px] text-amber-700 font-semibold">
+                {stats.dueSoonCount > 0 ? `⚠️ ${stats.dueSoonCount} rientro/i in scadenza` : 'Nessuna criticità di rientro'}
               </div>
             </div>
 
             {/* Card 4: Entrate Noleggi Pattuite */}
-            <div
-              className="p-3.5 flex flex-col justify-between shadow-sm"
-              style={{ backgroundColor: '#ffffff', borderRadius: '4px' }}
-            >
+            <div className="p-4 flex flex-col justify-between bg-white border border-emerald-100 rounded-2xl shadow-xs">
               <div className="flex items-center justify-between">
-                <span style={{ color: '#111111', fontFamily: '"Switzer", sans-serif', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em' }}>
-                  RICAVI NOLEGGI ATTIVI
+                <span className="text-[15px] font-bold text-slate-500 uppercase tracking-wider">
+                  Ricavi Noleggi Attivi
                 </span>
-                <DollarSign className="w-4 h-4 text-[#007a50]" />
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#166534] flex items-center justify-center border border-emerald-100">
+                  <DollarSign className="w-4.5 h-4.5" />
+                </div>
               </div>
-              <div className="mt-2 text-3xl font-black font-mono text-[#007a50] leading-none">
+              <div className="mt-2 text-[27px] font-black text-[#166534] leading-none">
                 € {stats.totalRentalRevenue.toLocaleString('it-IT')}
               </div>
-              <div className="mt-1 text-xs text-black/70 font-semibold" style={{ fontFamily: '"Switzer", sans-serif' }}>
+              <div className="mt-1.5 text-[15px] text-slate-500 font-medium">
                 Tariffe contratti in corso
               </div>
             </div>
 
           </div>
 
-          {/* ── BARRA SWITCHER TAB PRINCIPALI ── */}
+          {/* ── BARRA SWITCHER TAB PRINCIPALI (+3pt grandezza riquadri e caratteri) ── */}
           <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 p-1.5 bg-white/90 rounded-full shadow-2xs border-0">
               <button
                 type="button"
                 onClick={() => setActiveTab('all')}
-                className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider transition-all border ${
+                className={`px-5 py-2.5 text-[15px] font-bold rounded-full transition-all cursor-pointer ${
                   activeTab === 'all'
-                    ? 'bg-[#111111] text-[#00ffaa] border-black shadow-md'
-                    : 'bg-white/10 text-white hover:bg-white/20 border-white/10'
+                    ? 'bg-[#16a34a] text-white shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
-                Tutto l'Equipaggiamento ({inventory.length})
+                Tutto l'equipaggiamento ({inventory.length})
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('rentals')}
-                className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider transition-all border flex items-center gap-2 ${
+                className={`px-5 py-2.5 text-[15px] font-bold rounded-full transition-all flex items-center gap-2 cursor-pointer ${
                   activeTab === 'rentals'
-                    ? 'bg-[#ff6f43] text-[#111111] border-black shadow-md'
-                    : 'bg-white/10 text-white hover:bg-white/20 border-white/10'
+                    ? 'bg-[#d97706] text-white shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
                 <span>Oggetti a Noleggio</span>
-                <span className="px-1.5 py-0.2 bg-black text-white text-[10px] rounded">
+                <span className={`px-2 py-0.5 rounded-full text-[13px] font-bold ${activeTab === 'rentals' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
                   {stats.rentedItemsCount}
                 </span>
               </button>
@@ -549,118 +645,149 @@ export default function Inventory() {
               <button
                 type="button"
                 onClick={() => setActiveTab('available')}
-                className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider transition-all border ${
+                className={`px-5 py-2.5 text-[15px] font-bold rounded-full transition-all cursor-pointer ${
                   activeTab === 'available'
-                    ? 'bg-[#00ffaa] text-[#111111] border-black shadow-md'
-                    : 'bg-white/10 text-white hover:bg-white/20 border-white/10'
+                    ? 'bg-[#16a34a] text-white shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
                 Disponibili in Studio ({stats.inStudioCount})
               </button>
             </div>
 
-            {/* Ordinamento */}
+            {/* Ordinamento (+3pt grandezza) */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-[#111111] px-3 py-1.5 border border-black text-white text-xs font-mono">
-                <ArrowUpDown className="w-3.5 h-3.5 text-[#00e5ff]" />
-                <span className="text-white/60">Ordina:</span>
+              <div className="flex items-center gap-2 bg-white px-4.5 py-2.5 rounded-full border border-emerald-200 text-slate-700 text-[15px] shadow-2xs">
+                <ArrowUpDown className="w-4 h-4 text-[#166534]" />
+                <span className="text-slate-500 font-medium">Ordina:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-transparent text-[#00ffaa] font-bold outline-none cursor-pointer"
+                  className="bg-transparent text-slate-800 font-bold text-[15px] outline-none cursor-pointer"
                 >
-                  <option value="category" className="bg-[#111111] text-white">Categoria</option>
-                  <option value="value_desc" className="bg-[#111111] text-white">Valore decrescente</option>
-                  <option value="name" className="bg-[#111111] text-white">Nome A-Z</option>
-                  <option value="rental_deadline" className="bg-[#111111] text-white">Scadenza Noleggio</option>
+                  <option value="category">Categoria</option>
+                  <option value="value_desc">Valore decrescente</option>
+                  <option value="name">Nome A-Z</option>
+                  <option value="rental_deadline">Scadenza Noleggio</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* ── FILTRI CATEGORIE A PILLOLE RAPIDE ── */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-5 no-scrollbar">
-            {INVENTORY_CATEGORIES.map(cat => {
-              const isSelected = selectedCategory === cat.id
-              const count = cat.id === 'all'
-                ? inventory.length
-                : inventory.filter(i => i.category === cat.id).length
-
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1.5 text-xs font-medium whitespace-nowrap rounded flex items-center gap-1.5 transition-all ${
-                    isSelected
-                      ? 'bg-black text-[#00e5ff] font-bold shadow-sm ring-1 ring-[#00e5ff]'
-                      : 'bg-black/30 hover:bg-black/50 text-white/90'
-                  }`}
-                  style={{ fontFamily: '"Switzer", sans-serif' }}
+          {/* ── FILTRI CATEGORIE: TUTTI GLI ARTICOLI RETTANGOLARE VERDE CHIARO FISSO + RIGA IN SCORRIMENTO AUTOMATICO ── */}
+          <div className="flex items-center gap-2.5 mb-4 overflow-hidden relative">
+            {/* 1. Riquadro FISSO: Tutti gli Articoli — 4 angoli retti a 90° (rounded-none), zero bordi bianchi, completamente riempito di verde chiaro (#16a34a) */}
+            <div className="flex-shrink-0 z-20 flex items-center pr-2.5">
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('all')}
+                className={`px-5 py-2.5 text-[15px] font-bold whitespace-nowrap rounded-none flex items-center gap-2 transition-all cursor-pointer select-none border-0 ${
+                  selectedCategory === 'all'
+                    ? 'bg-[#16a34a] text-white shadow-md'
+                    : 'bg-[#16a34a]/90 hover:bg-[#16a34a] text-white'
+                }`}
+                style={{ borderRadius: '0px' }}
+              >
+                <span className="text-base">📦</span>
+                <span>Tutti gli Articoli</span>
+                <span
+                  className="text-[12.5px] px-2 py-0.5 font-bold bg-white/25 text-white"
+                  style={{ borderRadius: '0px' }}
                 >
-                  <span>{cat.emoji}</span>
-                  <span>{cat.label}</span>
-                  <span className={`text-[10px] px-1 py-0.2 rounded font-mono ${isSelected ? 'bg-[#00e5ff] text-black font-bold' : 'bg-white/10 text-white/70'}`}>
-                    {count}
-                  </span>
-                </button>
-              )
-            })}
+                  {inventory.length}
+                </span>
+              </button>
+            </div>
+
+            {/* 2. Container in SCORRIMENTO AUTOMATICO per le altre categorie (pausa su hover) */}
+            <div className="flex-1 overflow-hidden relative py-0.5" title="Passa il mouse per mettere in pausa lo scorrimento automatico">
+              <div className="animate-inventory-marquee flex items-center gap-2">
+                {/* Duplice rendering per loop continuo senza interruzioni */}
+                {[...INVENTORY_CATEGORIES.filter(c => c.id !== 'all'), ...INVENTORY_CATEGORIES.filter(c => c.id !== 'all')].map((cat, idx) => {
+                  const isSelected = selectedCategory === cat.id
+                  const count = inventory.filter(i => i.category === cat.id).length
+
+                  return (
+                    <button
+                      key={`${cat.id}-${idx}`}
+                      type="button"
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`px-4.5 py-2 text-[15px] font-bold whitespace-nowrap rounded-full flex items-center gap-2 transition-all border cursor-pointer select-none ${
+                        isSelected
+                          ? 'bg-[#16a34a] text-white border-[#16a34a] shadow-xs'
+                          : 'bg-white/90 hover:bg-white text-slate-700 border-emerald-200/90'
+                      }`}
+                    >
+                      <span className="text-base">{cat.emoji}</span>
+                      <span>{cat.label}</span>
+                      <span className={`text-[12.5px] px-2 py-0.5 rounded-full font-bold ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                        {count}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </div>
 
           {/* ── BARRA DI RICERCA ── */}
-          <div className="mb-5 flex items-center gap-3">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <div className="mb-4 flex items-center gap-3">
+            <div
+              className="relative flex items-center flex-1 px-4 py-2 transition-all duration-200 bg-white shadow-xs"
+              style={{
+                borderRadius: '9999px',
+                border: '1.5px solid #cde9d6',
+              }}
+            >
+              <Search className="w-4 h-4 flex-shrink-0 text-[#166534] mr-2.5 stroke-[2.5]" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cerca fotocamera, obiettivo, matricola, seriale, cliente noleggio..."
-                className="w-full pl-10 pr-4 py-2.5 bg-black/50 border border-black text-white text-sm placeholder-white/40 rounded-none focus:outline-none focus:ring-1 focus:ring-[#00e5ff]"
-                style={{ fontFamily: '"Switzer", sans-serif' }}
+                className="w-full bg-transparent text-slate-900 text-xs md:text-sm placeholder-slate-400 focus:outline-none"
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                  className="text-slate-400 hover:text-slate-700 cursor-pointer ml-1"
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
-            <span className="text-xs font-mono text-white/80 whitespace-nowrap">
-              {filteredInventory.length} di {inventory.length} articoli visualizzati
+            <span className="hidden sm:inline-flex px-3 py-1 bg-white/70 border border-emerald-200 rounded-full text-xs font-bold text-[#166534] whitespace-nowrap">
+              {filteredInventory.length} di {inventory.length} articoli
             </span>
           </div>
 
           {/* ── LISTA / CARD DEGLI ARTICOLI ── */}
           {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center text-white gap-3">
-              <div className="w-8 h-8 border-2 border-[#00e5ff] border-t-transparent rounded-full animate-spin" />
-              <span className="font-mono text-xs text-white/70">Caricamento inventario DADO Studio...</span>
+            <div className="py-20 flex flex-col items-center justify-center text-slate-600 gap-3">
+              <div className="w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-slate-500 font-medium">Caricamento inventario DADO Studio...</span>
             </div>
           ) : filteredInventory.length === 0 ? (
-            <div className="p-12 text-center bg-black/20 border border-black/30 rounded-none text-white my-4">
-              <Package className="w-12 h-12 text-white/30 mx-auto mb-3" />
-              <h3 className="text-lg font-bold" style={{ fontFamily: '"Switzer", sans-serif' }}>
+            <div className="p-12 text-center bg-white/80 border border-emerald-100 rounded-2xl text-slate-700 my-4 shadow-xs">
+              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-slate-800">
                 Nessun articolo trovato
               </h3>
-              <p className="text-sm text-white/60 mt-1 max-w-md mx-auto">
+              <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">
                 Nessun elemento corrisponde ai filtri selezionati. Prova a reimpostare la ricerca o aggiungi un nuovo pezzo.
               </p>
               <button
                 type="button"
                 onClick={() => { setSearch(''); setSelectedCategory('all'); setActiveTab('all'); }}
-                className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-xs font-mono text-[#00ffaa]"
+                className="mt-4 px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-xs font-bold text-[#166534] rounded-full cursor-pointer"
               >
                 Reimposta tutti i filtri
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 mb-8">
               {filteredInventory.map(item => {
                 const isRented = item.status === 'noleggiato'
                 const deadline = isRented ? getRentalDeadlineStatus(item.rental?.endDate) : null
@@ -669,18 +796,17 @@ export default function Inventory() {
                 return (
                   <div
                     key={item.id}
-                    className={`p-4 border transition-all flex flex-col justify-between relative shadow-sm ${
+                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between relative shadow-xs hover:shadow-md ${
                       isRented
-                        ? 'bg-[#181818] border-[#ff6f43]/50 hover:border-[#ff6f43]'
-                        : 'bg-[#111111] border-black/40 hover:border-black'
+                        ? 'bg-amber-50/25 border-amber-200 hover:border-amber-300'
+                        : 'bg-white border-emerald-100 hover:border-emerald-300'
                     }`}
-                    style={{ borderRadius: '2px' }}
                   >
                     {/* Header Card Articolo */}
                     <div>
                       <div className="flex items-start justify-between gap-2 mb-2">
                         {/* Categoria Badge */}
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-black/60 border border-white/10 text-[11px] font-mono text-white/80">
+                        <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700 rounded-full">
                           <span>{catBadge.emoji}</span>
                           <span>{catBadge.label}</span>
                         </div>
@@ -688,19 +814,19 @@ export default function Inventory() {
                         {/* Status Badge */}
                         {isRented ? (
                           <div
-                            className="px-2 py-0.5 text-[11px] font-bold font-mono uppercase tracking-wider flex items-center gap-1 border"
+                            className="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 rounded-full border"
                             style={{
-                              color: deadline?.color || '#ff9800',
-                              backgroundColor: deadline?.bg || 'rgba(255, 152, 0, 0.15)',
-                              borderColor: deadline?.border || 'rgba(255, 152, 0, 0.4)'
+                              color: deadline?.color || '#b45309',
+                              backgroundColor: deadline?.bg || '#fef3c7',
+                              borderColor: deadline?.border || '#fcd34d'
                             }}
                           >
-                            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: deadline?.color || '#ff9800' }} />
+                            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: deadline?.color || '#b45309' }} />
                             <span>A NOLEGGIO</span>
                           </div>
                         ) : (
-                          <div className="px-2 py-0.5 text-[11px] font-bold font-mono uppercase tracking-wider text-[#00ffaa] bg-[#00ffaa]/10 border border-[#00ffaa]/30 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#00ffaa]" />
+                          <div className="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#166534] bg-emerald-100 border border-emerald-200 rounded-full flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#166534]" />
                             <span>IN STUDIO</span>
                           </div>
                         )}
@@ -708,32 +834,31 @@ export default function Inventory() {
 
                       {/* Nome Articolo */}
                       <h3
-                        className="text-[17px] font-bold text-white tracking-tight leading-snug hover:text-[#00e5ff] cursor-pointer"
-                        style={{ fontFamily: '"Switzer", sans-serif' }}
+                        className="text-[16px] font-bold text-slate-900 tracking-tight leading-snug hover:text-emerald-700 cursor-pointer"
                         onClick={() => setShowDetailModal(item)}
                       >
                         {item.name}
                       </h3>
 
                       {/* Brand & Seriale */}
-                      <div className="mt-1 flex items-center gap-3 text-xs text-white/60 font-mono">
-                        {item.brand && <span className="text-white/80 font-bold">{item.brand}</span>}
+                      <div className="mt-1 flex items-center gap-2.5 text-xs text-slate-500">
+                        {item.brand && <span className="text-slate-800 font-bold">{item.brand}</span>}
                         {item.serialNumber && (
-                          <span className="text-white/40">S/N: {item.serialNumber}</span>
+                          <span className="text-slate-400">S/N: {item.serialNumber}</span>
                         )}
                         {item.quantity > 1 && (
-                          <span className="px-1.5 py-0.2 bg-white/10 text-white font-bold rounded">
+                          <span className="px-2 py-0.2 bg-slate-100 text-slate-700 font-bold rounded-full">
                             Q.tà: {item.quantity}
                           </span>
                         )}
                       </div>
 
                       {/* Ubicazione e Note */}
-                      <div className="mt-2.5 text-xs text-white/70" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                        <span className="text-white/40 font-mono">Ubicazione: </span>
-                        <span className="text-white/90 font-medium">{item.location}</span>
+                      <div className="mt-2 text-xs text-slate-600">
+                        <span className="text-slate-400 font-semibold">Ubicazione: </span>
+                        <span className="text-slate-700 font-medium">{item.location}</span>
                         {item.notes && (
-                          <p className="mt-1 text-white/50 text-[11.5px] italic line-clamp-2">
+                          <p className="mt-1 text-slate-500 text-[11.5px] italic line-clamp-2">
                             "{item.notes}"
                           </p>
                         )}
@@ -742,14 +867,14 @@ export default function Inventory() {
 
                     {/* BOX PARTICOLARE: SE L'OGGETTO È DATO A NOLEGGIO */}
                     {isRented && item.rental && (
-                      <div className="mt-3.5 p-3 bg-black/80 border border-[#ff6f43]/40 rounded-none text-xs">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-1.5 mb-2">
-                          <span className="text-[11px] font-mono text-[#ff6f43] font-bold uppercase flex items-center gap-1">
-                            <FileText className="w-3 h-3" />
-                            Contratto: {item.rental.contractCode}
+                      <div className="mt-3 p-3 bg-white border border-amber-200 rounded-xl text-xs space-y-1.5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-amber-100 pb-1.5 mb-1.5">
+                          <span className="text-[11px] font-bold text-amber-800 uppercase flex items-center gap-1">
+                            <FileText className="w-3 h-3 text-amber-600" />
+                            {item.rental.contractCode}
                           </span>
                           <span
-                            className="text-[11px] font-bold font-mono px-1.5 py-0.5 rounded"
+                            className="text-[11px] font-bold px-2 py-0.5 rounded-full"
                             style={{ color: deadline.color, backgroundColor: deadline.bg }}
                           >
                             {deadline.label}
@@ -758,16 +883,15 @@ export default function Inventory() {
 
                         {/* Dettagli Persona / Azienda */}
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 text-white font-semibold">
-                            <Building2 className="w-3.5 h-3.5 text-[#00e5ff] shrink-0" />
-                            <span className="truncate">{item.rental.company || 'Cliente'}</span>
+                          <div className="text-slate-800 font-semibold truncate">
+                            {item.rental.company || 'Cliente'}
                           </div>
-                          <div className="flex items-center gap-1.5 text-white/80">
-                            <User className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                          <div className="flex items-center gap-1.5 text-slate-600">
+                            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             <span className="truncate">{item.rental.clientName}</span>
                           </div>
                           {(item.rental.contactPhone || item.rental.contactEmail) && (
-                            <div className="flex items-center gap-3 text-white/50 text-[11px] font-mono pt-0.5">
+                            <div className="flex items-center gap-3 text-slate-500 text-[11px] pt-0.5">
                               {item.rental.contactPhone && (
                                 <span className="flex items-center gap-1">
                                   <Phone className="w-3 h-3" /> {item.rental.contactPhone}
@@ -782,11 +906,11 @@ export default function Inventory() {
                           )}
 
                           {/* Date e Prezzo Pattuito */}
-                          <div className="mt-2 pt-1.5 border-t border-white/10 flex items-center justify-between text-[11px] font-mono">
-                            <div className="text-white/60">
-                              Rientro: <strong className="text-white">{item.rental.endDate || 'N/D'}</strong>
+                          <div className="mt-2 pt-1.5 border-t border-amber-100 flex items-center justify-between text-[11px]">
+                            <div className="text-slate-500">
+                              Rientro: <strong className="text-slate-800">{item.rental.endDate || 'N/D'}</strong>
                             </div>
-                            <div className="text-[#00ffaa] font-bold text-xs">
+                            <div className="text-emerald-700 font-bold text-xs">
                               Pattuito: € {Number(item.rental.agreedPrice || 0).toLocaleString('it-IT')}
                             </div>
                           </div>
@@ -795,9 +919,9 @@ export default function Inventory() {
                     )}
 
                     {/* Footer Card: Valore Stimato & Azioni */}
-                    <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-                      <div className="text-xs font-mono text-white/50">
-                        Stima: <strong className="text-white">€ {(item.estimatedValue || 0).toLocaleString('it-IT')}</strong>
+                    <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                      <div className="text-xs text-slate-500">
+                        Stima: <strong className="text-slate-800">€ {(item.estimatedValue || 0).toLocaleString('it-IT')}</strong>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -805,7 +929,7 @@ export default function Inventory() {
                           <button
                             type="button"
                             onClick={() => handleReturnItem(item.id)}
-                            className="px-2.5 py-1 bg-[#00ffaa] hover:bg-[#00e599] text-[#111111] text-[11px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-transform active:scale-95"
+                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 rounded-full transition-transform active:scale-95 shadow-2xs cursor-pointer"
                             title="Segna come Rientrato in Studio"
                           >
                             <RotateCcw className="w-3 h-3" />
@@ -823,7 +947,7 @@ export default function Inventory() {
                               }))
                               setShowRentModal(true)
                             }}
-                            className="px-2.5 py-1 bg-[#d8ff00] hover:bg-[#cbf000] text-[#111111] text-[11px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-transform active:scale-95"
+                            className="px-3 py-1 bg-[#d97706] hover:bg-[#b45309] text-white text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 rounded-full transition-transform active:scale-95 shadow-2xs cursor-pointer"
                             title="Assegna questo pezzo a noleggio"
                           >
                             <Clock className="w-3 h-3" />
@@ -834,7 +958,7 @@ export default function Inventory() {
                         <button
                           type="button"
                           onClick={() => setShowDetailModal(item)}
-                          className="p-1 text-white/50 hover:text-white"
+                          className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
                           title="Vedi dettagli"
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -852,17 +976,17 @@ export default function Inventory() {
 
       {/* ── MODALE: AGGIUNGI NUOVO ARTICOLO ── */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#181818] border border-white/20 w-full max-w-lg p-6 shadow-2xl relative">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                <Plus className="w-5 h-5 text-[#ff6f43]" />
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-emerald-100 rounded-3xl w-full max-w-lg p-6 shadow-2xl relative text-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Plus className="w-5 h-5 text-[#166534]" />
                 <span>Nuovo Articolo in Inventario</span>
               </h2>
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="text-white/60 hover:text-white"
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -870,24 +994,24 @@ export default function Inventory() {
 
             <form onSubmit={handleCreateArticle} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-mono text-white/70 mb-1">Nome Equipaggiamento *</label>
+                <label className="block font-bold text-slate-700 mb-1">Nome Equipaggiamento *</label>
                 <input
                   type="text"
                   required
                   placeholder="es. Sony FX3 Cinema Line o Godox V1 Pro"
                   value={newArticle.name}
                   onChange={(e) => setNewArticle({ ...newArticle, name: e.target.value })}
-                  className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Categoria *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Categoria *</label>
                   <select
                     value={newArticle.category}
                     onChange={(e) => setNewArticle({ ...newArticle, category: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-[#00ffaa] font-bold rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
                   >
                     {INVENTORY_CATEGORIES.filter(c => c.id !== 'all').map(c => (
                       <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
@@ -896,85 +1020,85 @@ export default function Inventory() {
                 </div>
 
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Brand / Marca</label>
+                  <label className="block font-bold text-slate-700 mb-1">Brand / Marca</label>
                   <input
                     type="text"
                     placeholder="es. Sony, Godox, Aputure..."
                     value={newArticle.brand}
                     onChange={(e) => setNewArticle({ ...newArticle, brand: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Numero Seriale (S/N)</label>
+                  <label className="block font-bold text-slate-700 mb-1">Numero Seriale (S/N)</label>
                   <input
                     type="text"
                     placeholder="es. SN-49210"
                     value={newArticle.serialNumber}
                     onChange={(e) => setNewArticle({ ...newArticle, serialNumber: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Quantità</label>
+                  <label className="block font-bold text-slate-700 mb-1">Quantità</label>
                   <input
                     type="number"
                     min="1"
                     value={newArticle.quantity}
                     onChange={(e) => setNewArticle({ ...newArticle, quantity: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Valore Stimato (€)</label>
+                  <label className="block font-bold text-slate-700 mb-1">Valore Stimato (€)</label>
                   <input
                     type="number"
                     placeholder="es. 1200"
                     value={newArticle.estimatedValue}
                     onChange={(e) => setNewArticle({ ...newArticle, estimatedValue: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-[#00ffaa] font-mono font-bold rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-emerald-700 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-mono text-white/70 mb-1">Ubicazione in Studio</label>
+                <label className="block font-bold text-slate-700 mb-1">Ubicazione in Studio</label>
                 <input
                   type="text"
                   placeholder="es. Studio / Armadio A1 o Borsa Rig 1"
                   value={newArticle.location}
                   onChange={(e) => setNewArticle({ ...newArticle, location: e.target.value })}
-                  className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-white/70 mb-1">Note & Accessori Inclusi</label>
+                <label className="block font-bold text-slate-700 mb-1">Note & Accessori Inclusi</label>
                 <textarea
                   rows="2"
                   placeholder="Note sulle condizioni, compatibilità, accessori a corredo..."
                   value={newArticle.notes}
                   onChange={(e) => setNewArticle({ ...newArticle, notes: e.target.value })}
-                  className="w-full p-2 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                 />
               </div>
 
-              <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-3">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-mono"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-full cursor-pointer transition-all"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#ff6f43] hover:bg-[#ff5722] text-[#111111] font-bold uppercase tracking-wider font-mono shadow-md"
+                  className="px-5 py-2 bg-[#166534] hover:bg-[#14532d] text-white font-bold uppercase tracking-wider rounded-full shadow-xs cursor-pointer transition-all active:scale-95"
                 >
                   Salva Articolo
                 </button>
@@ -986,17 +1110,17 @@ export default function Inventory() {
 
       {/* ── MODALE: ASSEGNA A NOLEGGIO ── */}
       {showRentModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#181818] border border-[#ff6f43]/40 w-full max-w-lg p-6 shadow-2xl relative">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                <Clock className="w-5 h-5 text-[#d8ff00]" />
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-emerald-100 rounded-3xl w-full max-w-lg p-6 shadow-2xl relative text-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-[#d97706]" />
                 <span>Assegna Articolo a Noleggio / Comodato</span>
               </h2>
               <button
                 type="button"
                 onClick={() => { setShowRentModal(false); setSelectedItemForRent(null); }}
-                className="text-white/60 hover:text-white"
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1005,12 +1129,12 @@ export default function Inventory() {
             <form onSubmit={handleAssignRental} className="space-y-3.5 text-xs">
               {/* Selezione Articolo */}
               <div>
-                <label className="block font-mono text-white/70 mb-1">Articolo da Noleggiare *</label>
+                <label className="block font-bold text-slate-700 mb-1">Articolo da Noleggiare *</label>
                 <select
                   required
                   value={rentForm.itemId || selectedItemForRent?.id || ''}
                   onChange={(e) => setRentForm({ ...rentForm, itemId: e.target.value })}
-                  className="w-full p-2.5 bg-black border border-white/20 text-[#00e5ff] font-bold rounded-none focus:outline-none focus:border-[#00e5ff]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
                 >
                   <option value="" disabled>Seleziona un pezzo disponibile...</option>
                   {inventory
@@ -1026,7 +1150,7 @@ export default function Inventory() {
               {/* Dettagli Persona / Azienda */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Azienda / Studio Cliente *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Azienda / Studio Cliente *</label>
                   <input
                     type="text"
                     required
@@ -1034,7 +1158,7 @@ export default function Inventory() {
                     placeholder="es. Fashion Brand Milano"
                     value={rentForm.company}
                     onChange={(e) => setRentForm({ ...rentForm, company: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                   <datalist id="companies-list">
                     {companies.map(c => <option key={c.id} value={c.name} />)}
@@ -1042,14 +1166,14 @@ export default function Inventory() {
                 </div>
 
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Persona Referente *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Persona Referente *</label>
                   <input
                     type="text"
                     required
                     placeholder="es. Matteo Colombo"
                     value={rentForm.clientName}
                     onChange={(e) => setRentForm({ ...rentForm, clientName: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
@@ -1057,24 +1181,24 @@ export default function Inventory() {
               {/* Contatti */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Telefono Referente</label>
+                  <label className="block font-bold text-slate-700 mb-1">Telefono Referente</label>
                   <input
                     type="tel"
                     placeholder="+39 348 1234567"
                     value={rentForm.contactPhone}
                     onChange={(e) => setRentForm({ ...rentForm, contactPhone: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Email Referente</label>
+                  <label className="block font-bold text-slate-700 mb-1">Email Referente</label>
                   <input
                     type="email"
                     placeholder="m.colombo@azienda.it"
                     value={rentForm.contactEmail}
                     onChange={(e) => setRentForm({ ...rentForm, contactEmail: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
@@ -1082,24 +1206,24 @@ export default function Inventory() {
               {/* Date Noleggio */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Data Inizio Noleggio</label>
+                  <label className="block font-bold text-slate-700 mb-1">Data Inizio Noleggio</label>
                   <input
                     type="date"
                     required
                     value={rentForm.startDate}
                     onChange={(e) => setRentForm({ ...rentForm, startDate: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none focus:border-[#00e5ff]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Scadenza Noleggio Contratto *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Scadenza Noleggio Contratto *</label>
                   <input
                     type="date"
                     required
                     value={rentForm.endDate}
                     onChange={(e) => setRentForm({ ...rentForm, endDate: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-[#ff6f43] text-[#ff6f43] font-bold rounded-none focus:outline-none"
+                    className="w-full p-2.5 bg-slate-50 border border-amber-300 text-amber-900 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
@@ -1107,23 +1231,23 @@ export default function Inventory() {
               {/* Prezzo Pattuito e Codice Contratto */}
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Prezzo Pattuito (€) *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Prezzo Pattuito (€) *</label>
                   <input
                     type="number"
                     required
                     placeholder="es. 250"
                     value={rentForm.agreedPrice}
                     onChange={(e) => setRentForm({ ...rentForm, agreedPrice: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-[#00ffaa] font-mono font-bold rounded-none focus:outline-none"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-emerald-700 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Tipo Tariffa</label>
+                  <label className="block font-bold text-slate-700 mb-1">Tipo Tariffa</label>
                   <select
                     value={rentForm.pricingType}
                     onChange={(e) => setRentForm({ ...rentForm, pricingType: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white rounded-none focus:outline-none"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
                   >
                     <option value="Totale forfait">Totale forfait</option>
                     <option value="€ / Giorno">€ / Giorno</option>
@@ -1133,38 +1257,38 @@ export default function Inventory() {
                 </div>
 
                 <div>
-                  <label className="block font-mono text-white/70 mb-1">Codice Contratto</label>
+                  <label className="block font-bold text-slate-700 mb-1">Codice Contratto</label>
                   <input
                     type="text"
                     value={rentForm.contractCode}
                     onChange={(e) => setRentForm({ ...rentForm, contractCode: e.target.value })}
-                    className="w-full p-2.5 bg-black border border-white/20 text-white font-mono rounded-none focus:outline-none"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-mono text-white/70 mb-1">Note Contratto / Condizioni consegna</label>
+                <label className="block font-bold text-slate-700 mb-1">Note Contratto / Condizioni consegna</label>
                 <textarea
                   rows="2"
                   placeholder="Accessori inclusi nel noleggio, cavi, cauzione concordata..."
                   value={rentForm.notes}
                   onChange={(e) => setRentForm({ ...rentForm, notes: e.target.value })}
-                  className="w-full p-2 bg-black border border-white/20 text-white rounded-none focus:outline-none"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                 />
               </div>
 
-              <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-3">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => { setShowRentModal(false); setSelectedItemForRent(null); }}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-mono"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-full cursor-pointer transition-all"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#d8ff00] hover:bg-[#cbf000] text-[#111111] font-bold uppercase tracking-wider font-mono shadow-md"
+                  className="px-5 py-2 bg-[#d97706] hover:bg-[#b45309] text-white font-bold uppercase tracking-wider rounded-full shadow-xs cursor-pointer transition-all active:scale-95"
                 >
                   Conferma Noleggio
                 </button>
@@ -1176,93 +1300,93 @@ export default function Inventory() {
 
       {/* ── MODALE: DETTAGLIO ARTICOLO & STORICO NOLEGGI ── */}
       {showDetailModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#181818] border border-white/20 w-full max-w-xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
-            <div className="flex items-start justify-between border-b border-white/10 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-emerald-100 rounded-3xl w-full max-w-xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar text-slate-800">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3 mb-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono px-2 py-0.5 bg-black border border-white/10 text-[#00e5ff]">
+                  <span className="text-xs px-2.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-full font-semibold">
                     {getCategoryBadge(showDetailModal.category).label}
                   </span>
-                  <span className={`text-xs font-mono font-bold uppercase px-2 py-0.5 ${
+                  <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                     showDetailModal.status === 'noleggiato'
-                      ? 'bg-[#ff9800]/20 text-[#ff9800] border border-[#ff9800]/40'
-                      : 'bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40'
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-emerald-100 text-[#166534] border border-emerald-200'
                   }`}>
                     {showDetailModal.status === 'noleggiato' ? 'A Noleggio' : 'In Studio (Disponibile)'}
                   </span>
                 </div>
-                <h2 className="text-xl font-bold text-white" style={{ fontFamily: '"Switzer", sans-serif' }}>
+                <h2 className="text-xl font-bold text-slate-900" style={{ fontFamily: '"Switzer", sans-serif' }}>
                   {showDetailModal.name}
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setShowDetailModal(null)}
-                className="text-white/60 hover:text-white"
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-black/60 p-3 border border-white/10 font-mono">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
                 <div>
-                  <span className="text-white/40 block text-[10px]">BRAND</span>
-                  <span className="text-white font-bold">{showDetailModal.brand || 'N/D'}</span>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">BRAND</span>
+                  <span className="text-slate-800 font-bold text-sm">{showDetailModal.brand || 'N/D'}</span>
                 </div>
                 <div>
-                  <span className="text-white/40 block text-[10px]">SERIAL NUMBER</span>
-                  <span className="text-white">{showDetailModal.serialNumber || 'N/D'}</span>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">SERIAL NUMBER</span>
+                  <span className="text-slate-700 font-medium">{showDetailModal.serialNumber || 'N/D'}</span>
                 </div>
                 <div>
-                  <span className="text-white/40 block text-[10px]">VALORE STIMATO</span>
-                  <span className="text-[#00ffaa] font-bold">€ {(showDetailModal.estimatedValue || 0).toLocaleString('it-IT')}</span>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">VALORE STIMATO</span>
+                  <span className="text-emerald-700 font-bold text-sm">€ {(showDetailModal.estimatedValue || 0).toLocaleString('it-IT')}</span>
                 </div>
                 <div>
-                  <span className="text-white/40 block text-[10px]">UBICAZIONE</span>
-                  <span className="text-white">{showDetailModal.location || 'Studio'}</span>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">UBICAZIONE</span>
+                  <span className="text-slate-700 font-medium">{showDetailModal.location || 'Studio'}</span>
                 </div>
               </div>
 
               {/* Se a Noleggio, Scheda Completa Contratto */}
               {showDetailModal.status === 'noleggiato' && showDetailModal.rental && (
-                <div className="p-4 bg-black border border-[#ff6f43]/40 rounded-none">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
-                    <span className="text-sm font-bold text-[#ff6f43] font-mono flex items-center gap-1.5">
-                      <FileText className="w-4 h-4" />
+                <div className="p-4 bg-amber-50/50 border border-amber-200 rounded-2xl">
+                  <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 mb-3">
+                    <span className="text-xs font-bold text-amber-800 uppercase flex items-center gap-1.5 tracking-wider">
+                      <FileText className="w-4 h-4 text-amber-600" />
                       CONTRATTO DI NOLEGGIO IN CORSO
                     </span>
-                    <span className="text-xs font-mono text-white/60">
-                      Codice: <strong>{showDetailModal.rental.contractCode}</strong>
+                    <span className="text-xs text-slate-500">
+                      Codice: <strong className="text-slate-800">{showDetailModal.rental.contractCode}</strong>
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div>
-                      <span className="text-white/40 font-mono block">Azienda / Studio</span>
-                      <span className="text-white font-bold text-sm">{showDetailModal.rental.company}</span>
+                      <span className="text-slate-500 block">Azienda / Studio</span>
+                      <span className="text-slate-900 font-bold text-sm">{showDetailModal.rental.company}</span>
                     </div>
                     <div>
-                      <span className="text-white/40 font-mono block">Referente</span>
-                      <span className="text-white text-sm">{showDetailModal.rental.clientName}</span>
+                      <span className="text-slate-500 block">Referente</span>
+                      <span className="text-slate-800 text-sm font-medium">{showDetailModal.rental.clientName}</span>
                     </div>
                     <div>
-                      <span className="text-white/40 font-mono block">Periodo Noleggio</span>
-                      <span className="text-white">
-                        {showDetailModal.rental.startDate} &rarr; <strong className="text-[#00e5ff]">{showDetailModal.rental.endDate}</strong>
+                      <span className="text-slate-500 block">Periodo Noleggio</span>
+                      <span className="text-slate-800">
+                        {showDetailModal.rental.startDate} &rarr; <strong className="text-amber-800">{showDetailModal.rental.endDate}</strong>
                       </span>
                     </div>
                     <div>
-                      <span className="text-white/40 font-mono block">Prezzo Pattuito</span>
-                      <span className="text-[#00ffaa] font-bold text-sm">
+                      <span className="text-slate-500 block">Prezzo Pattuito</span>
+                      <span className="text-emerald-700 font-bold text-sm">
                         € {Number(showDetailModal.rental.agreedPrice || 0).toLocaleString('it-IT')} ({showDetailModal.rental.pricingType})
                       </span>
                     </div>
                   </div>
 
                   {showDetailModal.rental.notes && (
-                    <div className="text-white/70 italic bg-white/5 p-2 rounded text-[11.5px]">
+                    <div className="text-slate-600 italic bg-white p-2.5 rounded-xl border border-amber-100 text-[11.5px]">
                       "{showDetailModal.rental.notes}"
                     </div>
                   )}
@@ -1274,7 +1398,7 @@ export default function Inventory() {
                         handleReturnItem(showDetailModal.id)
                         setShowDetailModal(null)
                       }}
-                      className="px-4 py-2 bg-[#00ffaa] hover:bg-[#00e599] text-[#111111] font-mono font-bold uppercase tracking-wider flex items-center gap-2 shadow"
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wider rounded-full flex items-center gap-2 shadow-xs cursor-pointer active:scale-95 transition-all"
                     >
                       <RotateCcw className="w-4 h-4" />
                       <span>Registra Rientro in Studio</span>
@@ -1285,40 +1409,40 @@ export default function Inventory() {
 
               {/* Storico Noleggi Passati */}
               <div>
-                <h4 className="font-mono text-white/60 mb-2 uppercase tracking-wider text-[11px]">
+                <h4 className="text-slate-500 font-bold mb-2 uppercase tracking-wider text-[11px]">
                   Storico Noleggi Precedenti ({showDetailModal.rentalHistory?.length || 0})
                 </h4>
                 {showDetailModal.rentalHistory && showDetailModal.rentalHistory.length > 0 ? (
                   <div className="space-y-2">
                     {showDetailModal.rentalHistory.map((h, i) => (
-                      <div key={i} className="p-2.5 bg-black/40 border border-white/5 flex items-center justify-between text-[11px] font-mono">
+                      <div key={i} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-[11px]">
                         <div>
-                          <strong className="text-white">{h.company}</strong> ({h.clientName})
-                          <div className="text-white/40 text-[10px]">
+                          <strong className="text-slate-800">{h.company}</strong> ({h.clientName})
+                          <div className="text-slate-400 text-[10px]">
                             Rientrato il: {new Date(h.returnedAt).toLocaleDateString('it-IT')}
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="text-[#00ffaa] font-bold">€ {h.agreedPrice}</span>
-                          <span className="text-white/40 block text-[10px]">{h.contractCode}</span>
+                          <span className="text-emerald-700 font-bold">€ {h.agreedPrice}</span>
+                          <span className="text-slate-400 block text-[10px]">{h.contractCode}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-white/30 italic text-[11px]">Nessun noleggio precedente archiviato per questo pezzo.</p>
+                  <p className="text-slate-400 italic text-[11px]">Nessun noleggio precedente archiviato per questo pezzo.</p>
                 )}
               </div>
 
               {/* Pulsante Eliminazione */}
-              <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => {
                     handleDeleteItem(showDetailModal.id)
                     setShowDetailModal(null)
                   }}
-                  className="text-red-400 hover:text-red-300 font-mono text-[11px]"
+                  className="text-rose-600 hover:text-rose-700 font-semibold text-[11px] cursor-pointer"
                 >
                   Elimina questo articolo dall'inventario
                 </button>
@@ -1326,7 +1450,7 @@ export default function Inventory() {
                 <button
                   type="button"
                   onClick={() => setShowDetailModal(null)}
-                  className="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-white font-mono"
+                  className="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-full cursor-pointer"
                 >
                   Chiudi
                 </button>

@@ -1,14 +1,15 @@
 export default function Backpack3DIcon({
   size = 24,
-  strokeWidth = 1.35,
+  strokeWidth = 2.0,
   color = 'currentColor',
   className = '',
+  simplified,
   ...props
 }) {
-  // Tratti fini come eccezione rispetto alle altre icone:
-  // Se la sidebar passa 2.1, scaliamo proporzionalmente a un tratto fine (~1.30px per i contorni e ~1.12px per le minuterie)
-  const baseStroke = strokeWidth ? Math.min(Number(strokeWidth) * 0.62, 1.35) : 1.35
-  const detailStroke = +(baseStroke * 0.86).toFixed(2)
+  // Tratti fini e nitidi in stile kit tecnico 3D / Lucide professionale
+  // Borsa leggermente più larga e capiente, proporzionata e nitida
+  const baseStroke = strokeWidth ? Math.min(Number(strokeWidth) * 0.65, 1.35) : 1.35
+  const detailStroke = +(baseStroke * 0.85).toFixed(2)
 
   return (
     <svg
@@ -20,49 +21,32 @@ export default function Backpack3DIcon({
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
+      style={{ overflow: 'visible' }}
       {...props}
     >
-      {/* ── Gruppo Contorni Strutturali (Tratto fine principale ~1.30px) ── */}
       <g strokeWidth={baseStroke}>
-        {/* 1. Manico all'estremità superiore */}
-        <path d="M8.5 2.5C8.5 1.4 12.5 1.4 12.5 2.5" />
-
-        {/* 2. Perimetro superiore ad arco con zip (chiusura ad arco che racchiude il perimetro) */}
-        <path d="M4 8C4 3.8 7 2.6 10.5 2.6c3.2 0 5.8 1.2 6 5.4" />
-        <path d="M4.5 7.8C4.5 4.5 7.2 3.6 10.5 3.6c2.8 0 5.2.8 5.5 4.2" />
-
-        {/* 3. Contorno silhouette 3/4 (corpo pieno senza chiusure frontali) */}
-        <path d="M4 7.8v12c0 1.5 2.5 2.4 6.5 2.4 2.2 0 4.2-.4 5.5-1.4" />
-        <path d="M16 8v11" />
-        <path d="M12 7.5v14" />
-
-        {/* 4. Fianco: Tasca laterale e cinghia */}
-        <path d="M12 14.5h4v4.5h-4z" />
-
-        {/* 5. Bretelle posteriori reali e lunghe (come se fosse appoggiato ad una parete) */}
-        {/* Bretella principale destra: scende lunga e fluida lungo lo schienale */}
-        <path d="M15.5 5.2c3 .6 5.5 2.5 5.8 6.5.3 3.5-.8 6.8-2.3 9.8" />
-        <path d="M16 7.2c2.2.8 3.8 2.2 4 5 .2 2.5-.6 4.8-1.8 7" />
-
-        {/* Seconda bretella sinistra: visibile dietro, distesa verso il basso lungo la parete */}
-        <path d="M5.5 4.2c-1.8 1.2-2.7 3.5-2.7 6.5 0 3.5 1.2 7 2.2 9.5" />
+        {/* Manico superiore sagomato */}
+        <path d="M8.8 4.2C8.8 2.2 15.2 2.2 15.2 4.2" />
+        {/* Patella superiore con volume ergonomico più largo */}
+        <path d="M5.0 5.5h14.0v3.4c0 1.2-2.0 1.8-7.0 1.8s-7.0-.6-7.0-1.8V5.5z" />
+        {/* Silhouette corpo principale dello zaino allargato */}
+        <path d="M5.0 8.7v10.5a2.2 2.2 0 0 0 2.2 2.2h9.6a2.2 2.2 0 0 0 2.2-2.2V8.7" />
+        {/* Tasca frontale porta-accessori allargata */}
+        <path d="M6.5 13.5h11.0v5.8a1.4 1.4 0 0 1-1.4 1.4H7.9a1.4 1.4 0 0 1-1.4-1.4v-5.8z" />
       </g>
-
-      {/* ── Gruppo Dettagli Fini (Tratto ultrafine ~1.12px) ── */}
       <g strokeWidth={detailStroke}>
-        {/* Cursore della zip ad arco superiore */}
-        <path d="M12.8 3.2l.6 1.4" />
-
-        {/* Unica tasca orizzontale nella parte superiore (sotto la zip perimetrale) */}
-        <path d="M6 7.2h6.5" />
-
-        {/* Linea cucitura / flap tasca laterale e cinghia di compressione */}
-        <path d="M12 16h4" />
-        <path d="M12 11h4" />
-
-        {/* Terminali fettucce delle bretelle lunghe verso terra */}
-        <path d="M19 19.5v2" />
-        <path d="M5 20.2l-.5 1.5" />
+        {/* Cinghie verticali della patella superiore */}
+        <path d="M8.4 5.5v5.0" />
+        <path d="M15.6 5.5v5.0" />
+        {/* Linea zip della tasca frontale */}
+        <path d="M6.5 15h11.0" />
+        {/* Cursore zip centrale */}
+        <path d="M12 15v2" />
+        {/* Cinghie laterali per aggancio accessori */}
+        <path d="M3.6 12.5h1.4" />
+        <path d="M3.6 16.5h1.4" />
+        <path d="M19.0 12.5h1.4" />
+        <path d="M19.0 16.5h1.4" />
       </g>
     </svg>
   )

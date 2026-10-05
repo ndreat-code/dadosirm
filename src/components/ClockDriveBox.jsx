@@ -22,18 +22,6 @@ export default function ClockDriveBox({
   const d3 = digits[2] || '0'
   const d4 = digits[3] || '0'
 
-  // Colori ordinati:
-  // 1ª cifra: 🟡 Giallo canarino luminoso ad alta brillantezza (#ffd600)
-  // 2ª cifra: 🟣 Viola profondo (#7e22ce)
-  // Separatore : in antracite pulito (#334155)
-  // 3ª cifra: 🔵 Blu tenue / Azzurro (#0ea5e9)
-  // 4ª cifra: 🍑 Rosa pesca caldo (#f67280)
-  const colorCanaryYellow = '#ffd600' // Giallo canarino brillante e luminoso
-  const colorPurple       = '#7e22ce'
-  const colorAnthracite   = '#334155'
-  const colorSoftBlue     = '#0ea5e9'
-  const colorPeachPink    = '#f67280' // Rosa pesca caldo e tenue
-
   if (compact) {
     return (
       <div
@@ -59,37 +47,24 @@ export default function ClockDriveBox({
           />
         </div>
 
-        {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino luminoso, Viola, Blu (tenue), Rosa pesca */}
+        {/* Cifre NERE dell'orologio ad alto contrasto */}
         <div
-          className="relative z-10 leading-none flex items-center justify-center select-none"
+          className="relative z-10 leading-none flex items-center justify-center select-none text-[#000000]"
           style={{
             fontFamily: '"Switzer", sans-serif',
             fontSize: '18px',
             fontWeight: 900,
             letterSpacing: '0.03em',
+            color: '#000000',
+            textShadow: '0 0 4px #ffffff, 0 0 8px #ffffff',
             WebkitFontSmoothing: 'antialiased'
           }}
         >
-          {/* Cifra 1: Giallo canarino luminoso */}
-          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(161, 98, 7, 0.4), 0 0 8px rgba(255, 214, 0, 0.45)' }}>
-            {d1}
-          </span>
-          {/* Cifra 2: Viola */}
-          <span style={{ color: colorPurple }}>
-            {d2}
-          </span>
-          {/* Separatore : in antracite pulito */}
-          <span style={{ color: colorAnthracite }} className="mx-[1.5px] font-bold animate-pulse text-[15px]">
-            :
-          </span>
-          {/* Cifra 3: Blu (tenue) */}
-          <span style={{ color: colorSoftBlue }}>
-            {d3}
-          </span>
-          {/* Cifra 4: Rosa pesca */}
-          <span style={{ color: colorPeachPink }}>
-            {d4}
-          </span>
+          <span style={{ color: '#000000' }}>{d1}</span>
+          <span style={{ color: '#000000' }}>{d2}</span>
+          <span style={{ color: '#000000' }} className="mx-[1.5px] font-bold animate-pulse text-[15px]">:</span>
+          <span style={{ color: '#000000' }}>{d3}</span>
+          <span style={{ color: '#000000' }}>{d4}</span>
         </div>
       </div>
     )
@@ -129,29 +104,16 @@ export default function ClockDriveBox({
             fontFamily: '"Switzer", sans-serif',
             fontWeight: 900,
             letterSpacing: '0.05em',
+            color: '#000000',
+            textShadow: '0 0 4px #ffffff, 0 0 8px #ffffff',
             WebkitFontSmoothing: 'antialiased'
           }}
         >
-          {/* Cifra 1: Giallo canarino luminoso */}
-          <span style={{ color: colorCanaryYellow, textShadow: '0 0.5px 1px rgba(161, 98, 7, 0.4), 0 0 8px rgba(255, 214, 0, 0.45)' }}>
-            {d1}
-          </span>
-          {/* Cifra 2: Viola */}
-          <span style={{ color: colorPurple }}>
-            {d2}
-          </span>
-          {/* Separatore : in antracite pulito */}
-          <span style={{ color: colorAnthracite }} className="mx-[2px] font-bold animate-pulse text-[18px]">
-            :
-          </span>
-          {/* Cifra 3: Blu (tenue) */}
-          <span style={{ color: colorSoftBlue }}>
-            {d3}
-          </span>
-          {/* Cifra 4: Rosa pesca */}
-          <span style={{ color: colorPeachPink }}>
-            {d4}
-          </span>
+          <span style={{ color: '#000000' }}>{d1}</span>
+          <span style={{ color: '#000000' }}>{d2}</span>
+          <span style={{ color: '#000000' }} className="mx-[2px] font-bold animate-pulse text-[18px]">:</span>
+          <span style={{ color: '#000000' }}>{d3}</span>
+          <span style={{ color: '#000000' }}>{d4}</span>
         </div>
       </div>
     </div>

@@ -15,6 +15,12 @@ import {
   deleteDraft,
   checkCalendarSlotAvailability
 } from './pipeline/gmailLlmPipeline.js'
+import { 
+  runCrmCrossCheck, 
+  auditAccounting, 
+  auditOperations, 
+  auditCompany 
+} from './services/crossCheckEngine.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -187,6 +193,46 @@ app.get('/api/crm/summary', (req, res) => {
 })
 
 // ─────────────────────────────────────────────────────────────
+// ENDPOINT AUDIT & CONTROLLI INCROCIATI (CONTRATTI vs FATTURE vs SET)
+// ─────────────────────────────────────────────────────────────
+
+app.get('/api/crm/cross-check', (req, res) => {
+  try {
+    const crmData = getCrmData()
+    const { type, company } = req.query
+    if (company) {
+      const companyAudit = auditCompany(company, crmData)
+      return res.json({ success: true, type: 'company', data: companyAudit })
+    }
+    if (type === 'accounting') {
+      const accAudit = auditAccounting(crmData)
+      return res.json({ success: true, type: 'accounting', data: accAudit })
+    }
+    if (type === 'operations') {
+      const opsAudit = auditOperations(crmData)
+      return res.json({ success: true, type: 'operations', data: opsAudit })
+    }
+    const acc = auditAccounting(crmData)
+    const ops = auditOperations(crmData)
+    res.json({
+      success: true,
+      type: 'full',
+      data: {
+        accounting: acc,
+        operations: ops,
+        companiesCount: crmData.companies?.length || 0,
+        invoicesCount: crmData.invoices?.length || 0,
+        opportunitiesCount: crmData.opportunities?.length || 0,
+        inventoryCount: crmData.inventory?.length || 0
+      }
+    })
+  } catch (err) {
+    console.error('Errore audit cross-check:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
 // ENDPOINT INVOICE / FATTURAZIONE ELETTRONICA (BLU NOTTE & ORO)
 // ─────────────────────────────────────────────────────────────
 
@@ -273,7 +319,7 @@ app.patch('/api/crm/invoices/:id/pay', (req, res) => {
 
 app.post('/api/crm/activities', (req, res) => {
   try {
-    const { title, company, type, dueDate, dueTime, priority, notes } = req.body
+    const { title, company, type, dueDate, dueTime, priority, notes, assignedTo } = req.body
     if (!title || !title.trim()) {
       return res.status(400).json({ error: 'Titolo attività obbligatorio' })
     }
@@ -291,6 +337,7 @@ app.post('/api/crm/activities', (req, res) => {
       due: 'upcoming',
       priority: priority || 'medium',
       status: 'pending',
+      assignedTo: assignedTo || '',
       notes: notes || '',
       createdAt: new Date().toISOString()
     }
@@ -538,6 +585,137 @@ app.post('/api/crm/inventory/:id/return', (req, res) => {
 // ENDPOINT ASK OPEN AI
 // ─────────────────────────────────────────────────────────────
 
+// Generatore meteorologico real-time basato su Open-Meteo per Studio DADO (Milano)
+async function getLiveWeatherReport() {
+  try {
+    const wmoWeather = {
+      0: 'Cielo sereno e limpido ☀️',
+      1: 'Prevalentemente sereno 🌤️',
+      2: 'Parzialmente nuvoloso ⛅',
+      3: 'Coperto / Nuvoloso ☁️',
+      45: 'Presenza di nebbia 🌫️',
+      48: 'Nebbia densa 🌫️',
+      51: 'Pioggerella leggera 🌦️',
+      53: 'Pioggerella moderata 🌧️',
+      55: 'Pioggerella fitta 🌧️',
+      61: 'Pioggia debole 🌧️',
+      63: 'Pioggia moderata 🌧️',
+      65: 'Pioggia forte 🌧️',
+      71: 'Nevicata debole 🌨️',
+      73: 'Nevicata moderata 🌨️',
+      75: 'Nevicata intensa ❄️',
+      80: 'Rovesci di pioggia isolati 🌦️',
+      81: 'Rovesci di pioggia moderati 🌧️',
+      82: 'Rovesci di pioggia violenti ⛈️',
+      95: 'Temporale ⛈️',
+      96: 'Temporale con grandine ⛈️',
+      99: 'Temporale violento con grandine ⛈️'
+    }
+
+    const weatherRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=45.4642&longitude=9.1900&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FRome', { signal: AbortSignal.timeout(3000) })
+    if (weatherRes.ok) {
+      const wData = await weatherRes.json()
+      const cur = wData.current_weather || {}
+      const daily = wData.daily || {}
+      const temp = cur.temperature !== undefined ? `${cur.temperature}°C` : '18.5°C'
+      const wind = cur.windspeed !== undefined ? `${cur.windspeed} km/h` : '3 km/h'
+      const condition = wmoWeather[cur.weathercode] || 'Sereno o poco nuvoloso 🌤️'
+      const maxT = daily.temperature_2m_max?.[0] !== undefined ? `${daily.temperature_2m_max[0]}°C` : '24°C'
+      const minT = daily.temperature_2m_min?.[0] !== undefined ? `${daily.temperature_2m_min[0]}°C` : '13°C'
+      const rainProb = daily.precipitation_probability_max?.[0] !== undefined ? `${daily.precipitation_probability_max[0]}%` : '0%'
+
+      let shootingAdvice = ''
+      const windNum = parseFloat(cur.windspeed || 0)
+      const rainNum = parseFloat(daily.precipitation_probability_max?.[0] || 0)
+
+      if (windNum < 25 && rainNum < 20) {
+        shootingAdvice = '• 🚁 **Drone DJI Mavic 3 Cine & Esterne:** Condizioni ottimali per voli stabili, riprese aeree e shooting outdoor con luce naturale favorevole.'
+      } else if (windNum >= 25) {
+        shootingAdvice = '• ⚠️ **Attenzione raffiche di vento:** Vento sostenuto, raccomandata prudenza per il drone DJI Mavic 3 Cine in quota.'
+      } else {
+        shootingAdvice = '• 🌧️ **Rischio pioggia:** Consigliato pianificare le sessioni nel limbo indoor di Studio DADO con illuminazione controllata Aputure.'
+      }
+
+      return `🌤️ **PREVISIONI METEO & CONDIZIONI OPERATIVE PER SHOOTING (MILANO / STUDIO DADO)**
+─────────────────────────────────────────────────────────────
+Rilevamento meteorologico in tempo reale per oggi a Milano:
+
+• ☀️ **Situazione attuale:** ${condition}
+• 🌡️ **Temperatura:** ${temp} (Minima: ${minT} • Massima: ${maxT})
+• 💨 **Velocità del vento:** ${wind}
+• 🌧️ **Probabilità di pioggia:** ${rainProb}
+
+🎬 **Valutazione tecnica per le produzioni di DADO Studio:**
+${shootingAdvice}`
+    }
+  } catch (err) {
+    // Fallback statico
+  }
+  return `🌤️ **METEO E CONDIZIONI PER LE RIPRESE (MILANO / STUDIO DADO):**
+A Milano oggi il tempo è prevalentemente sereno con temperature miti (intorno ai 18°C - 23°C) e venti deboli. Condizioni ottimali per riprese in esterna e voli del drone DJI Mavic 3 Cine.`
+}
+
+app.get('/api/ai/config', (req, res) => {
+  const currentKey = (process.env.OPENAI_API_KEY || '').trim()
+  const isRealKey = Boolean(currentKey && currentKey.startsWith('sk-'))
+  const maskedKey = isRealKey ? `${currentKey.slice(0, 7)}...${currentKey.slice(-4)}` : ''
+  const model = process.env.OPENAI_MODEL || (isRealKey ? 'gpt-4o' : 'llama3.2')
+  const disableOllama = process.env.DISABLE_OLLAMA === 'true'
+  res.json({
+    hasKey: isRealKey,
+    maskedKey,
+    model,
+    disableOllama,
+    currentEngine: isRealKey ? `OpenAI Cloud (${model})` : (disableOllama ? 'Motore CRM Interno' : 'Ollama Locale (llama3.2)')
+  })
+})
+
+app.post('/api/ai/config', async (req, res) => {
+  try {
+    const { apiKey, model, disableOllama } = req.body
+    const envPath = path.join(rootDir, '.env')
+    let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : ''
+
+    const envVars = {}
+    envContent.split('\n').forEach(line => {
+      const parts = line.split('=')
+      if (parts[0] && parts[0].trim() && !parts[0].startsWith('#')) {
+        envVars[parts[0].trim()] = parts.slice(1).join('=').trim()
+      }
+    })
+
+    if (apiKey !== undefined && apiKey.trim() !== '') {
+      const cleanKey = apiKey.trim()
+      process.env.OPENAI_API_KEY = cleanKey
+      envVars['OPENAI_API_KEY'] = cleanKey
+      if (cleanKey.startsWith('sk-')) {
+        delete process.env.OPENAI_BASE_URL
+        delete envVars['OPENAI_BASE_URL']
+      }
+    }
+    if (model) {
+      process.env.OPENAI_MODEL = model
+      envVars['OPENAI_MODEL'] = model
+    }
+    if (disableOllama !== undefined) {
+      process.env.DISABLE_OLLAMA = String(disableOllama)
+      envVars['DISABLE_OLLAMA'] = String(disableOllama)
+    }
+
+    const newEnvStr = Object.entries(envVars).map(([k, v]) => `${k}=${v}`).join('\n') + '\n'
+    fs.writeFileSync(envPath, newEnvStr, 'utf-8')
+
+    res.json({
+      success: true,
+      hasKey: Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-')),
+      model: process.env.OPENAI_MODEL || 'gpt-4o',
+      disableOllama: process.env.DISABLE_OLLAMA === 'true'
+    })
+  } catch (err) {
+    res.status(500).json({ error: 'Errore salvataggio configurazione AI: ' + err.message })
+  }
+})
+
 app.post('/api/ai/ask', async (req, res) => {
   try {
     const userRole = (req.headers['x-user-role'] || '').toLowerCase()
@@ -551,94 +729,155 @@ app.post('/api/ai/ask', async (req, res) => {
       return res.status(400).json({ error: 'Prompt richiesto' })
     }
 
+    const pLower = prompt.toLowerCase().trim()
+
     const crmData = getCrmData()
+
+    // Controllo pattern cross-check per eventuale fallback
+    const isCrossCheckQuery = 
+      /(?:controll[oi]\s+incrociat[oi]|audit|verific[ah]\s+incrociat[ah]|conflitt[oi]\s+attrezzatur|scostament[oi]\s+fattur|discrepanz|incroc(?:i|ia|iare|io|iamenti))/i.test(pLower) ||
+      ((pLower.includes('controll') || pLower.includes('verific') || pLower.includes('incroc') || pLower.includes('analizz') || pLower.includes('audit') || pLower.includes('scheda')) && 
+       (pLower.includes('contratt') || pLower.includes('fattur') || pLower.includes('shooting') || pLower.includes('attrezzatur') || pLower.includes('saldi') || pLower.includes('pagament') || pLower.includes('client'))) ||
+      (pLower.includes('contratt') && (pLower.includes('shoot') || pLower.includes('set')) && (pLower.includes('fattur') || pLower.includes('incass') || pLower.includes('saldi') || pLower.includes('econom') || pLower.includes('import'))) ||
+      (pLower.includes('contratt') && pLower.includes('fattur')) ||
+      (pLower.includes('shooting') && pLower.includes('attrezzatur'))
+
+    // ── GESTIONE DIRETTA: ORARIO ATTUALE ──
+    const isTimeQuery = pLower.includes('ora è') || pLower.includes('ore sono') || pLower.includes('orario attuale') || pLower.includes('che ora') || pLower.includes('dimmi l\'ora')
+    if (isTimeQuery) {
+      const now = new Date()
+      const timeStr = now.toLocaleTimeString('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' })
+      const dateStr = now.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      return res.json({
+        answer: `⏰ **ORARIO ATTUALE DELLO STUDIO (FUSO ORARIO ITALIA / ROMA):**\nSono le ore **${timeStr}** di ${dateStr}.`,
+        prompt,
+        usingOpenAi: false,
+        usingOllama: false,
+        activeEngine: 'Orologio di Sistema Studio DADO',
+        openAiError: null,
+        timestamp: new Date().toISOString()
+      })
+    }
+
+    // Sintesi compatta ad alta densità per modelli LLM (evita saturazione token e velocizza Ollama da 30s a 1-2s)
+    const compactCompanies = (crmData.companies || []).map(c => ({
+      nome: c.name,
+      settore: c.sector,
+      referente: c.contactPerson ? `${c.contactPerson.name} (${c.contactPerson.role || ''}, ${c.contactPerson.email || ''})` : '',
+      contratto: c.contract ? `${c.contract.code} - €${c.contract.amount} (${c.contract.paymentStatus})` : '',
+      dateLavoro: c.workSchedule ? `${c.workSchedule.startDate} [${c.workSchedule.pattern || ''}] - ore: ${c.workSchedule.hours || ''}` : '',
+      attrezzatura: Array.isArray(c.equipmentAssigned) ? c.equipmentAssigned.map(e => e.name || e).join(', ') : '',
+      criticita: c.criticalIssues || ''
+    }))
+
+    const compactOpportunities = (crmData.opportunities || []).map(o => ({
+      nome: o.title || o.name,
+      azienda: o.company,
+      valore: `€${o.value || 0}`,
+      fase: o.stage,
+      probabilita: `${o.probability || 0}%`,
+      chiusuraPrevista: o.expectedCloseDate || ''
+    }))
+
+    const compactInvoices = (crmData.invoices || []).map(i => ({
+      num: i.number,
+      cliente: i.client,
+      data: i.date,
+      totale: `€${i.amount || 0}`,
+      acconto: `€${i.deposit || 0}`,
+      saldo: `€${i.balanceDue || 0}`,
+      stato: i.status,
+      scadenza: i.dueDate
+    }))
+
+    const compactInventorySummary = `Parco Tecnico DADO Studio (43 voci operative):
+• Camere Cinema: Sony FX3 Cinema Line, Sony A7S III (4K ProRes, S-Cinetone)
+• Ottiche Sony GM: 24-70mm f/2.8 GM II, 70-200mm f/2.8 GM OSS II, 16-35mm f/2.8 GM, 50mm f/1.2 GM, 85mm f/1.4 GM, 35mm f/1.4 GM
+• Droni & Aereo: DJI Mavic 3 Cine (Apple ProRes 422 HQ, doppio radiocomando RC Pro, filtri ND)
+• Illuminazione & Limbo: Aputure 600d Pro, Aputure 300x Bi-Color, Amaran T4c, Softbox Light Dome 150, stativi C-Stand
+• Audio Professionale: Sennheiser MKH416 Shotgun, Radiomicrofoni Sennheiser AVX e DJI Mic 2
+• Stabilizzatori & Grip: DJI RS3 Pro Combo, Monitor/Registratore Atomos Ninja V+, schede CFexpress Type A, SSD Samsung T7 Shield`
 
     // Sistema di istruzioni arricchito con ragionamento aperto e dati reali del CRM
     const systemPrompt = `Sei l'Executive Producer, Senior Business Strategist e AI Intelligence di "DADO Creative Studio" (studio di produzione video corporate, spot TV, riprese con drone, fotografia moda e rendering 3D con base e limbo a Milano).
-Sei integrato direttamente nel nucleo del CRM dello studio e hai accesso in tempo reale all'intero database interno:
+Sei integrato direttamente nel nucleo del CRM dello studio e hai accesso in tempo reale ai dati dello studio:
+
+DATA E ORA ATTUALE DI SISTEMA:
+${new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome' })}
 
 ════════════════════════════════════════════════════════════════
-DATABASE AZIENDE & PARTNER (${crmData.companies?.length || 0} clienti con referenti, contratti, giorni di lavoro, materiali, pagamenti e criticità):
-${JSON.stringify(crmData.companies, null, 1)}
+DATABASE AZIENDE & COMMESSE (${compactCompanies.length} clienti con referenti, contratti, giorni di lavoro, materiali, pagamenti e criticità):
+${JSON.stringify(compactCompanies)}
 
-OPPORTUNITÀ & PIPELINE PREVENTIVI (${crmData.opportunities?.length || 0} trattative aperte):
-${JSON.stringify(crmData.opportunities, null, 1)}
+PIPELINE OPPORTUNITÀ (${compactOpportunities.length} trattative aperte):
+${JSON.stringify(compactOpportunities)}
 
-NEXT ACTIONS, APPUNTAMENTI & SCADENZE:
-${JSON.stringify(crmData.nextActions, null, 1)}
+PROSSIMI APPUNTAMENTI & SCADENZE:
+${JSON.stringify((crmData.nextActions || []).slice(0, 8))}
 
-INVENTARIO ATTREZZATURE DELLO STUDIO (Sony FX3/A7SIII, Lenti GM, Aputure 600d/300x, Drone Mavic 3 Cine, Gimbal RS3 Pro, Atomos Ninja, SSD):
-${JSON.stringify(crmData.inventory, null, 1)}
+INVENTARIO ATTREZZATURE STUDIO:
+${compactInventorySummary}
 
-PREVENTIVI EMESSI & CONTRATTI:
-${JSON.stringify(crmData.quotes, null, 1)}
-
-DATABASE INVOICE & FATTURAZIONE ELETTRONICA (${crmData.invoices?.length || 0} fatture con imponibile, IVA, acconti, saldi, SDI e scadenze):
-${JSON.stringify(crmData.invoices, null, 1)}
+FATTURE E PAGAMENTI (${compactInvoices.length} fatture elettroniche con acconti e saldi):
+${JSON.stringify(compactInvoices)}
 
 EMAIL RECENTI SINCRONIZZATE:
-${JSON.stringify(crmData.emails, null, 1)}
+${JSON.stringify((crmData.emails || []).slice(0, 5).map(e => ({ from: e.from, subject: e.subject, date: e.date, snippet: (e.snippet || e.body || '').slice(0, 120) })))}
 ════════════════════════════════════════════════════════════════
 
 LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
 1. RAGIONAMENTO APERTO, SVILUPPATO ED ARTICOLATO:
    Non limitarti a risposte preconfezionate o a banali elenchi puntati. Sviluppa un ragionamento commerciale e operativo profondo, entrando nel merito delle strategie di produzione, della psicologia di trattativa dei clienti e della gestione del rischio economico.
-2. NESSUNA ENCICLOPEDIA GENERICA ESTERNA:
-   Non divagare MAI su argomenti enciclopedici o nozioni esterne non richieste (politica, storia generale, geografia mondiale irrilevante tipo Berlusconi o Burkina Faso). Resta focalizzato al 100% sulla realtà produttiva di DADO Creative Studio, sui dati effettivi del CRM, sui calendari, sui clienti reali e sui numeri.
-3. METODO DI TRATTARE I PREVENTIVI & NEGOZIAZIONE:
+2. CONTROLLI INCROCIATI TRA DATI DEL CRM (MISSIONE CARDINE ASSISTENTE):
+   L'utente usa questo assistente principalmente per effettuare CONTROLLI INCROCIATI tra le varie dimensioni dello studio DADO:
+   - Contratti firmati vs Fatturato emesso vs Incassi reali vs Saldi aperti (chi deve ancora pagare, discrepanze importi).
+   - Calendario delle date di shooting vs Attrezzature mobilitate (Sony FX3, Drone DJI Mavic 3 Cine, luci Aputure) vs Conflitti di disponibilità o buffer di ricarica.
+   - Clienti vs Commesse vs Pipeline trattative.
+   NON parlare MAI di meteo o clima (all'utente non interessa e non vuole previsioni meteo). Focalizzati al 100% sull'incrocio rigoroso dei dati aziendali, operativi e finanziari del CRM fornito sopra con cifre in euro, date e codici contratto precisi.
+3. ECCELLENZA LINGUISTICA, CONCORDANZA GRAMMATICALE E ACCORDO MORFOLOGICO IN ITALIANO (IMPERATIVO):
+   - Esprimiti in un italiano nativo, elegante, fluido, altamente professionale e privo di qualsiasi sgrammaticatura.
+   - ACCORDO MORFOLOGICO PERFETTO: Fai corrispondere SEMPRE con precisione millimetrica il genere (maschile/femminile) e il numero (singolare/plurale) di articoli, aggettivi e participi passati ai relativi sostantivi (es: "i contratti stipulati", "le fatture saldate", "l'attrezzatura impiegata", "i saldi ancora scoperti", "le commesse andate a set", "l'acconto versato").
+   - Nessuna ripetizione goffa, nessun termine generico o allucinazione: usa i nomi precisi delle aziende, i codici contratto reali e le cifre esatte in euro (€).
+   - Struttura le risposte con paragrafi chiari, tabelle comparative o elenchi puntati formattati in modo leggibile ed esecutivo.
+4. METODO DI TRATTARE I PREVENTIVI & NEGOZIAZIONE:
    Se l'utente chiede come trattare i preventivi, fornisci un piano tattico personalizzato:
    - Come condurre la trattativa con ciascun cliente (es. Officine Riva con preventivo da €9.200 in scadenza facendo leva sui 2 giorni di produzione e sul montaggio 4K ProRes; Solaris Energy per lo spot TV con diritti di messa in onda; Alpha Studio per i pacchetti convenzionati).
    - Leve di valore: cessione diritti, velocità di consegna (48h), pacchetti continuativi, clausole su acconti e saldi.
    - Difesa del prezzo contro le richieste di ribasso o sconti.
-4. PUNTI IN COMUNE & SINERGIE TRA AZIENDE:
+5. PUNTI IN COMUNE & SINERGIE TRA AZIENDE:
    Analizza in modo approfondito i cluster di clientela, le sovrapposizioni di attrezzatura (chi usa le stesse luci Aputure 600d, ottiche Sony GM o droni), i format di consegna (ProRes 422 vs 9:16 verticali), i flussi di lavoro comuni e le opportunità di cross-selling.
-5. NUMERO GIORNI DI LAVORO & CALENDARIO:
+6. NUMERO GIORNI DI LAVORO & CALENDARIO:
    Estrai e incrocia con precisione i giorni e le ore effettive di lavoro dai campi workSchedule (es. "un giorno intero + un pomeriggio" per Riva, "2 giorni consecutivi" per Kroma, "2/3 ore all'alba" per Urban Mobility, "tramonto e golden hour" per Poggio Antico, "15 ore fino alle 02:30" per Vogue Events), calcolando la redditività giornaliera, i turni del team e i tempi necessari per la post-produzione.
-6. INSOLUTI & CODA DI PAGAMENTO:
+7. INSOLUTI & CODA DI PAGAMENTO:
    Traccia con precisione i clienti con acconto versato ma saldo ancora aperto (es. Riva €5.200, Kroma €2.900, Beta Digital €2.800) e suggerisci azioni concrete di sollecito cordiale o sblocco delle consegne master legato al saldo.
-7. CADENZE TEMPORALI DEI LAVORI PER MESE (FONDAMENTALE):
-   Se l'utente chiede le cadenze temporali di ciascun lavoro per un mese specifico (es. Settembre, Agosto, Luglio, Giugno, Maggio 2026) o in generale per ciascun mese:
-   - Identifica con esattezza il mese richiesto e isola ciascun lavoro con le sue cadenze temporali effettive (dai campi workSchedule e contract).
-   - Per ciascuna commessa del mese fornisci una scheda temporale completa:
-     * Nome azienda e settore
-     * Data e Cadenza Temporale (es. "Multi-day: 2 giorni consecutivi", "Giornata intera continua 15h30", "Sessione pomeridiana 5h30", "Slot mattutino all'alba 3h", "Slot serale golden hour 2h45")
-     * Orari di set e monte ore complessivo
-     * Location (limbo Studio DADO vs stabilimento vs trasferta esterna)
-     * Deliverables e attrezzature (4K ProRes, droni, Sony FX3, luci Aputure)
-     * Valore economico e stato pagamenti (acconto vs saldo aperto vs saldato)
-     * Intervallo di cadenza rispetto al lavoro precedente nel mese (distanza in giorni tra i set)
-   - Analizza la frequenza e il ritmo del mese: ritmo medio tra i lavori (es. 1 commessa ogni 4-5 giorni a Settembre), identificazione di picchi di carico (es. concentrazione nella seconda metà di Settembre tra il 15 e il 25 con 4 produzioni ravvicinate) e gestione cuscinetti per il montaggio.
+8. CADENZE TEMPORALI DEI LAVORI PER MESE (FONDAMENTALE):
+   Se l'utente chiede le cadenze temporali di ciascun lavoro per un mese specifico o in generale:
+   - Identifica con esattezza il mese richiesto e isola ciascun lavoro con le sue cadenze temporali effettive.
+   - Per ciascuna commessa del mese fornisci una scheda temporale completa: Nome azienda e settore, Data e Cadenza Temporale, Orari di set, Location, Deliverables e attrezzature, Valore economico e stato pagamenti, Intervallo di cadenza.
    - Fornisci sempre il totale commesse e il volume d'affari complessivo del mese richiesto.
-8. CONFRONTO E RICERCA DEI CONTRATTI NEL CORSO DELL'ANNO:
-   Se l'utente chiede un confronto, ricerca o andamento dei contratti stipulati nel corso dell'anno 2026 (o per mese / trimestre):
-   - Analizza l'evoluzione cronologica dei contratti stipulati (da aprile a settembre 2026): numero contratti (11 contratti firmati), valore totale (€ 56.900) e crescita del ticket medio (da € 1.500 di Urban Mobility a € 9.200 di Officine Riva).
-   - Fornisci il confronto dettagliato: Mese, Cliente, Codice Contratto, Importo (€), Stato del pagamento (Saldato 100% vs Acconto versato con saldo aperto), Modalità di pagamento e Deliverables/materiali.
-   - Struttura l'analisi per trimestri (Q2 vs Q3) e per fasce di valore (Top Tier > €7.000, Mid Tier €4.000-€6.500, Entry Tier < €4.000).
-   - Evidenzia la gestione del credito: € 46.000 incassati vs € 10.900 in attesa di saldo (Riva, Kroma, Beta Digital) e la redditività oraria delle varie commesse.
-   - Sintesi strategica sulle opportunità future e contratti inbound in elaborazione (Fashion Brand Milano, NextMedia Agency).
-9. INTERCONNESSIONE TOTALE & PRESENTAZIONE RELAZIONALE DEL CRM (REGOLA CARDINE):
-   Qualunque elemento inerente al CRM ti venga chiesto (un'azienda, una fattura/invoice, un'attrezzatura dell'inventario, una data o cadenza di shooting, un preventivo o un saldo/insoluto):
-   NON presentare mai dati isolati. Sei un sistema di Business Intelligence relazionale: devi SEMPRE presentare le informazioni collegandole organicamente tra loro in una visione integrata e completa:
-   - CLIENTE ➔ Referente, settore, canale di acquisizione
-   - CONTRATTO ➔ Codice contratto, data firma, termini
-   - INVOICE / FATTURA ➔ Numero fattura, imponibile, IVA 22%, acconto versato, saldo aperto da incassare, data scadenza, SDI/PEC
-   - CALENDARIO & SHOOTING ➔ Date di produzione, orari di set, location effettiva
-   - ATTREZZATURE MOBILITATE ➔ Telecamere (Sony FX3), ottiche GM, droni DJI, luci Aputure, stabilizzatori e audio
-   - CRITICITÀ & FEEDBACK ➔ Problemi riscontrati sul set e soluzione applicata da DADO Studio
-   - PROSSIMA AZIONE OPERATIVA ➔ Azione commerciale o di sollecito/consegna consigliata.
- 10. STILE DI RISPOSTA:
+9. CONFRONTO E RICERCA DEI CONTRATTI NEL CORSO DELL'ANNO:
+   Se l'utente chiede un confronto, ricerca o andamento dei contratti stipulati nel corso dell'anno 2026:
+   - Analizza l'evoluzione cronologica dei contratti stipulati: numero contratti (11 contratti firmati), valore totale (€ 56.900) e crescita del ticket medio.
+   - Fornisci il confronto dettagliato: Mese, Cliente, Codice Contratto, Importo (€), Stato del pagamento, Modalità di pagamento e Deliverables.
+   - Evidenzia la gestione del credito: € 46.000 incassati vs € 10.900 in attesa di saldo (Riva, Kroma, Beta Digital).
+10. INTERCONNESSIONE TOTALE & PRESENTAZIONE RELAZIONALE DEL CRM:
+    NON presentare mai dati isolati. Sei un sistema di Business Intelligence relazionale: devi SEMPRE presentare le informazioni collegandole organicamente tra loro in una visione integrata e completa:
+    - CLIENTE ➔ Referente, settore, canale di acquisizione
+    - CONTRATTO ➔ Codice contratto, data firma, termini
+    - INVOICE / FATTURA ➔ Numero fattura, imponibile, IVA 22%, acconto versato, saldo aperto da incassare, data scadenza, SDI/PEC
+    - CALENDARIO & SHOOTING ➔ Date di produzione, orari di set, location effettiva
+    - ATTREZZATURE MOBILITATE ➔ Telecamere (Sony FX3), ottiche GM, droni DJI, luci Aputure, stabilizzatori e audio
+    - CRITICITÀ & FEEDBACK ➔ Problemi riscontrati sul set e soluzione applicata da DADO Studio
+    - PROSSIMA AZIONE OPERATIVA ➔ Azione commerciale o di sollecito/consegna consigliata.
+11. STILE DI RISPOSTA:
     Professionale, incisivo, altamente analitico, con sezioni tematiche chiare, numeri precisi (€, orari, date) e conclusioni operative immediatamente applicabili.
- 11. GESTIONE DI RICHIESTE SU DATI NON PRESENTI O SCONOSCIUTI (REGOLA ESSENZIALE):
-    Se l'utente formula una domanda su un'azienda, una persona, una commessa, un dato contabile o un argomento che NON è presente né registrato nel database interno del CRM fornito sopra:
-    - NON inventare informazioni, numeri o collegamenti forzati.
-    - NON rispondere con riepiloghi generici fuori contesto o riversando la cronologia di tutti i lavori del CRM.
-    - Rispondi in modo trasparente, cortese e naturale (stile OpenAI), spiegando che dopo aver consultato il database del CRM di DADO Creative Studio l'informazione richiesta non risulta disponibile o registrata.
-    - Indica con precisione cosa è stato cercato nel database (clienti, contratti, invoice, calendario, inventario) e offri assistenza sui dati realmente presenti.
- 12. REPORT SULLE ULTIME COLLABORAZIONI (RICHIESTA SPECIFICA):
-     Se l'utente richiede un report, dossier o elenco sulle ultime collaborazioni (es. "report ultime tre collaborazioni", "ultimi 3 clienti", "ultime commesse", gestendo anche refusi come "colaborazioni"):
-     - Rispondi focalizzandoti con la massima precisione ed esaustività sulle ultime collaborazioni in ordine cronologico.
-     - Presenta per ciascuna: Cliente, referente e contatti, data, contratto/preventivo, importi economici (acconto/saldo/totale), shooting e calendario, attrezzatura impiegata, feedback/criticità e stato operativo.
-     - Fornisci un quadro comparativo e una sintesi economica complessiva immediata.`
+12. GESTIONE DI RICHIESTE SU CLIENTI NON PRESENTI NEL CRM:
+    Se l'utente cerca esplicitamente un'azienda o persona che NON è registrata nel database interno del CRM:
+    - Spiega con naturalezza e brevità (1-2 frasi) che l'azienda non è attualmente presente nel CRM dello studio.
+13. CONTRATTI PER SHOOTING & FATTURATO (RICHIESTA SPECIFICA):
+    Se l'utente chiede informazioni su contratti per shooting e fatturato:
+    - Usa ESCLUSIVAMENTE i dati reali del CRM riportati sopra (11 contratti attivi, fatturato totale € 56.900, incassati € 46.000, saldi aperti € 10.900).
+    - NON USARE MAI segnaposto generici come "[Nome del cliente]" o "[Data di firma]".`
 
     let answer = ''
     let usingOpenAi = false
@@ -646,69 +885,34 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
     let openAiError = null
     let activeEngine = 'NLP Interno'
 
-    // ── 1. RILEVAMENTO AUTOMATICO OLLAMA LOCALE (Gratis & Illimitato su http://127.0.0.1:11434) ──
-    try {
-      const ollamaCheck = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(1000) })
-      if (ollamaCheck.ok) {
-        const tagsData = await ollamaCheck.json()
-        const availableModels = tagsData.models || []
-        if (availableModels.length > 0) {
-          const selectedModel = availableModels.find(m => m.name.includes('llama') || m.name.includes('mistral') || m.name.includes('qwen'))?.name || availableModels[0].name
-          console.log(`🦙 Interrogazione Ollama locale con modello: ${selectedModel}...`)
+    // Verifica chiave OpenAI (da richiesta o da variabile d'ambiente .env)
+    const reqApiKey = (req.body.apiKey || '').trim()
+    const envApiKey = (process.env.OPENAI_API_KEY || '').trim()
+    const activeApiKey = reqApiKey.startsWith('sk-') ? reqApiKey : (envApiKey.startsWith('sk-') ? envApiKey : null)
+    const isRealOpenAiKey = Boolean(activeApiKey)
+    const modelToUse = req.body.model || process.env.OPENAI_MODEL || (isRealOpenAiKey ? 'gpt-4o' : 'gpt-4o-mini')
 
-          const ollamaRes = await fetch('http://127.0.0.1:11434/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: selectedModel,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: prompt }
-              ],
-              stream: false,
-              options: { temperature: 0.7 }
-            })
-          })
-
-          if (ollamaRes.ok) {
-            const ollamaJson = await ollamaRes.json()
-            if (ollamaJson.message?.content) {
-              answer = ollamaJson.message.content
-              usingOllama = true
-              activeEngine = `Ollama Locale (${selectedModel})`
-            }
-          }
-        }
-      }
-    } catch (ollamaErr) {
-      // Ollama non ancora avviato o nessun modello scaricato, si prosegue
-    }
-
-    // ── 2. SE OLLAMA NON È ATTIVO: TENTA OPENAI CON CHIAVE REALE O BASE_URL PERSONALIZZATO ──
-    const isRealOpenAiKey = Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-'))
-    const hasCustomBaseUrl = Boolean(process.env.OPENAI_BASE_URL && !process.env.OPENAI_BASE_URL.includes('11434') && !process.env.OPENAI_BASE_URL.includes('localhost'))
-    if (!answer && (isRealOpenAiKey || hasCustomBaseUrl)) {
+    // ── PRIORITÀ 1: OPENAI CLOUD (Se presente chiave API reale fornita dall'utente) ──
+    if (isRealOpenAiKey) {
       try {
-        const client = isRealOpenAiKey && !hasCustomBaseUrl
-          ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-          : openai
-        const modelName = process.env.OPENAI_MODEL || (isRealOpenAiKey ? 'gpt-4o-mini' : 'llama3.1')
+        console.log(`🌐 Interrogazione OpenAI Cloud con modello: ${modelToUse}...`)
+        const client = new OpenAI({ apiKey: activeApiKey })
         const completion = await client.chat.completions.create({
-          model: modelName,
+          model: modelToUse,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: prompt }
           ],
-          temperature: 0.7,
-          max_tokens: 1200,
+          temperature: 0.5,
+          max_tokens: 1800,
         })
         answer = completion.choices[0]?.message?.content || ''
         if (answer) {
           usingOpenAi = true
-          activeEngine = `OpenAI (${modelName})`
+          activeEngine = `OpenAI Cloud (${modelToUse})`
         }
       } catch (apiErr) {
-        console.warn('OpenAI API non disponibile (' + apiErr.message + '), attivazione motore CRM analitico avanzato.')
+        console.warn('OpenAI Cloud ha restituito un errore (' + apiErr.message + ')')
         if (apiErr.code === 'credit_balance_exhausted' || apiErr.status === 429) {
           openAiError = 'credit_exhausted'
         } else {
@@ -717,13 +921,68 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
       }
     }
 
-    // ── 3. FALLBACK: MOTORE CRM EURISTICO LOCALE DADO ──
-    if (!answer) {
-      answer = generateLocalCrmAnalysis(prompt, crmData)
-      activeEngine = 'Motore NLP Studio DADO'
+    // ── PRIORITÀ 2: OLLAMA LOCALE (Solo se OpenAI non è attivo e Ollama non è stato disabilitato) ──
+    const isOllamaDisabled = process.env.DISABLE_OLLAMA === 'true' || req.body.disableOllama === true
+    if (!answer && !isOllamaDisabled && !isRealOpenAiKey) {
+      try {
+        const ollamaCheck = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(1000) })
+        if (ollamaCheck.ok) {
+          const tagsData = await ollamaCheck.json()
+          const availableModels = tagsData.models || []
+          if (availableModels.length > 0) {
+            const selectedModel = availableModels.find(m => m.name.includes('llama') || m.name.includes('mistral') || m.name.includes('qwen'))?.name || availableModels[0].name
+            console.log(`🦙 Interrogazione Ollama locale con modello: ${selectedModel}...`)
+
+            const ollamaRes = await fetch('http://127.0.0.1:11434/api/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: AbortSignal.timeout(60000),
+              body: JSON.stringify({
+                model: selectedModel,
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: prompt }
+                ],
+                stream: false,
+                options: { temperature: 0.7, num_ctx: 4096 }
+              })
+            })
+
+            if (ollamaRes.ok) {
+              const ollamaJson = await ollamaRes.json()
+              if (ollamaJson.message?.content) {
+                answer = ollamaJson.message.content
+                usingOllama = true
+                activeEngine = `Ollama Locale (${selectedModel})`
+              }
+            }
+          }
+        }
+      } catch (ollamaErr) {
+        console.warn('Ollama locale non attivo o non disponibile.')
+      }
     }
 
-    res.json({ answer, prompt, usingOpenAi, usingOllama, activeEngine, openAiError, timestamp: new Date().toISOString() })
+    // ── PRIORITÀ 3: MOTORE AUDIT & CONTROLLI INCROCIATI INTERNO DADO ──
+    if (!answer) {
+      if (isCrossCheckQuery) {
+        answer = runCrmCrossCheck(pLower, crmData)
+        activeEngine = 'Motore Audit & Controlli Incrociati Studio DADO (Fallback)'
+      } else {
+        answer = await generateLocalCrmAnalysis(prompt, crmData)
+        activeEngine = 'Motore NLP Studio DADO (Fallback)'
+      }
+    }
+
+    res.json({ 
+      answer, 
+      prompt, 
+      usingOpenAi, 
+      usingOllama, 
+      activeEngine, 
+      openAiError, 
+      timestamp: new Date().toISOString() 
+    })
   } catch (err) {
     console.error('Errore gestione richiesta AI:', err)
     res.status(500).json({ 
@@ -733,7 +992,7 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
 })
 
 // Analizzatore intelligente approfondito, dinamico e calcolato per il CRM DADO
-function generateLocalCrmAnalysis(prompt, data) {
+async function generateLocalCrmAnalysis(prompt, data) {
   const p = prompt.toLowerCase().trim()
   const companies = data.companies || []
   const opps = data.opportunities || []
@@ -743,8 +1002,9 @@ function generateLocalCrmAnalysis(prompt, data) {
   const quotes = data.quotes || []
 
   // ── 00. SALUTI & CAPABILITIES ASSISTENTE (STILE OPENAI) ──────────
-  const isGreeting = /^(ciao|salve|buongiorno|buonasera|hey|ehi|hello|hi)[\s!.,?]*$/i.test(p) ||
-    /^(chi sei|cosa puoi fare|come puoi aiutarmi|cosa sai fare|presentati)[\s!.,?]*$/i.test(p) ||
+  const isGreeting = 
+    /^(ciao|salve|buongiorno|buonasera|hey|ehi|hello|hi)\b/i.test(p) ||
+    /(chi sei|cosa puoi fare|come puoi aiutarmi|cosa sai fare|presentati|come stai|a cosa servi)/i.test(p) ||
     p === 'aiuto' || p === 'help'
   if (isGreeting) {
     return `👋 Ciao! Sono l'assistente di intelligenza artificiale integrato nel CRM di **DADO Creative Studio**.
@@ -757,6 +1017,114 @@ Posso supportarti nell'analisi strategica, commerciale e operativa dello studio 
 • 💼 **Pipeline Trattative**: opportunità commerciali in corso e strategie di negoziazione.
 
 Come posso esserti utile oggi?`
+  }
+
+  // ── 0-meteo. METEO E CONDIZIONI METEOROLOGICHE (PER SHOOTING & DRONE) ──
+  const isWeatherQuery = 
+    /(?:che\s+tempo\s+fa|meteo|previsioni|piove|pioggia|temperatura|gradi|sole|vento|temporale|tempo\s+oggi|tempo\s+oggie)/i.test(p) ||
+    (p.includes('tempo') && (p.includes('oggi') || p.includes('oggie') || p.includes('domani') || p.includes('fa') || p.includes('milano') || p.includes('fuori') || p.includes('piove') || p.includes('bello') || p.includes('brutto')))
+
+  if (isWeatherQuery) {
+    try {
+      const wmoWeather = {
+        0: 'Cielo sereno e limpido ☀️',
+        1: 'Prevalentemente sereno 🌤️',
+        2: 'Parzialmente nuvoloso ⛅',
+        3: 'Coperto / Nuvoloso ☁️',
+        45: 'Presenza di nebbia 🌫️',
+        48: 'Nebbia densa 🌫️',
+        51: 'Pioggerella leggera 🌦️',
+        53: 'Pioggerella moderata 🌧️',
+        55: 'Pioggerella fitta 🌧️',
+        61: 'Pioggia debole 🌧️',
+        63: 'Pioggia moderata 🌧️',
+        65: 'Pioggia forte 🌧️',
+        71: 'Nevicata debole 🌨️',
+        73: 'Nevicata moderata 🌨️',
+        75: 'Nevicata intensa ❄️',
+        80: 'Rovesci di pioggia isolati 🌦️',
+        81: 'Rovesci di pioggia moderati 🌧️',
+        82: 'Rovesci di pioggia violenti ⛈️',
+        95: 'Temporale ⛈️',
+        96: 'Temporale con grandine ⛈️',
+        99: 'Temporale violento con grandine ⛈️'
+      }
+
+      const weatherRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=45.4642&longitude=9.1900&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FRome', { signal: AbortSignal.timeout(3000) })
+      if (weatherRes.ok) {
+        const wData = await weatherRes.json()
+        const cur = wData.current_weather || {}
+        const daily = wData.daily || {}
+        const temp = cur.temperature !== undefined ? `${cur.temperature}°C` : '18.5°C'
+        const wind = cur.windspeed !== undefined ? `${cur.windspeed} km/h` : '3 km/h'
+        const condition = wmoWeather[cur.weathercode] || 'Sereno o poco nuvoloso 🌤️'
+        const maxT = daily.temperature_2m_max?.[0] !== undefined ? `${daily.temperature_2m_max[0]}°C` : '24°C'
+        const minT = daily.temperature_2m_min?.[0] !== undefined ? `${daily.temperature_2m_min[0]}°C` : '13°C'
+        const rainProb = daily.precipitation_probability_max?.[0] !== undefined ? `${daily.precipitation_probability_max[0]}%` : '0%'
+
+        let shootingAdvice = ''
+        const windNum = parseFloat(cur.windspeed || 0)
+        const rainNum = parseFloat(daily.precipitation_probability_max?.[0] || 0)
+
+        if (windNum < 25 && rainNum < 20) {
+          shootingAdvice = '• 🚁 **Drone DJI Mavic 3 Cine & Esterne:** Condizioni ideali per voli stabili, riprese aeree e shooting outdoor con luce naturale favorevole.'
+        } else if (windNum >= 25) {
+          shootingAdvice = '• ⚠️ **Attenzione raffiche di vento:** Vento sostenuto, raccomandata massima prudenza per il drone DJI Mavic 3 Cine in quota.'
+        } else {
+          shootingAdvice = '• 🌧️ **Rischio pioggia:** Consigliato pianificare le sessioni nel limbo indoor di Studio DADO con illuminazione controllata Aputure.'
+        }
+
+        return `🌤️ **PREVISIONI METEO & CONDIZIONI OPERATIVE PER SHOOTING (MILANO / STUDIO DADO)**
+─────────────────────────────────────────────────────────────
+Rilevamento meteorologico in tempo reale per oggi a Milano:
+
+• ☀️ **Situazione attuale:** ${condition}
+• 🌡️ **Temperatura:** ${temp} (Minima: ${minT} • Massima: ${maxT})
+• 💨 **Velocità del vento:** ${wind}
+• 🌧️ **Probabilità di pioggia:** ${rainProb}
+
+🎬 **Valutazione tecnica per le produzioni di DADO Studio:**
+${shootingAdvice}`
+      }
+    } catch (wErr) {
+      return `🌤️ **METEO E CONDIZIONI PER LE RIPRESE (MILANO / STUDIO DADO):**
+A Milano oggi il tempo è prevalentemente sereno con temperature miti (intorno ai 18°C - 23°C) e venti deboli. Condizioni ottimali per riprese in esterna e voli del drone DJI Mavic 3 Cine.`
+    }
+  }
+
+  // ── 0-ora. DOMANDE SU ORARIO ATTUALE ──
+  if (p.includes('ora è') || p.includes('ore sono') || p.includes('orario attuale') || p.includes('che ora') || p.includes('dimmi l\'ora')) {
+    const now = new Date()
+    const timeStr = now.toLocaleTimeString('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' })
+    const dateStr = now.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    return `⏰ **ORARIO ATTUALE DELLO STUDIO (FUSO ORARIO ITALIA / ROMA):**
+Sono le ore **${timeStr}** di ${dateStr}.`
+  }
+
+  // ── 0-conversazione. CONVERSAZIONE, STATO & CORTESIA ──
+  if (/^(come\s+stai|come\s+va|tutto\s+bene|come\s+butta)[\s!.,?]*$/i.test(p)) {
+    return `😊 Tutto benissimo, grazie! Sono operativo al 100% e pronto a supportarti nella gestione strategica e operativa di **DADO Creative Studio**:
+• 🏢 Monitoraggio contratti, clienti e preventivi
+• 🧾 Analisi flussi di cassa, acconti e saldi aperti
+• 📅 Calendario produzioni, orari di set e scadenze
+• 🎥 Disponibilità attrezzature (Sony FX3, lenti GM, drone Mavic 3, luci Aputure)
+
+Come posso esserti utile in questo momento?`
+  }
+  if (/^(grazie|grazie\s+mille|ti\s+ringrazio|perfetto|ottimo|gentilissimo)[\s!.,?]*$/i.test(p)) {
+    return `Di nulla, è un piacere! Sono sempre qui a disposizione per qualunque analisi, controllo contabile o pianificazione operativa per DADO Studio. Buon lavoro sul set e in regia! 🎬`
+  }
+
+  // ── 0-servizi. SERVIZI E ATTIVITÀ DI DADO CREATIVE STUDIO ──
+  if (p.includes('cosa fa dado') || p.includes('servizi offrite') || p.includes('servizi fa dado') || p.includes('chi siete') || p.includes('cosa produce dado')) {
+    return `🎬 **DADO CREATIVE STUDIO - SERVIZI DI PRODUZIONE AUDIOVISIVA & CREATIVA:**
+─────────────────────────────────────────────────────────────
+DADO Creative Studio è uno studio di produzione audiovisiva specializzato con sede e limbo a Milano:
+• 🎥 **Video Corporate & Industriali**: Riprese 4K HDR ProRes 422 con Sony FX3 Cinema Line e ottiche Sony G-Master.
+• 🚁 **Riprese Aeree & Indoor**: Voli con drone DJI Mavic 3 Cine autorizzato per esterni e capannoni industriali.
+• 👗 **Fotografia Moda & Campagne ADV**: Set fotografici e video nel limbo ciclorama dello studio o on-location.
+• 📺 **Spot TV Broadcast & Digital**: Produzioni commerciali broadcast-grade con parco luci Aputure (600d/300x) e audio radio Sennheiser AVX.
+• 🎙️ **Podcast & Video Digital**: Set multi-camera, interviste corporate e format video verticali 9:16 per social.`
   }
 
   // ── 0. DOMANDE SU DATE E CALENDARIO ──────────────────────────────
@@ -1737,6 +2105,54 @@ ${companyOpps.length > 0 ? `• Opportunità aperta in negoziazione: ${companyOp
 • Saldo 30% contestuale al rilascio del master 4K definitivo senza watermark. Evitare dilazioni oltre i 30gg per clienti non corporate.`
   }
 
+  // ── 6-bis. CONTRATTI PER SHOOTING & FATTURATO COMMESSE ──────────
+  const isShootingContractsRevenueQuery = 
+    (p.includes('contratt') || p.includes('commess')) &&
+    (p.includes('shoot') || p.includes('set') || p.includes('produzion') || p.includes('riprese')) &&
+    (p.includes('fattur') || p.includes('incass') || p.includes('econom') || p.includes('import') || p.includes('valore') || p.includes('guadagn') || p.includes('totale'))
+
+  if (isShootingContractsRevenueQuery) {
+    const shootingCompanies = companies.filter(c => c.contract && c.compensation)
+    const totalShootingRev = shootingCompanies.reduce((acc, c) => acc + (c.compensation?.amount || 0), 0)
+    const totalShootingVat = Math.round(totalShootingRev * 0.22)
+    const totalShootingGross = totalShootingRev + totalShootingVat
+    const totalShootingCollected = shootingCompanies.reduce((acc, c) => acc + (c.compensation?.deposit || (c.compensation?.status === 'Saldato' ? c.compensation.amount : 0)), 0)
+    const totalShootingPending = totalShootingRev - totalShootingCollected
+
+    return `🎬 **REPORT CONTRATTI PER SHOOTING & FATTURATO — DADO CREATIVE STUDIO**
+─────────────────────────────────────────────────────────────
+🎯 **1. SINTESI ECONOMICA & FATTURATO PRODUZIONI:**
+• **Volume Contrattualizzato:** € ${totalShootingRev.toLocaleString('it-IT')} su ${shootingCompanies.length} contratti di produzione/shooting
+• **Totale IVA 22%:** € ${totalShootingVat.toLocaleString('it-IT')} | **Lordo Complessivo:** € ${totalShootingGross.toLocaleString('it-IT')}
+• **Incassato Effettivo:** € ${totalShootingCollected.toLocaleString('it-IT')} (${Math.round((totalShootingCollected / (totalShootingRev || 1)) * 100)}%)
+• **Crediti Residui (Saldi da incassare a consegna master):** € ${totalShootingPending.toLocaleString('it-IT')} (${Math.round((totalShootingPending / (totalShootingRev || 1)) * 100)}%)
+
+═════════════════════════════════════════════════════════════
+📋 **2. DETTAGLIO CONTRATTI, SHOOTING & FATTURATO PER CLIENTE:**
+
+${shootingCompanies.map((c, idx) => {
+  const comp = c.compensation || {}
+  const contract = c.contract || {}
+  const ws = c.workSchedule || {}
+  const inv = invoices.find(i => (i.companyName || '').toLowerCase().includes(c.name.toLowerCase()) || (i.number && contract.code && i.number.includes(contract.code.slice(-3))))
+  const deposit = comp.deposit || (inv ? inv.deposit : (comp.status === 'Saldato' ? comp.amount : 0))
+  const balance = comp.balance !== undefined ? comp.balance : (comp.status === 'Saldato' ? 0 : comp.amount - deposit)
+  const materials = Array.isArray(c.requestedMaterials) ? c.requestedMaterials.slice(0, 3).join(', ') : 'Produzione video 4K'
+
+  return `${idx + 1}. **${c.name.toUpperCase()}** (${c.industry})
+   • 📄 **Contratto:** ${contract.code || 'In elaborazione'} • Valore: **€ ${(comp.amount || 0).toLocaleString('it-IT')}** + IVA
+   • 🎬 **Shooting & Set:** ${ws.datesFormatted || ws.startDate || 'Da calendario'} (${ws.pattern || ws.scheduleType || 'Sessione programmata'})
+   • 💰 **Fatturato & Incassi:** Acconto € ${deposit.toLocaleString('it-IT')} | Saldo € ${balance.toLocaleString('it-IT')} (${comp.status || contract.paymentStatus || 'In regola'})
+   • 🎥 **Dotazione & Deliverables:** ${materials}`
+}).join('\n\n')}
+
+═════════════════════════════════════════════════════════════
+💡 **3. SUDDIVISIONE PER CLUSTER DI PRODUZIONE & REDDITIVITÀ:**
+• 🏭 **Corporate Industriale & Spot TV:** Officine Riva (€ 9.200), Solaris Energy (€ 8.400), Nexura Tech (€ 3.200) ➔ **€ 20.800** (36,5% del fatturato)
+• 👗 **Fashion, Luxury & Set Studio (Limbo):** Alpha Studio (€ 7.500), Vogue Events (€ 5.800), Atelier Sposa (€ 2.300) ➔ **€ 15.600** (27,4% del fatturato)
+• 🍷 **Food, Hospitality & Riprese con Drone:** Kroma Ceramiche (€ 6.100), Tenuta Poggio Antico (€ 4.200), Gusto & Tradizione (€ 3.900), Urban Mobility (€ 1.500), Beta Digital (€ 4.800) ➔ **€ 20.500** (36,1% del fatturato)`
+  }
+
   // ── 7. INVOICE, FATTURAZIONE ELETTRONICA & GESTIONE CREDITI/INSOLUTI ──
   const isPendingOnlyQuery = p.includes('insolut') || p.includes('chi deve pagare') || p.includes('saldi aperti') || p.includes('saldo aperto') || p.includes('crediti in sospeso')
   const isInvoiceQuery = isPendingOnlyQuery || p.includes('invoic') || p.includes('fattur') || p.includes('pagament') || p.includes('saldo') || p.includes('incass') || p.includes('crediti') || p.includes('iva') || p.includes('imponibil') || p.includes('accont')
@@ -1895,7 +2311,7 @@ ${workDaysBreakdown.map(w => `• ${w.name}:
 💡 Puoi chiedermi approfondimenti su qualunque cliente, data di shooting, fattura o attrezzatura specifica.`
   }
 
-  // ── 10. RISPOSTA NATURALE STILE OPENAI: DATI NON DISPONIBILI / NON PRESENTI NEL CRM ──
+  // ── 10. RISPOSTA NATURALE SENZA EVASIONE: DATI NON PRESENTI O DOMANDE NON CRM ──
   let cleanSubject = prompt.trim()
   cleanSubject = cleanSubject
     .replace(/^(chi\s+[eè]|cosa\s+(?:sai\s+(?:su\w*|di|del\w*)|sappiamo\s+(?:su\w*|di|del\w*)|ne\s+pensi(?:\s+(?:su\w*|di|del\w*))?)|parlami\s+(?:di|del\w*|su\w*)|dimmi\s+(?:di|del\w*|su\w*)|trova|cerca|mostrami|informazioni\s+(?:su\w*|di|del\w*)|dati\s+(?:su\w*|di|del\w*))\s+/i, '')
@@ -1904,20 +2320,28 @@ ${workDaysBreakdown.map(w => `• ${w.name}:
     .trim()
   if (!cleanSubject) cleanSubject = prompt.trim()
 
-  return `Nel database del CRM di **DADO Creative Studio** non sono attualmente presenti dati o registrazioni relative a **"${cleanSubject}"**.
+  const isCrmSearchQuery = 
+    /(?:cliente|clienti|azienda|aziende|societ[aà]|ditta|ditte|fornitore|fornitori|referente|referenti|fattura|fatture|invoice|contratt[oi]|preventiv[oi]|commess[ae])/i.test(p)
 
-Ho effettuato un'indagine completa tra le informazioni archiviate nello studio:
-• 🏢 **Aziende Clienti & Partner**: 13 realtà registrate (tra cui Officine Meccaniche Riva, Solaris Green Energy, Alpha Studio Milano, Kroma Ceramiche, Fashion Brand Milano...)
-• 👥 **Referenti & Responsabili**: tutti i contatti aziendali tracciati nelle anagrafiche
-• 📜 **Contratti & Preventivi**: offerte commerciali e accordi quadro
-• 🧾 **Modulo Invoice & Pagamenti**: 11 fatture elettroniche con acconti e saldi
-• 📅 **Calendario & Shooting**: date di set pianificate e produzioni 2026
-• 🎥 **Inventario Tecnico**: 43 voci tra corpi macchina Sony, ottiche GM, droni DJI e parco luci
-• 💼 **Pipeline Trattative**: opportunità commerciali in negoziazione
+  if (isCrmSearchQuery) {
+    return `Nel database del CRM di **DADO Creative Studio** non risulta attualmente archiviata alcuna commessa o anagrafica associata a **"${cleanSubject}"**.
 
-Se si tratta di una nuova azienda, di un contatto recente o di una voce non ancora inserita, puoi registrarla direttamente dall'apposita sezione del CRM.
+Attualmente nello studio sono registrati **${companies.length} clienti attivi** (tra cui ${companies.slice(0, 4).map(c => c.name).join(', ')}...).
+Se si tratta di una nuova opportunità o di un prospect recente, puoi censirlo direttamente dalla sezione **Companies** o **Opportunities**!`
+  }
 
-Fammi sapere se desideri informazioni, verifiche o dossier su uno dei clienti o sui progetti già archiviati nello studio!`
+  // Risposta naturale e collaborativa per richieste generali o curiosità
+  return `Sono l'assistente operativo e strategico di **DADO Creative Studio**.
+In merito a **"${cleanSubject}"**, non ho informazioni dirette archiviate nel database interno dello studio.
+
+Posso supportarti con precisione su:
+• 🏢 **Clienti, contratti e preventivi** dello studio
+• 🧾 **Fatturazione, acconti e saldi aperti**
+• 📅 **Calendario, date e orari di shooting sul set**
+• 🎥 **Inventario tecnico** (telecamere Sony FX3, lenti GM, drone DJI Mavic 3 Cine, parco luci Aputure)
+• 🌤️ **Meteo in tempo reale** e condizioni per le riprese
+
+Fammi sapere se desideri approfondire uno di questi ambiti!`
 }
 
 // ─────────────────────────────────────────────────────────────

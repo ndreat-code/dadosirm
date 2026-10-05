@@ -875,11 +875,11 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2">
                       <Sparkles size={19} className="text-[#d8ff00]" />
                       <h2 className="text-white font-black text-lg tracking-wide uppercase">
-                        CONSOLE RISPOSTA INTELLIGENZA ARTIFICIALE
+                        • DADO CREATIVE STUDIO CRM •
                       </h2>
                     </div>
                     <p className="text-white/60 text-xs font-mono">
-                      DADO Creative Studio CRM • Modalità Focus Attiva
+                      Modalità Focus Attiva
                     </p>
                   </div>
                 </div>

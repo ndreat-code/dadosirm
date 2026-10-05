@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CheckCircle2,
-  Circle,
   Clock,
   Calendar,
   Building2,
@@ -33,8 +32,12 @@ import {
   ChevronUp,
   Bot,
   ShieldCheck,
-  Zap
+  Zap,
+  UserCheck,
+  UserPlus,
+  User
 } from 'lucide-react'
+import { useAuth, DEFAULT_USERS } from '../context/AuthContext'
 
 // Categorie in perfetta armonia con la palette DADO
 const CATEGORIES = {
@@ -68,35 +71,99 @@ const CATEGORIES = {
   },
 }
 
-// ── Acronimo B.A.N.T. stile Brand Logo DADO ──
-function BantLogoMark({ size = 'sm' }) {
+// Helper per valutare la qualificazione B.A.N.T. dell'attività
+function getActivityBant(activity, companies = []) {
+  const isInvalid = (val, keywords) => {
+    if (!val) return true
+    const s = String(val).toLowerCase().trim()
+    return keywords.some(k => s.includes(k))
+  }
+
+  const badB = ['non specificato', 'da definire', 'mancante', 'null', 'non deliberato', 'n/d', 'nd']
+  const badA = ['non specificato', 'da verificare', 'mancante', 'null', 'in attesa', 'n/d', 'nd']
+  const badN = ['non specificato', 'da chiarire', 'mancante', 'null', 'n/d', 'nd']
+  const badT = ['non specificato', 'da concordare', 'da definire', 'mancante', 'null', 'archiviato', 'esplorativa', 'n/d', 'nd']
+
+  if (activity?.bant) {
+    const b = activity.bant
+    const hasB = !isInvalid(b.budget, badB)
+    const hasA = !isInvalid(b.authority, badA)
+    const hasN = !isInvalid(b.need, badN)
+    const hasT = !isInvalid(b.timeline, badT)
+    const score = (hasB ? 1 : 0) + (hasA ? 1 : 0) + (hasN ? 1 : 0) + (hasT ? 1 : 0)
+    return { ...b, hasB, hasA, hasN, hasT, score }
+  }
+
+  // Fallback sull'azienda collegata nel CRM
+  const comp = (companies || []).find(c => c.name === activity?.company)
+  if (comp?.bant) {
+    const b = comp.bant
+    const hasB = !isInvalid(b.budget, badB)
+    const hasA = !isInvalid(b.authority, badA)
+    const hasN = !isInvalid(b.need, badN)
+    const hasT = !isInvalid(b.timeline, badT)
+    const score = (hasB ? 1 : 0) + (hasA ? 1 : 0) + (hasN ? 1 : 0) + (hasT ? 1 : 0)
+    return { ...b, hasB, hasA, hasN, hasT, score }
+  }
+
+  return { hasB: false, hasA: false, hasN: true, hasT: false, score: 1 }
+}
+
+// ── Acronimo B.A.N.T. stile Brand Logo DADO dinamico per singola attività ──
+function BantLogoMark({ size = 'sm', bant = null }) {
   const isSm = size === 'sm'
+  const hasB = bant ? Boolean(bant.hasB) : true
+  const hasA = bant ? Boolean(bant.hasA) : true
+  const hasN = bant ? Boolean(bant.hasN) : true
+  const hasT = bant ? Boolean(bant.hasT) : true
+
+  const score = bant?.score ?? ((hasB ? 1 : 0) + (hasA ? 1 : 0) + (hasN ? 1 : 0) + (hasT ? 1 : 0))
+  const missing = []
+  if (!hasB) missing.push('Budget')
+  if (!hasA) missing.push('Authority')
+  if (!hasN) missing.push('Need')
+  if (!hasT) missing.push('Timeline')
+
+  const title = `Framework B.A.N.T. (${score}/4 qualificati${missing.length ? ' - Mancano: ' + missing.join(', ') : ' - Completo!'})`
+
   return (
     <div
-      className="inline-flex items-center gap-1 select-none px-1.5 py-0.5 rounded-md bg-white border border-sky-200 shadow-xs shrink-0"
-      title="Framework B.A.N.T. (Budget • Authority • Need • Timeline)"
+      className="inline-flex items-center gap-1 select-none px-2 py-0.5 rounded-lg bg-white border border-sky-200 hover:border-sky-400 transition-colors shadow-2xs shrink-0 cursor-help"
+      title={title}
       style={{ fontFamily: '"Switzer", sans-serif' }}
     >
+      {/* B • Budget */}
       <div className="flex items-center gap-0.5">
-        <span className={`font-black ${isSm ? 'text-[10px]' : 'text-[12px]'} text-[#16a34a]`}>
+        <span
+          className={`font-black ${isSm ? 'text-[12px]' : 'text-[15px]'} ${hasB ? 'text-[#16a34a]' : 'text-slate-300'} leading-none`}
+        >
           B
         </span>
-        <span className="w-0.5 h-0.5 rounded-full bg-[#16a34a]" />
+        <span className={`w-0.5 h-0.5 rounded-full ${hasB ? 'bg-[#16a34a]' : 'bg-slate-300'}`} />
       </div>
+      {/* A • Authority */}
       <div className="flex items-center gap-0.5">
-        <span className={`font-black ${isSm ? 'text-[10px]' : 'text-[12px]'} text-[#dc2626]`}>
+        <span
+          className={`font-black ${isSm ? 'text-[12px]' : 'text-[15px]'} ${hasA ? 'text-[#dc2626]' : 'text-slate-300'} leading-none`}
+        >
           A
         </span>
-        <span className="w-0.5 h-0.5 rounded-full bg-[#dc2626]" />
+        <span className={`w-0.5 h-0.5 rounded-full ${hasA ? 'bg-[#dc2626]' : 'bg-slate-300'}`} />
       </div>
+      {/* N • Need */}
       <div className="flex items-center gap-0.5">
-        <span className={`font-black ${isSm ? 'text-[10px]' : 'text-[12px]'} text-[#0284c7]`}>
+        <span
+          className={`font-black ${isSm ? 'text-[12px]' : 'text-[15px]'} ${hasN ? 'text-[#0284c7]' : 'text-slate-300'} leading-none`}
+        >
           N
         </span>
-        <span className="w-0.5 h-0.5 rounded-full bg-[#0284c7]" />
+        <span className={`w-0.5 h-0.5 rounded-full ${hasN ? 'bg-[#0284c7]' : 'bg-slate-300'}`} />
       </div>
+      {/* T • Timeline */}
       <div className="flex items-center gap-0.5">
-        <span className={`font-black ${isSm ? 'text-[10px]' : 'text-[12px]'} text-[#d97706]`}>
+        <span
+          className={`font-black ${isSm ? 'text-[12px]' : 'text-[15px]'} ${hasT ? 'text-[#d97706]' : 'text-slate-300'} leading-none`}
+        >
           T
         </span>
       </div>
@@ -141,6 +208,12 @@ const TASK_PRIORITIES = [
 ]
 
 export default function Activities() {
+  const { users } = useAuth()
+  const userOptions = useMemo(() => {
+    if (Array.isArray(users) && users.length > 0) return users
+    return DEFAULT_USERS
+  }, [users])
+
   const [activities, setActivities] = useState([])
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
@@ -170,6 +243,7 @@ export default function Activities() {
     dueDate: new Date().toISOString().split('T')[0],
     dueTime: '15:00',
     priority: 'medium',
+    assignedTo: '',
     notes: ''
   })
   const [saving, setSaving] = useState(false)
@@ -206,6 +280,18 @@ export default function Activities() {
     loadData()
     loadDrafts()
   }, [])
+
+  // Sincronizza costantemente la cache delle attività per il Calendario in tempo reale
+  useEffect(() => {
+    if (Array.isArray(activities) && activities.length > 0) {
+      try {
+        localStorage.setItem('dado_crm_activities_cache', JSON.stringify(activities))
+        window.dispatchEvent(new CustomEvent('dado-calendar-update', { detail: { count: activities.length } }))
+      } catch (e) {
+        console.warn('Errore salvataggio cache attività calendar:', e)
+      }
+    }
+  }, [activities])
 
   // Sincronizzazione ed esecuzione manuale della Pipeline AI
   async function triggerPipelineSync() {
@@ -319,6 +405,24 @@ export default function Activities() {
     }
   }
 
+  // Assegnazione task a un membro del team
+  async function handleAssignTask(activityId, assignee) {
+    try {
+      const res = await fetch(`/api/crm/activities/${activityId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignedTo: assignee })
+      })
+      if (res.ok) {
+        setActivities(prev =>
+          prev.map(a => (a.id === activityId ? { ...a, assignedTo: assignee } : a))
+        )
+      }
+    } catch (err) {
+      console.error('Errore assegnazione task:', err)
+    }
+  }
+
   // Toggle singola voce checklist operativa
   async function toggleChecklistItem(activity, itemIdx) {
     if (!activity.checklist) return
@@ -385,6 +489,7 @@ export default function Activities() {
           dueDate: new Date().toISOString().split('T')[0],
           dueTime: '15:00',
           priority: 'medium',
+          assignedTo: '',
           notes: ''
         })
       }
@@ -418,7 +523,8 @@ export default function Activities() {
         const matchTitle = a.title?.toLowerCase().includes(q)
         const matchComp = a.company?.toLowerCase().includes(q)
         const matchNotes = a.notes?.toLowerCase().includes(q)
-        if (!matchTitle && !matchComp && !matchNotes) return false
+        const matchAssigned = a.assignedTo?.toLowerCase().includes(q)
+        if (!matchTitle && !matchComp && !matchNotes && !matchAssigned) return false
       }
       if (categoryFilter !== 'all' && a.type !== categoryFilter) return false
       if (priorityFilter !== 'all' && a.priority !== priorityFilter) return false
@@ -446,76 +552,73 @@ export default function Activities() {
         fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
-      {/* ── CANVAS AZZURRO TENUE COME LA "O" DI DADO (SENZA NERO E SENZA VERDE BILIARDO) ── */}
+      {/* ── CANVAS GIALLO TENUE (Omologo al blu di Az & Co) ── */}
       <div
-        className="h-full flex-1 rounded-tl-[36px] rounded-bl-[36px] flex flex-col justify-between relative min-w-0 overflow-hidden"
+        className="h-full flex-1 rounded-tl-none rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden"
         style={{
-          background: 'linear-gradient(180deg, #f0f8fd 0%, #e5f3fa 100%)',
-          borderLeft: '1.5px solid #d4ebf9',
+          background: '#fefce8',
+          borderLeft: '1.5px solid #fef08a',
           boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+          borderTopLeftRadius: '0px',
         }}
       >
         {/* ── Contenuto Principale con scroll ── */}
         <div className="flex-1 min-h-0 px-4 md:px-7 py-3 overflow-y-auto">
 
-          {/* ── TESTATA IN SWITZER CON SWITCHER TABS ── */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-3 border-b border-sky-200/80">
-            <div>
+          {/* ── TESTATA IN SWITZER ── */}
+          <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-red-200/70">
+            {/* Sinistra: Titolo e Badge PIPELINE ingrandito */}
+            <div className="flex-shrink-0">
               <h1
-                className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2"
+                className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5"
                 style={{ fontFamily: '"Switzer", sans-serif' }}
               >
                 <span>Activities</span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-sky-100 text-[#0284c7] font-extrabold border border-sky-200">
-                  PIPELINE
+                <span
+                  className="px-3.5 py-1 rounded-[6px] shadow-xs inline-flex items-center leading-none"
+                  style={{
+                    backgroundColor: 'rgba(26, 43, 76, 0.93)',
+                    border: '1px solid rgba(148, 163, 184, 0.25)',
+                  }}
+                >
+                  <span
+                    className="text-[calc(1.5rem-5pt)] md:text-[calc(1.875rem-5pt)] font-black tracking-wider uppercase leading-none inline-flex items-center select-none"
+                    style={{
+                      background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 22%, #cbd5e1 48%, #94a3b8 72%, #cbd5e1 88%, #ffffff 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      filter: 'drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35)) drop-shadow(0 0 1px rgba(255, 255, 255, 0.5))',
+                    }}
+                  >
+                    Pipeline
+                  </span>
                 </span>
               </h1>
-              <p className="text-xs text-slate-500 font-semibold mt-0.5">
+              <p className="text-xs text-slate-500 font-semibold mt-0.5 leading-normal">
                 Pianificazione operativa, calendario set e automazioni
               </p>
             </div>
 
-            {/* Switcher Tab Superiore */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setMainTab('tasks')}
-                className={`px-3.5 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all border cursor-pointer ${
-                  mainTab === 'tasks'
-                    ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
-                    : 'bg-white/80 hover:bg-white text-slate-700 border-sky-200'
-                }`}
-              >
-                Attività ({activities.length})
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMainTab('drafts')}
-                className={`px-3.5 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all border flex items-center gap-1.5 cursor-pointer ${
-                  mainTab === 'drafts'
-                    ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
-                    : 'bg-white/80 hover:bg-white text-slate-700 border-sky-200'
-                }`}
-              >
-                <Mail className="w-3.5 h-3.5" />
-                <span>Bozze & Invii</span>
-                {draftsData.drafts?.length > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#d946ef] text-white font-black animate-pulse">
-                    {draftsData.drafts.length}
-                  </span>
-                )}
-              </button>
+            {/* Pulsanti Destra: Torna ad Attività (se in bozze) e Automazione ⚡ */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {mainTab === 'drafts' && (
+                <button
+                  type="button"
+                  onClick={() => setMainTab('tasks')}
+                  className="px-3.5 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all border bg-white/80 hover:bg-white text-slate-700 border-sky-200 cursor-pointer shadow-xs"
+                >
+                  ← Tutte le Attività
+                </button>
+              )}
 
               <button
                 type="button"
                 onClick={triggerPipelineSync}
                 disabled={syncingPipeline}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-white/90 hover:bg-white text-slate-700 hover:text-slate-900 border border-sky-200 font-extrabold text-xs rounded-xl transition-all shadow-xs uppercase tracking-wider disabled:opacity-50 cursor-pointer"
+                className="flex items-center justify-center p-2.5 bg-white/90 hover:bg-white text-slate-700 hover:text-slate-900 border border-sky-200 font-extrabold text-xs rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
                 title="Esegui scansione immediata email, generazione tasks e bozze"
               >
-                <RefreshCw className={`w-3.5 h-3.5 text-[#0284c7] ${syncingPipeline ? 'animate-spin' : ''}`} />
-                <span>{syncingPipeline ? 'Analisi...' : 'Automazione ⚡'}</span>
+                <RefreshCw className={`w-4 h-4 text-[#0284c7] ${syncingPipeline ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
@@ -540,135 +643,147 @@ export default function Activities() {
           {/* ── SELEZIONE CONTENUTO: TASKS OPPURE BOZZE/INVII AUTOMATICI ── */}
           {mainTab === 'tasks' ? (
             <div>
-              {/* ── PULSANTI COLOR GRIGIO METALLIZZATO: TO DO, IN PROGRAMMA, + NUOVA ATTIVITÀ ── */}
-              <div className="flex items-center gap-3 mb-5 flex-wrap">
-                
-                {/* 1. Pulsante Metallizzato: TO DO */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStatusFilter(statusFilter === 'today' ? 'all' : 'today')
-                    setCategoryFilter('all')
-                  }}
-                  className="px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider flex items-center gap-2.5 transition-all shadow-sm active:scale-95 cursor-pointer border"
+              {/* ── BARRA DI RICERCA ATTIVITÀ CENTRATA (LUNGA ALMENO 7CM) ── */}
+              <div className="flex items-center justify-center w-full mb-4">
+                <div
+                  className="relative"
                   style={{
-                    background: statusFilter === 'today'
-                      ? 'linear-gradient(180deg, #94a3b8 0%, #64748b 50%, #475569 100%)'
-                      : 'linear-gradient(180deg, #ffffff 0%, #e2e8f0 45%, #cbd5e1 55%, #94a3b8 100%)',
-                    borderColor: statusFilter === 'today' ? '#334155' : '#94a3b8',
-                    boxShadow: statusFilter === 'today'
-                      ? 'inset 0 2px 4px rgba(0,0,0,0.35)'
-                      : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 5px rgba(15,23,42,0.14)',
-                    color: statusFilter === 'today' ? '#ffffff' : '#0f172a',
-                    fontFamily: '"Switzer", sans-serif',
+                    minWidth: '7cm',
+                    width: '8.5cm',
+                    maxWidth: '100%',
                   }}
-                  title="Filtra attività To Do (in scadenza oggi / prioritarie)"
                 >
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#ea580c] shadow-xs" />
-                  <span>TO DO</span>
-                  <span className={`px-2 py-0.5 rounded-md text-xs font-black ${
-                    statusFilter === 'today' ? 'bg-white/20 text-white' : 'bg-slate-900/10 text-slate-900'
-                  }`}>
-                    {stats.dueToday}
-                  </span>
-                </button>
-
-                {/* 2. Pulsante Metallizzato: IN PROGRAMMA */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')
-                    setCategoryFilter('all')
-                  }}
-                  className="px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider flex items-center gap-2.5 transition-all shadow-sm active:scale-95 cursor-pointer border"
-                  style={{
-                    background: statusFilter === 'pending'
-                      ? 'linear-gradient(180deg, #94a3b8 0%, #64748b 50%, #475569 100%)'
-                      : 'linear-gradient(180deg, #ffffff 0%, #e2e8f0 45%, #cbd5e1 55%, #94a3b8 100%)',
-                    borderColor: statusFilter === 'pending' ? '#334155' : '#94a3b8',
-                    boxShadow: statusFilter === 'pending'
-                      ? 'inset 0 2px 4px rgba(0,0,0,0.35)'
-                      : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 5px rgba(15,23,42,0.14)',
-                    color: statusFilter === 'pending' ? '#ffffff' : '#0f172a',
-                    fontFamily: '"Switzer", sans-serif',
-                  }}
-                  title="Filtra attività in programma (in coda / pipeline)"
-                >
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7] shadow-xs" />
-                  <span>IN PROGRAMMA</span>
-                  <span className={`px-2 py-0.5 rounded-md text-xs font-black ${
-                    statusFilter === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-900/10 text-slate-900'
-                  }`}>
-                    {stats.pending}
-                  </span>
-                </button>
-
-                {/* 3. Pulsante Metallizzato: + NUOVA ATTIVITÀ */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (companies.length > 0 && !formData.company) {
-                      setFormData(f => ({ ...f, company: companies[0].name }))
-                    }
-                    setShowAddModal(true)
-                  }}
-                  className="px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer border"
-                  style={{
-                    background: 'linear-gradient(180deg, #ffffff 0%, #e2e8f0 45%, #cbd5e1 55%, #94a3b8 100%)',
-                    borderColor: '#94a3b8',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 5px rgba(15,23,42,0.14)',
-                    color: '#0f172a',
-                    fontFamily: '"Switzer", sans-serif',
-                  }}
-                  title="Crea una nuova attività CRM"
-                >
-                  <Plus className="w-4 h-4 stroke-[3] text-[#0284c7]" />
-                  <span>+ NUOVA ATTIVITÀ</span>
-                </button>
-
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0284c7] stroke-[2.5] pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Cerca attività, cliente o note..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full bg-white border-2 border-[#0284c7] hover:border-[#0369a1] focus:border-[#0369a1] focus:ring-2 focus:ring-[#0284c7]/20 rounded-full pl-10 pr-9 py-2.5 text-xs md:text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-bold shadow-xs transition-all leading-normal"
+                    style={{
+                      fontFamily: '"Switzer", sans-serif',
+                    }}
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch('')}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0284c7] font-bold p-1 cursor-pointer transition-colors"
+                      title="Cancella ricerca"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* ── CONSOLE ATTIVITÀ IN SWITZER E STILE CHIARO (WALKMAN SKIP, PRIORITÀ, CHIUDI) ── */}
+              {/* ── FILTRI: CATEGORIA, PRIORITÀ, STATI, TIMELINE / KANBAN ── */}
+              <div className="flex flex-wrap items-center gap-2 mb-5">
+                {/* Riquadro Filtro Categoria */}
+                <div className="relative">
+                  <select
+                    value={categoryFilter}
+                    onChange={e => setCategoryFilter(e.target.value)}
+                    className="appearance-none bg-white border border-slate-300 hover:border-slate-400 rounded-lg pl-3 pr-8 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-[#0284c7] font-bold shadow-xs transition-all cursor-pointer"
+                    style={{ fontFamily: '"Switzer", sans-serif' }}
+                  >
+                    <option value="all">Tutte le categorie</option>
+                    <option value="commercial">📞 Commerciale & Call</option>
+                    <option value="shooting">🎬 Shooting & Set</option>
+                    <option value="postprod">💻 Post-Produzione</option>
+                    <option value="admin">📄 Amministrazione</option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+
+                {/* Riquadro Filtro Priorità */}
+                <div className="relative">
+                  <select
+                    value={priorityFilter}
+                    onChange={e => setPriorityFilter(e.target.value)}
+                    className="appearance-none bg-white border border-slate-300 hover:border-slate-400 rounded-lg pl-3 pr-8 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-[#0284c7] font-bold shadow-xs transition-all cursor-pointer"
+                    style={{ fontFamily: '"Switzer", sans-serif' }}
+                  >
+                    <option value="all">Tutte le priorità</option>
+                    <option value="high">🔴 Alta priorità</option>
+                    <option value="medium">🔵 Media</option>
+                    <option value="low">⚪ Bassa</option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+
+                {/* Riquadro Filtro Stati */}
+                <div className="relative">
+                  <select
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value)}
+                    className="appearance-none bg-white border border-slate-300 hover:border-slate-400 rounded-lg pl-3 pr-8 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-[#0284c7] font-bold shadow-xs transition-all cursor-pointer"
+                    style={{ fontFamily: '"Switzer", sans-serif' }}
+                  >
+                    <option value="all">Tutti gli stati</option>
+                    <option value="today">⚡ Solo To Do (Oggi)</option>
+                    <option value="pending">In programma (Sospeso)</option>
+                    <option value="completed">Completate</option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+
+                {/* Riquadro Switcher Vista Timeline / Kanban (spostato accanto a Tutti gli stati) */}
+                <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-300 shadow-xs">
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-md transition-all cursor-pointer ${
+                      viewMode === 'list'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                  >
+                    <LayoutList className="w-3.5 h-3.5" />
+                    <span>Timeline</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('kanban')}
+                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-md transition-all cursor-pointer ${
+                      viewMode === 'kanban'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                  >
+                    <Columns className="w-3.5 h-3.5" />
+                    <span>Kanban</span>
+                  </button>
+                </div>
+
+                {/* Azzera filtri rapido */}
+                {(categoryFilter !== 'all' || priorityFilter !== 'all' || statusFilter !== 'all' || search) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCategoryFilter('all')
+                      setPriorityFilter('all')
+                      setStatusFilter('all')
+                      setSearch('')
+                    }}
+                    className="px-2.5 py-1.5 text-[11px] font-bold text-slate-600 hover:text-slate-900 rounded-lg bg-slate-200/80 hover:bg-slate-300/80 transition-colors flex items-center gap-1 cursor-pointer"
+                    title="Reimposta filtri e ricerca"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>Azzera filtri</span>
+                  </button>
+                )}
+              </div>
+
+              {/* ── CONSOLE ATTIVITÀ IN SWITZER AMALGAMATA ALLO SFONDO (SENZA PERIMETRO COLORATO, CON PREV/SKIP) ── */}
               {activeTask && (
                 <div
-                  className="p-4 rounded-2xl border border-sky-200 mb-5 shadow-xs relative overflow-hidden bg-white text-slate-800"
+                  className="p-4 rounded-2xl mb-5 shadow-xs relative overflow-hidden bg-white/70 backdrop-blur-xs border border-sky-200/80 text-slate-800 transition-all"
                   style={{ fontFamily: '"Switzer", sans-serif' }}
                 >
-                  {/* Riga Superiore: Contatore, Walkman Skip Controls & 4 Riquadri Priorità in Alto a Destra */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-sky-100">
-                    {/* Sinistra: Contatore e Frecce Walkman Skip */}
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-xs font-black px-2.5 py-0.5 rounded-md bg-sky-100 text-[#0284c7] uppercase">
-                        ATTIVITÀ {Math.min(currentTaskIdx + 1, activities.length)} DI {activities.length}
-                      </span>
-
-                      {/* Controlli Walkman Skip */}
-                      <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200" title="Skip task (frecce stile walkman)">
-                        <button
-                          type="button"
-                          onClick={() => setCurrentTaskIdx(i => (i - 1 + activities.length) % activities.length)}
-                          className="px-2 py-1 hover:bg-white text-slate-700 rounded text-xs font-black flex items-center gap-0.5 cursor-pointer transition-colors"
-                          title="Torna all'attività precedente"
-                        >
-                          <ChevronLeft className="w-3.5 h-3.5" />
-                          <span>PREV</span>
-                        </button>
-                        <span className="text-slate-300 font-bold">|</span>
-                        <button
-                          type="button"
-                          onClick={() => setCurrentTaskIdx(i => (i + 1) % activities.length)}
-                          className="px-2 py-1 hover:bg-white text-[#0284c7] rounded text-xs font-black flex items-center gap-0.5 cursor-pointer transition-colors"
-                          title="Skip: passa all'attività successiva"
-                        >
-                          <span>SKIP</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Destra: 4 Opzioni per modificare la priorità del task */}
-                    <div className="flex items-center gap-1" title="Modifica priorità del task">
-                      <span className="text-xs text-slate-400 font-black mr-1 hidden sm:inline">PRIORITÀ:</span>
+                  {/* Riga Superiore: PRIORITÀ a sinistra e PREV / SKIP al centro dello schermo */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-sky-100/90 relative">
+                    {/* Sinistra: 4 Opzioni per modificare la priorità del task (spostata a sinistra al posto di prev/skip) */}
+                    <div className="flex items-center gap-1.5 flex-shrink-0" title="Modifica priorità del task">
+                      <span className="text-xs md:text-sm text-slate-900 font-black mr-1 hidden sm:inline tracking-wider uppercase leading-none">PRIORITÀ:</span>
                       {TASK_PRIORITIES.map((p) => {
                         const isSelected = activeTask.priority === p.id ||
                           (activeTask.priority === 'high' && p.id === 'urgent_3d') ||
@@ -679,10 +794,10 @@ export default function Activities() {
                             key={p.id}
                             type="button"
                             onClick={() => handleUpdatePriority(activeTask.id, p.id)}
-                            className={`px-2 py-1 text-[11px] font-black uppercase rounded-md transition-all cursor-pointer border ${
+                            className={`px-3 py-1.5 text-xs md:text-sm font-black uppercase rounded-lg transition-all cursor-pointer border ${
                               isSelected
                                 ? 'ring-2 ring-slate-800 scale-105 shadow-xs font-extrabold'
-                                : 'opacity-60 hover:opacity-100'
+                                : 'opacity-65 hover:opacity-100'
                             }`}
                             style={{
                               color: p.color,
@@ -695,6 +810,43 @@ export default function Activities() {
                           </button>
                         )
                       })}
+                    </div>
+
+                    {/* Centro: Controlli Walkman PREV / SKIP centrati con contatore 1/15 */}
+                    <div className="flex-1 flex justify-center items-center">
+                      <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-2xs" title="Skip task (frecce stile walkman)">
+                        <button
+                          type="button"
+                          onClick={() => setCurrentTaskIdx(i => (i - 1 + activities.length) % activities.length)}
+                          className="px-2.5 py-1 hover:bg-white text-slate-700 rounded text-xs font-black flex items-center gap-0.5 cursor-pointer transition-colors"
+                          title="Torna all'attività precedente"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                          <span>PREV</span>
+                        </button>
+                        <span className="text-slate-300 font-bold">|</span>
+                        <span className="px-2 py-0.5 text-xs font-black text-slate-700 select-none">
+                          {Math.min(currentTaskIdx + 1, activities.length)}/{activities.length}
+                        </span>
+                        <span className="text-slate-300 font-bold">|</span>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentTaskIdx(i => (i + 1) % activities.length)}
+                          className="px-2.5 py-1 hover:bg-white text-[#0284c7] rounded text-xs font-black flex items-center gap-0.5 cursor-pointer transition-colors"
+                          title="Skip: passa all'attività successiva"
+                        >
+                          <span>SKIP</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Spazio bilanciato a destra per preservare la perfetta centratura */}
+                    <div className="hidden sm:block flex-shrink-0 invisible" aria-hidden="true">
+                      <span className="text-xs md:text-sm font-black mr-1 uppercase">PRIORITÀ:</span>
+                      {TASK_PRIORITIES.map(p => (
+                        <span key={p.id} className="px-3 py-1.5 text-xs md:text-sm font-black uppercase rounded-lg inline-block">{p.code}</span>
+                      ))}
                     </div>
                   </div>
 
@@ -718,16 +870,60 @@ export default function Activities() {
 
                       {/* Company con Logo B.A.N.T. e orario */}
                       <div className="flex items-center gap-3 text-xs text-slate-600 flex-wrap">
-                        <div className="flex items-center gap-1.5 text-[#0284c7] font-black">
-                          <Building2 className="w-3.5 h-3.5" />
+                        <div className="text-[#0284c7] font-black">
                           <span>{activeTask.company || 'DADO Studio'}</span>
                         </div>
-                        <BantLogoMark size="sm" />
+                        <BantLogoMark size="sm" bant={getActivityBant(activeTask, companies)} />
                         <span>•</span>
                         <span className="flex items-center gap-1 text-slate-500 font-bold">
                           <Clock className="w-3.5 h-3.5 text-slate-400" />
                           {activeTask.date || 'Oggi'} {activeTask.time || ''}
                         </span>
+                      </div>
+
+                      {/* Riquadro Assegnazione Task a... */}
+                      <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                        <div
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition-all ${
+                            activeTask.assignedTo
+                              ? 'bg-sky-50 border-sky-200 text-sky-900 shadow-2xs'
+                              : 'bg-slate-50 border-dashed border-slate-300 text-slate-600 hover:border-sky-300'
+                          }`}
+                          title="Assegnazione del task a un collaboratore"
+                        >
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {activeTask.assignedTo ? (
+                              <UserCheck className="w-4 h-4 text-[#0284c7]" />
+                            ) : (
+                              <UserPlus className="w-4 h-4 text-slate-400" />
+                            )}
+                            <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider">
+                              {activeTask.assignedTo ? 'Assegnazione task a:' : 'Assegnazione task a...'}
+                            </span>
+                          </div>
+
+                          <div className="relative inline-flex items-center">
+                            <select
+                              value={activeTask.assignedTo || ''}
+                              onChange={(e) => handleAssignTask(activeTask.id, e.target.value)}
+                              className="text-xs font-black text-slate-800 bg-white pl-2.5 pr-7 py-1 rounded-lg border border-slate-200 hover:border-sky-300 focus:outline-none focus:ring-1 focus:ring-[#0284c7] cursor-pointer appearance-none transition-colors"
+                            >
+                              <option value="">-- Non assegnato --</option>
+                              {userOptions.map(u => (
+                                <option key={u.id || u.name} value={u.name}>
+                                  {u.name}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 pointer-events-none" />
+                          </div>
+
+                          {activeTask.assignedTo && (
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-sky-200/70 text-sky-800">
+                              Assegnato
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {activeTask.notes && (
@@ -767,89 +963,6 @@ export default function Activities() {
                 </div>
               )}
 
-              {/* ── TOOLBAR: CERCA, FILTRI & SWITCHER VISTA IN STILE CHIARO ── */}
-              <div
-                className="bg-white p-3.5 rounded-2xl border border-sky-200 mb-5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-xs"
-                style={{ fontFamily: '"Switzer", sans-serif' }}
-              >
-                <div className="flex flex-wrap items-center gap-2.5 flex-1">
-                  {/* Campo Cerca */}
-                  <div className="relative min-w-[200px] flex-1 max-w-xs">
-                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Cerca attività, cliente o note..."
-                      value={search}
-                      onChange={e => setSearch(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284c7] font-semibold"
-                    />
-                  </div>
-
-                  {/* Filtro Categoria */}
-                  <select
-                    value={categoryFilter}
-                    onChange={e => setCategoryFilter(e.target.value)}
-                    className="bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-[#0284c7] font-bold"
-                  >
-                    <option value="all">Tutte le categorie</option>
-                    <option value="commercial">📞 Commerciale & Call</option>
-                    <option value="shooting">🎬 Shooting & Set</option>
-                    <option value="postprod">💻 Post-Produzione</option>
-                    <option value="admin">📄 Amministrazione</option>
-                  </select>
-
-                  {/* Filtro Priorità */}
-                  <select
-                    value={priorityFilter}
-                    onChange={e => setPriorityFilter(e.target.value)}
-                    className="bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-[#0284c7] font-bold"
-                  >
-                    <option value="all">Tutte le priorità</option>
-                    <option value="high">🔴 Alta priorità</option>
-                    <option value="medium">🔵 Media</option>
-                    <option value="low">⚪ Bassa</option>
-                  </select>
-
-                  {/* Filtro Stato */}
-                  <select
-                    value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
-                    className="bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-[#0284c7] font-bold"
-                  >
-                    <option value="all">Tutti gli stati</option>
-                    <option value="today">⚡ Solo To Do (Oggi)</option>
-                    <option value="pending">In programma (Sospeso)</option>
-                    <option value="completed">Completate</option>
-                  </select>
-                </div>
-
-                {/* Switcher Vista Timeline / Kanban */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 self-end lg:self-center">
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
-                      viewMode === 'list'
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <LayoutList className="w-3.5 h-3.5" />
-                    Timeline
-                  </button>
-                  <button
-                    onClick={() => setViewMode('kanban')}
-                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
-                      viewMode === 'kanban'
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <Columns className="w-3.5 h-3.5" />
-                    Kanban
-                  </button>
-                </div>
-              </div>
-
               {/* ── RENDERING PRINCIPALE: LISTA O KANBAN IN STILE AZZURRO TENUE ── */}
               {loading ? (
                 <div className="p-12 text-center text-slate-500 font-bold text-sm">Caricamento attività DADO Studio...</div>
@@ -861,15 +974,14 @@ export default function Activities() {
                   {todayTasks.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-2.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#ea580c] animate-pulse" />
-                        <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-sky-200 flex items-center gap-2 shadow-xs">
+                        <h2 className="text-sm md:text-base font-black uppercase tracking-wider text-slate-900 bg-white px-3.5 py-2 rounded-xl border border-sky-200 flex items-center gap-2 shadow-xs">
                           <span>TO DO / OGGI</span>
                           <span className="text-[#ea580c] font-black">({todayTasks.length})</span>
                         </h2>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {todayTasks.map(act => (
-                          <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} isToday />
+                          <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} onAssign={handleAssignTask} userList={userOptions} companies={companies} isToday />
                         ))}
                       </div>
                     </div>
@@ -880,14 +992,14 @@ export default function Activities() {
                     <div>
                       <div className="flex items-center gap-2 mb-2.5">
                         <Calendar className="w-4 h-4 text-[#0284c7]" />
-                        <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-sky-200 flex items-center gap-2 shadow-xs">
+                        <h2 className="text-sm md:text-base font-black uppercase tracking-wider text-slate-900 bg-white px-3.5 py-2 rounded-xl border border-sky-200 flex items-center gap-2 shadow-xs">
                           <span>IN PROGRAMMA</span>
                           <span className="text-[#0284c7] font-black">({upcomingTasks.length})</span>
                         </h2>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {upcomingTasks.map(act => (
-                          <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} />
+                          <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} onAssign={handleAssignTask} userList={userOptions} companies={companies} />
                         ))}
                       </div>
                     </div>
@@ -898,14 +1010,14 @@ export default function Activities() {
                     <div>
                       <div className="flex items-center gap-2 mb-2.5">
                         <CheckCircle2 className="w-4 h-4 text-[#16a34a]" />
-                        <h2 className="text-xs font-black uppercase tracking-wider text-slate-600 bg-white/80 px-3 py-1.5 rounded-xl border border-sky-200 flex items-center gap-2 shadow-xs">
+                        <h2 className="text-sm md:text-base font-black uppercase tracking-wider text-slate-600 bg-white/80 px-3.5 py-2 rounded-xl border border-sky-200 flex items-center gap-2 shadow-xs">
                           <span>COMPLETATE</span>
                           <span className="text-[#16a34a] font-black">({completedTasks.length})</span>
                         </h2>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 opacity-75 hover:opacity-100 transition-opacity">
                         {completedTasks.map(act => (
-                          <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} />
+                          <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} onAssign={handleAssignTask} userList={userOptions} companies={companies} />
                         ))}
                       </div>
                     </div>
@@ -925,8 +1037,7 @@ export default function Activities() {
                   {/* Colonna 1: In Programma */}
                   <div className="bg-white p-4 rounded-2xl border border-sky-200 flex flex-col shadow-xs">
                     <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-sky-100">
-                      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-900">
-                        <span className="w-2 h-2 rounded-full bg-[#0284c7]" />
+                      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#0284c7]">
                         <span>In Programma</span>
                       </div>
                       <span className="text-xs bg-sky-100 px-2 py-0.5 rounded-full text-[#0284c7] font-black">
@@ -935,7 +1046,7 @@ export default function Activities() {
                     </div>
                     <div className="space-y-2.5 flex-1 overflow-y-auto max-h-[600px] pr-1">
                       {upcomingTasks.map(act => (
-                        <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} isKanban />
+                        <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} onAssign={handleAssignTask} userList={userOptions} companies={companies} isKanban />
                       ))}
                       {upcomingTasks.length === 0 && (
                         <div className="text-center py-8 text-xs text-slate-400 font-medium">Nessuna attività in coda</div>
@@ -947,7 +1058,6 @@ export default function Activities() {
                   <div className="bg-white p-4 rounded-2xl border-2 border-[#ea580c]/50 flex flex-col shadow-xs">
                     <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-sky-100">
                       <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#ea580c]">
-                        <span className="w-2 h-2 rounded-full bg-[#ea580c] animate-ping" />
                         <span>To Do / Oggi</span>
                       </div>
                       <span className="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-black">
@@ -956,7 +1066,7 @@ export default function Activities() {
                     </div>
                     <div className="space-y-2.5 flex-1 overflow-y-auto max-h-[600px] pr-1">
                       {todayTasks.map(act => (
-                        <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} isToday isKanban />
+                        <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} onAssign={handleAssignTask} userList={userOptions} companies={companies} isToday isKanban />
                       ))}
                       {todayTasks.length === 0 && (
                         <div className="text-center py-8 text-xs text-slate-400 font-medium">Nessun task urgente per oggi</div>
@@ -968,7 +1078,6 @@ export default function Activities() {
                   <div className="bg-white p-4 rounded-2xl border border-sky-200 flex flex-col shadow-xs">
                     <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-sky-100">
                       <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#16a34a]">
-                        <span className="w-2 h-2 rounded-full bg-[#16a34a]" />
                         <span>Completate</span>
                       </div>
                       <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-black">
@@ -977,7 +1086,7 @@ export default function Activities() {
                     </div>
                     <div className="space-y-2.5 flex-1 overflow-y-auto max-h-[600px] pr-1 opacity-80 hover:opacity-100 transition-opacity">
                       {completedTasks.map(act => (
-                        <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} isKanban />
+                        <ActivityCard key={act.id} activity={act} onToggle={toggleStatus} onDelete={handleDelete} onUpdatePriority={handleUpdatePriority} onToggleChecklist={toggleChecklistItem} onOpenDrafts={() => setMainTab('drafts')} onAssign={handleAssignTask} userList={userOptions} companies={companies} isKanban />
                       ))}
                       {completedTasks.length === 0 && (
                         <div className="text-center py-8 text-xs text-slate-400 font-medium">Nessuna attività completata</div>
@@ -1309,6 +1418,25 @@ export default function Activities() {
               </div>
 
               <div>
+                <label className="block text-xs font-black uppercase text-slate-700 mb-1 flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-[#0284c7]" />
+                  <span>Assegnazione task a...</span>
+                </label>
+                <select
+                  value={formData.assignedTo || ''}
+                  onChange={e => setFormData({ ...formData, assignedTo: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-[#0284c7]"
+                >
+                  <option value="">-- Non assegnato / Team Studio --</option>
+                  {userOptions.map(u => (
+                    <option key={u.id || u.name} value={u.name}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-xs font-black uppercase text-slate-700 mb-1">
                   Note Operative & Attrezzature Coinvolte
                 </label>
@@ -1349,29 +1477,28 @@ export default function Activities() {
 }
 
 // ── COMPONENTE CARD ATTIVITÀ SINGOLA IN SWITZER E STILE CHIARO DADO ──
-function ActivityCard({ activity, onToggle, onDelete, onUpdatePriority, onToggleChecklist, onOpenDrafts, isToday, isKanban }) {
+function ActivityCard({ activity, onToggle, onDelete, onUpdatePriority, onToggleChecklist, onOpenDrafts, onAssign, userList = [], isToday, isKanban, companies = [] }) {
   const isDone = activity.status === 'completed'
-  const isPriority = !isDone && (activity.priority === 'high' || activity.priority === 'urgent_3d' || isToday || activity.due === 'today' || activity.period?.toLowerCase() === 'oggi')
+  const isTodo = !isDone && (isToday || activity.due === 'today' || activity.period?.toLowerCase() === 'oggi')
+  const isPriority = !isDone && (activity.priority === 'high' || activity.priority === 'urgent_3d' || isTodo)
   const cat = CATEGORIES[activity.type] || CATEGORIES.commercial
   const IconComponent = cat.icon
 
-  const dotColor = isDone
-    ? '#94a3b8'
-    : cat.color === '#ffffff'
-    ? '#16a34a'
-    : cat.color
-
   const isAutoGenerated = activity.source === 'pipeline_llm_automation' || Boolean(activity.checklist?.length) || Boolean(activity.emailStatus)
+
+  // Contorno colorato dinamico a seconda dello stato:
+  // - "completate": #16a34a (Verde smeraldo)
+  // - "To do": #ea580c (Arancione energico)
+  // - "in programma": #0284c7 (Azzurro / Blu sky)
+  const borderClass = isDone
+    ? 'border-2 border-[#16a34a] shadow-[0_2px_8px_rgba(22,163,74,0.12)] opacity-85 hover:opacity-100 hover:shadow-[0_4px_12px_rgba(22,163,74,0.2)]'
+    : isTodo
+    ? 'border-2 border-[#ea580c] shadow-[0_2px_10px_rgba(234,88,12,0.15)] hover:shadow-[0_4px_16px_rgba(234,88,12,0.25)]'
+    : 'border-2 border-[#0284c7] shadow-[0_2px_10px_rgba(2,132,199,0.15)] hover:shadow-[0_4px_16px_rgba(2,132,199,0.25)]'
 
   return (
     <div
-      className={`rounded-2xl border transition-all p-3.5 relative group shadow-xs bg-white ${
-        isDone
-          ? 'border-slate-200 opacity-65'
-          : isPriority
-          ? 'border-sky-300 shadow-md ring-1 ring-sky-200'
-          : 'border-sky-200/80 hover:border-sky-300 hover:shadow-sm'
-      }`}
+      className={`rounded-2xl transition-all p-3.5 relative group bg-white ${borderClass}`}
       style={{
         backgroundColor: '#ffffff',
         fontFamily: '"Switzer", sans-serif',
@@ -1379,20 +1506,16 @@ function ActivityCard({ activity, onToggle, onDelete, onUpdatePriority, onToggle
     >
       <div className="flex items-start gap-3">
         
-        {/* Checkbox rotonda */}
-        <button
-          onClick={() => onToggle(activity)}
-          className={`mt-0.5 shrink-0 transition-colors cursor-pointer ${
-            isDone ? 'text-[#16a34a]' : isPriority ? 'text-[#ea580c] hover:text-black' : 'text-slate-400 hover:text-[#16a34a]'
-          }`}
-          title={isDone ? 'Segna come da fare' : 'Segna come completata'}
-        >
-          {isDone ? (
+        {/* Checkbox completata (visibile con spunta verde solo sulle attività completate) */}
+        {isDone && (
+          <button
+            onClick={() => onToggle(activity)}
+            className="mt-0.5 shrink-0 text-[#16a34a] hover:opacity-75 transition-opacity cursor-pointer"
+            title="Segna come da fare (riapri)"
+          >
             <CheckCircle2 className="w-5 h-5 text-[#16a34a]" />
-          ) : (
-            <Circle className={`w-5 h-5 hover:scale-110 transition-transform ${isPriority ? 'stroke-[2.5]' : ''}`} />
-          )}
-        </button>
+          </button>
+        )}
 
         {/* Corpo della Card */}
         <div className="flex-1 min-w-0">
@@ -1408,12 +1531,6 @@ function ActivityCard({ activity, onToggle, onDelete, onUpdatePriority, onToggle
                   border: `1px solid ${cat.border}`,
                 }}
               >
-                <span
-                  className="w-2 h-2 rounded-full inline-block shrink-0"
-                  style={{
-                    backgroundColor: dotColor,
-                  }}
-                />
                 <IconComponent className="w-3 h-3" />
                 <span>{cat.label}</span>
               </span>
@@ -1509,13 +1626,55 @@ function ActivityCard({ activity, onToggle, onDelete, onUpdatePriority, onToggle
 
           {/* Azienda / Cliente con Acronimo B.A.N.T. */}
           <div className="flex items-center justify-between gap-1.5 text-xs mt-1.5 text-slate-500">
-            <div className="flex items-center gap-1.5 truncate">
-              <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              <span className="truncate text-slate-800 font-extrabold">
-                {activity.company || 'DADO Studio'}
-              </span>
+            <div className="truncate text-slate-800 font-extrabold">
+              {activity.company || 'DADO Studio'}
             </div>
-            <BantLogoMark size="sm" />
+            <BantLogoMark size="sm" bant={getActivityBant(activity, companies)} />
+          </div>
+
+          {/* Riquadro Assegnazione task a... */}
+          <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center gap-2 flex-wrap">
+            <div
+              className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-xs transition-all w-full sm:w-auto ${
+                activity.assignedTo
+                  ? 'bg-sky-50/80 border-sky-200 text-sky-900 shadow-2xs'
+                  : 'bg-slate-50 border-dashed border-slate-300 text-slate-600 hover:border-sky-300 hover:bg-sky-50/30'
+              }`}
+              title="Assegnazione task a un collaboratore dello studio"
+            >
+              <div className="flex items-center gap-1.5 shrink-0">
+                {activity.assignedTo ? (
+                  <UserCheck className="w-3.5 h-3.5 text-[#0284c7]" />
+                ) : (
+                  <UserPlus className="w-3.5 h-3.5 text-slate-400" />
+                )}
+                <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+                  {activity.assignedTo ? 'Assegnazione task a:' : 'Assegnazione task a...'}
+                </span>
+              </div>
+
+              <div className="relative inline-flex items-center flex-1 sm:flex-initial">
+                <select
+                  value={activity.assignedTo || ''}
+                  onChange={(e) => onAssign && onAssign(activity.id, e.target.value)}
+                  className="text-xs font-black text-slate-800 bg-white/95 hover:bg-white pl-2 pr-6 py-1 rounded-lg border border-slate-200 hover:border-sky-300 focus:outline-none focus:ring-1 focus:ring-[#0284c7] cursor-pointer appearance-none transition-colors w-full"
+                >
+                  <option value="">-- Seleziona collaboratore --</option>
+                  {userList.map(u => (
+                    <option key={u.id || u.name} value={u.name}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 pointer-events-none" />
+              </div>
+
+              {activity.assignedTo && (
+                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-200/70 text-sky-800 shrink-0">
+                  Assegnato
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Checklist interattiva */}
@@ -1561,15 +1720,28 @@ function ActivityCard({ activity, onToggle, onDelete, onUpdatePriority, onToggle
 
         </div>
 
-        {/* Pulsante Rimuovi */}
-        <button
-          onClick={() => onDelete(activity.id)}
-          className="self-center px-2 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-black uppercase transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
-          title="Rimuovi attività"
-        >
-          <Trash2 className="w-3 h-3" />
-          <span>Rimuovi</span>
-        </button>
+        {/* Pulsanti Azione: Completa + Rimuovi */}
+        <div className="flex items-center gap-1.5 self-center shrink-0">
+          {!isDone && (
+            <button
+              onClick={() => onToggle(activity)}
+              className="px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+              title="Segna come completata"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#16a34a]" />
+              <span>Completa</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => onDelete(activity.id)}
+            className="px-2 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-black uppercase transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
+            title="Rimuovi attività"
+          >
+            <Trash2 className="w-3 h-3" />
+            <span>Rimuovi</span>
+          </button>
+        </div>
 
       </div>
     </div>
