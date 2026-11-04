@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "dado-crm": {
+      "command": "node",
+      "args": [
+        "server/mcp/dadoCrmMcpServer.js"
+      ],
+      "env": {
+        "CRM_DATA_PATH": "server/data/crmData.json",
+        "CRM_API_BASE": "http://localhost:3001"
+      }
+    }
+  }
+}

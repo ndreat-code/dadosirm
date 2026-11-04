@@ -1,0 +1,48 @@
+[
+  {
+    "id": "train-1791312975848",
+    "company": "Solaris Green Energy",
+    "contactPerson": {
+      "name": "",
+      "role": ""
+    },
+    "bant": {
+      "budget": "€ 14.500",
+      "need": "Spot TV HDR broadcast",
+      "timeline": ""
+    },
+    "priority": "urgent_3d",
+    "guidelines": "Per Solaris o progetti spot TV HDR, considerare sempre budget 14.500 euro con 50% di acconto all approvazione.",
+    "customKeywords": [
+      "solaris",
+      "spot tv",
+      "hdr",
+      "broadcast"
+    ],
+    "notes": "",
+    "updatedAt": "2026-10-06T18:56:15.849Z"
+  },
+  {
+    "id": "train-default-1",
+    "createdAt": "2026-10-06T18:00:00.000Z",
+    "company": "Officine Meccaniche Riva",
+    "contactPerson": {
+      "name": "Ing. Marco Riva",
+      "role": "Managing Director"
+    },
+    "bant": {
+      "budget": "€ 9.200",
+      "authority": "Ing. Marco Riva (Managing Director)",
+      "need": "Shooting video corporate stabilimento con drone 4K indoor",
+      "timeline": "Urgente entro 3 giorni"
+    },
+    "priority": "urgent_3d",
+    "customKeywords": [
+      "deliberato",
+      "stabilimento",
+      "drone indoor",
+      "approvazione budget"
+    ],
+    "guidelines": "Quando un cliente industriale o corporate conferma che il preventivo è stato 'deliberato' o 'approvato', estrai sempre la cifra esatta in € e imposta la priorità su urgente entro 3 giorni per avvio produzione immediato."
+  }
+]

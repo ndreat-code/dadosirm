@@ -30,7 +30,8 @@ export default {
         'revalia':     ['Revalia', 'cursive'],
         'switzer':     ['"Switzer"', 'Inter', 'sans-serif'],
         sans: ['"Switzer"', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
+        // 'font-mono' NON è più un monospace: alias di Switzer (regola: mai font monospace salvo richiesta esplicita)
+        mono: ['"Switzer"', 'Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

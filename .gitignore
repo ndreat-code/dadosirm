@@ -41,6 +41,9 @@ Thumbs.db
 # Log e directory temporanee
 logs/
 *.log
+*.command
+server/data/backups_local/
+server/data/backups_cloud_mirror/
 scratch/
 .system_generated/
 

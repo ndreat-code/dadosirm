@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DADO CRM — Nota Esecutiva di Governance & Compliance Operativa</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700,800,900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #ffffff;
+      --ink-900: #0f172a;
+      --ink-700: #334155;
+      --ink-500: #64748b;
+      --sky-600: #0284c7;
+      --sky-100: #e0f2fe;
+      --emerald-600: #059669;
+      --emerald-100: #d1fae5;
+      --amber-600: #d97706;
+      --amber-100: #fef3c7;
+      --rose-600: #e11d48;
+      --rose-100: #ffe4e6;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Switzer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      color: var(--ink-900);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
+
+    /* Barra di navigazione sfogliabile in alto */
+    .top-DeckBar {
+      width: 100%;
+      max-width: 900px;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 22px;
+      position: sticky;
+      top: 14px;
+      z-index: 50;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+    }
+
+    .dado-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .page-pill {
+      padding: 7px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .page-pill:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+    }
+
+    .page-pill.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(2, 132, 199, 0.45);
+    }
+
+    .btn-action {
+      padding: 7px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      background: rgba(2, 132, 199, 0.2);
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .btn-action:hover {
+      background: #0284c7;
+      color: #ffffff;
+    }
+
+    /* Singola Pagina A4 Sfogliabile */
+    .page-sheet {
+      width: 100%;
+      max-width: 900px;
+      min-height: 1120px;
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 44px 48px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55);
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #dbeafe;
+    }
+
+    .page-sheet.active {
+      display: flex;
+    }
+
+    .all-pages-mode .page-sheet {
+      display: flex;
+      margin-bottom: 28px;
+    }
+
+    .page-header {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 20px;
+      margin-bottom: 26px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .kicker {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--sky-100);
+      color: var(--sky-600);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--ink-900);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--ink-500);
+      font-weight: 500;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    .page-badge {
+      padding: 6px 12px;
+      border-radius: 10px;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+
+    .card.highlight-sky {
+      background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-color: #7dd3fc;
+    }
+
+    .card.highlight-emerald {
+      background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+      border-color: #6ee7b7;
+    }
+
+    .card.highlight-amber {
+      background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+      border-color: #fcd34d;
+    }
+
+    .card.highlight-rose {
+      background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+      border-color: #fda4af;
+    }
+
+    .card-tag {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: 5px;
+      margin-bottom: 8px;
+      background: rgba(15, 23, 42, 0.08);
+      color: var(--ink-900);
+    }
+
+    .card h3 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink-900);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .card p {
+      font-size: 13.5px;
+      color: var(--ink-700);
+      line-height: 1.55;
+      margin-bottom: 8px;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .bullet-list li {
+      font-size: 13px;
+      color: var(--ink-700);
+      line-height: 1.45;
+      padding-left: 18px;
+      position: relative;
+      font-weight: 500;
+    }
+
+    .bullet-list li::before {
+      content: "•";
+      position: absolute;
+      left: 3px;
+      top: 0;
+      color: var(--sky-600);
+      font-weight: 900;
+    }
+
+    .policy-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 18px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+    }
+
+    .policy-table th {
+      background: #0f172a;
+      color: #ffffff;
+      text-align: left;
+      padding: 11px 14px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .policy-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 13px;
+      color: var(--ink-700);
+      background: #ffffff;
+      vertical-align: top;
+    }
+
+    .policy-table tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .status-pill.green {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-pill.amber {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-pill.red {
+      background: #ffe4e6;
+      color: #9f1239;
+    }
+
+    .status-pill.blue {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .callout-box {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 16px;
+      padding: 18px 22px;
+      margin-top: 8px;
+      border-left: 5px solid #38bdf8;
+    }
+
+    .callout-box h4 {
+      font-size: 14px;
+      font-weight: 800;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .callout-box p {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    .page-footer {
+      border-top: 1.5px solid #e2e8f0;
+      padding-top: 16px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--ink-500);
+      font-weight: 600;
+    }
+
+    .footer-nav-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .footer-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: var(--ink-900);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .footer-btn:hover {
+      background: #e2e8f0;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .top-DeckBar,
+      .footer-nav-btns {
+        display: none !important;
+      }
+      .page-sheet {
+        display: flex !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        min-height: 98vh;
+        page-break-after: always;
+        padding: 24px 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra Superiore per sfogliare le 4 pagine o stampare in PDF -->
+  <div class="top-DeckBar">
+    <div class="brand-title">
+      <span>DADO CRM • DOSSIER DIREZIONE</span>
+    </div>
+    <div class="nav-controls">
+      <button class="page-pill active" onclick="showPage(1)" id="pill-1">Pag. 1 • Governance & Ruoli</button>
+      <button class="page-pill" onclick="showPage(2)" id="pill-2">Pag. 2 • Policy Dati & Email</button>
+      <button class="page-pill" onclick="showPage(3)" id="pill-3">Pag. 3 • Scudo Sicurezza AI</button>
+      <button class="page-pill" onclick="showPage(4)" id="pill-4">Pag. 4 • Cross-Check & Audit</button>
+    </div>
+    <div class="nav-controls">
+      <button class="btn-action" onclick="toggleAllPages()" id="btn-all">Vista Continua (4 Pag.)</button>
+      <button class="btn-action" onclick="window.print()">Stampa / PDF</button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PAGINA 1 / 4 : ARCHITETTURA DI GOVERNANCE, RUOLI (RBAC) E PERMESSI    -->
+  <!-- ===================================================================== -->
+  <section class="page-sheet active" id="page-1">
+    <div>
+      <header class="page-header">
+        <div>
+          <span class="kicker">Nota Esecutiva per la Direzione • Sezione 1 di 4</span>
+          <h1 class="page-title">Strumenti Operativi di Governance & Compliance</h1>
+          <p class="page-subtitle">
+            Sintesi dei presidi di controllo accessi, tutela del dato aziendale, sicurezza delle automazioni AI e audit incrociato integrati nativamente nel DADO CRM.
+          </p>
+        </div>
+        <span class="page-badge">PAGINA 1 / 4</span>
+      </header>
+
+      <div class="section-grid">
+        <div class="card highlight-sky">
+          <span class="card-tag">Presidio 01 • Access Control</span>
+          <h3>Controllo Accessi Basato sui Ruoli (RBAC)</h3>
+          <p>
+            Il CRM separa in modo rigoroso le funzioni operative quotidiane dalle funzioni di governo, configurazione e supervisione economica.
+          </p>
+          <ul class="bullet-list">
+            <li><strong>Director (Direzione):</strong> visibilità completa su KPI, marginalità, audit incrociato, gestione permessi utenti, regole di automazione e comunicazioni dirette con lo sviluppatore.</li>
+            <li><strong>Super Admin / Sviluppatore:</strong> presidio tecnico, diagnostica pipeline AI, configurazione policy e manutenzione evolutiva.</li>
+            <li><strong>Account / Producer & Operatori:</strong> accesso controllato alle sole sezioni operative abilitate (Calendario, Tasks, Schede Clienti, Inventario).</li>
+          </ul>
+        </div>
+
+        <div class="card highlight-emerald">
+          <span class="card-tag">Presidio 02 • Segregazione & Zero Password in Chiaro</span>
+          <h3>Protezione Sezioni Critiche & Hash Crittografico</h3>
+          <p>
+            Ogni rotta è protetta da guardie di permesso e nessuna password viene mai salvata in chiaro nel CRM.
+          </p>
+          <ul class="bullet-list">
+            <li><strong>Zero Password in Chiaro (PBKDF2-SHA256):</strong> appena una password viene registrata o cambiata, il testo viene trasformato in un codice crittografico irreversibile (es. <strong>pbkdf2$8f9a...</strong>) e la password originale non viene mai salvata da nessuna parte.</li>
+            <li><strong>Gestione Utenti & Permessi:</strong> abilitazione/revoca immediata dei permessi per singolo collaboratore.</li>
+            <li><strong>Canale Riservato Direzione–Sviluppatore:</strong> le note inviate dalla barra inferiore sono visibili esclusivamente ai profili <em>Director</em> e <em>Super Admin</em>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-size: 15px; font-weight: 800; margin: 18px 0 8px;">Matrice Operativa dei Permessi e Sicurezza Credenziali</h3>
+      <table class="policy-table">
+        <thead>
+          <tr>
+            <th>Modulo / Strumento di Governance</th>
+            <th>Director</th>
+            <th>Super Admin</th>
+            <th>Team Operativo</th>
+            <th>Obiettivo di Compliance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Archiviazione Password Utenti (PBKDF2)</strong></td>
+            <td><span class="status-pill green">Solo Hash (pbkdf2$)</span></td>
+            <td><span class="status-pill green">Solo Hash (pbkdf2$)</span></td>
+            <td><span class="status-pill green">Illeggibile</span></td>
+            <td>Zero password in chiaro: nessuno può leggere le password</td>
+          </tr>
+          <tr>
+            <td><strong>Dashboard KPI, Funnel & Fatturato</strong></td>
+            <td><span class="status-pill green">Controllo Totale</span></td>
+            <td><span class="status-pill green">Controllo Totale</span></td>
+            <td><span class="status-pill blue">Vista Operativa</span></td>
+            <td>Monitoraggio in tempo reale delle performance commerciali</td>
+          </tr>
+          <tr>
+            <td><strong>Gestione Utenti & Matrice Permessi</strong></td>
+            <td><span class="status-pill green">Abilitato</span></td>
+            <td><span class="status-pill green">Abilitato</span></td>
+            <td><span class="status-pill red">Bloccato</span></td>
+            <td>Prevenzione accessi non autorizzati a configurazioni e ruoli</td>
+          </tr>
+          <tr>
+            <td><strong>Automazioni AI & Regole Pipeline Email</strong></td>
+            <td><span class="status-pill green">Abilitato</span></td>
+            <td><span class="status-pill green">Abilitato</span></td>
+            <td><span class="status-pill amber">Sola Consultazione</span></td>
+            <td>Supervisione centralizzata sui flussi automatici</td>
+          </tr>
+          <tr>
+            <td><strong>Sezione "Note allo Sviluppatore Inviate"</strong></td>
+            <td><span class="status-pill green">Esclusivo</span></td>
+            <td><span class="status-pill green">Esclusivo</span></td>
+            <td><span class="status-pill red">Nascosto</span></td>
+            <td>Riservatezza nelle direttive di sviluppo tra Direzione e IT</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout-box">
+        <h4>Punto Chiave per la Direzione</h4>
+        <p>
+          Durante il test del CRM è possibile simulare il cambio di ruolo in qualsiasi momento dal selettore profilo in alto a destra per verificare dal vivo come il sistema limita o abilita istantaneamente le viste e le operazioni sensibili.
+        </p>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <span>DADO Creative Studio • Documento Interno di Governance & Compliance CRM</span>
+      <div class="footer-nav-btns">
+        <button class="footer-btn" onclick="showPage(2)">Pagina 2: Policy Dati & Email →</button>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- PAGINA 2 / 4 : POLICY DI ESTRAZIONE EMAIL E DATA MINIMIZATION         -->
+  <!-- ===================================================================== -->
+  <section class="page-sheet" id="page-2">
+    <div>
+      <header class="page-header">
+        <div>
+          <span class="kicker">Nota Esecutiva per la Direzione • Sezione 2 di 4</span>
+          <h1 class="page-title">Policy sui Dati Estrapolati dalle Email</h1>
+          <p class="page-subtitle">
+            Regole deterministiche di minimizzazione del dato (Data Minimization), divieto di copia integrale dei testi e mappatura controllata nei campi del CRM.
+          </p>
+        </div>
+        <span class="page-badge">PAGINA 2 / 4</span>
+      </header>
+
+      <div class="section-grid">
+        <div class="card highlight-emerald">
+          <span class="card-tag">Regola Aureola • Data Minimization</span>
+          <h3>Divieto di Allegare il Corpo Integrale delle Email</h3>
+          <p>
+            Per garantire ordine operativo e conformità ai principi di minimizzazione dei dati (GDPR), la pipeline <strong>non copia né allega mai l'intero testo delle email</strong> dentro le <em>Tasks</em> o nelle schede <em>Companies</em>.
+          </p>
+          <ul class="bullet-list">
+            <li>Evita l'esposizione accidentale di conversazioni riservate, firme legali o dati personali superflui nelle viste condivise.</li>
+            <li>Mantiene le schede aziendali e le task pulite, leggibili e immediatamente azionabili dal team.</li>
+          </ul>
+        </div>
+
+        <div class="card highlight-sky">
+          <span class="card-tag">Estrazione Selettiva • Schema Rigido</span>
+          <h3>Campi Strutturati Ammessi nel CRM</h3>
+          <p>
+            Il motore di estrazione può aggiornare esclusivamente un set chiuso e validato di attributi commerciali:
+          </p>
+          <ul class="bullet-list">
+            <li><strong>Anagrafica di Contatto:</strong> indirizzo email diretto, telefono e nome/ruolo del referente aziendale.</li>
+            <li><strong>Dettagli Contrattuali:</strong> stato del contratto, condizioni di pagamento e importo numerico del budget/preventivo.</li>
+            <li><strong>Richieste Sintetiche da Oggetto:</strong> max 6 tag operativi (3–75 caratteri) ricavati dall'oggetto della richiesta.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-size: 15px; font-weight: 800; margin: 18px 0 8px;">Tabella delle Policy di Scrittura Dati (Email → CRM)</h3>
+      <table class="policy-table">
+        <thead>
+          <tr>
+            <th>Dato / Contenuto nell'Email</th>
+            <th>Azione della Pipeline CRM</th>
+            <th>Destinazione nel CRM</th>
+            <th>Stato Policy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Corpo testuale lungo / Thread storico email</strong></td>
+            <td>Scartato dal salvataggio nelle card; usato solo in memoria per l'analisi semantica</td>
+            <td>Nessuna (non salvato in <em>Tasks</em> né in <em>Companies</em>)</td>
+            <td><span class="status-pill red">Blocco Tassativo</span></td>
+          </tr>
+          <tr>
+            <td><strong>Indirizzo Email, Telefono e Nome/Ruolo Referente</strong></td>
+            <td>Normalizzazione formato e aggiornamento anagrafica referente</td>
+            <td>Scheda <em>Companies</em> → sezione Contatti & Referente</td>
+            <td><span class="status-pill green">Ammesso & Validato</span></td>
+          </tr>
+          <tr>
+            <td><strong>Importo Preventivo / Budget e Clausole Contratto</strong></td>
+            <td>Estrazione valore in Euro e stato contrattuale (<em>In valutazione, Approvato, Revisione</em>)</td>
+            <td>Scheda <em>Companies</em> + <em>Pipeline Opportunities</em></td>
+            <td><span class="status-pill green">Ammesso & Validato</span></td>
+          </tr>
+          <tr>
+            <td><strong>Richiesta Operativa dall'Oggetto Email</strong></td>
+            <td>Sintesi fino a max 8 parole per il titolo Task + classificazione priorità temporale</td>
+            <td>Sezione <em>Tasks / Activities</em> con fascia di urgenza</td>
+            <td><span class="status-pill blue">Sintesi Controllata</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout-box">
+        <h4>Addestramento Supervisionato dalla Direzione (Active Learning)</h4>
+        <p>
+          Tramite il modulo <strong>"Allena AI / Regole di Estrazione"</strong>, la Direzione può definire istruzioni vincolanti e parole chiave personalizzate per cliente o settore: ogni regola salvata ha priorità assoluta nell'assegnazione delle urgenze (<em>Urgente 3 giorni, 1 settimana, 2/3 settimane, 1 mese</em>).
+        </p>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <span>DADO Creative Studio • Documento Interno di Governance & Compliance CRM</span>
+      <div class="footer-nav-btns">
+        <button class="footer-btn" onclick="showPage(1)">← Pagina 1</button>
+        <button class="footer-btn" onclick="showPage(3)">Pagina 3: Scudo Sicurezza AI →</button>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- PAGINA 3 / 4 : SICUREZZA ANTI-PROMPT INJECTION & HUMAN-IN-THE-LOOP    -->
+  <!-- ===================================================================== -->
+  <section class="page-sheet" id="page-3">
+    <div>
+      <header class="page-header">
+        <div>
+          <span class="kicker">Nota Esecutiva per la Direzione • Sezione 3 di 4</span>
+          <h1 class="page-title">Scudo Sicurezza AI & "Human-in-the-Loop"</h1>
+          <p class="page-subtitle">
+            Protezione contro manipolazioni via email (Prompt Injection / Testo Nascosto) e blocco automatico sugli impegni commerciali ed economici.
+          </p>
+        </div>
+        <span class="page-badge">PAGINA 3 / 4</span>
+      </header>
+
+      <div class="section-grid">
+        <div class="card highlight-rose">
+          <span class="card-tag">Cybersecurity AI • Email Safety</span>
+          <h3>Filtro Anti-Prompt Injection & Testo Nascosto</h3>
+          <p>
+            Prima che un'email venga letta dal modello AI, il modulo di sicurezza (<strong>emailSafety.js</strong>) ispeziona la struttura HTML e il testo in chiaro:
+          </p>
+          <ul class="bullet-list">
+            <li><strong>Rimozione testo invisibile:</strong> intercetta scritte con <em>font-size: 0</em>, testo bianco su sfondo bianco, <em>display: none</em> o caratteri Unicode invisibili.</li>
+            <li><strong>Verifica coerenza HTML vs Plain-Text:</strong> segnala se la versione testo semplice contiene istruzioni diverse da ciò che vede l'occhio umano.</li>
+            <li><strong>Quarantena automatica:</strong> se un'email risulta sospetta, il CRM <strong>blocca ogni modifica automatica alle schede azienda</strong> e impone la revisione manuale.</li>
+          </ul>
+        </div>
+
+        <div class="card highlight-amber">
+          <span class="card-tag">Tutela Contrattuale • Human-in-the-Loop</span>
+          <h3>Nessun Impegno Economico Inviato in Automatico</h3>
+          <p>
+            Il CRM applica una separazione rigorosa tra risposte informative innocue e comunicazioni che impegnano contrattualmente o economicamente lo Studio:
+          </p>
+          <ul class="bullet-list">
+            <li><strong>Sempre in Bozza (Mai inviate da sole):</strong> tutte le conferme di accordo/preventivo, negoziazioni di budget, revisioni contrattuali o email con flag di sicurezza vengono preparate solo come <strong>Bozze da approvare</strong>.</li>
+            <li><strong>Risposte rapide controllate:</strong> solo le richieste generiche di portfolio/showreel o verifica disponibilità slot calendario liberi possono generare riscontro immediato.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-size: 15px; font-weight: 800; margin: 18px 0 8px;">Matrice Decisionale sulle Risposte Email Generate dal CRM</h3>
+      <table class="policy-table">
+        <thead>
+          <tr>
+            <th>Tipologia di Email Ricevuta</th>
+            <th>Comportamento del Sistema</th>
+            <th>Approvazione Umana</th>
+            <th>Motivazione di Governance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Conferma Preventivo / Approvazione Budget / Contratto</strong></td>
+            <td>Prepara la risposta ma <strong>la salva esclusivamente in Bozze</strong></td>
+            <td><span class="status-pill amber">Obbligatoria</span></td>
+            <td>Impedisce che l'AI assuma impegni contrattuali o economici senza firma della Direzione</td>
+          </tr>
+          <tr>
+            <td><strong>Negoziazione Prezzi, Sconti o Clausole Speciali</strong></td>
+            <td>Genera proposta preliminare in <strong>Bozza CRM</strong></td>
+            <td><span class="status-pill amber">Obbligatoria</span></td>
+            <td>Tutela la marginalità delle commesse e le condizioni di pagamento</td>
+          </tr>
+          <tr>
+            <td><strong>Email con Testo Nascosto / Anomalie di Sicurezza</strong></td>
+            <td>Blocca scrittura su <em>Companies</em> + Salva in Bozza con avviso <strong>⚠️ Revisione Obbligatoria</strong></td>
+            <td><span class="status-pill red">Blocco & Audit</span></td>
+            <td>Neutralizza tentativi esterni di alterare i dati del CRM tramite istruzioni occulte</td>
+          </tr>
+          <tr>
+            <td><strong>Richiesta Showreel / Info Servizi / Verifica Slot Call</strong></td>
+            <td>Verifica conflitti sul Calendario Studio e predispone riscontro con slot reali</td>
+            <td><span class="status-pill green">Supervisionata</span></td>
+            <td>Abbatte i tempi di risposta commerciale sui nuovi lead inbound senza rischio economico</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout-box">
+        <h4>Sincronizzazione Silenziosa o Manuale a Scelta della Direzione</h4>
+        <p>
+          Il motore AI non interferisce mai con il lavoro a schermo: la Direzione può scegliere se mantenerlo in <strong>modalità manuale ("Solo a richiesta")</strong> oppure con controllo periodico silenzioso, consultando in ogni istante il registro delle bozze create.
+        </p>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <span>DADO Creative Studio • Documento Interno di Governance & Compliance CRM</span>
+      <div class="footer-nav-btns">
+        <button class="footer-btn" onclick="showPage(2)">← Pagina 2</button>
+        <button class="footer-btn" onclick="showPage(4)">Pagina 4: Cross-Check & Audit →</button>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- PAGINA 4 / 4 : CROSS-CHECK AUDIT, FATTURAZIONE E TELEMETRIA           -->
+  <!-- ===================================================================== -->
+  <section class="page-sheet" id="page-4">
+    <div>
+      <header class="page-header">
+        <div>
+          <span class="kicker">Nota Esecutiva per la Direzione • Sezione 4 di 4</span>
+          <h1 class="page-title">Cross-Check Audit, Fatturazione & Tracciabilità</h1>
+          <p class="page-subtitle">
+            Controllo incrociato automatico tra Commesse, Fatture, Calendario e Inventario per azzerare dimenticanze amministrative e colli di bottiglia operativi.
+          </p>
+        </div>
+        <span class="page-badge">PAGINA 4 / 4</span>
+      </header>
+
+      <div class="section-grid">
+        <div class="card highlight-sky">
+          <span class="card-tag">Audit Continuo • Cross-Check Engine</span>
+          <h3>Verifica Incrociata tra i 5 Pilastri del CRM</h3>
+          <p>
+            Il motore di audit interno (<strong>crossCheckEngine.js</strong>) confronta costantemente i dati tra <em>Companies</em>, <em>Pipeline</em>, <em>Invoices</em>, <em>Calendar</em> e <em>Inventory</em>:
+          </p>
+          <ul class="bullet-list">
+            <li><strong>Allerta Fatturazione Mancante:</strong> segnala commesse chiuse/vinte per cui non risulta ancora emessa fattura o acconto.</li>
+            <li><strong>Controllo Scadenze Preventivi:</strong> evidenzia in Dashboard e nel modulo CRM i preventivi fermi o in scadenza entro 48 ore.</li>
+            <li><strong>Coerenza Set & Attrezzature:</strong> incrocia le date di shooting a calendario con la disponibilità reale del parco macchine in Inventario.</li>
+          </ul>
+        </div>
+
+        <div class="card highlight-emerald">
+          <span class="card-tag">Controllo di Gestione • Invoices & KPI</span>
+          <h3>Governance Finanziaria e Riconciliazione</h3>
+          <p>
+            Ogni scheda cliente e la card <strong>Invoices</strong> in Dashboard offrono alla Direzione una fotografia contabile trasparente e verificabile:
+          </p>
+          <ul class="bullet-list">
+            <li><strong>Ripartizione Immediata:</strong> distinzione netta tra <em>Incassato (Paid)</em>, <em>In Attesa (Pending)</em> e <em>Scaduto (Overdue)</em>.</li>
+            <li><strong>Anello Concentrico Funnel & KPI:</strong> visualizzazione percentuale immediata del tasso di conversione lead, avanzamento task e salute del portafoglio ordini.</li>
+            <li><strong>Audit Log Operativo:</strong> registro cronologico delle ultime 60 operazioni eseguite dal motore automatico con orario, esito e motivazione.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-size: 15px; font-weight: 800; margin: 18px 0 8px;">Checklist Rapida di Collaudo per il Direttore (5 Minuti)</h3>
+      <table class="policy-table">
+        <thead>
+          <tr>
+            <th>Passo di Verifica</th>
+            <th>Dove Testarlo nel CRM</th>
+            <th>Risultato di Governance Atteso</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Verifica KPI, Funnel & Fatture</strong></td>
+            <td><strong>Dashboard Principale</strong> → Card <em>Funnel & KPI</em> e Card <em>Invoices</em></td>
+            <td>Lettura immediata delle percentuali di conversione e apertura estesa del registro fatture</td>
+          </tr>
+          <tr>
+            <td><strong>2. Verifica Controllo Lead & Pipeline</strong></td>
+            <td>Menu laterale → <strong>CRM</strong> e <strong>New Opportunities</strong></td>
+            <td>Consultazione dei preventivi in scadenza, filtro per fase di trattativa e istogramma mensile</td>
+          </tr>
+          <tr>
+            <td><strong>3. Verifica Pulizia Dati Estratti da Email</strong></td>
+            <td>Menu laterale → <strong>Companies</strong> e <strong>Tasks</strong></td>
+            <td>Solo campi strutturati (email, referente, budget, oggetto sintetico) senza mai allegare il testo grezzo della mail</td>
+          </tr>
+          <tr>
+            <td><strong>4. Verifica Permessi & Note Riservate</strong></td>
+            <td>Menu laterale → <strong>Idee & Appunti</strong> / <strong>Utenti</strong> / <strong>Automazioni</strong></td>
+            <td>Accesso riservato alla Direzione per le note inviate allo sviluppatore e per la matrice permessi</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout-box">
+        <h4>Prossimi Passi Personalizzabili su Indicazione della Direzione</h4>
+        <p>
+          Tutte le soglie di governance (massimali di budget per avvisi prioritari, domini email esclusi, campi bloccati da sovrascrittura e regole di approvazione preventivi) sono parametrizzate e possono essere calibrate in tempo reale in base alle direttive del Direttore.
+        </p>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <span>DADO Creative Studio • Documento Interno di Governance & Compliance CRM</span>
+      <div class="footer-nav-btns">
+        <button class="footer-btn" onclick="showPage(3)">← Pagina 3</button>
+        <button class="footer-btn" onclick="showPage(1)">Torna a Pagina 1 ↺</button>
+      </div>
+    </footer>
+  </section>
+
+  <script>
+    let allPagesMode = false;
+
+    function showPage(pageNum) {
+      if (allPagesMode) {
+        toggleAllPages();
+      }
+      for (let i = 1; i <= 4; i++) {
+        const sheet = document.getElementById('page-' + i);
+        const pill = document.getElementById('pill-' + i);
+        if (i === pageNum) {
+          sheet.classList.add('active');
+          pill.classList.add('active');
+        } else {
+          sheet.classList.remove('active');
+          pill.classList.remove('active');
+        }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleAllPages() {
+      allPagesMode = !allPagesMode;
+      const btn = document.getElementById('btn-all');
+      if (allPagesMode) {
+        document.body.classList.add('all-pages-mode');
+        btn.textContent = 'Vista Sfogliabile (1 Pag.)';
+      } else {
+        document.body.classList.remove('all-pages-mode');
+        btn.textContent = 'Vista Continua (4 Pag.)';
+      }
+    }
+  </script>
+</body>
+</html>

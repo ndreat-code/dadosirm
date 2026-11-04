@@ -31,9 +31,25 @@ export default function ConcentricRingsKpi({
   style = {},
   className = '',
   onOpenDetails,
+  isExpanded: controlledExpanded,
+  onToggleExpand,
+  isMobile = false,
 }) {
   const [hoveredKey, setHoveredKey] = useState(null)
-  const [showModal, setShowModal] = useState(false)
+  const [internalExpanded, setInternalExpanded] = useState(false)
+
+  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded
+
+  const setExpandedState = (nextVal) => {
+    const resolved = typeof nextVal === 'function' ? nextVal(isExpanded) : nextVal
+    if (controlledExpanded === undefined) {
+      setInternalExpanded(resolved)
+    }
+    if (onToggleExpand) {
+      onToggleExpand(resolved)
+    }
+  }
+
   const [dataStats, setDataStats] = useState({
     conversionRate: 68,
     closeRate: 82,
@@ -41,6 +57,7 @@ export default function ConcentricRingsKpi({
     channelReferral: 28,
     channelOutreach: 20,
     channelInbound: 26,
+    channelTotal: 100,
     activeCount: 12,
     totalCount: 15,
     channels: [
@@ -109,6 +126,7 @@ export default function ConcentricRingsKpi({
           channelReferral: calcReferral,
           channelOutreach: calcOutreach,
           channelInbound: calcInbound,
+          channelTotal: calcEvents + calcReferral + calcOutreach + calcInbound,
           activeCount: activeComp,
           totalCount: totalComp,
           channels: [
@@ -126,13 +144,23 @@ export default function ConcentricRingsKpi({
     }
   }, [])
 
+  // Chiusura con tasto ESC quando espanso
+  useEffect(() => {
+    if (!isExpanded) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setExpandedState(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isExpanded])
+
   // Geometria dei cerchi concentrici (SVG ViewBox 0 0 200 200)
-  // Geometria dei cerchi concentrici (SVG ViewBox 0 0 200 200)
-  // Raggi calibrati e strokeWidth ispessito a 14 per colori più spessi, densi e visibili
   const rings = useMemo(() => {
     const strokeWidth = 14
 
-    // 1. CLOSE RATE (Esterno: Rosso brand #ea3824, r1 = 87)
+    // 1. CLOSE RATE (Esterno: Blu Notte #1a3a69, r1 = 87)
     const r1 = 87
     const c1 = 2 * Math.PI * r1
     const p1 = Math.min(100, Math.max(0, dataStats.closeRate))
@@ -144,31 +172,26 @@ export default function ConcentricRingsKpi({
     const p2 = Math.min(100, Math.max(0, dataStats.conversionRate))
     const offset2 = c2 - (p2 / 100) * c2
 
-    // 3. CANALI ACQUISIZIONE SPEZZETTATI IN 4 SEGMENTI (r3 = 47):
-    // Sequenza ordinata: Giallo Tenue Lettera O -> Viola -> Arancione -> Rosa
+    // 3. CANALI ACQUISIZIONE SPEZZETTATI IN 4 SEGMENTI (r3 = 47)
     const r3 = 47
     const c3 = 2 * Math.PI * r3
-    const availableArcDeg = 350 // 350 gradi di arco utile (lascia 2.5 gradi di respiro tra i 4 segmenti)
+    const availableArcDeg = 350
 
-    // Segmento 1: Eventi, Fiere & Convention (Giallo tenue lettera O brand logo #fac429)
     const pEvents = Math.min(100, Math.max(5, dataStats.channelEvents))
     const degEvents = (pEvents / 100) * availableArcDeg
     const arcLenEvents = Math.max(2, (degEvents / 360) * c3)
-    const rotEvents = -90 // Inizia a ore 12
+    const rotEvents = -90
 
-    // Segmento 2: Referral & Passaparola (Viola #8b5cf6) — posizionato subito accanto al giallo tenue
     const pReferral = Math.min(100, Math.max(5, dataStats.channelReferral))
     const degReferral = (pReferral / 100) * availableArcDeg
     const arcLenReferral = Math.max(2, (degReferral / 360) * c3)
     const rotReferral = rotEvents + degEvents + 2.5
 
-    // Segmento 3: Outreach B2B & LinkedIn InMail (Arancione #f97316) — posizionato tra viola e rosa
     const pOutreach = Math.min(100, Math.max(5, dataStats.channelOutreach))
     const degOutreach = (pOutreach / 100) * availableArcDeg
     const arcLenOutreach = Math.max(2, (degOutreach / 360) * c3)
     const rotOutreach = rotReferral + degReferral + 2.5
 
-    // Segmento 4: Inbound Web & Social Direct (Rosa acceso tendente al magenta #ec4899) — posizionato dopo l'arancione
     const pInbound = Math.min(100, Math.max(5, dataStats.channelInbound))
     const degInbound = (pInbound / 100) * availableArcDeg
     const arcLenInbound = Math.max(2, (degInbound / 360) * c3)
@@ -190,22 +213,22 @@ export default function ConcentricRingsKpi({
     (dataStats.conversionRate + dataStats.closeRate + 75) / 3
   )
 
-  const handleOpen = () => {
+  const handleToggle = () => {
     if (onOpenDetails) {
       onOpenDetails()
     } else {
-      setShowModal(true)
+      setExpandedState((prev) => !prev)
     }
   }
 
-  // Lista ordinata con metriche e le 4 sottocategorie dei canali (Close Rate prima, poi Conversion Rate)
+  // Lista ordinata con metriche e le 4 sottocategorie dei canali
   const listItems = [
     {
       key: 'close',
       label: 'Close Rate',
       sub: `${dataStats.activeCount} su ${dataStats.totalCount} Contratti`,
       value: `${dataStats.closeRate}%`,
-      color: '#1a3a69', // Blu Notte raffinato e lievemente schiarito
+      color: '#1a3a69',
       shortLabel: 'Close Rate',
     },
     {
@@ -213,15 +236,15 @@ export default function ConcentricRingsKpi({
       label: 'Conversion Rate',
       sub: 'Leads ➔ Trattative',
       value: `${dataStats.conversionRate}%`,
-      color: '#1bb7ed', // Ciano
-      shortLabel: 'Conversion',
+      color: '#1bb7ed',
+      shortLabel: isMobile ? 'Conv. Rate' : 'Conversion',
     },
     {
       key: 'events',
       label: 'Eventi',
       sub: 'Expo & convention',
       value: `${dataStats.channelEvents}%`,
-      color: '#fac429', // Giallo tenue lettera O brand logo (accanto al viola)
+      color: '#fac429',
       shortLabel: 'Eventi',
     },
     {
@@ -229,7 +252,7 @@ export default function ConcentricRingsKpi({
       label: 'Referral & Partner',
       sub: 'Network & passaparola',
       value: `${dataStats.channelReferral}%`,
-      color: '#8b5cf6', // Viola
+      color: '#8b5cf6',
       shortLabel: 'Referral',
     },
     {
@@ -237,7 +260,7 @@ export default function ConcentricRingsKpi({
       label: 'Outreach',
       sub: 'LinkedIn & cold email',
       value: `${dataStats.channelOutreach}%`,
-      color: '#f97316', // Arancione (tra rosa e viola)
+      color: '#f97316',
       shortLabel: 'Outreach',
     },
     {
@@ -245,477 +268,501 @@ export default function ConcentricRingsKpi({
       label: 'Inbound Direct',
       sub: 'Form sito & social DM',
       value: `${dataStats.channelInbound}%`,
-      color: '#ec4899', // Rosa acceso / magenta
-      shortLabel: 'Inbound Direct',
+      color: '#ec4899',
+      shortLabel: isMobile ? 'Inbound' : 'Inbound Direct',
     },
   ]
 
   const activeItem = listItems.find((item) => item.key === hoveredKey)
 
   return (
-    <>
-      <div
-        className={`flex flex-col justify-between p-4 bg-white transition-all duration-300 hover:shadow-md group relative overflow-hidden select-none shrink-0 ${className}`}
-        style={{
-          width,
-          height,
-          border: '1.5px solid #cce5f6',
-          borderRadius: '0px',
-          boxShadow: '0 2px 10px rgba(27, 183, 237, 0.06)',
-          fontFamily: '"Switzer", sans-serif',
-          ...style,
-        }}
-      >
-        {/* Header con Titolo, Mini Brand Mark e Pulsante Dettagli */}
-        <div className="flex items-center justify-between gap-1 flex-shrink-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <DadoMiniBrandMark size={14} />
-            <span
-              className="font-black uppercase tracking-[0.08em] leading-tight text-slate-800 text-[12.5px] truncate"
-              style={{ fontFamily: '"Switzer", sans-serif' }}
-            >
-              FUNNEL & KPI
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleOpen}
-            className="flex items-center gap-1 px-2 py-0.5 rounded-none bg-sky-50 hover:bg-sky-100 border border-sky-200/80 text-[10.5px] font-bold text-[#0284c7] transition-all cursor-pointer hover:scale-105"
-            title="Visualizza report dettagliato performance"
-          >
-            <span>Dettagli</span>
-            <ArrowUpRight size={11} className="stroke-[2.5]" />
-          </button>
-        </div>
-
-        {/* Area Centrale: Cerchi Concentrici SVG Ingranditi */}
-        <div className="relative flex items-center justify-center my-0.5 flex-1 min-h-0">
-          <svg
-            width="225"
-            height="225"
-            viewBox="0 0 200 200"
-            className="overflow-visible"
-            style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.04))' }}
-          >
-            <defs>
-              <filter id="dado-glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#1bb7ed" floodOpacity="0.5" />
-              </filter>
-              <filter id="dado-glow-close" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#1a3a69" floodOpacity="0.55" />
-              </filter>
-              <filter id="dado-glow-yellow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#fac429" floodOpacity="0.55" />
-              </filter>
-              <filter id="dado-glow-purple" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#8b5cf6" floodOpacity="0.55" />
-              </filter>
-              <filter id="dado-glow-orange" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#f97316" floodOpacity="0.55" />
-              </filter>
-              <filter id="dado-glow-magenta" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#ec4899" floodOpacity="0.55" />
-              </filter>
-            </defs>
-
-            {/* Tracce di sfondo guida per i 3 livelli di anelli */}
-            <circle
-              cx="100"
-              cy="100"
-              r={rings.r1}
-              fill="none"
-              stroke="rgba(26, 58, 105, 0.16)"
-              strokeWidth={rings.strokeWidth}
-            />
-            <circle
-              cx="100"
-              cy="100"
-              r={rings.r2}
-              fill="none"
-              stroke="rgba(27, 183, 237, 0.16)"
-              strokeWidth={rings.strokeWidth}
-            />
-            <circle
-              cx="100"
-              cy="100"
-              r={rings.r3}
-              fill="none"
-              stroke="rgba(148, 163, 184, 0.16)"
-              strokeWidth={rings.strokeWidth}
-            />
-
-            {/* 1. Anello Esterno (r=86): CLOSE RATE (Blu Notte lievemente schiarito #1a3a69) */}
-            <circle
-              cx="100"
-              cy="100"
-              r={rings.r1}
-              fill="none"
-              stroke="#1a3a69"
-              strokeWidth={hoveredKey === 'close' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
-              strokeDasharray={rings.c1}
-              strokeDashoffset={rings.offset1}
-              strokeLinecap="round"
-              transform="rotate(-90 100 100)"
-              className="transition-all duration-500 ease-out cursor-pointer"
-              style={{
-                opacity: hoveredKey && hoveredKey !== 'close' ? 0.3 : 1,
-                filter: hoveredKey === 'close' ? 'url(#dado-glow-close)' : 'none',
-              }}
-              onMouseEnter={() => setHoveredKey('close')}
-              onMouseLeave={() => setHoveredKey(null)}
-              onClick={handleOpen}
-            />
-
-            {/* 2. Anello Medio (r=63): CONVERSION RATE (Ciano) */}
-            <circle
-              cx="100"
-              cy="100"
-              r={rings.r2}
-              fill="none"
-              stroke="#1bb7ed"
-              strokeWidth={hoveredKey === 'conversion' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
-              strokeDasharray={rings.c2}
-              strokeDashoffset={rings.offset2}
-              strokeLinecap="round"
-              transform="rotate(-90 100 100)"
-              className="transition-all duration-500 ease-out cursor-pointer"
-              style={{
-                opacity: hoveredKey && hoveredKey !== 'conversion' ? 0.3 : 1,
-                filter: hoveredKey === 'conversion' ? 'url(#dado-glow-cyan)' : 'none',
-              }}
-              onMouseEnter={() => setHoveredKey('conversion')}
-              onMouseLeave={() => setHoveredKey(null)}
-              onClick={handleOpen}
-            />
-
-            {/* 3A. Segmento Anello Interno (r=43): EVENTI & FIERE (Giallo tenue lettera O #fac429) - accanto al viola */}
-            <circle
-              cx="100"
-              cy="100"
-              r={rings.r3}
-              fill="none"
-              stroke="#fac429"
-              strokeWidth={hoveredKey === 'events' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
-              strokeDasharray={`${rings.arcLenEvents} ${rings.c3}`}
-              strokeDashoffset={0}
-              strokeLinecap="round"
-              transform={`rotate(${rings.rotEvents} 100 100)`}
-              className="transition-all duration-500 ease-out cursor-pointer"
-              style={{
-                opacity: hoveredKey && hoveredKey !== 'events' ? 0.3 : 1,
-                filter: hoveredKey === 'events' ? 'url(#dado-glow-yellow)' : 'none',
-              }}
-              onMouseEnter={() => setHoveredKey('events')}
-              onMouseLeave={() => setHoveredKey(null)}
-              onClick={handleOpen}
-            />
-
-            {/* 3B. Segmento Anello Interno (r=43): REFERRAL & PASSAPAROLA (Viola #8b5cf6) */}
-            <circle
-              cx="100"
-              cy="100"
-              r={rings.r3}
-              fill="none"
-              stroke="#8b5cf6"
-              strokeWidth={hoveredKey === 'referral' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
-              strokeDasharray={`${rings.arcLenReferral} ${rings.c3}`}
-              strokeDashoffset={0}
-              strokeLinecap="round"
-              transform={`rotate(${rings.rotReferral} 100 100)`}
-              className="transition-all duration-500 ease-out cursor-pointer"
-              style={{
-                opacity: hoveredKey && hoveredKey !== 'referral' ? 0.3 : 1,
-                filter: hoveredKey === 'referral' ? 'url(#dado-glow-purple)' : 'none',
-              }}
-              onMouseEnter={() => setHoveredKey('referral')}
-              onMouseLeave={() => setHoveredKey(null)}
-              onClick={handleOpen}
-            />
-
-            {/* 3C. Segmento Anello Interno (r=43): OUTREACH B2B & INMAIL (Arancione #f97316) - tra viola e rosa */}
-            <circle
-              cx="100"
-              cy="100"
-              r={rings.r3}
-              fill="none"
-              stroke="#f97316"
-              strokeWidth={hoveredKey === 'outreach' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
-              strokeDasharray={`${rings.arcLenOutreach} ${rings.c3}`}
-              strokeDashoffset={0}
-              strokeLinecap="round"
-              transform={`rotate(${rings.rotOutreach} 100 100)`}
-              className="transition-all duration-500 ease-out cursor-pointer"
-              style={{
-                opacity: hoveredKey && hoveredKey !== 'outreach' ? 0.3 : 1,
-                filter: hoveredKey === 'outreach' ? 'url(#dado-glow-orange)' : 'none',
-              }}
-              onMouseEnter={() => setHoveredKey('outreach')}
-              onMouseLeave={() => setHoveredKey(null)}
-              onClick={handleOpen}
-            />
-
-            {/* 3D. Segmento Anello Interno (r=43): INBOUND WEB & SOCIAL DIRECT (Rosa #ec4899) */}
-            <circle
-              cx="100"
-              cy="100"
-              r={rings.r3}
-              fill="none"
-              stroke="#ec4899"
-              strokeWidth={hoveredKey === 'inbound' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
-              strokeDasharray={`${rings.arcLenInbound} ${rings.c3}`}
-              strokeDashoffset={0}
-              strokeLinecap="round"
-              transform={`rotate(${rings.rotInbound} 100 100)`}
-              className="transition-all duration-500 ease-out cursor-pointer"
-              style={{
-                opacity: hoveredKey && hoveredKey !== 'inbound' ? 0.3 : 1,
-                filter: hoveredKey === 'inbound' ? 'url(#dado-glow-magenta)' : 'none',
-              }}
-              onMouseEnter={() => setHoveredKey('inbound')}
-              onMouseLeave={() => setHoveredKey(null)}
-              onClick={handleOpen}
-            />
-          </svg>
-
-          {/* Testo Dinamico al Centro dei Cerchi Concentrici */}
-          <div
-            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center select-none"
+    <div
+      className={`flex flex-col justify-between ${isMobile ? 'px-3 py-3.5' : 'p-2.5 px-3'} bg-white transition-all duration-400 hover:shadow-md group relative overflow-hidden select-none shrink-0 ${className}`}
+      style={{
+        width,
+        height,
+        border: isExpanded ? '1.5px solid #38bdf8' : '1.5px solid #cce5f6',
+        borderRadius: isMobile ? '14px' : '0px',
+        boxShadow: isExpanded
+          ? '0 10px 28px rgba(27, 183, 237, 0.14), 0 2px 10px rgba(0, 0, 0, 0.05)'
+          : '0 2px 10px rgba(27, 183, 237, 0.06)',
+        fontFamily: '"Switzer", sans-serif',
+        transition: 'all 420ms cubic-bezier(0.16, 1, 0.3, 1)',
+        ...style,
+      }}
+    >
+      {/* Header con Titolo, Mini Brand Mark e Pulsante Dettagli / Chiudi */}
+      <div className={`flex items-center justify-between gap-2 flex-shrink-0 ${isMobile ? 'pb-1.5' : 'pb-1'} border-b border-slate-100`}>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <DadoMiniBrandMark size={13} />
+          <span
+            className={`font-black uppercase tracking-[0.08em] leading-tight text-slate-800 ${isMobile ? 'text-[12px]' : 'text-[11.5px]'} truncate`}
             style={{ fontFamily: '"Switzer", sans-serif' }}
           >
-            {activeItem ? (
-              <div className="flex flex-col items-center justify-center animate-fadeIn leading-none">
-                <span
-                  className="font-black text-[27px] tracking-tight leading-none mb-0.5"
-                  style={{ color: activeItem.color }}
+            {isExpanded ? (isMobile ? 'FUNNEL & KPI — DETTAGLI' : 'FUNNEL & KPI — ANALISI DETTAGLIATA & SOTTOCATEGORIE CANALI') : 'FUNNEL & KPI'}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleToggle}
+          className={`flex items-center gap-1 ${isMobile ? 'px-2.5 py-0.5 rounded-md text-[10.5px]' : 'px-2 py-0.5 rounded-none text-[10px]'} border font-extrabold transition-all cursor-pointer hover:scale-105 ${
+            isExpanded
+              ? 'bg-slate-900 hover:bg-slate-800 text-white border-slate-900'
+              : 'bg-sky-50 hover:bg-sky-100 border-sky-200/80 text-[#0284c7]'
+          }`}
+          title={isExpanded ? 'Riduci vista dettagliata (ESC)' : 'Estendi report dettagliato performance al centro della schermata'}
+        >
+          <span>{isExpanded ? 'Chiudi' : 'Dettagli'}</span>
+          {isExpanded ? <X size={11} className="stroke-[2.5]" /> : <ArrowUpRight size={10} className="stroke-[2.5]" />}
+        </button>
+      </div>
+
+      {/* Corpo principale: se espanso si sviluppa in orizzontale su PC o verticale su Mobile */}
+      <div className={`flex-1 min-h-0 flex ${isExpanded ? (isMobile ? 'flex-col gap-2.5 pt-2 overflow-y-auto no-scrollbar' : 'flex-row items-stretch gap-4 pt-1.5') : (isMobile ? 'flex-col justify-between py-1.5' : 'flex-col justify-between')}`}>
+        
+        {/* COLONNA SINISTRA: Cerchi Concentrici + Griglia 2 Colonne Metriche */}
+        <div
+          className={`flex ${isMobile ? 'flex-row items-stretch gap-2.5 py-1' : 'flex-col justify-between'} min-h-0 ${
+            isExpanded ? (isMobile ? 'w-full flex-shrink-0 pb-2 border-b border-slate-100' : 'w-[280px] sm:w-[300px] flex-shrink-0 pr-3 border-r border-slate-100') : 'w-full flex-1'
+          }`}
+        >
+          {/* Area Centrale: Cerchi Concentrici SVG */}
+          <div className={`relative flex items-center justify-center ${isMobile ? 'flex-shrink-0 self-center' : 'my-0.5 flex-1 min-h-0'}`}>
+            <svg
+              width={isMobile ? '118' : isExpanded ? '182' : '175'}
+              height={isMobile ? '118' : isExpanded ? '182' : '175'}
+              viewBox="0 0 200 200"
+              className="overflow-visible transition-all duration-300"
+              style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.04))', maxHeight: '100%' }}
+            >
+              <defs>
+                <filter id="dado-glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#1bb7ed" floodOpacity="0.5" />
+                </filter>
+                <filter id="dado-glow-close" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#1a3a69" floodOpacity="0.55" />
+                </filter>
+                <filter id="dado-glow-yellow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#fac429" floodOpacity="0.55" />
+                </filter>
+                <filter id="dado-glow-purple" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#8b5cf6" floodOpacity="0.55" />
+                </filter>
+                <filter id="dado-glow-orange" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#f97316" floodOpacity="0.55" />
+                </filter>
+                <filter id="dado-glow-magenta" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#ec4899" floodOpacity="0.55" />
+                </filter>
+              </defs>
+
+              {/* Tracce di sfondo guida per i 3 livelli di anelli */}
+              <circle
+                cx="100"
+                cy="100"
+                r={rings.r1}
+                fill="none"
+                stroke="rgba(26, 58, 105, 0.16)"
+                strokeWidth={rings.strokeWidth}
+              />
+              <circle
+                cx="100"
+                cy="100"
+                r={rings.r2}
+                fill="none"
+                stroke="rgba(27, 183, 237, 0.16)"
+                strokeWidth={rings.strokeWidth}
+              />
+              <circle
+                cx="100"
+                cy="100"
+                r={rings.r3}
+                fill="none"
+                stroke="rgba(148, 163, 184, 0.16)"
+                strokeWidth={rings.strokeWidth}
+              />
+
+              {/* 1. Anello Esterno: CLOSE RATE */}
+              <circle
+                cx="100"
+                cy="100"
+                r={rings.r1}
+                fill="none"
+                stroke="#1a3a69"
+                strokeWidth={hoveredKey === 'close' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
+                strokeDasharray={rings.c1}
+                strokeDashoffset={rings.offset1}
+                strokeLinecap="round"
+                transform="rotate(-90 100 100)"
+                className="transition-all duration-500 ease-out cursor-pointer"
+                style={{
+                  opacity: hoveredKey && hoveredKey !== 'close' ? 0.3 : 1,
+                  filter: hoveredKey === 'close' ? 'url(#dado-glow-close)' : 'none',
+                }}
+                onMouseEnter={() => setHoveredKey('close')}
+                onMouseLeave={() => setHoveredKey(null)}
+                onClick={handleToggle}
+              />
+
+              {/* 2. Anello Medio: CONVERSION RATE */}
+              <circle
+                cx="100"
+                cy="100"
+                r={rings.r2}
+                fill="none"
+                stroke="#1bb7ed"
+                strokeWidth={hoveredKey === 'conversion' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
+                strokeDasharray={rings.c2}
+                strokeDashoffset={rings.offset2}
+                strokeLinecap="round"
+                transform="rotate(-90 100 100)"
+                className="transition-all duration-500 ease-out cursor-pointer"
+                style={{
+                  opacity: hoveredKey && hoveredKey !== 'conversion' ? 0.3 : 1,
+                  filter: hoveredKey === 'conversion' ? 'url(#dado-glow-cyan)' : 'none',
+                }}
+                onMouseEnter={() => setHoveredKey('conversion')}
+                onMouseLeave={() => setHoveredKey(null)}
+                onClick={handleToggle}
+              />
+
+              {/* 3A. Segmento Anello Interno: EVENTI & FIERE */}
+              <circle
+                cx="100"
+                cy="100"
+                r={rings.r3}
+                fill="none"
+                stroke="#fac429"
+                strokeWidth={hoveredKey === 'events' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
+                strokeDasharray={`${rings.arcLenEvents} ${rings.c3}`}
+                strokeDashoffset={0}
+                strokeLinecap="round"
+                transform={`rotate(${rings.rotEvents} 100 100)`}
+                className="transition-all duration-500 ease-out cursor-pointer"
+                style={{
+                  opacity: hoveredKey && hoveredKey !== 'events' ? 0.3 : 1,
+                  filter: hoveredKey === 'events' ? 'url(#dado-glow-yellow)' : 'none',
+                }}
+                onMouseEnter={() => setHoveredKey('events')}
+                onMouseLeave={() => setHoveredKey(null)}
+                onClick={handleToggle}
+              />
+
+              {/* 3B. Segmento Anello Interno: REFERRAL & PASSAPAROLA */}
+              <circle
+                cx="100"
+                cy="100"
+                r={rings.r3}
+                fill="none"
+                stroke="#8b5cf6"
+                strokeWidth={hoveredKey === 'referral' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
+                strokeDasharray={`${rings.arcLenReferral} ${rings.c3}`}
+                strokeDashoffset={0}
+                strokeLinecap="round"
+                transform={`rotate(${rings.rotReferral} 100 100)`}
+                className="transition-all duration-500 ease-out cursor-pointer"
+                style={{
+                  opacity: hoveredKey && hoveredKey !== 'referral' ? 0.3 : 1,
+                  filter: hoveredKey === 'referral' ? 'url(#dado-glow-purple)' : 'none',
+                }}
+                onMouseEnter={() => setHoveredKey('referral')}
+                onMouseLeave={() => setHoveredKey(null)}
+                onClick={handleToggle}
+              />
+
+              {/* 3C. Segmento Anello Interno: OUTREACH B2B & INMAIL */}
+              <circle
+                cx="100"
+                cy="100"
+                r={rings.r3}
+                fill="none"
+                stroke="#f97316"
+                strokeWidth={hoveredKey === 'outreach' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
+                strokeDasharray={`${rings.arcLenOutreach} ${rings.c3}`}
+                strokeDashoffset={0}
+                strokeLinecap="round"
+                transform={`rotate(${rings.rotOutreach} 100 100)`}
+                className="transition-all duration-500 ease-out cursor-pointer"
+                style={{
+                  opacity: hoveredKey && hoveredKey !== 'outreach' ? 0.3 : 1,
+                  filter: hoveredKey === 'outreach' ? 'url(#dado-glow-orange)' : 'none',
+                }}
+                onMouseEnter={() => setHoveredKey('outreach')}
+                onMouseLeave={() => setHoveredKey(null)}
+                onClick={handleToggle}
+              />
+
+              {/* 3D. Segmento Anello Interno: INBOUND WEB & SOCIAL DIRECT */}
+              <circle
+                cx="100"
+                cy="100"
+                r={rings.r3}
+                fill="none"
+                stroke="#ec4899"
+                strokeWidth={hoveredKey === 'inbound' ? rings.strokeWidth + 2.5 : rings.strokeWidth}
+                strokeDasharray={`${rings.arcLenInbound} ${rings.c3}`}
+                strokeDashoffset={0}
+                strokeLinecap="round"
+                transform={`rotate(${rings.rotInbound} 100 100)`}
+                className="transition-all duration-500 ease-out cursor-pointer"
+                style={{
+                  opacity: hoveredKey && hoveredKey !== 'inbound' ? 0.3 : 1,
+                  filter: hoveredKey === 'inbound' ? 'url(#dado-glow-magenta)' : 'none',
+                }}
+                onMouseEnter={() => setHoveredKey('inbound')}
+                onMouseLeave={() => setHoveredKey(null)}
+                onClick={handleToggle}
+              />
+            </svg>
+
+            {/* Testo Dinamico al Centro dei Cerchi Concentrici */}
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center select-none"
+              style={{ fontFamily: '"Switzer", sans-serif' }}
+            >
+              {activeItem ? (
+                <div className="flex flex-col items-center justify-center animate-fadeIn leading-none">
+                  <span
+                    className={`font-black ${isMobile ? 'text-[20px]' : 'text-[22px]'} tracking-tight leading-none mb-0.5`}
+                    style={{ color: activeItem.color }}
+                  >
+                    {activeItem.value}
+                  </span>
+                  <span
+                    className={`font-extrabold uppercase tracking-wider ${isMobile ? 'text-[8.5px]' : 'text-[10px]'} leading-tight max-w-[96px] truncate`}
+                    style={{ color: '#0f172a' }}
+                  >
+                    {activeItem.shortLabel}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center leading-none">
+                  <span className={`font-black ${isMobile ? 'text-[20px]' : 'text-[21px]'} text-slate-900 tracking-tight leading-none`}>
+                    {averageIndex}%
+                  </span>
+                  <span className={`font-bold ${isMobile ? 'text-[8px]' : 'text-[9.5px]'} uppercase tracking-wider text-slate-400 mt-0.5`}>
+                    KPI INDEX
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Griglia a 2 Colonne con le Metriche e i 4 Canali */}
+          <div className={`grid grid-cols-2 ${isMobile ? 'gap-2 flex-1 min-w-0 self-stretch content-stretch' : 'gap-1.5 flex-shrink-0 mt-0.5'}`}>
+            {listItems.map((item) => {
+              const isHovered = hoveredKey === item.key
+              return (
+                <div
+                  key={item.key}
+                  onMouseEnter={() => setHoveredKey(item.key)}
+                  onMouseLeave={() => setHoveredKey(null)}
+                  onClick={handleToggle}
+                  className={`flex ${isMobile ? 'flex-col justify-center gap-1 px-2.5 py-2 rounded-xl' : 'items-center justify-between px-2.5 py-1.5 rounded-none'} transition-all cursor-pointer border min-w-0 ${
+                    isHovered
+                      ? 'bg-sky-50/80 border-sky-300 shadow-xs scale-[1.01]'
+                      : 'bg-slate-50/80 border-slate-200/90 hover:bg-slate-100/70 hover:border-slate-300'
+                  }`}
                 >
-                  {activeItem.value}
-                </span>
-                <span
-                  className="font-extrabold uppercase tracking-wider text-[11px] leading-tight max-w-[95px] truncate"
-                  style={{ color: '#0f172a' }}
-                >
-                  {activeItem.shortLabel}
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center leading-none">
-                <span className="font-black text-[26px] text-slate-900 tracking-tight leading-none">
-                  {averageIndex}%
-                </span>
-                <span className="font-bold text-[10.5px] uppercase tracking-wider text-slate-400 mt-0.5">
-                  KPI INDEX
-                </span>
-              </div>
-            )}
+                  <div className={`flex items-center ${isMobile ? 'gap-1.5' : 'gap-1 flex-1'} min-w-0`}>
+                    <span
+                      className={`${isMobile ? 'w-2 h-2' : 'w-1.5 h-1.5'} rounded-full flex-shrink-0 transition-transform duration-200`}
+                      style={{
+                        backgroundColor: item.color,
+                        transform: isHovered ? 'scale(1.25)' : 'scale(1)',
+                        boxShadow: isHovered ? `0 0 5px ${item.color}` : 'none',
+                      }}
+                    />
+                    <span
+                      className={`${isMobile ? 'text-[10.5px]' : 'text-[12px]'} font-bold text-slate-800 leading-tight truncate`}
+                      style={{ fontFamily: '"Switzer", sans-serif' }}
+                      title={item.label}
+                    >
+                      {item.shortLabel || item.label}
+                    </span>
+                  </div>
+
+                  <span
+                    className={`${isMobile ? 'text-[15px] pl-3.5' : 'text-[13px] ml-1'} font-black tracking-tight flex-shrink-0 leading-none`}
+                    style={{
+                      color: item.color,
+                      fontFamily: '"Switzer", sans-serif',
+                    }}
+                  >
+                    {item.value}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        {/* Griglia a 2 Colonne con le Metriche e i 4 Canali (Voci ingrandite di due punti per massima leggibilità) */}
-        <div className="grid grid-cols-2 gap-2 flex-shrink-0 mt-1">
-          {listItems.map((item) => {
-            const isHovered = hoveredKey === item.key
-            return (
-              <div
-                key={item.key}
-                onMouseEnter={() => setHoveredKey(item.key)}
-                onMouseLeave={() => setHoveredKey(null)}
-                onClick={handleOpen}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-none transition-all cursor-pointer border ${
-                  isHovered
-                    ? 'bg-sky-50/80 border-sky-300 shadow-xs scale-[1.01]'
-                    : 'bg-slate-50/70 border-slate-200/80 hover:bg-slate-100/70 hover:border-slate-300'
-                }`}
-              >
-                {/* Indicatore con pallino colorato & Nome Ingrandito di 2 punti (14.5px) */}
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <span
-                    className="w-3 h-3 rounded-full flex-shrink-0 transition-transform duration-200"
-                    style={{
-                      backgroundColor: item.color,
-                      transform: isHovered ? 'scale(1.25)' : 'scale(1)',
-                      boxShadow: isHovered ? `0 0 6px ${item.color}` : 'none',
-                    }}
-                  />
-                  <span
-                    className="text-[14.5px] font-bold text-slate-800 leading-tight truncate"
-                    style={{ fontFamily: '"Switzer", sans-serif' }}
-                    title={item.label}
-                  >
-                    {item.shortLabel || item.label}
+        {/* COLONNA DESTRA ESTESA (Visibile quando si clicca "Dettagli": si estende in orizzontale e verticale fino a Note e Next actions) */}
+        {isExpanded && (
+          <div className="flex-1 min-w-0 flex flex-col justify-between overflow-y-auto no-scrollbar select-text pl-1">
+            
+            {/* 6 Schede Metriche Compatte */}
+            <div>
+              <div className="flex items-center justify-between gap-1.5 mb-1.5 flex-wrap">
+                <span className="text-[10.5px] font-black uppercase text-slate-700 tracking-wider">
+                  Performance Conversione & Canali
+                </span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 border border-emerald-200">
+                  {dataStats.activeCount}/{dataStats.totalCount} Contratti Attivi
+                </span>
+              </div>
+
+              <div className={`grid ${isMobile ? 'grid-cols-2 gap-1.5' : 'grid-cols-3 lg:grid-cols-6 gap-1.5'} mb-2.5`}>
+                <div
+                  onMouseEnter={() => setHoveredKey('close')}
+                  onMouseLeave={() => setHoveredKey(null)}
+                  className="p-2 rounded-none bg-slate-900/5 border border-[#1a3a69]/25 flex flex-col justify-between cursor-pointer hover:bg-slate-900/10 transition-colors"
+                >
+                  <span className="text-[9.5px] font-extrabold uppercase text-[#1a3a69] tracking-wider truncate">
+                    Close Rate
+                  </span>
+                  <span className="text-base font-black text-[#1a3a69] leading-tight my-0.5">
+                    {dataStats.closeRate}%
+                  </span>
+                  <span className="text-[9.5px] text-slate-500 leading-tight truncate">
+                    {dataStats.activeCount}/{dataStats.totalCount} contratti
                   </span>
                 </div>
 
-                {/* Valore Percentuale Ingrandito di 2 punti (16px) e più Corporeo */}
-                <span
-                  className="text-[16px] font-black tracking-tight ml-2 flex-shrink-0 leading-none"
-                  style={{
-                    color: item.color,
-                    fontFamily: '"Switzer", sans-serif',
-                  }}
+                <div
+                  onMouseEnter={() => setHoveredKey('conversion')}
+                  onMouseLeave={() => setHoveredKey(null)}
+                  className="p-2 rounded-none bg-sky-50/60 border border-sky-200 flex flex-col justify-between cursor-pointer hover:bg-sky-100/60 transition-colors"
                 >
-                  {item.value}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+                  <span className="text-[9.5px] font-extrabold uppercase text-[#0284c7] tracking-wider truncate">
+                    Conversion
+                  </span>
+                  <span className="text-base font-black text-[#1bb7ed] leading-tight my-0.5">
+                    {dataStats.conversionRate}%
+                  </span>
+                  <span className="text-[9.5px] text-slate-500 leading-tight truncate">
+                    Lead qualificati
+                  </span>
+                </div>
 
-      {/* Modal di Approfondimento con le Sottocategorie e Canali Spezzettati */}
-      {showModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-sm animate-fadeIn"
-          onClick={() => setShowModal(false)}
-        >
-          <div
-            className="bg-white rounded-none border border-sky-200 shadow-2xl max-w-xl w-full p-6 relative flex flex-col gap-4 animate-scaleIn select-text max-h-[90vh] overflow-y-auto"
-            style={{ fontFamily: '"Switzer", sans-serif' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header del Modal */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <DadoMiniBrandMark size={18} />
-                <div>
-                  <h3 className="text-base font-black text-slate-900 tracking-tight leading-snug">
-                    Analisi Funnel & Sottocategorie Canali
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Metriche di conversione, tassi di chiusura e segmentazione dei canali di acquisizione
-                  </p>
+                <div
+                  onMouseEnter={() => setHoveredKey('events')}
+                  onMouseLeave={() => setHoveredKey(null)}
+                  className="p-2 rounded-none bg-amber-50/60 border border-amber-200 flex flex-col justify-between cursor-pointer hover:bg-amber-100/60 transition-colors"
+                >
+                  <span className="text-[9.5px] font-extrabold uppercase text-[#b45309] tracking-wider truncate">
+                    Eventi
+                  </span>
+                  <span className="text-base font-black leading-tight my-0.5" style={{ color: '#d97706' }}>
+                    {dataStats.channelEvents}%
+                  </span>
+                  <span className="text-[9.5px] text-slate-500 leading-tight truncate">
+                    Expo & fiere
+                  </span>
+                </div>
+
+                <div
+                  onMouseEnter={() => setHoveredKey('referral')}
+                  onMouseLeave={() => setHoveredKey(null)}
+                  className="p-2 rounded-none bg-purple-50/60 border border-purple-200 flex flex-col justify-between cursor-pointer hover:bg-purple-100/60 transition-colors"
+                >
+                  <span className="text-[9.5px] font-extrabold uppercase text-[#7c3aed] tracking-wider truncate">
+                    Referral
+                  </span>
+                  <span className="text-base font-black text-[#8b5cf6] leading-tight my-0.5">
+                    {dataStats.channelReferral}%
+                  </span>
+                  <span className="text-[9.5px] text-slate-500 leading-tight truncate">
+                    Network & Partner
+                  </span>
+                </div>
+
+                <div
+                  onMouseEnter={() => setHoveredKey('outreach')}
+                  onMouseLeave={() => setHoveredKey(null)}
+                  className="p-2 rounded-none bg-orange-50/60 border border-orange-200 flex flex-col justify-between cursor-pointer hover:bg-orange-100/60 transition-colors"
+                >
+                  <span className="text-[9.5px] font-extrabold uppercase text-[#d97706] tracking-wider truncate">
+                    Outreach
+                  </span>
+                  <span className="text-base font-black text-[#f97316] leading-tight my-0.5">
+                    {dataStats.channelOutreach}%
+                  </span>
+                  <span className="text-[9.5px] text-slate-500 leading-tight truncate">
+                    LinkedIn & B2B
+                  </span>
+                </div>
+
+                <div
+                  onMouseEnter={() => setHoveredKey('inbound')}
+                  onMouseLeave={() => setHoveredKey(null)}
+                  className="p-2 rounded-none bg-pink-50/60 border border-pink-200 flex flex-col justify-between cursor-pointer hover:bg-pink-100/60 transition-colors"
+                >
+                  <span className="text-[9.5px] font-extrabold uppercase text-[#db2777] tracking-wider truncate">
+                    Inbound
+                  </span>
+                  <span className="text-base font-black text-[#ec4899] leading-tight my-0.5">
+                    {dataStats.channelInbound}%
+                  </span>
+                  <span className="text-[9.5px] text-slate-500 leading-tight truncate">
+                    Web & Social DM
+                  </span>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="w-8 h-8 rounded-none bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-              >
-                <X size={16} />
-              </button>
             </div>
 
-            {/* 6 Schede Metriche con i rispettivi colori */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {/* 1. Close Rate (Blu Notte lievemente schiarito) */}
-              <div className="p-3 rounded-none bg-slate-900/5 border border-[#1a3a69]/25 flex flex-col justify-between">
-                <span className="text-[10px] font-extrabold uppercase text-[#1a3a69] tracking-wider">
-                  Close Rate
-                </span>
-                <span className="text-xl font-black text-[#1a3a69] my-1">
-                  {dataStats.closeRate}%
-                </span>
-                <span className="text-[10px] text-slate-500 leading-tight">
-                  {dataStats.activeCount}/{dataStats.totalCount} contratti
-                </span>
-              </div>
-
-              {/* 2. Conversion Rate */}
-              <div className="p-3 rounded-none bg-sky-50/60 border border-sky-200 flex flex-col justify-between">
-                <span className="text-[10px] font-extrabold uppercase text-[#0284c7] tracking-wider">
-                  Conversion
-                </span>
-                <span className="text-xl font-black text-[#1bb7ed] my-1">
-                  {dataStats.conversionRate}%
-                </span>
-                <span className="text-[10px] text-slate-500 leading-tight">
-                  Lead qualificati
-                </span>
-              </div>
-
-              {/* 3. Eventi (Giallo Tenue Brand Logo) */}
-              <div className="p-3 rounded-none bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
-                <span className="text-[10px] font-extrabold uppercase text-[#b45309] tracking-wider">
-                  Eventi
-                </span>
-                <span className="text-xl font-black my-1" style={{ color: '#fac429' }}>
-                  {dataStats.channelEvents}%
-                </span>
-                <span className="text-[10px] text-slate-500 leading-tight">
-                  Expo & convention
-                </span>
-              </div>
-
-              {/* 4. Referral & Passaparola (Viola) */}
-              <div className="p-3 rounded-none bg-purple-50/60 border border-purple-200 flex flex-col justify-between">
-                <span className="text-[10px] font-extrabold uppercase text-[#7c3aed] tracking-wider">
-                  Referral
-                </span>
-                <span className="text-xl font-black text-[#8b5cf6] my-1">
-                  {dataStats.channelReferral}%
-                </span>
-                <span className="text-[10px] text-slate-500 leading-tight">
-                  Network & Partner
-                </span>
-              </div>
-
-              {/* 5. Outreach & InMail (Arancione) */}
-              <div className="p-3 rounded-none bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
-                <span className="text-[10px] font-extrabold uppercase text-[#d97706] tracking-wider">
-                  Outreach
-                </span>
-                <span className="text-xl font-black text-[#f97316] my-1">
-                  {dataStats.channelOutreach}%
-                </span>
-                <span className="text-[10px] text-slate-500 leading-tight">
-                  LinkedIn & InMail
-                </span>
-              </div>
-
-              {/* 6. Inbound & Social Direct (Rosa) */}
-              <div className="p-3 rounded-none bg-pink-50/60 border border-pink-200 flex flex-col justify-between">
-                <span className="text-[10px] font-extrabold uppercase text-[#db2777] tracking-wider">
-                  Inbound Direct
-                </span>
-                <span className="text-xl font-black text-[#ec4899] my-1">
-                  {dataStats.channelInbound}%
-                </span>
-                <span className="text-[10px] text-slate-500 leading-tight">
-                  Web & Social DM
-                </span>
-              </div>
-            </div>
-
-            {/* Dettaglio Ripartizione Canali Spezzettati */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
-              <span className="text-xs font-black uppercase text-slate-700 tracking-wider">
-                Distribuzione Canali di Acquisizione Clienti (Totale: {dataStats.channelTotal}%)
+            {/* Distribuzione Canali di Acquisizione Clienti in Griglia 2x2 Orizzontale */}
+            <div className="flex-1 min-h-0 flex flex-col justify-between pt-2 border-t border-slate-100">
+              <span className="text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5 block">
+                Distribuzione Canali di Acquisizione Clienti (Totale: {dataStats.channelTotal || 100}%)
               </span>
-              <div className="flex flex-col gap-2">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1 min-h-0 content-start">
                 {dataStats.channels.map((ch, idx) => (
-                  <div key={idx} className="flex flex-col gap-1 p-2 rounded-none bg-slate-50 border border-slate-200/70">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-800">{ch.name}</span>
-                      <span className="font-extrabold text-slate-900">{ch.percent}%</span>
+                  <div
+                    key={idx}
+                    className="flex flex-col justify-between gap-1 p-2.5 rounded-none bg-slate-50/90 border border-slate-200/80 hover:border-sky-300 transition-colors"
+                  >
+                    <div className="flex items-center justify-between text-xs gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: ch.color }}
+                        />
+                        <span className="font-extrabold text-slate-900 truncate">{ch.name}</span>
+                      </div>
+                      <span className="font-black text-slate-900 text-[13px] flex-shrink-0">{ch.percent}%</span>
                     </div>
-                    <div className="w-full h-1.5 rounded-none bg-slate-200 overflow-hidden">
+                    <div className="w-full h-2 rounded-none bg-slate-200 overflow-hidden my-0.5">
                       <div
                         className="h-full rounded-none transition-all duration-500"
                         style={{ width: `${ch.percent}%`, backgroundColor: ch.color }}
                       />
                     </div>
-                    <span className="text-[10.5px] text-slate-500 font-medium">
+                    <span className="text-[11px] text-slate-600 font-medium leading-snug truncate">
                       {ch.share}
                     </span>
                   </div>
                 ))}
               </div>
+
+              {/* Footer informativo compatto */}
+              <div className="pt-1.5 mt-1.5 border-t border-slate-100 flex items-center justify-between text-[10.5px] text-slate-500 flex-shrink-0">
+                <span>Dati sincronizzati in tempo reale con il database DADO CRM</span>
+                <button
+                  type="button"
+                  onClick={() => setExpandedState(false)}
+                  className="px-3 py-1 rounded-none bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  Riduci
+                </button>
+              </div>
             </div>
 
-            {/* Footer Modal */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>Dati sincronizzati in tempo reale con il CRM</span>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="px-4 py-1.5 rounded-none bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                Chiudi
-              </button>
-            </div>
           </div>
-        </div>
-      )}
-    </>
+        )}
+      </div>
+    </div>
   )
 }

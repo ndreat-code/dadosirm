@@ -20,16 +20,19 @@
       "firstContact": {
         "date": "2026-09-28",
         "channel": "Inbound Gmail Automatico",
-        "notes": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato."
+        "lastEmailSubject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget"
       },
       "requestedMaterials": [
-        "Produzione contenuti audiovisivi"
+        "Esito selezione fornitore campagna ADV",
+        "non possiamo procedere per indisponibilità budget"
       ],
       "contract": {
         "code": "DADO-INB-0431",
         "fileName": "Richiesta_Preventivo_Inbound.pdf",
         "digitalFormat": "PDF Preventivo",
-        "status": "In elaborazione"
+        "status": "Sospeso per budget",
+        "terms": "Trattativa archiviata per taglio budget cliente",
+        "lastSubject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget"
       },
       "workSchedule": {
         "scheduleType": "Entro 1 settimana",
@@ -42,8 +45,8 @@
       },
       "bant": {
         "budget": "Non specificato",
-        "authority": "Ing. Marco Riva (Managing Director)",
-        "need": "Produzione contenuti audiovisivi",
+        "authority": "Matteo Colombo (Marketing & Brand Manager)",
+        "need": "Esito selezione fornitore campagna ADV • non possiamo procedere per indisponibilità budget",
         "timeline": "Entro 1 settimana"
       },
       "lastContact": "2026-10-04T18:51:12.281Z",
@@ -57,6 +60,10 @@
           "digitalFormat": "PDF Preventivo Inbound",
           "terms": "Richiesta rilevata da form inbound; preventivo in elaborazione."
         }
+      ],
+      "subjectRequests": [
+        "Esito selezione fornitore campagna ADV",
+        "non possiamo procedere per indisponibilità budget"
       ]
     },
     {
@@ -68,7 +75,7 @@
       "relationshipStatus": "in_attesa_risposta",
       "contactPerson": {
         "name": "Sara Moretti",
-        "role": "Referente aziendale"
+        "role": "Creative Producer & Partnerships"
       },
       "contact": {
         "email": "s.moretti@nextmedia.agency",
@@ -79,16 +86,19 @@
       "firstContact": {
         "date": "2026-09-28",
         "channel": "Inbound Gmail Automatico",
-        "notes": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato."
+        "lastEmailSubject": "Richiesta info servizi video, showreel e opportunità di collaborazione"
       },
       "requestedMaterials": [
-        "Shooting video corporate stabilimento con drone 4K"
+        "Richiesta info servizi video, showreel",
+        "opportunità di collaborazione"
       ],
       "contract": {
         "code": "DADO-INB-0763",
         "fileName": "Richiesta_Preventivo_Inbound.pdf",
         "digitalFormat": "PDF Preventivo",
-        "status": "In elaborazione"
+        "status": "Accordo quadro / Partnership in valutazione",
+        "terms": "50% acconto / 50% saldo a consegna",
+        "lastSubject": "Richiesta info servizi video, showreel e opportunità di collaborazione"
       },
       "workSchedule": {
         "scheduleType": "Entro 1 settimana",
@@ -101,8 +111,8 @@
       },
       "bant": {
         "budget": "Non specificato",
-        "authority": "Referente aziendale",
-        "need": "Shooting video corporate stabilimento con drone 4K",
+        "authority": "Sara Moretti (Creative Producer & Partnerships)",
+        "need": "Richiesta info servizi video, showreel • opportunità di collaborazione",
         "timeline": "Entro 1 settimana"
       },
       "lastContact": "2026-10-04T18:50:12.353Z",
@@ -116,6 +126,10 @@
           "digitalFormat": "PDF Preventivo Inbound",
           "terms": "Preventivo pilota per collaborazione continuativa agenzia."
         }
+      ],
+      "subjectRequests": [
+        "Richiesta info servizi video, showreel",
+        "opportunità di collaborazione"
       ]
     },
     {
@@ -137,11 +151,11 @@
       "firstContact": {
         "date": "2026-05-12",
         "channel": "Referral / Confindustria Monza",
-        "notes": "Cercavano un team specializzato in video corporate industriale 4K HDR per la fiera MecSpe 2026."
+        "lastEmailSubject": "Conferma shooting stabilimento e approvazione budget deliberato"
       },
       "requestedMaterials": [
-        "Sony FX3 Cinema Line",
-        "Sony 24-70mm f/2.8 GM II",
+        "Canon Cinema EOS C70",
+        "Canon RF 24-70mm f/2.8L",
         "Drone DJI Mavic 3 Cine (riprese indoor capannone)",
         "Microfoni wireless Sennheiser AVX",
         "Kit DPI di sicurezza (caschi e gilet alta visibilità)",
@@ -153,7 +167,8 @@
         "digitalFormat": "PDF con firma digitale qualificata (PEC)",
         "status": "Firmato",
         "signedDate": "2026-09-18",
-        "terms": "Cessione diritti di trasmissione fiera e canali corporate per 24 mesi; copertura assicurativa DADO RC terzi stabilimento."
+        "terms": "Cessione diritti di trasmissione fiera e canali corporate per 24 mesi; copertura assicurativa DADO RC terzi stabilimento.",
+        "lastSubject": "Conferma shooting stabilimento e approvazione budget deliberato"
       },
       "workSchedule": {
         "scheduleType": "Un giorno intero + Un pomeriggio",
@@ -182,9 +197,9 @@
       "lastContact": "2026-10-04T18:46:12.394Z",
       "bant": {
         "budget": "€ 9.200",
-        "need": "Shooting video corporate stabilimento con drone 4K",
+        "need": "Conferma shooting stabilimento • approvazione budget deliberato",
         "timeline": "Entro 1 settimana",
-        "authority": "Referente aziendale"
+        "authority": "Ing. Marco Riva (Managing Director & Titolare)"
       },
       "contractsHistory": [
         {
@@ -205,6 +220,10 @@
           "digitalFormat": "PDF con firma digitale qualificata (PEC)",
           "terms": "Cessione diritti di trasmissione fiera e corporate 24 mesi; copertura RC terzi."
         }
+      ],
+      "subjectRequests": [
+        "Conferma shooting stabilimento",
+        "approvazione budget deliberato"
       ]
     },
     {
@@ -214,22 +233,22 @@
       "industry": "Energie Rinnovabili & ESG",
       "status": "Attivo",
       "contactPerson": {
-        "name": "Dott.ssa Chiara Valenti",
-        "role": "Head of Brand Communication & ESG"
+        "name": "Elena Fontana",
+        "role": "Direzione Marketing"
       },
       "contact": {
         "email": "marketing@solarisenergy.it",
-        "directEmail": "chiara.valenti@solarisenergy.it",
+        "directEmail": "e.fontana@solarisgreen.eu",
         "phone": "+39 049 332211",
         "mobile": "+39 347 9081234"
       },
       "firstContact": {
         "date": "2026-06-02",
         "channel": "Inbound Form sito web",
-        "notes": "Richiesta per spot TV locale e digital ads per inaugurazione nuovo parco agrivoltaico in Veneto."
+        "lastEmailSubject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali"
       },
       "requestedMaterials": [
-        "Sony A7SIII + Sony 70-200mm f/2.8 GM II",
+        "Canon R5 C + Canon RF 70-200mm f/2.8L",
         "Gimbal DJI RS3 Pro",
         "Nanlite Pavotube II 30X (x4)",
         "Drone DJI Mavic 3 Cine",
@@ -242,7 +261,8 @@
         "digitalFormat": "PDF con firma elettronica avanzata",
         "status": "Firmato",
         "signedDate": "2026-09-12",
-        "terms": "Esclusiva di categoria energie rinnovabili per 6 mesi; diritti di messa in onda TV regionali inclusi."
+        "terms": "Esclusiva di categoria energie rinnovabili per 6 mesi; diritti di messa in onda TV regionali inclusi.",
+        "lastSubject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali"
       },
       "workSchedule": {
         "scheduleType": "Un giorno intero",
@@ -256,7 +276,7 @@
         "notes": "Team marketing giovanissimo, reattivo e molto chiaro sugli obiettivi. Luce naturale al tramonto spettacolare sui pannelli specchiati."
       },
       "compensation": {
-        "amount": 8100,
+        "amount": 14500,
         "deposit": 8100,
         "balance": 0,
         "status": "Saldato",
@@ -270,9 +290,9 @@
       },
       "lastContact": "2026-10-04T18:52:12.984Z",
       "bant": {
-        "budget": "€ 14.500.",
-        "authority": "Referente aziendale",
-        "need": "Revisione economica e contrattuale spot TV HDR",
+        "budget": "€ 14.500",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione complessa Storyboard Spot TV • richiesta clausole contrattuali",
         "timeline": "Entro 1 settimana"
       },
       "contractsHistory": [
@@ -294,6 +314,10 @@
           "digitalFormat": "PDF con firma elettronica avanzata",
           "terms": "Esclusiva di categoria energie rinnovabili 6 mesi; diritti messa in onda TV."
         }
+      ],
+      "subjectRequests": [
+        "Revisione complessa Storyboard Spot TV",
+        "richiesta clausole contrattuali"
       ]
     },
     {
@@ -303,23 +327,23 @@
       "industry": "Moda & Fotografia Luxury",
       "status": "Attivo",
       "contactPerson": {
-        "name": "Matteo Ferri",
-        "role": "Senior Art Director"
+        "name": "Chiara Rossi",
+        "role": "Studio Lead & Art Director"
       },
       "contact": {
         "email": "info@alphastudio.it",
-        "directEmail": "m.ferri@alphastudio.it",
+        "directEmail": "c.rossi@alphastudiomilano.com",
         "phone": "+39 02 892341",
         "mobile": "+39 340 7654321"
       },
       "firstContact": {
         "date": "2026-01-14",
         "channel": "Instagram DM / Portfolio review",
-        "notes": "Contattati direttamente dopo aver visto i nostri lavori di luce volumetrica. Collaborazione attiva da oltre 8 mesi."
+        "lastEmailSubject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci"
       },
       "requestedMaterials": [
         "Set luci Aputure 600d Pro + Softbox Octa 120cm",
-        "Sony 85mm f/1.4 GM + Sigma 35mm f/1.4 Art",
+        "Canon RF 85mm f/1.2L + Sigma 35mm f/1.4 Art",
         "CFexpress Type B 512GB (x2)",
         "Noleggio Studio DADO (Limbo bianco + sala trucco)",
         "Output: Lookbook 60 scatti TIFF 16-bit + 8 Video Reel 9:16 color graded"
@@ -330,7 +354,8 @@
         "digitalFormat": "PDF con firma digitale integrata DocuSign",
         "status": "Firmato",
         "signedDate": "2026-09-02",
-        "terms": "Tariffa convenzionata shooting moda; embargo pubblicazione fino al 1° Ottobre per embargo Fashion Week."
+        "terms": "Tariffa convenzionata shooting moda; embargo pubblicazione fino al 1° Ottobre per embargo Fashion Week.",
+        "lastSubject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci"
       },
       "workSchedule": {
         "scheduleType": "Un pomeriggio",
@@ -358,9 +383,10 @@
       },
       "lastContact": "2026-10-04T18:49:12.458Z",
       "bant": {
-        "authority": "Referente aziendale",
-        "need": "Pianificazione call tecnica e coordinamento studio",
-        "timeline": "Urgente entro 3 giorni"
+        "authority": "Chiara Rossi (Studio Lead & Art Director)",
+        "need": "Richiesta call • appuntamento in studio per calibrazione monitor • test luci",
+        "timeline": "Urgente entro 3 giorni",
+        "budget": "Da definire"
       },
       "contractsHistory": [
         {
@@ -381,6 +407,11 @@
           "digitalFormat": "PDF con firma digitale qualificata",
           "terms": "Tariffa convenzionata shooting moda; embargo Fashion Week 1° Ottobre."
         }
+      ],
+      "subjectRequests": [
+        "Richiesta call",
+        "appuntamento in studio per calibrazione monitor",
+        "test luci"
       ]
     },
     {
@@ -401,11 +432,10 @@
       },
       "firstContact": {
         "date": "2026-03-28",
-        "channel": "LinkedIn InMail",
-        "notes": "Richiesta per fornitura continuativa pacchetti vertical video per un'applicazione bancaria under-35."
+        "channel": "LinkedIn InMail"
       },
       "requestedMaterials": [
-        "Sony FX3 + Sony 24-70mm f/2.8 GM II",
+        "Canon C70 + Canon RF 24-70mm f/2.8L",
         "Monitor Atomos Ninja V+",
         "Luci Nanlite Pavotube II (effetto neon cyber/blu)",
         "SSD T7 Shield 2TB",
@@ -463,6 +493,11 @@
           "digitalFormat": "PDF con firma elettronica qualificata",
           "terms": "Cessione diritti paid social e reels; consegna file ProRes master."
         }
+      ],
+      "subjectRequests": [
+        "Canon C70",
+        "Canon RF 24-70mm f",
+        "2.8L"
       ]
     },
     {
@@ -472,22 +507,22 @@
       "industry": "Design & Superfici Architettura",
       "status": "Attivo",
       "contactPerson": {
-        "name": "Geom. Paolo Baraldi",
-        "role": "Responsabile Marketing di Prodotto"
+        "name": "Elena Bianchi",
+        "role": "Marketing di Prodotto"
       },
       "contact": {
         "email": "commerciale@kromaceramiche.com",
-        "directEmail": "p.baraldi@kromaceramiche.com",
+        "directEmail": "commerciale@kromaceramiche.com",
         "phone": "+39 0536 889900",
         "mobile": "+39 348 2233445"
       },
       "firstContact": {
         "date": "2026-02-10",
         "channel": "Fiera Cersaie Bologna",
-        "notes": "Contatto diretto presso stand espositivo. Volevano rinnovare completamente l'immagine del catalogo grandi lastre 2027."
+        "lastEmailSubject": "Richiesta disponibilità luci e set per ottobre"
       },
       "requestedMaterials": [
-        "Sony 70-200mm f/2.8 GM II",
+        "Canon RF 70-200mm f/2.8L",
         "Luci Aputure 300x Bi-Color + Diffusori a seta 2x2m",
         "Polarizzatori lineari B+W",
         "Noleggio Studio DADO per 2 giorni consecutivi",
@@ -500,7 +535,8 @@
         "digitalFormat": "PDF con firma digitale",
         "status": "Firmato",
         "signedDate": "2026-08-10",
-        "terms": "Accordo biennale per aggiornamento campionario; pagamento con RIBA 60gg."
+        "terms": "Accordo biennale per aggiornamento campionario; pagamento con RIBA 60gg.",
+        "lastSubject": "Richiesta disponibilità luci e set per ottobre"
       },
       "workSchedule": {
         "scheduleType": "Un giorno intero",
@@ -546,7 +582,84 @@
           "digitalFormat": "PDF con firma digitale qualificata",
           "terms": "Rendering fotorealistici ad alta risoluzione per catalogo cartaceo e Cersaie."
         }
-      ]
+      ],
+      "piva": "03847290361",
+      "fiscalCode": "03847290361",
+      "rea": "MO-294812",
+      "ateco": "23.31.00 - Fabbricazione di piastrelle in ceramica per pavimenti e rivestimenti di design",
+      "sdi": "K8Z2TR3",
+      "pec": "kromaceramiche@pec.it",
+      "duns": "42-109-8472",
+      "paydex": 84,
+      "creditRating": "3A2 (Affidabilità Elevata)",
+      "legalAddress": {
+        "street": "Via del Lavoro, 18",
+        "zip": "41049",
+        "city": "Sassuolo",
+        "province": "MO",
+        "country": "IT"
+      },
+      "enrichedData": {
+        "enrichedAt": "2026-10-11T16:31:07.712Z",
+        "confidenceScore": 99,
+        "matchedSource": "Database B2B Certificato (Atoka & Registro Imprese CCIAA)",
+        "sourcesConsulted": [
+          {
+            "id": "atoka",
+            "name": "Atoka / Cerved",
+            "status": "OK",
+            "recordsFound": 1,
+            "verified": true
+          },
+          {
+            "id": "registro_imprese",
+            "name": "Registro Imprese CCIAA",
+            "status": "OK",
+            "recordsFound": 1,
+            "verified": true
+          },
+          {
+            "id": "linkedin",
+            "name": "LinkedIn Talent Insights",
+            "status": "OK",
+            "recordsFound": 2,
+            "verified": true
+          },
+          {
+            "id": "zoominfo",
+            "name": "ZoomInfo B2B",
+            "status": "OK",
+            "verifiedEmail": true,
+            "verifiedPhone": true
+          },
+          {
+            "id": "dun_bradstreet",
+            "name": "Dun & Bradstreet",
+            "status": "OK",
+            "dunsAssigned": "42-109-8472",
+            "paydexScore": 84
+          }
+        ],
+        "revenueRange": "€ 10M - € 15M",
+        "employeesExact": 52,
+        "recommendedPaymentTerms": "40% acconto alla prenotazione date limbo, 60% a 30gg d.f.",
+        "recommendedDadoServices": [
+          "Shooting Fotografico Materiali & Texture nel Limbo Studio DADO",
+          "Video Teaser di Lancio Nuove Collezioni per Cersaie / Salone del Mobile",
+          "Spot ADV HDR 4K con camera dolly su lastre ceramiche"
+        ]
+      },
+      "updatedAt": "2026-10-11T16:31:07.712Z",
+      "subjectRequests": [
+        "Richiesta disponibilità luci",
+        "set per ottobre"
+      ],
+      "bant": {
+        "budget": "Da definire",
+        "authority": "Elena Bianchi (Marketing di Prodotto)",
+        "need": "Richiesta disponibilità luci • set per ottobre",
+        "timeline": "Entro 1 settimana"
+      }
     },
     {
       "id": "comp-4",
@@ -555,22 +668,22 @@
       "industry": "Eventi Luxury & Matrimoni",
       "status": "Attivo",
       "contactPerson": {
-        "name": "Ginevra Moretti",
-        "role": "Exclusive Wedding Director"
+        "name": "Giorgio Villa",
+        "role": "Event Director"
       },
       "contact": {
         "email": "events@vogueevents.eu",
-        "directEmail": "ginevra@vogueevents.eu",
+        "directEmail": "giorgio.villa@vogueevents.it",
         "phone": "+39 055 214567",
         "mobile": "+39 339 6677889"
       },
       "firstContact": {
         "date": "2025-11-18",
         "channel": "Passaparola Catering Luxury Firenze",
-        "notes": "Consigliati per eventi internazionali in ville toscane grazie al nostro stile filmico e discreto."
+        "lastEmailSubject": "Preventivo riprese e streaming evento Villa Cora"
       },
       "requestedMaterials": [
-        "Coppia Sony FX3 + Sony A7SIII",
+        "Coppia Canon C70 + Canon R5 C",
         "Drone DJI Mavic 3 Cine",
         "Fari architetturali a batteria Nanlite Pavotube",
         "Registratori audio compatti Sennheiser su microfoni sposo e officiante",
@@ -582,7 +695,8 @@
         "digitalFormat": "PDF con firma elettronica qualificata",
         "status": "Firmato",
         "signedDate": "2026-07-15",
-        "terms": "Liberatorie privacy per tutti gli ospiti internazionali; saldo anticipato 100% prima della data evento."
+        "terms": "Liberatorie privacy per tutti gli ospiti internazionali; saldo anticipato 100% prima della data evento.",
+        "lastSubject": "Preventivo riprese e streaming evento Villa Cora"
       },
       "workSchedule": {
         "scheduleType": "Un giorno intero",
@@ -612,7 +726,7 @@
       "bant": {
         "budget": "€ 6.000",
         "authority": "Giorgio Villa (Event Director)",
-        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "need": "Preventivo riprese • streaming evento Villa Cora",
         "timeline": "Entro 2-3 settimane"
       },
       "contractsHistory": [
@@ -634,6 +748,10 @@
           "digitalFormat": "PDF con firma digitale qualificata",
           "terms": "Regia 3 camere cinema; montaggio highlight 3 minuti in 48 ore."
         }
+      ],
+      "subjectRequests": [
+        "Preventivo riprese",
+        "streaming evento Villa Cora"
       ]
     },
     {
@@ -654,12 +772,11 @@
       },
       "firstContact": {
         "date": "2026-04-04",
-        "channel": "Instagram / Video Reel virale",
-        "notes": "Ci hanno scritto dopo aver visto il montaggio slow-motion della lavorazione della pizza napoletana."
+        "channel": "Instagram / Video Reel virale"
       },
       "requestedMaterials": [
-        "Sony 85mm f/1.4 GM (macro e dettagli ingredienti)",
-        "Sony 24-70mm f/2.8 GM II",
+        "Canon RF 85mm f/1.2L (macro e dettagli ingredienti)",
+        "Canon RF 24-70mm f/2.8L",
         "Aputure 300x con griglia a nido d'ape",
         "Monitor Atomos Ninja V+",
         "Output: 10 Video Ricette verticali con audio ASMR + foto piatto stellato per menu estivo"
@@ -716,6 +833,11 @@
           "digitalFormat": "PDF con firma digitale qualificata",
           "terms": "Diritti di stampa packaging e canali social per campagna retail."
         }
+      ],
+      "subjectRequests": [
+        "Canon RF 85mm f",
+        "1.2L (macro",
+        "dettagli ingredienti)"
       ]
     },
     {
@@ -736,11 +858,10 @@
       },
       "firstContact": {
         "date": "2026-01-12",
-        "channel": "Incontro diretto Wine Expo Montalcino",
-        "notes": "Cliente fidelizzato per la documentazione visiva della vendemmia e la valorizzazione delle bottiglie d'annata."
+        "channel": "Incontro diretto Wine Expo Montalcino"
       },
       "requestedMaterials": [
-        "Sony FX3 Cinema Line",
+        "Canon Cinema EOS C70",
         "Drone DJI Mavic 3 Cine",
         "Filtri ND PolarPro variabili",
         "Set still-life bottiglie con fondale nero velluto",
@@ -798,6 +919,9 @@
           "digitalFormat": "PDF con firma digitale qualificata",
           "terms": "Riprese con drone in vigna all'alba e al tramonto; montaggio teaser 4K."
         }
+      ],
+      "subjectRequests": [
+        "Canon Cinema EOS C70"
       ]
     },
     {
@@ -818,12 +942,11 @@
       },
       "firstContact": {
         "date": "2026-06-15",
-        "channel": "Incubatore Startup PoliHub Milano",
-        "notes": "Startup AI che necessitava di un teaser video di forte impatto per la presentazione agli investitori Venture Capital a Londra."
+        "channel": "Incubatore Startup PoliHub Milano"
       },
       "requestedMaterials": [
         "Microfoni wireless Sennheiser AVX",
-        "Sony FX3 + Sony 24-70mm f/2.8",
+        "Canon C70 + Canon RF 24-70mm f/2.8L",
         "Motion graphics e animazioni 3D interfaccia in After Effects",
         "Output: Teaser Investor Pitch 90 secondi + Ritratti corporate dei 4 founder"
       ],
@@ -879,6 +1002,9 @@
           "digitalFormat": "PDF con firma digitale",
           "terms": "Diritti mondiali per investor deck, sito web e annunci sponsorizzati."
         }
+      ],
+      "subjectRequests": [
+        "Microfoni wireless Sennheiser AVX"
       ]
     },
     {
@@ -899,11 +1025,10 @@
       },
       "firstContact": {
         "date": "2026-02-02",
-        "channel": "Passaparola agenzia modelle Torino",
-        "notes": "Shooting completo della nuova collezione di abiti haute couture ricamati a mano."
+        "channel": "Passaparola agenzia modelle Torino"
       },
       "requestedMaterials": [
-        "Sony 85mm f/1.4 GM + Sony 24-70mm f/2.8",
+        "Canon RF 85mm f/1.2L + Canon 24-70mm f/2.8",
         "Luci Aputure 600d Pro con lanterna cinese e bandiere di schiarita",
         "Fondali in carta Colorama bianco caldo e sabbia",
         "Monitor Atomos per preview live della stilista",
@@ -961,6 +1086,12 @@
           "digitalFormat": "PDF con firma digitale qualificata",
           "terms": "Shooting abiti in location esterna storica a Torino; color grading luxury."
         }
+      ],
+      "subjectRequests": [
+        "Canon RF 85mm f",
+        "1.2L",
+        "Canon 24-70mm f",
+        "2.8"
       ]
     },
     {
@@ -981,11 +1112,10 @@
       },
       "firstContact": {
         "date": "2025-12-18",
-        "channel": "Email diretta dopo visionatura reel Instagram",
-        "notes": "Produzione spot di lancio per nuovo modello e-bike gravel in ambiente cittadino e metropolitano."
+        "channel": "Email diretta dopo visionatura reel Instagram"
       },
       "requestedMaterials": [
-        "Sony FX3 su Gimbal DJI RS3 Pro montata su e-cargo di supporto per inseguimento",
+        "Canon C70 su Gimbal DJI RS3 Pro montata su e-cargo di supporto per inseguimento",
         "Action cam 4K con montaggio al manubrio",
         "Microfoni wireless antivento (deadcat)",
         "Output: Spot 45s ad alta dinamica per YouTube + Foto di campagna per affissioni"
@@ -1042,6 +1172,9 @@
           "digitalFormat": "PDF con firma digitale qualificata",
           "terms": "Riprese dinamiche con gimbal e drone; cut verticali per TikTok e IG Reels."
         }
+      ],
+      "subjectRequests": [
+        "Canon C70 su Gimbal DJI RS3 Pro montata su e-cargo di supporto per inseguimento"
       ]
     },
     {
@@ -1063,8 +1196,7 @@
       },
       "firstContact": {
         "date": "2026-10-02",
-        "channel": "Outreach B2B / LinkedIn InMail",
-        "notes": "Contatto proattivo via LinkedIn InMail: interesse per video rendering 3D e riprese con drone per il nuovo showroom Brera."
+        "channel": "Outreach B2B / LinkedIn InMail"
       },
       "requestedMaterials": [
         "Video rendering 3D",
@@ -1102,6 +1234,10 @@
           "digitalFormat": "PDF Preventivo",
           "terms": "Contatto avviato via LinkedIn InMail, preventivo inviato per approvazione."
         }
+      ],
+      "subjectRequests": [
+        "Riprese video",
+        "foto per catalogo design Milano 2026"
       ]
     },
     {
@@ -1123,8 +1259,7 @@
       },
       "firstContact": {
         "date": "2026-09-29",
-        "channel": "Fiera Vinitaly & Eventi di Settore",
-        "notes": "Incontro diretto allo stand fiera: richiesta shooting fotografico e spot video corporate per la nuova linea riserva."
+        "channel": "Fiera Vinitaly & Eventi di Settore"
       },
       "requestedMaterials": [
         "Shooting fotografico bottiglie",
@@ -1164,6 +1299,77 @@
           "digitalFormat": "PDF Firmato",
           "terms": "Contratto acquisito a seguito di incontro diretto in fiera di settore. Saldato."
         }
+      ],
+      "piva": "00000000000",
+      "fiscalCode": "00000000000",
+      "rea": "VR-1673383",
+      "ateco": "73.11.02 - Agenzia di comunicazione e conduzione campagne pubblicitarie",
+      "sdi": "J3PV6T1",
+      "pec": "cantinesanbiagio@legalmail.it",
+      "duns": "91-379-7456",
+      "paydex": 83,
+      "creditRating": "3A2 (Affidabilità Elevata)",
+      "legalAddress": {
+        "street": "Via Giuseppe Verdi, 13",
+        "zip": "37121",
+        "city": "Verona",
+        "province": "VR",
+        "country": "IT"
+      },
+      "enrichedData": {
+        "enrichedAt": "2026-10-06T16:10:22.613Z",
+        "confidenceScore": 94,
+        "matchedSource": "Motore B2B Certificato DADO (Atoka & CCIAA Model)",
+        "sourcesConsulted": [
+          {
+            "id": "atoka",
+            "name": "Atoka / Cerved",
+            "status": "OK",
+            "recordsFound": 1,
+            "verified": true
+          },
+          {
+            "id": "registro_imprese",
+            "name": "Registro Imprese CCIAA",
+            "status": "OK",
+            "recordsFound": 1,
+            "verified": true
+          },
+          {
+            "id": "linkedin",
+            "name": "LinkedIn Talent Insights",
+            "status": "OK",
+            "recordsFound": 1,
+            "verified": true
+          },
+          {
+            "id": "zoominfo",
+            "name": "ZoomInfo B2B",
+            "status": "OK",
+            "verifiedEmail": true,
+            "verifiedPhone": true
+          },
+          {
+            "id": "dun_bradstreet",
+            "name": "Dun & Bradstreet",
+            "status": "OK",
+            "dunsAssigned": "91-379-7456",
+            "paydexScore": 83
+          }
+        ],
+        "revenueRange": "€ 15.1M - € 24.6M",
+        "employeesExact": 118,
+        "recommendedPaymentTerms": "40% acconto alla firma, 60% saldo a 30gg d.f.",
+        "recommendedDadoServices": [
+          "Supporto Troupe e Set Limbo White-Label per clienti agenzia",
+          "Post-produzione e color grading rapido 48h",
+          "Noleggio attrezzature cine (FX3 + Ottiche GM)"
+        ]
+      },
+      "updatedAt": "2026-10-06T16:10:22.614Z",
+      "subjectRequests": [
+        "Spot video corporate",
+        "foto still-life etichette"
       ]
     }
   ],
@@ -1395,66 +1601,6 @@
   ],
   "nextActions": [
     {
-      "id": "act-1790554500409-835",
-      "company": "Alpha Studio Milano",
-      "title": "Verifica disponibilità e conferma call per Alpha Studio Milano",
-      "type": "commercial",
-      "date": "2026-09-28",
-      "time": "11:00",
-      "period": "Oggi",
-      "due": "today",
-      "priority": "week_1",
-      "completed": false,
-      "status": "completed",
-      "bant": {
-        "budget": "Da definire",
-        "authority": "Chiara Rossi (Studio Lead)",
-        "need": "Calibrazione monitor e test luci Atomos",
-        "timeline": "Urgente entro 3 giorni"
-      },
-      "source": "gmail_llm_pipeline",
-      "notes": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato. [From: Chiara Rossi <c.rossi@alphastudiomilano.com>]",
-      "checklist": [
-        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
-        "Controllo impegni a calendario e slot liberi completato",
-        "Email automatica inviata con successo (Ripianificazione appuntamento (Slot occupato a calendario, proposta alternativa automatica))",
-        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
-      ],
-      "draftId": "draft-1790554500409-404",
-      "emailStatus": "auto_sent",
-      "emailSubject": "Disponibilità a calendario per incontro - DADO Creative Studio"
-    },
-    {
-      "id": "act-1790554320431-474",
-      "company": "Fashion Brand Milano",
-      "title": "Archiviazione trattativa e riscontro cordiale a Fashion Brand Milano",
-      "type": "postprod",
-      "date": "2026-09-28",
-      "time": "11:00",
-      "period": "In settimana",
-      "due": "upcoming",
-      "priority": "month_1",
-      "completed": false,
-      "status": "completed",
-      "bant": {
-        "budget": "Budget non deliberato",
-        "authority": "Matteo Colombo (Marketing Manager)",
-        "need": "Campagna adv autunno lifestyle",
-        "timeline": "Progetto archiviato"
-      },
-      "source": "gmail_llm_pipeline",
-      "notes": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato. [From: Matteo Colombo <m.colombo@fashionbrand.it>]",
-      "checklist": [
-        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
-        "Controllo impegni a calendario e slot liberi completato",
-        "Email automatica inviata con successo (Conferma negativa di trattativa (Chiusura cordiale e archiviazione nel CRM))",
-        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
-      ],
-      "draftId": "draft-1790554320431-482",
-      "emailStatus": "auto_sent",
-      "emailSubject": "Riscontro proposta e ringraziamenti - DADO Creative Studio"
-    },
-    {
       "id": "act-1790554260723-928",
       "company": "Officine Meccaniche Riva",
       "title": "Avvio produzione e piano riprese con Officine Meccaniche Riva",
@@ -1465,7 +1611,7 @@
       "due": "upcoming",
       "priority": "week_1",
       "completed": false,
-      "status": "completed",
+      "status": "pending",
       "bant": {
         "budget": "€ 9.200",
         "authority": "Ing. Marco Riva (Managing Director)",
@@ -1473,16 +1619,45 @@
         "timeline": "Inizio riprese 5 Ottobre"
       },
       "source": "gmail_llm_pipeline",
-      "notes": "Richiesta rilevata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K. Budget: € 9.200. [From: Ing. Marco Riva <marco.riva@officineriva.it>]",
-      "checklist": [
-        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
-        "Controllo impegni a calendario e slot liberi completato",
-        "Email automatica inviata con successo (Conferma positiva di una trattativa commerciale (Accordo confermato & budget deliberato))",
-        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
-      ],
+      "notes": "",
+      "checklist": [],
       "draftId": "draft-1790554260723-424",
       "emailStatus": "auto_sent",
-      "emailSubject": "Conferma accordo e avvio produzione - DADO Creative Studio"
+      "emailSubject": "Conferma accordo e avvio produzione - DADO Creative Studio",
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-28",
+        "time": "11:00",
+        "advanceNotice": "30_min",
+        "channel": "whatsapp",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "modifica_valore_offerta",
+        "causeLabel": "Modifica valore offerta",
+        "causeDesc": "Aggiornamento budget o preventivo deliberato",
+        "effect": "both",
+        "effectLabel": "Invia calendario + Follow up post call",
+        "effectDesc": "Esegue entrambe le azioni in sequenza automatica",
+        "status": "active",
+        "lastTriggered": "11/10/2026 14:20"
+      },
+      "senderEmail": "marco.riva@officineriva.it",
+      "contactPerson": {
+        "name": "Ing. Marco Riva",
+        "role": "Managing Director & Titolare"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 9.200",
+        "terms": "Cessione diritti di trasmissione fiera e canali corporate per 24 mesi; copertura assicurativa DADO RC terzi stabilimento."
+      },
+      "subjectRequests": [
+        "Conferma shooting stabilimento",
+        "approvazione budget deliberato"
+      ],
+      "originEmailSubject": "Conferma shooting stabilimento e approvazione budget deliberato"
     },
     {
       "id": "act-1790554140763-489",
@@ -1495,7 +1670,7 @@
       "due": "upcoming",
       "priority": "week_1",
       "completed": false,
-      "status": "completed",
+      "status": "pending",
       "bant": {
         "budget": "Da definire in base al format",
         "authority": "Sara Moretti (Creative Producer)",
@@ -1503,16 +1678,45 @@
         "timeline": "Da concordare"
       },
       "source": "gmail_llm_pipeline",
-      "notes": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato. [From: Sara Moretti <s.moretti@nextmedia.agency>]",
-      "checklist": [
-        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
-        "Controllo impegni a calendario e slot liberi completato",
-        "Email automatica inviata con successo (Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione)",
-        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
-      ],
+      "notes": "",
+      "checklist": [],
       "draftId": "draft-1790554140763-199",
       "emailStatus": "auto_sent",
-      "emailSubject": "Presentazione servizi video e collaborazioni - DADO Creative Studio"
+      "emailSubject": "Presentazione servizi video e collaborazioni - DADO Creative Studio",
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-28",
+        "time": "11:00",
+        "advanceNotice": "1_ora",
+        "channel": "dashboard_toast",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "annulla_iscrizione_lista",
+        "causeLabel": "Annulla iscrizione da lista",
+        "causeDesc": "Richiesta opt-out o rimozione dalla mailing list",
+        "effect": "invia_calendario",
+        "effectLabel": "Invia calendario per presa appuntamento",
+        "effectDesc": "Invia link interattivo Google Calendar / Calendly DADO",
+        "status": "active",
+        "lastTriggered": null
+      },
+      "senderEmail": "s.moretti@nextmedia.agency",
+      "contactPerson": {
+        "name": "Sara Moretti",
+        "role": "Creative Producer & Partnerships"
+      },
+      "contractDetails": {
+        "status": "Accordo quadro / Partnership in valutazione",
+        "amount": "Da definire in base al format",
+        "terms": "50% acconto / 50% saldo a consegna"
+      },
+      "subjectRequests": [
+        "Richiesta info servizi video, showreel",
+        "opportunità di collaborazione"
+      ],
+      "originEmailSubject": "Richiesta info servizi video, showreel e opportunità di collaborazione"
     },
     {
       "id": "act-1790554083520-169",
@@ -1533,16 +1737,45 @@
         "timeline": "Entro 1 settimana"
       },
       "source": "gmail_llm_pipeline",
-      "notes": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500.. [From: Elena Fontana <e.fontana@solarisgreen.eu>]",
-      "checklist": [
-        "Verificare dati e parametri B.A.N.T. aggiornati nel CRM",
-        "Controllo impegni a calendario e slot liberi completato",
-        "Revisionare bozza email salvata nelle Bozze prima dell'invio",
-        "Aggiornamento stato commessa e coordinamento troupe DADO Studio"
-      ],
+      "notes": "",
+      "checklist": [],
       "draftId": "draft-1790554083520-298",
       "emailStatus": "draft_saved",
-      "emailSubject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali"
+      "emailSubject": "Bozza Preventivo & Condizioni: Riscontro a Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-28",
+        "time": "11:00",
+        "advanceNotice": "1_giorno",
+        "channel": "email",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "pagina_web_visitata",
+        "causeLabel": "Pagina web visitata",
+        "causeDesc": "Navigazione tracciata su portfolio o landing page DADO",
+        "effect": "invia_followup_call",
+        "effectLabel": "Invia email di follow up post call",
+        "effectDesc": "Genera ed invia recap personalizzato degli accordi presi",
+        "status": "active",
+        "lastTriggered": "11/10/2026 14:20"
+      },
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "contactPerson": {
+        "name": "Elena Fontana",
+        "role": "Direzione Marketing"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 14.500",
+        "terms": "Esclusiva di categoria energie rinnovabili per 6 mesi; diritti di messa in onda TV regionali inclusi."
+      },
+      "subjectRequests": [
+        "Revisione complessa Storyboard Spot TV",
+        "richiesta clausole contrattuali"
+      ],
+      "originEmailSubject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali"
     },
     {
       "id": "act-1790544428466-999",
@@ -1563,7 +1796,42 @@
         "timeline": "Da concordare"
       },
       "source": "gmail_llm_pipeline",
-      "notes": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: € 6.000 - 15.000. [Framework B.A.N.T: Budget € 6.000 - 15.000, Authority Chiara Rossi (Studio Lead), Need Test set luci e calibrazione monitor Atomos Ninja, Timeline Nell'arco di 1 mese]"
+      "notes": "",
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-27",
+        "time": "16:30",
+        "advanceNotice": "al_momento",
+        "channel": "whatsapp",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "link_interno_email",
+        "causeLabel": "Link interno di una email",
+        "causeDesc": "Click su link o allegato di un preventivo via email",
+        "effect": "both",
+        "effectLabel": "Invia calendario + Follow up post call",
+        "effectDesc": "Esegue entrambe le azioni in sequenza automatica",
+        "status": "active",
+        "lastTriggered": null
+      },
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "contactPerson": {
+        "name": "Chiara Rossi",
+        "role": "Studio Lead & Art Director"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 6.000 - 15.000",
+        "terms": "Tariffa convenzionata shooting moda; embargo pubblicazione fino al 1° Ottobre per embargo Fashion Week."
+      },
+      "subjectRequests": [
+        "Richiesta call",
+        "appuntamento in studio per calibrazione monitor",
+        "test luci"
+      ],
+      "originEmailSubject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci"
     },
     {
       "id": "act-1790544188584-101",
@@ -1584,7 +1852,41 @@
         "timeline": "27 Settembre (Villa Cora)"
       },
       "source": "gmail_llm_pipeline",
-      "notes": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000. [Framework B.A.N.T: Budget € 6.000, Authority Giorgio Villa (Event Director), Need Riprese multicam gala & audio wireless Sennheiser, Timeline Entro 2-3 settimane]"
+      "notes": "",
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-27",
+        "time": "16:30",
+        "advanceNotice": "15_min",
+        "channel": "dashboard_toast",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "condividi_inoltra_email",
+        "causeLabel": "Condividi-inoltra email",
+        "causeDesc": "Inoltro del preventivo a colleghi o direzione aziendale",
+        "effect": "invia_calendario",
+        "effectLabel": "Invia calendario per presa appuntamento",
+        "effectDesc": "Invia link interattivo Google Calendar / Calendly DADO",
+        "status": "active",
+        "lastTriggered": "11/10/2026 14:20"
+      },
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "contactPerson": {
+        "name": "Giorgio Villa",
+        "role": "Event Director"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 6.000",
+        "terms": "Liberatorie privacy per tutti gli ospiti internazionali; saldo anticipato 100% prima della data evento."
+      },
+      "subjectRequests": [
+        "Preventivo riprese",
+        "streaming evento Villa Cora"
+      ],
+      "originEmailSubject": "Preventivo riprese e streaming evento Villa Cora"
     },
     {
       "id": "act-1790544128367-789",
@@ -1597,7 +1899,7 @@
       "due": "today",
       "priority": "urgent_3d",
       "completed": false,
-      "status": "pending",
+      "status": "completed",
       "bant": {
         "budget": "€ 9.200",
         "authority": "Ing. Marco Riva",
@@ -1605,8 +1907,42 @@
         "timeline": "Urgente entro 3 giorni"
       },
       "source": "gmail_llm_pipeline",
-      "notes": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200. [Framework B.A.N.T: Budget € 9.200, Authority Referente aziendale, Need Shooting video corporate stabilimento con drone 4K HDR, Timeline Urgente entro 3 giorni]",
-      "assignedTo": "Marco B. (Video Editor)"
+      "notes": "",
+      "assignedTo": "Marco B. (Video Editor)",
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-27",
+        "time": "16:30",
+        "advanceNotice": "30_min",
+        "channel": "email",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "effettua_acquisto",
+        "causeLabel": "Effettua acquisto",
+        "causeDesc": "Firma digitale del contratto o conferma d'ordine",
+        "effect": "invia_followup_call",
+        "effectLabel": "Invia email di follow up post call",
+        "effectDesc": "Genera ed invia recap personalizzato degli accordi presi",
+        "status": "active",
+        "lastTriggered": null
+      },
+      "senderEmail": "marco.riva@officineriva.it",
+      "contactPerson": {
+        "name": "Ing. Marco Riva",
+        "role": "Managing Director & Titolare"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 9.200",
+        "terms": "Cessione diritti di trasmissione fiera e canali corporate per 24 mesi; copertura assicurativa DADO RC terzi stabilimento."
+      },
+      "subjectRequests": [
+        "Conferma shooting stabilimento",
+        "approvazione budget deliberato"
+      ],
+      "originEmailSubject": "Conferma shooting stabilimento e approvazione budget deliberato"
     },
     {
       "id": "act-1790543951529-802",
@@ -1627,7 +1963,41 @@
         "timeline": "Da definire"
       },
       "source": "gmail_llm_pipeline",
-      "notes": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500.. [Framework B.A.N.T: Budget € 14.500., Authority Elena Fontana (Direzione Marketing), Need Revisione storyboard e montaggio spot TV, Timeline Entro 1 settimana]"
+      "notes": "",
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-27",
+        "time": "16:30",
+        "advanceNotice": "1_ora",
+        "channel": "whatsapp",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "email",
+        "causeLabel": "Email (Ricezione / Risposta)",
+        "causeDesc": "Nuova email ricevuta o risposta dal referente",
+        "effect": "both",
+        "effectLabel": "Invia calendario + Follow up post call",
+        "effectDesc": "Esegue entrambe le azioni in sequenza automatica",
+        "status": "active",
+        "lastTriggered": "11/10/2026 14:20"
+      },
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "contactPerson": {
+        "name": "Elena Fontana",
+        "role": "Direzione Marketing"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 14.500",
+        "terms": "Esclusiva di categoria energie rinnovabili per 6 mesi; diritti di messa in onda TV regionali inclusi."
+      },
+      "subjectRequests": [
+        "Revisione complessa Storyboard Spot TV",
+        "richiesta clausole contrattuali"
+      ],
+      "originEmailSubject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali"
     },
     {
       "id": "act-1",
@@ -1640,14 +2010,48 @@
       "due": "today",
       "priority": "week_1",
       "status": "pending",
-      "notes": "Verificare se l'ing. Riva ha approvato l'integrazione per le riprese drone all'interno dello stabilimento (valore € 9.200).",
+      "notes": "",
       "assignedTo": "DaT. (Amministratore)",
       "bant": {
         "budget": "€ 9.200",
         "authority": "Da verificare",
         "need": "Chiarimento piano di riprese e coperture drone",
         "timeline": "Da concordare"
-      }
+      },
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-25",
+        "time": "16:30",
+        "advanceNotice": "1_giorno",
+        "channel": "dashboard_toast",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "cambio_pipeline",
+        "causeLabel": "Cambio pipeline",
+        "causeDesc": "Avanzamento a nuova fase della trattativa",
+        "effect": "invia_calendario",
+        "effectLabel": "Invia calendario per presa appuntamento",
+        "effectDesc": "Invia link interattivo Google Calendar / Calendly DADO",
+        "status": "active",
+        "lastTriggered": null
+      },
+      "senderEmail": "marco.riva@officineriva.it",
+      "contactPerson": {
+        "name": "Ing. Marco Riva",
+        "role": "Managing Director & Titolare"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 9.200",
+        "terms": "Cessione diritti di trasmissione fiera e canali corporate per 24 mesi; copertura assicurativa DADO RC terzi stabilimento."
+      },
+      "subjectRequests": [
+        "Conferma shooting stabilimento",
+        "approvazione budget deliberato"
+      ],
+      "originEmailSubject": "Conferma shooting stabilimento e approvazione budget deliberato"
     },
     {
       "id": "act-2",
@@ -1659,15 +2063,49 @@
       "time": "18:00",
       "due": "today",
       "priority": "high",
-      "status": "pending",
-      "notes": "Esportare animazione bozza in 16:9 e 9:16 su Frame.io/Drive con timecode per note del cliente.",
-      "assignedTo": "Giulia M. (Production Manager)",
+      "status": "completed",
+      "notes": "",
+      "assignedTo": "Laura R. (Production Manager)",
       "bant": {
         "budget": "Da definire",
         "authority": "Da verificare",
         "need": "Modifiche creative su animazioni e grafica spot",
         "timeline": "Entro venerdì"
-      }
+      },
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-25",
+        "time": "18:00",
+        "advanceNotice": "al_momento",
+        "channel": "email",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "modifica_valore_offerta",
+        "causeLabel": "Modifica valore offerta",
+        "causeDesc": "Aggiornamento budget o preventivo deliberato",
+        "effect": "invia_followup_call",
+        "effectLabel": "Invia email di follow up post call",
+        "effectDesc": "Genera ed invia recap personalizzato degli accordi presi",
+        "status": "active",
+        "lastTriggered": "11/10/2026 14:20"
+      },
+      "senderEmail": "e.fontana@solarisgreen.eu",
+      "contactPerson": {
+        "name": "Elena Fontana",
+        "role": "Direzione Marketing"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "Da definire",
+        "terms": "Esclusiva di categoria energie rinnovabili per 6 mesi; diritti di messa in onda TV regionali inclusi."
+      },
+      "subjectRequests": [
+        "Revisione complessa Storyboard Spot TV",
+        "richiesta clausole contrattuali"
+      ],
+      "originEmailSubject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali"
     },
     {
       "id": "act-3",
@@ -1680,13 +2118,48 @@
       "due": "tomorrow",
       "priority": "medium",
       "status": "completed",
-      "notes": "Testare diffusione softbox Octa 120cm con Aputure 600d su limbo per lookbook moda autunno.",
+      "notes": "",
       "bant": {
         "budget": "Non specificato",
         "authority": "Chiara Rossi",
         "need": "Verifica potenza elettrica e aggancio fari aerea",
         "timeline": "Da concordare"
-      }
+      },
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-26",
+        "time": "10:00",
+        "advanceNotice": "15_min",
+        "channel": "whatsapp",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "annulla_iscrizione_lista",
+        "causeLabel": "Annulla iscrizione da lista",
+        "causeDesc": "Richiesta opt-out o rimozione dalla mailing list",
+        "effect": "both",
+        "effectLabel": "Invia calendario + Follow up post call",
+        "effectDesc": "Esegue entrambe le azioni in sequenza automatica",
+        "status": "active",
+        "lastTriggered": null
+      },
+      "senderEmail": "c.rossi@alphastudiomilano.com",
+      "contactPerson": {
+        "name": "Chiara Rossi",
+        "role": "Studio Lead & Art Director"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 7500",
+        "terms": "Tariffa convenzionata shooting moda; embargo pubblicazione fino al 1° Ottobre per embargo Fashion Week."
+      },
+      "subjectRequests": [
+        "Richiesta call",
+        "appuntamento in studio per calibrazione monitor",
+        "test luci"
+      ],
+      "originEmailSubject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci"
     },
     {
       "id": "act-4",
@@ -1699,13 +2172,47 @@
       "due": "upcoming",
       "priority": "high",
       "status": "pending",
-      "notes": "Allestimento cabina regia mobile, verifica segnale wireless video e sincronizzazione audio con cerimonia.",
+      "notes": "",
       "bant": {
         "budget": "€ 6.000",
         "authority": "Giorgio Villa",
         "need": "Check microfoni radio e lenti zoom cinema",
         "timeline": "27 Settembre"
-      }
+      },
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-28",
+        "time": "15:00",
+        "advanceNotice": "30_min",
+        "channel": "dashboard_toast",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "pagina_web_visitata",
+        "causeLabel": "Pagina web visitata",
+        "causeDesc": "Navigazione tracciata su portfolio o landing page DADO",
+        "effect": "invia_calendario",
+        "effectLabel": "Invia calendario per presa appuntamento",
+        "effectDesc": "Invia link interattivo Google Calendar / Calendly DADO",
+        "status": "active",
+        "lastTriggered": "11/10/2026 14:20"
+      },
+      "senderEmail": "giorgio.villa@vogueevents.it",
+      "contactPerson": {
+        "name": "Giorgio Villa",
+        "role": "Event Director"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 6.000",
+        "terms": "Liberatorie privacy per tutti gli ospiti internazionali; saldo anticipato 100% prima della data evento."
+      },
+      "subjectRequests": [
+        "Preventivo riprese",
+        "streaming evento Villa Cora"
+      ],
+      "originEmailSubject": "Preventivo riprese e streaming evento Villa Cora"
     },
     {
       "id": "act-6",
@@ -1717,14 +2224,47 @@
       "time": "14:00",
       "due": "upcoming",
       "priority": "medium",
-      "status": "pending",
-      "notes": "Contratto DADO-CTR-2026-081 siglato. In attesa della contabile di bonifico per confermare la data di shooting culinario.",
+      "status": "completed",
+      "notes": "",
       "bant": {
         "budget": "€ 4.800",
         "authority": "Francesca Landi (Resp. Amministrazione)",
         "need": "Non specificato",
         "timeline": "Scadenza immediata"
-      }
+      },
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-30",
+        "time": "14:00",
+        "advanceNotice": "1_ora",
+        "channel": "email",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "link_interno_email",
+        "causeLabel": "Link interno di una email",
+        "causeDesc": "Click su link o allegato di un preventivo via email",
+        "effect": "invia_followup_call",
+        "effectLabel": "Invia email di follow up post call",
+        "effectDesc": "Genera ed invia recap personalizzato degli accordi presi",
+        "status": "active",
+        "lastTriggered": null
+      },
+      "senderEmail": "salvatore@gustoetradizione.it",
+      "contactPerson": {
+        "name": "Chef Salvatore Esposito",
+        "role": "Executive Chef & Patron"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "€ 4.800",
+        "terms": "Diritti di riproduzione canali digitali e schermi in sala ristorante per 3 anni."
+      },
+      "subjectRequests": [
+        "Sollecito saldo acconto 30%"
+      ],
+      "originEmailSubject": "Sollecito saldo acconto 30%"
     },
     {
       "id": "act-7",
@@ -1736,22 +2276,56 @@
       "time": "17:00",
       "due": "past",
       "priority": "medium",
-      "status": "completed",
-      "notes": "Presentazione video riuscita con ottimo riscontro da parte del CEO per la fiera di novembre.",
+      "status": "pending",
+      "notes": "",
       "bant": {
         "budget": "Da definire",
         "authority": "In attesa di primo referente",
         "need": "Demo reel con avatar AI e animazioni 3D",
         "timeline": "Esplorativa"
-      }
+      },
+      "reminder": {
+        "enabled": true,
+        "date": "2026-09-24",
+        "time": "17:00",
+        "advanceNotice": "1_giorno",
+        "channel": "whatsapp",
+        "notified": false
+      },
+      "automation": {
+        "enabled": true,
+        "cause": "condividi_inoltra_email",
+        "causeLabel": "Condividi-inoltra email",
+        "causeDesc": "Inoltro del preventivo a colleghi o direzione aziendale",
+        "effect": "both",
+        "effectLabel": "Invia calendario + Follow up post call",
+        "effectDesc": "Esegue entrambe le azioni in sequenza automatica",
+        "status": "active",
+        "lastTriggered": "11/10/2026 14:20"
+      },
+      "senderEmail": "luca@nexuratech.io",
+      "contactPerson": {
+        "name": "Ing. Luca Castelli",
+        "role": "CTO & Co-Founder"
+      },
+      "contractDetails": {
+        "status": "Firmato",
+        "amount": "Da definire",
+        "terms": "Vincolo di non divulgazione assoluto prima del closing del round di investimento."
+      },
+      "subjectRequests": [
+        "Demo Reel AI",
+        "Motion Graphics"
+      ],
+      "originEmailSubject": "Demo Reel AI e Motion Graphics"
     }
   ],
   "inventory": [
     {
       "id": "inv-cam-1",
-      "name": "Sony FX3 Cinema Line (Full Frame 4K 120p)",
+      "name": "Canon Cinema EOS C70 (Super 35 4K 120p DGO)",
       "category": "macchina",
-      "brand": "Sony",
+      "brand": "Canon",
       "serialNumber": "FX3-9824102",
       "status": "in_studio",
       "quantity": 1,
@@ -1761,9 +2335,9 @@
     },
     {
       "id": "inv-cam-2",
-      "name": "Sony Alpha 7 IV (33MP Fotocamera / Backup Video)",
+      "name": "Canon EOS R5 C (45MP Foto / 8K RAW Cinema)",
       "category": "macchina",
-      "brand": "Sony",
+      "brand": "Canon",
       "serialNumber": "A7IV-4521098",
       "status": "noleggiato",
       "quantity": 1,
@@ -1859,9 +2433,9 @@
     },
     {
       "id": "inv-lens-1",
-      "name": "Sony FE 24-70mm f/2.8 GM II",
+      "name": "Canon RF 24-70mm f/2.8L IS USM",
       "category": "obbiettivi",
-      "brand": "Sony G Master",
+      "brand": "Canon L-Series",
       "serialNumber": "GM-2470-9011",
       "status": "in_studio",
       "quantity": 1,
@@ -1871,9 +2445,9 @@
     },
     {
       "id": "inv-lens-2",
-      "name": "Sony FE 70-200mm f/2.8 GM OSS II",
+      "name": "Canon RF 70-200mm f/2.8L IS USM",
       "category": "obbiettivi",
-      "brand": "Sony G Master",
+      "brand": "Canon L-Series",
       "serialNumber": "GM-70200-8832",
       "status": "noleggiato",
       "quantity": 1,
@@ -1896,9 +2470,9 @@
     },
     {
       "id": "inv-lens-3",
-      "name": "Sony FE 85mm f/1.4 GM",
+      "name": "Canon RF 85mm f/1.2L USM",
       "category": "obbiettivi",
-      "brand": "Sony G Master",
+      "brand": "Canon L-Series",
       "serialNumber": "GM-85-14290",
       "status": "in_studio",
       "quantity": 1,
@@ -1908,7 +2482,7 @@
     },
     {
       "id": "inv-lens-4",
-      "name": "Sigma 35mm f/1.4 DG DN Art (Sony E)",
+      "name": "Canon RF 35mm f/1.4L VCM (Cinema Hybrid)",
       "category": "obbiettivi",
       "brand": "Sigma",
       "serialNumber": "SIG-35-55021",
@@ -1920,9 +2494,9 @@
     },
     {
       "id": "inv-lens-5",
-      "name": "Sony FE 90mm f/2.8 Macro G OSS",
+      "name": "Canon RF 100mm f/2.8L Macro IS USM",
       "category": "obbiettivi",
-      "brand": "Sony",
+      "brand": "Canon",
       "serialNumber": "SNY-90M-3341",
       "status": "in_studio",
       "quantity": 1,
@@ -1932,7 +2506,7 @@
     },
     {
       "id": "inv-fl-1",
-      "name": "Godox V1 Pro Flash a Testa Tonda (Sony)",
+      "name": "Godox V1 Pro Flash a Testa Tonda (Canon)",
       "category": "flash",
       "brand": "Godox",
       "serialNumber": "GDX-V1P-1190",
@@ -1993,9 +2567,9 @@
     },
     {
       "id": "inv-mem-2",
-      "name": "Sony TOUGH CFexpress Type A 160GB (x2)",
+      "name": "SanDisk Extreme PRO CFexpress Type B 512GB (x2) & SD V90 (Canon)",
       "category": "memorie",
-      "brand": "Sony Tough",
+      "brand": "SanDisk / Canon",
       "serialNumber": "SNY-CFA-160X2",
       "status": "in_studio",
       "quantity": 2,
@@ -2069,11 +2643,26 @@
       "category": "powerbank",
       "brand": "Anker",
       "serialNumber": "ANK-PR27-991",
-      "status": "in_studio",
+      "status": "noleggiato",
       "quantity": 1,
       "estimatedValue": 180,
-      "location": "Pannello Batterie",
-      "notes": "Alimenta contemporaneamente fotocamera USB-C PD e MacBook Pro"
+      "location": "Fuori Studio",
+      "notes": "Alimenta contemporaneamente fotocamera USB-C PD e MacBook Pro",
+      "rental": {
+        "id": "rent-1792569100967",
+        "clientName": "piero valti",
+        "company": "creando movies",
+        "contactPhone": "3333333331",
+        "contactEmail": "valti.creando@gmail.com",
+        "startDate": "2026-10-21",
+        "endDate": "0006-12-02",
+        "agreedPrice": 180,
+        "pricingType": "Tariffa Settimanale",
+        "contractCode": "DADO-RENT-2026-221",
+        "deposit": 0,
+        "notes": "lo deve riconsegnare con tagliandino ",
+        "rentedAt": "2026-10-21T07:51:40.967Z"
+      }
     },
     {
       "id": "inv-pw-2",
@@ -2125,21 +2714,21 @@
     },
     {
       "id": "inv-bat-3",
-      "name": "Batterie Sony NP-FZ100 Originali (Kit 6 batterie)",
+      "name": "Batterie Canon BP-A30 & LP-E6NH Originali (Kit 6 batterie)",
       "category": "batterie",
-      "brand": "Sony",
+      "brand": "Canon",
       "serialNumber": "SNY-FZ100-X6",
       "status": "in_studio",
       "quantity": 6,
       "estimatedValue": 510,
       "location": "Pannello Batterie",
-      "notes": "Batterie ad alta capacità per Sony FX3 e A7IV (2280mAh ciascuna)"
+      "notes": "Batterie professionali per Canon C70 (BP-A30) ed EOS R5 C (LP-E6NH)"
     },
     {
       "id": "inv-bat-4",
-      "name": "Caricabatterie Doppio Rapido Sony BC-QZ1 (x2)",
+      "name": "Caricabatterie Rapido Canon CG-A20 & LC-E6E (x2)",
       "category": "batterie",
-      "brand": "Sony",
+      "brand": "Canon",
       "serialNumber": "SNY-BCQZ1-X2",
       "status": "in_studio",
       "quantity": 2,
@@ -2368,14 +2957,25 @@
       "senderEmail": "e.fontana@solarisgreen.eu",
       "company": "Solaris Green Energy",
       "subject": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali",
-      "snippet": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot......",
-      "body": "Ciao ragazzi, il nostro direttore marketing ha sollevato alcuni punti sul piano economico dello spot TV da € 14.500. Vi chiediamo di buttare giù una proposta dettagliata per la ripartizione dei costi tra riprese e post-produzione HDR, con termini di pagamento personalizzati.",
       "date": "2026-10-04T18:52:11.793Z",
-      "aiSummary": "Richiesta rilevata da Solaris Green Energy per Revisione economica e contrattuale spot TV HDR. Budget: € 14.500..",
+      "contactPerson": {
+        "name": "Elena Fontana",
+        "role": "Direzione Marketing"
+      },
+      "contractDetails": {
+        "status": "Revisione clausole contrattuali",
+        "amount": "€ 14.500",
+        "terms": "Ripartizione costi riprese / post-produzione HDR e termini personalizzati",
+        "subjectRef": "Revisione complessa Storyboard Spot TV + richiesta clausole contrattuali"
+      },
+      "subjectRequests": [
+        "Revisione complessa Storyboard Spot TV",
+        "richiesta clausole contrattuali"
+      ],
       "bant": {
-        "budget": "€ 14.500.",
-        "authority": "Referente aziendale",
-        "need": "Revisione economica e contrattuale spot TV HDR",
+        "budget": "€ 14.500",
+        "authority": "Elena Fontana (Direzione Marketing)",
+        "need": "Revisione complessa Storyboard Spot TV • richiesta clausole contrattuali",
         "timeline": "Entro 1 settimana"
       },
       "priority": "week_1"
@@ -2386,14 +2986,25 @@
       "senderEmail": "m.colombo@fashionbrand.it",
       "company": "Fashion Brand Milano",
       "subject": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget",
-      "snippet": "Gentile Dado Studio, a seguito della riunione interna dobbiamo comunicarvi che non potremo procedere......",
-      "body": "Gentile Dado Studio, a seguito della riunione interna con la direzione dobbiamo comunicarvi che purtroppo non potremo procedere con l'affidamento dell'incarico per la campagna autunno a causa di un taglio al budget advertising. Vi ringraziamo molto per la proposta presentata.",
       "date": "2026-10-04T18:51:11.792Z",
-      "aiSummary": "Richiesta rilevata da Fashion Brand Milano per Produzione contenuti audiovisivi. Budget: Non specificato.",
+      "contactPerson": {
+        "name": "Matteo Colombo",
+        "role": "Marketing & Brand Manager"
+      },
+      "contractDetails": {
+        "status": "Sospeso per budget",
+        "amount": "Da definire",
+        "terms": "Trattativa archiviata per taglio budget cliente",
+        "subjectRef": "Esito selezione fornitore campagna ADV: non possiamo procedere per indisponibilità budget"
+      },
+      "subjectRequests": [
+        "Esito selezione fornitore campagna ADV",
+        "non possiamo procedere per indisponibilità budget"
+      ],
       "bant": {
-        "budget": "Non specificato",
-        "authority": "Ing. Marco Riva (Managing Director)",
-        "need": "Produzione contenuti audiovisivi",
+        "budget": "Da definire",
+        "authority": "Matteo Colombo (Marketing & Brand Manager)",
+        "need": "Esito selezione fornitore campagna ADV • non possiamo procedere per indisponibilità budget",
         "timeline": "Entro 1 settimana"
       },
       "priority": "week_1"
@@ -2404,14 +3015,25 @@
       "senderEmail": "s.moretti@nextmedia.agency",
       "company": "NextMedia Agency",
       "subject": "Richiesta info servizi video, showreel e opportunità di collaborazione",
-      "snippet": "Buongiorno DADO Studio, vi scriviamo per richiedere maggiori informazioni sui vostri servizi video e showreel......",
-      "body": "Buongiorno DADO Studio, siamo una nuova agenzia di comunicazione e seguiamo diversi brand moda e lifestyle. Vi scriviamo per richiedere maggiori informazioni sui vostri servizi di produzione video corporate, disponibilità drone e per proporvi una collaborazione continuativa (collab). Potete inviarci il vostro showreel aggiornato?",
       "date": "2026-10-04T18:50:11.791Z",
-      "aiSummary": "Richiesta rilevata da NextMedia Agency per Shooting video corporate stabilimento con drone 4K. Budget: Non specificato.",
+      "contactPerson": {
+        "name": "Sara Moretti",
+        "role": "Creative Producer & Partnerships"
+      },
+      "contractDetails": {
+        "status": "Accordo quadro / Partnership in valutazione",
+        "amount": "Da definire",
+        "terms": "50% acconto / 50% saldo a consegna",
+        "subjectRef": "Richiesta info servizi video, showreel e opportunità di collaborazione"
+      },
+      "subjectRequests": [
+        "Richiesta info servizi video, showreel",
+        "opportunità di collaborazione"
+      ],
       "bant": {
-        "budget": "Non specificato",
-        "authority": "Referente aziendale",
-        "need": "Shooting video corporate stabilimento con drone 4K",
+        "budget": "Da definire",
+        "authority": "Sara Moretti (Creative Producer & Partnerships)",
+        "need": "Richiesta info servizi video, showreel • opportunità di collaborazione",
         "timeline": "Entro 1 settimana"
       },
       "priority": "week_1"
@@ -2422,14 +3044,26 @@
       "senderEmail": "c.rossi@alphastudiomilano.com",
       "company": "Alpha Studio Milano",
       "subject": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci",
-      "snippet": "Ciao DADO team, potremmo fare una video call o incontro Lunedì alle 10:00?......",
-      "body": "Ciao DADO team, vorremmo concordare una video call o appuntamento in studio per Lunedì mattina alle ore 10:00 per discutere i test fondale e la calibrazione monitor Atomos Ninja. Ci confermate se siete liberi a calendario?",
       "date": "2026-10-04T18:49:11.790Z",
-      "aiSummary": "Richiesta rilevata da Alpha Studio Milano per Pianificazione call tecnica e coordinamento studio. Budget: Non specificato.",
+      "contactPerson": {
+        "name": "Chiara Rossi",
+        "role": "Studio Lead & Art Director"
+      },
+      "contractDetails": {
+        "status": "In fase di briefing / Call",
+        "amount": "Da definire",
+        "terms": "50% acconto / 50% saldo a consegna",
+        "subjectRef": "Richiesta call e appuntamento in studio per calibrazione monitor e test luci"
+      },
+      "subjectRequests": [
+        "Richiesta call",
+        "appuntamento in studio per calibrazione monitor",
+        "test luci"
+      ],
       "bant": {
-        "budget": "Non specificato",
-        "authority": "Referente aziendale",
-        "need": "Pianificazione call tecnica e coordinamento studio",
+        "budget": "Da definire",
+        "authority": "Chiara Rossi (Studio Lead & Art Director)",
+        "need": "Richiesta call • appuntamento in studio per calibrazione monitor • test luci",
         "timeline": "Urgente entro 3 giorni"
       },
       "priority": "urgent_3d"
@@ -2440,14 +3074,25 @@
       "senderEmail": "marco.riva@officineriva.it",
       "company": "Officine Meccaniche Riva",
       "subject": "Conferma shooting stabilimento e approvazione budget deliberato",
-      "snippet": "Buongiorno team Dado, vi confermiamo che il consiglio ha deliberato il preventivo di € 9.200......",
-      "body": "Buongiorno team Dado, vi confermiamo con piacere che il consiglio ha deliberato e approvato il preventivo di € 9.200 per lo shooting corporate e le riprese drone indoor. Attendiamo vostra conferma per avvio produzione e dettagli logistici.",
       "date": "2026-10-04T18:46:11.787Z",
-      "aiSummary": "Richiesta rilevata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K. Budget: € 9.200.",
+      "contactPerson": {
+        "name": "Ing. Marco Riva",
+        "role": "Managing Director & Titolare"
+      },
+      "contractDetails": {
+        "status": "Firmato / Approvato",
+        "amount": "€ 9.200",
+        "terms": "50% acconto / 50% saldo a consegna",
+        "subjectRef": "Conferma shooting stabilimento e approvazione budget deliberato"
+      },
+      "subjectRequests": [
+        "Conferma shooting stabilimento",
+        "approvazione budget deliberato"
+      ],
       "bant": {
         "budget": "€ 9.200",
-        "authority": "Referente aziendale",
-        "need": "Shooting video corporate stabilimento con drone 4K",
+        "authority": "Ing. Marco Riva (Managing Director & Titolare)",
+        "need": "Conferma shooting stabilimento • approvazione budget deliberato",
         "timeline": "Entro 1 settimana"
       },
       "priority": "week_1"
@@ -2458,14 +3103,25 @@
       "senderEmail": "c.rossi@alphastudiomilano.com",
       "company": "Alpha Studio Milano",
       "subject": "Richiesta disponibilità studio per test luci e calibrazione Atomos",
-      "snippet": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio......",
-      "body": "Salve, quando trovate un po' di tempo nell'arco di un mese ci piacerebbe fare un passaggio in studio per provare i nuovi fari Aputure e testare la calibrazione dei monitor Atomos Ninja.",
       "date": "2026-09-28T00:07:10.082Z",
-      "aiSummary": "Richiesta qualificata da Alpha Studio Milano per Test set luci e calibrazione monitor Atomos Ninja. Budget: Non specificato.",
+      "contactPerson": {
+        "name": "Chiara Rossi",
+        "role": "Studio Lead & Art Director"
+      },
+      "contractDetails": {
+        "status": "In fase di briefing / Call",
+        "amount": "Da definire",
+        "terms": "50% acconto / 50% saldo a consegna",
+        "subjectRef": "Richiesta disponibilità studio per test luci e calibrazione Atomos"
+      },
+      "subjectRequests": [
+        "Richiesta disponibilità studio per test luci",
+        "calibrazione Atomos"
+      ],
       "bant": {
-        "budget": "Non specificato",
-        "authority": "Chiara Rossi (Studio Lead)",
-        "need": "Test set luci e calibrazione monitor Atomos Ninja",
+        "budget": "Da definire",
+        "authority": "Chiara Rossi (Studio Lead & Art Director)",
+        "need": "Richiesta disponibilità studio per test luci • calibrazione Atomos",
         "timeline": "Nell'arco di 1 mese"
       },
       "priority": "month_1"
@@ -2476,14 +3132,25 @@
       "senderEmail": "marco.riva@officineriva.it",
       "company": "Officine Meccaniche Riva",
       "subject": "Conferma shooting stabilimento e integrazione drone 4K",
-      "snippet": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video......",
-      "body": "Buongiorno team Dado, abbiamo deliberato internamente il budget di € 9.200 per le riprese video corporate con drone indoor. Dobbiamo chiudere la data tassativamente entro 3 giorni per organizzare i turni di produzione delle linee robotizzate. Attendo vostra call di conferma.",
       "date": "2026-09-28T00:06:10.080Z",
-      "aiSummary": "Richiesta qualificata da Officine Meccaniche Riva per Shooting video corporate stabilimento con drone 4K HDR. Budget: € 9.200.",
+      "contactPerson": {
+        "name": "Ing. Marco Riva",
+        "role": "Managing Director & Titolare"
+      },
+      "contractDetails": {
+        "status": "Firmato / Approvato",
+        "amount": "€ 9.200",
+        "terms": "50% acconto / 50% saldo a consegna",
+        "subjectRef": "Conferma shooting stabilimento e integrazione drone 4K"
+      },
+      "subjectRequests": [
+        "Conferma shooting stabilimento",
+        "integrazione drone 4K"
+      ],
       "bant": {
         "budget": "€ 9.200",
-        "authority": "Referente da verificare",
-        "need": "Shooting video corporate stabilimento con drone 4K HDR",
+        "authority": "Ing. Marco Riva (Managing Director & Titolare)",
+        "need": "Conferma shooting stabilimento • integrazione drone 4K",
         "timeline": "Urgente entro 3 giorni"
       },
       "priority": "urgent_3d"
@@ -2494,14 +3161,25 @@
       "senderEmail": "e.fontana@solarisgreen.eu",
       "company": "Solaris Green Energy",
       "subject": "Revisione Storyboard Spot TV Locale + Campagna Digital",
-      "snippet": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot......",
-      "body": "Ciao ragazzi, il nostro direttore marketing ha revisionato il rough cut dello spot. Il budget allocato è di circa € 14.500. Dobbiamo ricevere la seconda versione dello storyboard entro una settimana per pianificare gli slot pubblicitari.",
       "date": "2026-09-28T00:05:10.079Z",
-      "aiSummary": "Richiesta qualificata da Solaris Green Energy per Revisione storyboard e montaggio spot TV. Budget: € 14.500..",
+      "contactPerson": {
+        "name": "Elena Fontana",
+        "role": "Direzione Marketing"
+      },
+      "contractDetails": {
+        "status": "Revisione clausole contrattuali",
+        "amount": "€ 14.500",
+        "terms": "Ripartizione costi riprese / post-produzione HDR e termini personalizzati",
+        "subjectRef": "Revisione Storyboard Spot TV Locale + Campagna Digital"
+      },
+      "subjectRequests": [
+        "Revisione Storyboard Spot TV Locale",
+        "Campagna Digital"
+      ],
       "bant": {
-        "budget": "€ 14.500.",
+        "budget": "€ 14.500",
         "authority": "Elena Fontana (Direzione Marketing)",
-        "need": "Revisione storyboard e montaggio spot TV",
+        "need": "Revisione Storyboard Spot TV Locale • Campagna Digital",
         "timeline": "Entro 1 settimana"
       },
       "priority": "week_1"
@@ -2512,14 +3190,25 @@
       "senderEmail": "giorgio.villa@vogueevents.it",
       "company": "Vogue Events & Wedding",
       "subject": "Preventivo riprese e streaming evento Villa Cora",
-      "snippet": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora......",
-      "body": "Buonasera DADO Studio, vi scrivo per l'evento di gala e matrimonio a Villa Cora. Budget stimato sui € 6.000 con regia multicam e audio wireless. Abbiamo tempo 2/3 settimane per definire i dettagli tecnici senza urgenza.",
       "date": "2026-09-28T00:04:10.079Z",
-      "aiSummary": "Richiesta qualificata da Vogue Events & Wedding per Riprese multicam gala & audio wireless Sennheiser. Budget: € 6.000.",
+      "contactPerson": {
+        "name": "Giorgio Villa",
+        "role": "Event Director"
+      },
+      "contractDetails": {
+        "status": "Preventivo in approvazione",
+        "amount": "€ 6.000",
+        "terms": "50% acconto / 50% saldo a consegna",
+        "subjectRef": "Preventivo riprese e streaming evento Villa Cora"
+      },
+      "subjectRequests": [
+        "Preventivo riprese",
+        "streaming evento Villa Cora"
+      ],
       "bant": {
         "budget": "€ 6.000",
         "authority": "Giorgio Villa (Event Director)",
-        "need": "Riprese multicam gala & audio wireless Sennheiser",
+        "need": "Preventivo riprese • streaming evento Villa Cora",
         "timeline": "Entro 2-3 settimane"
       },
       "priority": "weeks_2_3"
@@ -2527,24 +3216,59 @@
     {
       "id": "em-1",
       "from": "amministrazione@officineriva.it",
-      "senderName": "Marco Riva",
+      "senderEmail": "amministrazione@officineriva.it",
       "company": "Officine Meccaniche Riva",
       "subject": "Aggiornamento approvazione preventivo video corporate",
-      "snippet": "Gentile DADO Creative Studio, abbiamo visionato la proposta. Il CDA si riunisce venerdì per approvare la spesa di 9.200€.",
       "date": "2026-09-24T09:00:00Z",
-      "parsedCategory": "Feedback Preventivo",
-      "aiSummary": "CDA venerdì per approvazione preventivo 9.200€. Alta probabilità di chiusura."
+      "contactPerson": {
+        "name": "Marco Riva",
+        "role": "Managing Director & Titolare"
+      },
+      "contractDetails": {
+        "status": "Firmato / Approvato",
+        "amount": "Da definire",
+        "terms": "50% acconto / 50% saldo a consegna",
+        "subjectRef": "Aggiornamento approvazione preventivo video corporate"
+      },
+      "subjectRequests": [
+        "Aggiornamento approvazione preventivo video corporate"
+      ],
+      "bant": {
+        "budget": "Da definire",
+        "authority": "Marco Riva (Managing Director & Titolare)",
+        "need": "Aggiornamento approvazione preventivo video corporate",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
     },
     {
       "id": "em-2",
       "from": "commerciale@kromaceramiche.com",
-      "senderName": "Elena Bianchi",
+      "senderEmail": "commerciale@kromaceramiche.com",
       "company": "Kroma Ceramiche",
       "subject": "Richiesta disponibilità luci e set per ottobre",
-      "snippet": "Ciao ragazzi, per i nuovi rendering e il catalogo 3D avremmo bisogno di noleggiare anche le luci continue Aputure e lo studio per 2 giorni.",
       "date": "2026-09-23T17:15:00Z",
-      "parsedCategory": "Richiesta Servizio/Attrezzatura",
-      "aiSummary": "Richiesta noleggio luci Aputure e studio per 2 giorni a inizio ottobre."
+      "contactPerson": {
+        "name": "Elena Bianchi",
+        "role": "Marketing di Prodotto"
+      },
+      "contractDetails": {
+        "status": "In fase di briefing / Call",
+        "amount": "Da definire",
+        "terms": "50% acconto / 50% saldo a consegna",
+        "subjectRef": "Richiesta disponibilità luci e set per ottobre"
+      },
+      "subjectRequests": [
+        "Richiesta disponibilità luci",
+        "set per ottobre"
+      ],
+      "bant": {
+        "budget": "Da definire",
+        "authority": "Elena Bianchi (Marketing di Prodotto)",
+        "need": "Richiesta disponibilità luci • set per ottobre",
+        "timeline": "Entro 1 settimana"
+      },
+      "priority": "week_1"
     }
   ],
   "drafts": [
@@ -2571,7 +3295,7 @@
       "recipient": "d.moretti@kromaceramiche.it",
       "recipientName": "Davide Moretti",
       "subject": "Bozza Preventivo & Condizioni: Shooting catalogo superfici e video corporate 4K",
-      "body": "Gentile Davide Moretti,\n\nin merito alla vostra richiesta per Kroma Ceramiche relativa allo shooting catalogo e alla produzione video aziendale 4K, abbiamo predisposto la seguente offerta preliminare:\n\n• Shooting fotografico texture e campioni macro superfici: € 3.200\n• Video corporate di produzione (2 giorni di riprese con regia Sony FX3 cinema): € 6.400\n• Post-produzione, sound design e master HDR inclusi.\n\n[Bozza generata nel CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nTeam DADO Creative Studio",
+      "body": "Gentile Davide Moretti,\n\nin merito alla vostra richiesta per Kroma Ceramiche relativa allo shooting catalogo e alla produzione video aziendale 4K, abbiamo predisposto la seguente offerta preliminare:\n\n• Shooting fotografico texture e campioni macro superfici: € 3.200\n• Video corporate di produzione (2 giorni di riprese con regia Canon Cinema C70): € 6.400\n• Post-produzione, sound design e master HDR inclusi.\n\n[Bozza generata nel CRM - In attesa di approvazione e firma finale DADO]\n\nCordiali saluti,\nTeam DADO Creative Studio",
       "category": "CUSTOM_OR_NEGOTIATION",
       "subType": "draft_only",
       "autoSend": false,
@@ -2859,8 +3583,8 @@
       "amount": 9200,
       "vat": 2024,
       "totalWithVat": 11224,
-      "deposit": 4000,
-      "balance": 5200,
+      "deposit": 4600,
+      "balance": 4600,
       "status": "In attesa saldo",
       "paymentMethod": "Bonifico Bancario 30gg d.f.",
       "sdi": "M5UXCR1",
@@ -2869,8 +3593,8 @@
       "shootingDates": "24 e 25 Settembre 2026",
       "location": "Stabilimento produttivo Monza e Brianza",
       "materials": [
-        "Sony FX3",
-        "Sony 24-70mm f/2.8 GM II",
+        "Canon C70",
+        "Canon RF 24-70mm f/2.8L",
         "Drone DJI Mavic 3 Cine",
         "Sennheiser AVX"
       ]
@@ -2896,7 +3620,7 @@
       "shootingDates": "12 e 13 Settembre 2026",
       "location": "Limbo DADO Studio Milano",
       "materials": [
-        "Sony FX3",
+        "Canon C70",
         "Aputure 600d Pro",
         "Aputure 300x",
         "Gimbal DJI RS3 Pro"
@@ -2923,8 +3647,8 @@
       "shootingDates": "08 Settembre 2026",
       "location": "Studio A Milano",
       "materials": [
-        "Sony 70-200mm f/2.8 GM II",
-        "Sony 85mm f/1.4 GM",
+        "Canon RF 70-200mm f/2.8L",
+        "Canon RF 85mm f/1.2L",
         "Nanlite Pavotube"
       ]
     },
@@ -2939,9 +3663,9 @@
       "amount": 6100,
       "vat": 1342,
       "totalWithVat": 7442,
-      "deposit": 3200,
-      "balance": 2900,
-      "status": "In attesa saldo",
+      "deposit": 6100,
+      "balance": 0,
+      "status": "Saldato",
       "paymentMethod": "RIBA 60gg d.f.",
       "sdi": "W7M2U86",
       "pec": "kromaceramiche@pec.it",
@@ -2949,10 +3673,11 @@
       "shootingDates": "21 e 22 Settembre 2026",
       "location": "Showroom Sassuolo (MO)",
       "materials": [
-        "Sony FX3",
+        "Canon C70",
         "Sigma 35mm f/1.4 Art",
         "Softbox Octa 120cm"
-      ]
+      ],
+      "paidAt": "2026-10-20T09:37:52.026Z"
     },
     {
       "id": "inv-2026-084",
@@ -2975,8 +3700,8 @@
       "shootingDates": "19 Settembre 2026",
       "location": "Villa Cora Firenze (15 ore fino alle 02:30)",
       "materials": [
-        "Sony FX3",
-        "Sony 24-70mm GM II",
+        "Canon C70",
+        "Canon RF 24-70mm f/2.8L",
         "Sennheiser AVX",
         "Gimbal RS3 Pro"
       ]
@@ -3002,7 +3727,7 @@
       "shootingDates": "27 Settembre 2026",
       "location": "Studio DADO Milano",
       "materials": [
-        "Sony FX3",
+        "Canon C70",
         "Nanlite Pavotube II 30X",
         "Atomos Ninja V+"
       ]
@@ -3029,7 +3754,7 @@
       "location": "Montalcino (SI) - Vigna e Cantina",
       "materials": [
         "Drone DJI Mavic 3 Cine",
-        "Sony 70-200mm GM II"
+        "Canon RF 70-200mm f/2.8L"
       ]
     },
     {
@@ -3053,8 +3778,8 @@
       "shootingDates": "15 Luglio 2026",
       "location": "Cucina Master Napoli",
       "materials": [
-        "Sony FX3",
-        "Sony 24-70mm GM II",
+        "Canon C70",
+        "Canon RF 24-70mm f/2.8L",
         "Aputure 300x"
       ]
     },
@@ -3080,7 +3805,7 @@
       "location": "Sede Nexura Milano",
       "materials": [
         "Atomos Ninja V+",
-        "Sony 85mm GM"
+        "Canon RF 85mm f/1.2L"
       ]
     },
     {
@@ -3104,7 +3829,7 @@
       "shootingDates": "10 Maggio 2026",
       "location": "Atelier Torino",
       "materials": [
-        "Sony 70-200mm GM II",
+        "Canon RF 70-200mm f/2.8L",
         "Softbox Octa 120cm"
       ]
     },
@@ -3132,6 +3857,308 @@
         "Drone DJI Mavic 3 Cine",
         "Action Cam"
       ]
+    }
+  ],
+  "collaborators": [
+    {
+      "id": "collab-comp-1790554320431",
+      "companyId": "comp-1790554320431",
+      "companyName": "Fashion Brand Milano",
+      "companyIndustry": "Produzione Audiovisiva & B2B",
+      "name": "Matteo Colombo",
+      "role": "Marketing & Brand Manager",
+      "email": "m.colombo@fashionbrand.it",
+      "phone": "+39 02 6543210",
+      "mobile": "+39 340 8899112",
+      "notes": "Contatto aziendale primario per Fashion Brand Milano",
+      "relationshipStatus": "in_attesa_risposta",
+      "lastContact": "2026-10-12",
+      "createdAt": "2026-09-28",
+      "updatedAt": "2026-10-12",
+      "lastContactCategory": "Call Conoscitiva",
+      "lastContactDayDate": "Lunedì 12 Ottobre",
+      "lastContactHow": "Call Conoscitiva — WhatsApp & Google Meet",
+      "lastContactWhy": "Call conoscitiva e briefing per preventivo video vertical reels 9:16 e calendario date shooting lookbook."
+    },
+    {
+      "id": "collab-comp-1790554140763",
+      "companyId": "comp-1790554140763",
+      "companyName": "NextMedia Agency",
+      "companyIndustry": "Produzione Audiovisiva & B2B",
+      "name": "Sara Moretti",
+      "role": "Referente aziendale",
+      "email": "s.moretti@nextmedia.agency",
+      "phone": "+39 02 4455660",
+      "mobile": "+39 342 5566778",
+      "notes": "Contatto aziendale primario per NextMedia Agency",
+      "relationshipStatus": "in_attesa_risposta",
+      "lastContact": "2026-10-09",
+      "createdAt": "2026-09-28",
+      "updatedAt": "2026-10-09",
+      "lastContactCategory": "Chiamata",
+      "lastContactDayDate": "Venerdì 9 Ottobre",
+      "lastContactHow": "Chiamata — Telefono Ufficio + Email",
+      "lastContactWhy": "Chiamata di conferma ricezione master video 4K e allineamento per nuova campagna ADV autunno."
+    },
+    {
+      "id": "collab-comp-3",
+      "companyId": "comp-3",
+      "companyName": "Officine Meccaniche Riva",
+      "companyIndustry": "Manifattura & B2B Industry",
+      "name": "Ing. Marco Riva",
+      "role": "Managing Director & Titolare",
+      "email": "marco.riva@officineriva.it",
+      "phone": "+39 039 778899",
+      "mobile": "+39 335 1298450",
+      "notes": "Contatto aziendale primario per Officine Meccaniche Riva",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-10-08",
+      "createdAt": "2026-05-12",
+      "updatedAt": "2026-10-08",
+      "lastContactCategory": "Appuntamento",
+      "lastContactDayDate": "Giovedì 8 Ottobre",
+      "lastContactHow": "Appuntamento — Incontro in Sede & Telefono Diretto",
+      "lastContactWhy": "Appuntamento in azienda: delibera budget approvata per shooting corporate industriale fiera MecSpe 2026."
+    },
+    {
+      "id": "collab-comp-6",
+      "companyId": "comp-6",
+      "companyName": "Solaris Green Energy",
+      "companyIndustry": "Energie Rinnovabili & ESG",
+      "name": "Dott.ssa Chiara Valenti",
+      "role": "Head of Brand Communication & ESG",
+      "email": "chiara.valenti@solarisenergy.it",
+      "phone": "+39 049 332211",
+      "mobile": "+39 347 9081234",
+      "notes": "Contatto aziendale primario per Solaris Green Energy",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-10-07",
+      "createdAt": "2026-06-02",
+      "updatedAt": "2026-10-07",
+      "lastContactCategory": "Briefing",
+      "lastContactDayDate": "Mercoledì 7 Ottobre",
+      "lastContactHow": "Briefing — Videochiamata Google Meet",
+      "lastContactWhy": "Briefing operativo: revisione storyboard spot TV e piano autorizzazioni sorvolo drone parco agrivoltaico."
+    },
+    {
+      "id": "collab-comp-1",
+      "companyId": "comp-1",
+      "companyName": "Alpha Studio Milano",
+      "companyIndustry": "Moda & Fotografia Luxury",
+      "name": "Matteo Ferri",
+      "role": "Senior Art Director",
+      "email": "m.ferri@alphastudio.it",
+      "phone": "+39 02 892341",
+      "mobile": "+39 340 7654321",
+      "notes": "Contatto aziendale primario per Alpha Studio Milano",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-10-06",
+      "createdAt": "2026-01-14",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Briefing",
+      "lastContactDayDate": "Martedì 6 Ottobre",
+      "lastContactHow": "Briefing — Call & Chat WhatsApp Diretta",
+      "lastContactWhy": "Briefing tecnico per allestimento limbo studio DADO e test lenti anamorfiche per shooting moda luxury."
+    },
+    {
+      "id": "collab-comp-2",
+      "companyId": "comp-2",
+      "companyName": "Beta Digital Agency",
+      "companyIndustry": "Marketing & Social Fintech",
+      "name": "Alessandro Neri",
+      "role": "Head of Social Production",
+      "email": "a.neri@betadigital.com",
+      "phone": "+39 06 432190",
+      "mobile": "+39 333 4455667",
+      "notes": "Contatto aziendale primario per Beta Digital Agency",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-10-05",
+      "createdAt": "2026-03-28",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Chiamata",
+      "lastContactDayDate": "Lunedì 5 Ottobre",
+      "lastContactHow": "Chiamata — Call telefonica di allineamento",
+      "lastContactWhy": "Chiamata di allineamento: pianificazione spot social verticali e montaggio formato 9:16 per app fintech."
+    },
+    {
+      "id": "collab-comp-5",
+      "companyId": "comp-5",
+      "companyName": "Kroma Ceramiche",
+      "companyIndustry": "Design & Superfici Architettura",
+      "name": "Geom. Paolo Baraldi",
+      "role": "Responsabile Marketing di Prodotto",
+      "email": "p.baraldi@kromaceramiche.com",
+      "phone": "+39 0536 889900",
+      "mobile": "+39 348 2233445",
+      "notes": "Contatto aziendale primario per Kroma Ceramiche",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-10-02",
+      "createdAt": "2026-02-10",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Appuntamento",
+      "lastContactDayDate": "Venerdì 2 Ottobre",
+      "lastContactHow": "Appuntamento — Incontro di persona in azienda",
+      "lastContactWhy": "Appuntamento e sopralluogo showroom con campionatura lastre per catalogo fotografico 2027."
+    },
+    {
+      "id": "collab-comp-4",
+      "companyId": "comp-4",
+      "companyName": "Vogue Events & Wedding",
+      "companyIndustry": "Eventi Luxury & Matrimoni",
+      "name": "Ginevra Moretti",
+      "role": "Exclusive Wedding Director",
+      "email": "ginevra@vogueevents.eu",
+      "phone": "+39 055 214567",
+      "mobile": "+39 339 6677889",
+      "notes": "Contatto aziendale primario per Vogue Events & Wedding",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-10-01",
+      "createdAt": "2025-11-18",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Briefing",
+      "lastContactDayDate": "Giovedì 1 Ottobre",
+      "lastContactHow": "Briefing — Videochiamata Zoom",
+      "lastContactWhy": "Briefing regia e trailer cinematografico per evento luxury wedding a Villa Cora (Firenze)."
+    },
+    {
+      "id": "collab-comp-7",
+      "companyId": "comp-7",
+      "companyName": "Gusto & Tradizione Food",
+      "companyIndustry": "Eccellenze Gastronomiche & Ristorazione",
+      "name": "Chef Salvatore Esposito",
+      "role": "Executive Chef & Patron",
+      "email": "salvatore@gustoetradizione.it",
+      "phone": "+39 081 556677",
+      "mobile": "+39 345 1122334",
+      "notes": "Contatto aziendale primario per Gusto & Tradizione Food",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-09-30",
+      "createdAt": "2026-04-04",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Chiamata",
+      "lastContactDayDate": "Mercoledì 30 Settembre",
+      "lastContactHow": "Chiamata — Call & Vocale WhatsApp",
+      "lastContactWhy": "Chiamata per revisione teaser slow-motion pizza gourmet e programmazione reel Instagram."
+    },
+    {
+      "id": "collab-comp-10",
+      "companyId": "comp-10",
+      "companyName": "Tenuta Poggio Antico",
+      "companyIndustry": "Vitivinicolo Luxury & Wine Export",
+      "name": "Dott. Andrea Pieri",
+      "role": "Titolare & Mastro Cantiniere",
+      "email": "andrea.pieri@poggioantico.wine",
+      "phone": "+39 0577 848484",
+      "mobile": "+39 338 9988776",
+      "notes": "Contatto aziendale primario per Tenuta Poggio Antico",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-09-29",
+      "createdAt": "2026-01-12",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Appuntamento",
+      "lastContactDayDate": "Martedì 29 Settembre",
+      "lastContactHow": "Appuntamento — Pianificazione Set in Tenuta",
+      "lastContactWhy": "Appuntamento fissato per giornate riprese vendemmia e shooting bottiglie riserva con luce d'ambiente."
+    },
+    {
+      "id": "collab-comp-8",
+      "companyId": "comp-8",
+      "companyName": "Nexura Tech Solutions",
+      "companyIndustry": "Software & Intelligenza Artificiale",
+      "name": "Ing. Luca Castelli",
+      "role": "CTO & Co-Founder",
+      "email": "luca@nexuratech.io",
+      "phone": "+39 02 998877",
+      "mobile": "+39 349 0011223",
+      "notes": "Contatto aziendale primario per Nexura Tech Solutions",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-09-28",
+      "createdAt": "2026-06-15",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Call Conoscitiva",
+      "lastContactDayDate": "Lunedì 28 Settembre",
+      "lastContactHow": "Call Conoscitiva — Google Meet",
+      "lastContactWhy": "Call conoscitiva e allineamento per consegna pitch video animato 3D per investitori Venture Capital di Londra."
+    },
+    {
+      "id": "collab-comp-9",
+      "companyId": "comp-9",
+      "companyName": "Atelier Sposa Bellissima",
+      "companyIndustry": "Alta Moda Sposa & Cerimonia",
+      "name": "Stefania Conti",
+      "role": "Head Designer & Titolare Atelier",
+      "email": "stefania@sposabellissima.it",
+      "phone": "+39 011 445566",
+      "mobile": "+39 347 1122334",
+      "notes": "Contatto aziendale primario per Atelier Sposa Bellissima",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-09-25",
+      "createdAt": "2026-02-02",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Appuntamento",
+      "lastContactDayDate": "Venerdì 25 Settembre",
+      "lastContactHow": "Appuntamento — Incontro in Atelier & Campionario",
+      "lastContactWhy": "Appuntamento in atelier per selezione abiti haute couture lookbook primaverile e riprese video backstage."
+    },
+    {
+      "id": "collab-comp-11",
+      "companyId": "comp-11",
+      "companyName": "Urban Mobility Bike",
+      "companyIndustry": "Mobilità Elettrica & Sport",
+      "name": "Jacopo Bonomi",
+      "role": "Brand & Communication Manager",
+      "email": "jacopo.bonomi@urbanmobility.eu",
+      "phone": "+39 02 771122",
+      "mobile": "+39 334 8877665",
+      "notes": "Contatto aziendale primario per Urban Mobility Bike",
+      "relationshipStatus": "Attivo",
+      "lastContact": "2026-09-23",
+      "createdAt": "2025-12-18",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Briefing",
+      "lastContactDayDate": "Mercoledì 23 Settembre",
+      "lastContactHow": "Briefing — Call telefonica + WhatsApp",
+      "lastContactWhy": "Briefing logistico: pianificazione percorso ciclistico urbano e permessi comunali per spot e-bike gravel."
+    },
+    {
+      "id": "collab-comp-1790554320444",
+      "companyId": "comp-1790554320444",
+      "companyName": "Aura Design & Architettura",
+      "companyIndustry": "Architettura & Interior Design B2B",
+      "name": "Arch. Elena Baroni",
+      "role": "Design Director",
+      "email": "elena.baroni@auradesign.it",
+      "phone": "+39 02 7654 3210",
+      "mobile": "+39 335 1289 443",
+      "notes": "Contatto aziendale primario per Aura Design & Architettura",
+      "relationshipStatus": "in_attesa_risposta",
+      "lastContact": "2026-09-21",
+      "createdAt": "2026-10-02",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Call Conoscitiva",
+      "lastContactDayDate": "Lunedì 21 Settembre",
+      "lastContactHow": "Call Conoscitiva — Telefono + Email PDF",
+      "lastContactWhy": "Call conoscitiva e invio preventivo per servizio fotografico d'architettura e video walkthrough appartamenti."
+    },
+    {
+      "id": "collab-comp-1790554320455",
+      "companyId": "comp-1790554320455",
+      "companyName": "Cantine San Biagio Wine & Resort",
+      "companyIndustry": "Wine, Food Luxury & Hospitality",
+      "name": "Dott. Stefano Valenti",
+      "role": "Brand Ambassador & Event Manager",
+      "email": "s.valenti@cantinesanbiagio.it",
+      "phone": "+39 055 8921 443",
+      "mobile": "+39 348 9912 884",
+      "notes": "Contatto aziendale primario per Cantine San Biagio Wine & Resort",
+      "relationshipStatus": "lavoro_concluso",
+      "lastContact": "2026-09-19",
+      "createdAt": "2026-09-29",
+      "updatedAt": "2026-10-06",
+      "lastContactCategory": "Chiamata",
+      "lastContactDayDate": "Sabato 19 Settembre",
+      "lastContactHow": "Chiamata — Telefono Ufficio Diretto",
+      "lastContactWhy": "Chiamata di follow-up: feedback positivo su riprese evento di gala e richiesta archivio foto in alta risoluzione."
     }
   ]
 }

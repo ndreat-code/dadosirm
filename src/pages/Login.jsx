@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import CrmFuturisticLogo from '../components/CrmFuturisticLogo'
 
 function DadoBrandMark({ size = 22 }) {
   const h = size
@@ -93,16 +94,16 @@ export default function Login() {
 
         {/* Brand Header */}
         <div className="flex flex-col items-center justify-center mb-6 text-center select-none">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3.5 mb-2">
             <DadoBrandMark size={26} />
-            <span
-              className="text-white text-3xl font-bold tracking-wider"
-              style={{ fontFamily: 'Sixtyfour, monospace' }}
-            >
-              CRM
-            </span>
+            <CrmFuturisticLogo
+              isActive={true}
+              height={26}
+              width={96}
+              className="shrink-0"
+            />
           </div>
-          <p className="text-slate-400 text-xs font-mono tracking-wide uppercase">
+          <p className="text-slate-400 text-xs tracking-wide uppercase">
             DADO Creative Studio • Accesso Riservato
           </p>
         </div>
@@ -117,16 +118,16 @@ export default function Login() {
           <div className="flex items-center justify-between border-b border-slate-700/80 pb-3 mb-5">
             <div className="flex items-center gap-2">
               <LogIn className="w-5 h-5 text-emerald-400" />
-              <h1 className="text-lg font-bold text-white font-mono tracking-tight">
+              <h1 className="text-lg font-bold text-white tracking-tight">
                 Accedi al CRM
               </h1>
             </div>
-            <span className="text-[10px] font-mono text-slate-400">Autenticazione</span>
+            <span className="text-[10px] font-semibold text-slate-400">Autenticazione</span>
           </div>
 
           {/* Messaggio Errore */}
           {errorMsg && (
-            <div className="p-3 mb-4 rounded-xl bg-red-500/15 border border-red-500/40 text-red-200 text-xs font-mono animate-fadeIn flex items-center gap-2">
+            <div className="p-3 mb-4 rounded-xl bg-red-500/15 border border-red-500/40 text-red-200 text-xs animate-fadeIn flex items-center gap-2">
               <span>⚠️ {errorMsg}</span>
             </div>
           )}
@@ -134,7 +135,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
-              <label className="block text-xs font-mono font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
                 <span>Email:</span>
               </label>
@@ -143,14 +144,14 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="es. admin@dadocreativestudio.com"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm font-mono placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                 required
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-mono font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
                 <KeyRound className="w-3.5 h-3.5 text-slate-400" />
                 <span>Password:</span>
               </label>
@@ -160,7 +161,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Inserisci la password..."
-                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm font-mono placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                   required
                 />
                 <button
@@ -179,7 +180,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 rounded-xl font-mono text-xs font-black uppercase tracking-wider bg-gradient-to-r from-emerald-500 to-[#00d2ff] hover:opacity-95 text-slate-950 shadow-lg cursor-pointer transition-all transform active:scale-98 flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-emerald-500 to-[#00d2ff] hover:opacity-95 text-slate-950 shadow-lg cursor-pointer transition-all transform active:scale-98 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
@@ -195,7 +196,7 @@ export default function Login() {
 
           {/* Accesso Rapido Diretto (1 Click) per rientrare subito senza doversi registrare */}
           <div className="mt-5 pt-4 border-t border-slate-700/60">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-slate-300 block mb-2 text-center font-bold">
+            <span className="text-[11px] uppercase tracking-wider text-slate-300 block mb-2 text-center font-bold">
               ⚡ Rientra subito nel CRM (senza registrarti):
             </span>
             <div className="grid grid-cols-2 gap-2.5">
@@ -204,11 +205,11 @@ export default function Login() {
                 onClick={() => handleDirectLogin('admin@dadocreativestudio.com', 'Admin2026!')}
                 className="p-3 rounded-xl bg-slate-800/90 hover:bg-cyan-950/50 border border-slate-700 hover:border-cyan-400 text-left transition-all cursor-pointer group shadow-sm hover:shadow-[0_0_14px_rgba(0,210,255,0.2)]"
               >
-                <div className="text-[12px] font-mono font-bold text-cyan-300 flex items-center justify-between">
+                <div className="text-[12px] font-bold text-cyan-300 flex items-center justify-between">
                   <span>👑 Admin</span>
                   <ArrowRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-cyan-400" />
                 </div>
-                <div className="text-[10px] font-mono text-slate-400 truncate mt-1">
+                <div className="text-[10px] font-semibold text-slate-400 truncate mt-1">
                   1-Click immediato
                 </div>
               </button>
@@ -218,11 +219,11 @@ export default function Login() {
                 onClick={() => handleDirectLogin('davide@dadocreativestudio.com', 'Director2026!')}
                 className="p-3 rounded-xl bg-slate-800/90 hover:bg-amber-950/50 border border-slate-700 hover:border-amber-400 text-left transition-all cursor-pointer group shadow-sm hover:shadow-[0_0_14px_rgba(245,158,11,0.2)]"
               >
-                <div className="text-[12px] font-mono font-bold text-amber-300 flex items-center justify-between">
+                <div className="text-[12px] font-bold text-amber-300 flex items-center justify-between">
                   <span>🎬 Director</span>
                   <ArrowRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-amber-400" />
                 </div>
-                <div className="text-[10px] font-mono text-slate-400 truncate mt-1">
+                <div className="text-[10px] font-semibold text-slate-400 truncate mt-1">
                   1-Click immediato
                 </div>
               </button>
@@ -233,7 +234,7 @@ export default function Login() {
           <div className="text-center pt-4 mt-4 border-t border-slate-700/60">
             <p className="text-xs text-slate-300 font-sans">
               Vuoi creare un nuovo account aggiuntivo?{' '}
-              <Link to="/register" className="text-emerald-400 hover:text-emerald-300 font-bold font-mono hover:underline block sm:inline mt-1 sm:mt-0">
+              <Link to="/register" className="text-emerald-400 hover:text-emerald-300 font-bold hover:underline block sm:inline mt-1 sm:mt-0">
                 Registra nuovo profilo con credenziali casuali →
               </Link>
             </p>
@@ -241,7 +242,7 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[11px] font-mono text-slate-500 mt-4 select-none">
+        <p className="text-center text-[11px] font-semibold text-slate-500 mt-4 select-none">
           DADO Creative Studio • CRM Riservato
         </p>
 

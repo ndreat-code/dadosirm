@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useDeviceMode } from '../context/DeviceModeContext'
+import PageTopBand from '../components/PageTopBand'
 import {
   Camera,
   Layers,
@@ -26,11 +28,52 @@ import {
   Mail,
   FileText,
   X,
+  ChevronLeft,
   ChevronRight,
+  Calendar as CalendarIcon,
   Sparkles,
   ShieldCheck,
   Check
 } from 'lucide-react'
+
+const ITALIAN_MONTHS = [
+  'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+  'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+]
+
+const ITALIAN_WEEKDAYS_SHORT = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
+const ITALIAN_WEEKDAYS_FULL = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
+
+export function toLocalIsoDate(dateObj) {
+  const d = dateObj instanceof Date && !isNaN(dateObj.getTime()) ? dateObj : new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export function parseLocalIsoDate(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return null
+  const clean = dateStr.trim()
+  const match = clean.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (match) {
+    const year = Number(match[1])
+    const month = Number(match[2]) - 1
+    const day = Number(match[3])
+    return new Date(year, month, day, 0, 0, 0, 0)
+  }
+  const parsed = new Date(clean)
+  if (isNaN(parsed.getTime())) return null
+  parsed.setHours(0, 0, 0, 0)
+  return parsed
+}
+
+export function formatItalianDateWithWeekday(dateStr) {
+  const d = parseLocalIsoDate(dateStr)
+  if (!d) return 'Seleziona un giorno sul calendario'
+  const weekdayIdx = d.getDay() === 0 ? 6 : d.getDay() - 1
+  return `${ITALIAN_WEEKDAYS_FULL[weekdayIdx]} ${d.getDate()} ${ITALIAN_MONTHS[d.getMonth()]} ${d.getFullYear()}`
+}
 
 // Categorie ufficiali dell'inventario richieste dallo studio
 export const INVENTORY_CATEGORIES = [
@@ -59,11 +102,11 @@ export function getRentalDeadlineStatus(endDateStr) {
   if (!endDateStr) return { status: 'unknown', label: 'Data non specificata', color: '#64748b', bg: '#f1f5f9', border: '#cbd5e1' }
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const due = new Date(endDateStr)
-  due.setHours(0, 0, 0, 0)
+  const due = parseLocalIsoDate(endDateStr)
+  if (!due) return { status: 'unknown', label: 'Data non valida', color: '#64748b', bg: '#f1f5f9', border: '#cbd5e1' }
 
   const diffTime = due.getTime() - today.getTime()
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
 
   if (diffDays < 0) {
     const abs = Math.abs(diffDays)
@@ -107,12 +150,13 @@ export function getRentalDeadlineStatus(endDateStr) {
 }
 
 export default function Inventory() {
+  const { isMobileApp } = useDeviceMode()
   const [inventory, setInventory] = useState([])
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [activeTab, setActiveTab] = useState('all') // 'all', 'rentals', 'available'
+  const [activeTab, setActiveTab] = useState('available') // 'available' (Elenco Attrezzature) | 'rentals' (Articoli a Noleggio)
   const [sortBy, setSortBy] = useState('category') // 'category', 'value_desc', 'name', 'rental_deadline'
 
   // Modali
@@ -120,6 +164,11 @@ export default function Inventory() {
   const [showRentModal, setShowRentModal] = useState(false)
   const [selectedItemForRent, setSelectedItemForRent] = useState(null)
   const [showDetailModal, setShowDetailModal] = useState(null)
+
+  // Stato Calendario Restituzione nel riquadro Noleggia
+  const [returnCalYear, setReturnCalYear] = useState(() => new Date().getFullYear())
+  const [returnCalMonth, setReturnCalMonth] = useState(() => new Date().getMonth())
+  const [returnDateAutoSaved, setReturnDateAutoSaved] = useState(false)
 
   // Form Nuovo Articolo
   const [newArticle, setNewArticle] = useState({
@@ -134,26 +183,30 @@ export default function Inventory() {
   })
 
   // Form Assegna Noleggio
-  const [rentForm, setRentForm] = useState({
-    itemId: '',
-    clientName: '',
-    company: '',
-    contactPhone: '',
-    contactEmail: '',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
-    agreedPrice: '',
-    pricingType: 'Totale forfait',
-    contractCode: `DADO-RENT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
-    deposit: '',
-    notes: ''
+  const [rentForm, setRentForm] = useState(() => {
+    const now = new Date()
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+    return {
+      itemId: '',
+      clientName: '',
+      company: '',
+      contactPhone: '',
+      contactEmail: '',
+      startDate: toLocalIsoDate(now),
+      endDate: toLocalIsoDate(tomorrow),
+      agreedPrice: '',
+      pricingType: 'Totale forfait',
+      contractCode: `DADO-RENT-${now.getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      deposit: '',
+      notes: ''
+    }
   })
 
   // Caricamento Dati Iniziali dal backend Express
   const fetchInventoryData = async () => {
     try {
       setLoading(true)
-      const res = await fetch('/api/crm-data')
+      const res = await fetch('/api/crm/summary')
       if (res.ok) {
         const data = await res.json()
         setInventory(data.inventory || [])
@@ -258,7 +311,7 @@ export default function Inventory() {
     }
 
     try {
-      const res = await fetch('/api/crm-data/inventory', {
+      const res = await fetch('/api/crm/inventory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(articleData)
@@ -288,6 +341,245 @@ export default function Inventory() {
     }
   }
 
+  // Apertura modale Noleggia sincronizzando sempre l'anno e il mese del calendario di restituzione
+  const openRentModalForItem = (item = null) => {
+    const now = new Date()
+    const defaultStart = toLocalIsoDate(now)
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+    const defaultEnd = toLocalIsoDate(tomorrow)
+
+    if (item && item.status === 'noleggiato' && item.rental) {
+      const existingEndObj = parseLocalIsoDate(item.rental.endDate) || tomorrow
+      setSelectedItemForRent(item)
+      setReturnCalYear(existingEndObj.getFullYear())
+      setReturnCalMonth(existingEndObj.getMonth())
+      setReturnDateAutoSaved(true)
+      setRentForm({
+        itemId: item.id,
+        clientName: item.rental.clientName || '',
+        company: item.rental.company || '',
+        contactPhone: item.rental.contactPhone || '',
+        contactEmail: item.rental.contactEmail || '',
+        startDate: item.rental.startDate || defaultStart,
+        endDate: toLocalIsoDate(existingEndObj),
+        agreedPrice: item.rental.agreedPrice ?? '',
+        pricingType: item.rental.pricingType || 'Totale forfait',
+        contractCode: item.rental.contractCode || `DADO-RENT-${existingEndObj.getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+        deposit: item.rental.deposit ?? '',
+        notes: item.rental.notes || ''
+      })
+    } else {
+      const targetItem = item || inventory.find(i => i.status === 'in_studio') || null
+      setSelectedItemForRent(item)
+      setReturnCalYear(tomorrow.getFullYear())
+      setReturnCalMonth(tomorrow.getMonth())
+      setReturnDateAutoSaved(true)
+      setRentForm({
+        itemId: targetItem?.id || '',
+        clientName: '',
+        company: '',
+        contactPhone: '',
+        contactEmail: '',
+        startDate: defaultStart,
+        endDate: defaultEnd,
+        agreedPrice: '',
+        pricingType: 'Totale forfait',
+        contractCode: `DADO-RENT-${tomorrow.getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+        deposit: '',
+        notes: ''
+      })
+    }
+    setShowRentModal(true)
+  }
+
+  // Salva automaticamente la data di restituzione (e se l'articolo è già a noleggio, aggiorna anche il backend)
+  const applyAndSaveReturnDate = async (yearNum, monthIdx, dayNum) => {
+    const cleanYear = Number(yearNum) || new Date().getFullYear()
+    const cleanMonth = Math.max(0, Math.min(11, Number(monthIdx) || 0))
+    const maxDaysInMonth = new Date(cleanYear, cleanMonth + 1, 0).getDate()
+    const clampedDay = Math.max(1, Math.min(maxDaysInMonth, Number(dayNum) || 1))
+
+    const selectedDateObj = new Date(cleanYear, cleanMonth, clampedDay, 0, 0, 0, 0)
+    const newEndIso = toLocalIsoDate(selectedDateObj)
+
+    setReturnCalYear(cleanYear)
+    setReturnCalMonth(cleanMonth)
+    setReturnDateAutoSaved(true)
+
+    setRentForm(prev => {
+      const updatedContract = prev.contractCode
+        ? prev.contractCode.replace(/^DADO-RENT-\d{4}-/, `DADO-RENT-${cleanYear}-`)
+        : `DADO-RENT-${cleanYear}-${Math.floor(100 + Math.random() * 900)}`
+      return {
+        ...prev,
+        endDate: newEndIso,
+        contractCode: updatedContract
+      }
+    })
+
+    // Se stiamo modificando un noleggio già attivo, salva subito sul server la nuova data di restituzione
+    const targetItemId = rentForm.itemId || selectedItemForRent?.id
+    const currentItem = inventory.find(i => i.id === targetItemId)
+    if (currentItem && currentItem.status === 'noleggiato' && (rentForm.company || currentItem.rental?.company)) {
+      try {
+        const rentalPayload = {
+          clientName: rentForm.clientName || currentItem.rental?.clientName || '',
+          company: rentForm.company || currentItem.rental?.company || '',
+          contactPhone: rentForm.contactPhone || currentItem.rental?.contactPhone || '',
+          contactEmail: rentForm.contactEmail || currentItem.rental?.contactEmail || '',
+          startDate: rentForm.startDate || currentItem.rental?.startDate || toLocalIsoDate(new Date()),
+          endDate: newEndIso,
+          agreedPrice: Number(rentForm.agreedPrice ?? currentItem.rental?.agreedPrice) || 0,
+          pricingType: rentForm.pricingType || currentItem.rental?.pricingType || 'Totale forfait',
+          contractCode: rentForm.contractCode || currentItem.rental?.contractCode || `DADO-RENT-${cleanYear}-101`,
+          deposit: rentForm.deposit ?? currentItem.rental?.deposit ?? '',
+          notes: rentForm.notes ?? currentItem.rental?.notes ?? '',
+          assignedAt: currentItem.rental?.assignedAt || new Date().toISOString()
+        }
+        const res = await fetch(`/api/crm/inventory/${targetItemId}/rent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(rentalPayload)
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.inventory) setInventory(data.inventory)
+        }
+      } catch (err) {
+        console.error('Errore salvataggio automatico data rientro:', err)
+      }
+    }
+  }
+
+  // Cambio Anno nel calendario di restituzione: aggiorna subito la data di restituzione con l'anno selezionato
+  const handleReturnYearChange = (newYearValue) => {
+    const parsedYear = Number(newYearValue)
+    if (!parsedYear || parsedYear < 2020 || parsedYear > 2050) return
+    const currentEndObj = parseLocalIsoDate(rentForm.endDate) || new Date()
+    const currentDay = currentEndObj.getDate()
+    applyAndSaveReturnDate(parsedYear, returnCalMonth, currentDay)
+  }
+
+  // Cambio Mese nel calendario di restituzione: aggiorna subito la data di restituzione
+  const handleReturnMonthChange = (newMonthValue, customYear = returnCalYear) => {
+    let targetYear = Number(customYear) || returnCalYear
+    let targetMonth = Number(newMonthValue)
+    if (targetMonth < 0) {
+      targetMonth = 11
+      targetYear -= 1
+    } else if (targetMonth > 11) {
+      targetMonth = 0
+      targetYear += 1
+    }
+    const currentEndObj = parseLocalIsoDate(rentForm.endDate) || new Date()
+    const currentDay = currentEndObj.getDate()
+    applyAndSaveReturnDate(targetYear, targetMonth, currentDay)
+  }
+
+  // Giorni della settimana rapidi (Lun..Dom) sincronizzati con l'anno e il mese selezionati
+  const quickWeekDays = useMemo(() => {
+    const startObj = parseLocalIsoDate(rentForm.startDate) || new Date()
+    const endObj = parseLocalIsoDate(rentForm.endDate)
+    // Data base nella vista (returnCalYear, returnCalMonth)
+    let anchorDate
+    if (endObj && endObj.getFullYear() === returnCalYear && endObj.getMonth() === returnCalMonth) {
+      anchorDate = new Date(returnCalYear, returnCalMonth, endObj.getDate())
+    } else if (startObj.getFullYear() === returnCalYear && startObj.getMonth() === returnCalMonth) {
+      anchorDate = new Date(returnCalYear, returnCalMonth, startObj.getDate())
+    } else {
+      anchorDate = new Date(returnCalYear, returnCalMonth, 1)
+    }
+
+    // Trova il Lunedì della settimana di riferimento (oppure i 7 giorni a partire da Lunedì)
+    const anchorWeekday = anchorDate.getDay() === 0 ? 6 : anchorDate.getDay() - 1
+    const mondayDate = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), anchorDate.getDate() - anchorWeekday)
+
+    return ITALIAN_WEEKDAYS_SHORT.map((shortLabel, idx) => {
+      const d = new Date(mondayDate.getFullYear(), mondayDate.getMonth(), mondayDate.getDate() + idx)
+      // Forza l'anno selezionato se il mese coincide, così l'anno selezionato è sempre rispettato
+      const iso = toLocalIsoDate(d)
+      return {
+        weekdayIdx: idx,
+        shortLabel,
+        fullLabel: ITALIAN_WEEKDAYS_FULL[idx],
+        day: d.getDate(),
+        month: d.getMonth(),
+        monthShort: ITALIAN_MONTHS[d.getMonth()].slice(0, 3),
+        year: d.getFullYear(),
+        iso,
+        isSelected: rentForm.endDate === iso
+      }
+    })
+  }, [rentForm.startDate, rentForm.endDate, returnCalYear, returnCalMonth])
+
+  // Griglia mensile del calendario di restituzione per (returnCalYear, returnCalMonth)
+  const returnCalendarGrid = useMemo(() => {
+    const firstDayOfMonth = new Date(returnCalYear, returnCalMonth, 1)
+    const daysInMonth = new Date(returnCalYear, returnCalMonth + 1, 0).getDate()
+    const startWeekday = firstDayOfMonth.getDay() === 0 ? 6 : firstDayOfMonth.getDay() - 1
+
+    const cells = []
+    const prevMonthDays = new Date(returnCalYear, returnCalMonth, 0).getDate()
+
+    for (let i = startWeekday - 1; i >= 0; i--) {
+      const d = new Date(returnCalYear, returnCalMonth - 1, prevMonthDays - i)
+      cells.push({
+        day: d.getDate(),
+        month: d.getMonth(),
+        year: d.getFullYear(),
+        iso: toLocalIsoDate(d),
+        isCurrentMonth: false,
+        weekdayIdx: cells.length % 7
+      })
+    }
+
+    for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+      const d = new Date(returnCalYear, returnCalMonth, dayNum)
+      cells.push({
+        day: dayNum,
+        month: returnCalMonth,
+        year: returnCalYear,
+        iso: toLocalIsoDate(d),
+        isCurrentMonth: true,
+        weekdayIdx: cells.length % 7
+      })
+    }
+
+    const remaining = (7 - (cells.length % 7)) % 7
+    for (let i = 1; i <= remaining; i++) {
+      const d = new Date(returnCalYear, returnCalMonth + 1, i)
+      cells.push({
+        day: d.getDate(),
+        month: d.getMonth(),
+        year: d.getFullYear(),
+        iso: toLocalIsoDate(d),
+        isCurrentMonth: false,
+        weekdayIdx: cells.length % 7
+      })
+    }
+
+    return cells
+  }, [returnCalYear, returnCalMonth])
+
+  // Click sull'intestazione del giorno della settimana (LUN..DOM) nella griglia mensile
+  const handleCalendarColumnWeekdayClick = (weekdayIdx) => {
+    const matchingDaysInMonth = returnCalendarGrid.filter(
+      c => c.isCurrentMonth && c.weekdayIdx === weekdayIdx
+    )
+    if (matchingDaysInMonth.length === 0) return
+
+    const currentSelectedIdx = matchingDaysInMonth.findIndex(c => c.iso === rentForm.endDate)
+    if (currentSelectedIdx !== -1) {
+      const nextCell = matchingDaysInMonth[(currentSelectedIdx + 1) % matchingDaysInMonth.length]
+      applyAndSaveReturnDate(nextCell.year, nextCell.month, nextCell.day)
+      return
+    }
+
+    const startIso = rentForm.startDate || toLocalIsoDate(new Date())
+    const upcomingCell = matchingDaysInMonth.find(c => c.iso >= startIso) || matchingDaysInMonth[0]
+    applyAndSaveReturnDate(upcomingCell.year, upcomingCell.month, upcomingCell.day)
+  }
+
   // Gestione Assegnazione Noleggio
   const handleAssignRental = async (e) => {
     e.preventDefault()
@@ -310,7 +602,7 @@ export default function Inventory() {
     }
 
     try {
-      const res = await fetch(`/api/crm-data/inventory/${targetItemId}/rent`, {
+      const res = await fetch(`/api/crm/inventory/${targetItemId}/rent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rentalPayload)
@@ -323,20 +615,6 @@ export default function Inventory() {
         }
         setShowRentModal(false)
         setSelectedItemForRent(null)
-        setRentForm({
-          itemId: '',
-          clientName: '',
-          company: '',
-          contactPhone: '',
-          contactEmail: '',
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: '',
-          agreedPrice: '',
-          pricingType: 'Totale forfait',
-          contractCode: `DADO-RENT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
-          deposit: '',
-          notes: ''
-        })
       }
     } catch (err) {
       console.error('Errore assegnazione noleggio:', err)
@@ -346,7 +624,7 @@ export default function Inventory() {
   // Registra Rientro in Studio
   const handleReturnItem = async (itemId) => {
     try {
-      const res = await fetch(`/api/crm-data/inventory/${itemId}/return`, {
+      const res = await fetch(`/api/crm/inventory/${itemId}/return`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       })
@@ -367,7 +645,7 @@ export default function Inventory() {
     if (!window.confirm('Sei sicuro di voler eliminare questo articolo dall\'inventario?')) return
 
     try {
-      const res = await fetch(`/api/crm-data/inventory/${itemId}`, {
+      const res = await fetch(`/api/crm/inventory/${itemId}`, {
         method: 'DELETE'
       })
 
@@ -384,26 +662,30 @@ export default function Inventory() {
 
   return (
     <div
-      className="h-full min-h-screen md:min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden"
+      className="h-full min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden"
       style={{
         fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
-      
+      {/* ── BANDA SUPERIORE CON SFUMATURA ARMONIZZATA ALLO SFONDO DI INVENTARIO ── */}
+      <PageTopBand title="Inventario" theme="inventory" thickDesktop={true} />
+
       {/* ── CANVAS ARMONIZZATO STILE DASHBOARD CON COLORI VIVI ── */}
       <div
-        className="h-full flex-1 rounded-tl-none rounded-bl-none flex flex-col justify-between relative min-w-0 overflow-hidden"
+        className={`flex-1 min-h-0 rounded-tl-none ${isMobileApp ? 'rounded-bl-[32px]' : 'rounded-bl-[48px]'} rounded-tr-none rounded-br-none flex flex-col justify-between relative min-w-0 overflow-hidden`}
         style={{
-          boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+          boxShadow: '-10px 14px 24px -6px rgba(0, 0, 0, 0.38)',
           borderLeft: '1.5px solid #d4ebf9',
+          borderBottomLeftRadius: isMobileApp ? '32px' : '48px',
           background: `
-            radial-gradient(ellipse 520px 400px at 8% 16%, rgba(83, 186, 117, 0.32) 0%, rgba(83, 186, 117, 0.08) 55%, transparent 75%),
-            radial-gradient(ellipse 560px 440px at 92% 12%, rgba(27, 183, 237, 0.35) 0%, rgba(27, 183, 237, 0.09) 55%, transparent 75%),
+            linear-gradient(180deg, #ecf8f5 0px, #ecf8f5 24px, rgba(236, 248, 245, 0) 84px),
+            radial-gradient(ellipse 520px 400px at 8% 22%, rgba(83, 186, 117, 0.32) 0%, rgba(83, 186, 117, 0.08) 55%, transparent 75%),
+            radial-gradient(ellipse 560px 440px at 92% 20%, rgba(27, 183, 237, 0.35) 0%, rgba(27, 183, 237, 0.09) 55%, transparent 75%),
             radial-gradient(ellipse 500px 400px at 45% 82%, rgba(234, 56, 36, 0.25) 0%, rgba(234, 56, 36, 0.06) 55%, transparent 75%),
             radial-gradient(ellipse 480px 360px at 85% 78%, rgba(250, 196, 41, 0.32) 0%, rgba(250, 196, 41, 0.08) 55%, transparent 75%),
             radial-gradient(ellipse 420px 340px at 28% 48%, rgba(27, 183, 237, 0.24) 0%, transparent 70%),
             radial-gradient(ellipse 440px 360px at 68% 35%, rgba(83, 186, 117, 0.22) 0%, transparent 70%),
-            linear-gradient(180deg, #f0f8fd 0%, #e6f3fa 100%)
+            linear-gradient(180deg, #ecf8f5 0%, #f0f8fd 22%, #e6f3fa 100%)
           `,
         }}
       >
@@ -413,7 +695,7 @@ export default function Inventory() {
           <div
             className="absolute rounded-full"
             style={{
-              top: '4%',
+              top: '14%',
               left: '5%',
               width: '460px',
               height: '380px',
@@ -426,7 +708,7 @@ export default function Inventory() {
           <div
             className="absolute rounded-full"
             style={{
-              top: '6%',
+              top: '15%',
               right: '4%',
               width: '500px',
               height: '400px',
@@ -464,206 +746,178 @@ export default function Inventory() {
         </div>
 
         {/* ── Contenuto Principale con scroll fluido ── */}
-        <div className="flex-1 min-h-0 pl-6 md:pl-8 pr-6 md:pr-8 py-4 overflow-y-auto no-scrollbar relative z-10">
+        <div className={`flex-1 min-h-0 ${isMobileApp ? 'px-2.5 py-2.5' : 'pl-6 md:pl-8 pr-6 md:pr-8 py-4'} overflow-y-auto no-scrollbar relative z-10`}>
 
-          {/* ── TITOLO IN ALTO CON BADGE & AZIONI ── */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 border-b border-sky-200/80 pb-3.5">
-            <div className="flex items-center flex-wrap gap-y-2">
-              <h1
-                className="text-2xl sm:text-[28px] font-black text-slate-900 tracking-tight leading-none select-none"
-                style={{ fontFamily: '"Switzer", sans-serif' }}
+          {/* ── AZIONI E BADGE ARTICOLI REGISTRATI SUBITO SOTTO LA BANDA ── */}
+          <div className={`flex flex-wrap items-center justify-between ${isMobileApp ? 'gap-2 mb-3 pb-2.5' : 'gap-4 mb-5 pb-3.5'} border-b border-sky-200/80`}>
+            <div className={`flex items-center ${isMobileApp ? 'gap-3' : 'gap-7'} flex-wrap`}>
+              {/* Nuovo Noleggio — Blu tenue come la lettera D del brand logo (#1bb7ed) */}
+              <button
+                type="button"
+                onClick={() => openRentModalForItem(null)}
+                className={`group flex items-center gap-1.5 ${isMobileApp ? 'text-[12.5px]' : 'text-[15px]'} font-bold transition-all hover:opacity-75 active:scale-95 cursor-pointer bg-transparent border-0 p-0 select-none`}
+                style={{
+                  fontFamily: '"Switzer", sans-serif',
+                  color: '#1bb7ed',
+                }}
+                title="Registra un nuovo noleggio attrezzatura"
               >
-                Inventario
-              </h1>
+                <Clock className={`${isMobileApp ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5'} stroke-[2.3] transition-transform group-hover:rotate-12`} style={{ stroke: '#1bb7ed' }} />
+                <span className="tracking-wide">Nuovo Noleggio</span>
+              </button>
 
-              {/* A 5 cm di distanza dal titolo: Nuovo Noleggio e Aggiungi Articolo senza riquadri, con font moderno e +2pt */}
-              <div
-                className="flex items-center gap-7 ml-4 md:ml-[5cm]"
-                style={{ marginLeft: '5cm' }}
+              {/* Aggiungi Articolo — Icona + e testo senza segno + */}
+              <button
+                type="button"
+                onClick={() => setShowAddModal(true)}
+                className={`group flex items-center gap-1.5 ${isMobileApp ? 'text-[12.5px]' : 'text-[15px]'} font-bold transition-all hover:opacity-75 active:scale-95 cursor-pointer bg-transparent border-0 p-0 select-none`}
+                style={{
+                  fontFamily: '"Switzer", sans-serif',
+                  color: '#059669',
+                }}
+                title="Aggiungi nuovo articolo a catalogo"
               >
-                {/* Nuovo Noleggio — Blu tenue come la lettera D del brand logo (#1bb7ed) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedItemForRent(null)
-                    setRentForm(prev => ({
-                      ...prev,
-                      itemId: inventory.find(i => i.status === 'in_studio')?.id || '',
-                      contractCode: `DADO-RENT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`
-                    }))
-                    setShowRentModal(true)
-                  }}
-                  className="group flex items-center gap-2 text-[15px] font-bold transition-all hover:opacity-75 active:scale-95 cursor-pointer bg-transparent border-0 p-0 select-none"
-                  style={{
-                    fontFamily: '"Switzer", sans-serif',
-                    color: '#1bb7ed',
-                  }}
-                  title="Registra un nuovo noleggio attrezzatura"
-                >
-                  <Clock className="w-4.5 h-4.5 stroke-[2.3] transition-transform group-hover:rotate-12" style={{ stroke: '#1bb7ed' }} />
-                  <span className="tracking-wide">Nuovo Noleggio</span>
-                </button>
-
-                {/* Aggiungi Articolo — Icona + e testo senza segno + */}
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(true)}
-                  className="group flex items-center gap-2 text-[15px] font-bold transition-all hover:opacity-75 active:scale-95 cursor-pointer bg-transparent border-0 p-0 select-none"
-                  style={{
-                    fontFamily: '"Switzer", sans-serif',
-                    color: '#059669',
-                  }}
-                  title="Aggiungi nuovo articolo a catalogo"
-                >
-                  <Plus className="w-4.5 h-4.5 stroke-[2.6] transition-transform group-hover:scale-110" style={{ stroke: '#059669' }} />
-                  <span className="tracking-wide">Aggiungi Articolo</span>
-                </button>
-              </div>
+                <Plus className={`${isMobileApp ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5'} stroke-[2.6] transition-transform group-hover:scale-110`} style={{ stroke: '#059669' }} />
+                <span className="tracking-wide">Aggiungi Articolo</span>
+              </button>
             </div>
 
-            {/* Al centro destra: testo strumenti registrati in color perla */}
+            {/* A destra: riquadro articoli registrati */}
             <div className="flex items-center justify-end">
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/85 backdrop-blur-md border border-slate-700/60 shadow-xs select-none">
-                <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+              <div className={`flex items-center gap-1.5 ${isMobileApp ? 'px-2.5 py-1' : 'px-3.5 py-1.5'} rounded-full bg-slate-900/85 backdrop-blur-md border border-slate-700/60 shadow-xs select-none`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
                 <span
-                  className="text-[13px] font-mono font-bold tracking-wide"
+                  className={`${isMobileApp ? 'text-[11px]' : 'text-[13px]'} font-bold tracking-wide`}
                   style={{ color: '#f0f4f8' }}
                 >
-                  {inventory.length} strumenti registrati
+                  {inventory.length} articoli
                 </span>
               </div>
             </div>
           </div>
 
           {/* ── KPI METRICS CARDS (ELEGANTI BIANCHE CON ACCENTI SMERALDO & AMBRA) ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+          <div className={`grid ${isMobileApp ? 'grid-cols-2 gap-2 mb-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5'}`}>
             
             {/* Card 1: Totale Attrezzatura a Catalogo */}
-            <div className="p-4 flex flex-col justify-between bg-white border border-emerald-100 rounded-2xl shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-slate-500 uppercase tracking-wider">
-                  Equipaggiamento Totale
+            <div className={`${isMobileApp ? 'p-2.5 rounded-xl' : 'p-4 rounded-2xl'} flex flex-col justify-between bg-white border border-emerald-100 shadow-xs min-w-0`}>
+              <div className="flex items-center justify-between gap-1">
+                <span className={`${isMobileApp ? 'text-[10.5px]' : 'text-[15px]'} font-bold text-slate-500 uppercase tracking-wider truncate`}>
+                  Equipaggiamento
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#166534] flex items-center justify-center border border-emerald-100">
-                  <Camera className="w-4.5 h-4.5" />
+                <div className={`${isMobileApp ? 'w-6 h-6 rounded-md' : 'w-8 h-8 rounded-lg'} bg-emerald-50 text-[#166534] flex items-center justify-center border border-emerald-100 flex-shrink-0`}>
+                  <Camera className={isMobileApp ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5'} />
                 </div>
               </div>
-              <div className="mt-2 text-[27px] font-black text-slate-900 leading-none">
-                {stats.totalItems} <span className="text-[15px] font-normal text-slate-500">pezzi</span>
+              <div className={`mt-1.5 ${isMobileApp ? 'text-[19px]' : 'text-[27px]'} font-black text-slate-900 leading-none truncate`}>
+                {stats.totalItems} <span className={`${isMobileApp ? 'text-[11.5px]' : 'text-[15px]'} font-normal text-slate-500`}>pezzi</span>
               </div>
-              <div className="mt-1.5 text-[15px] text-emerald-700 font-semibold">
-                Valore stimato: € {stats.totalValue.toLocaleString('it-IT')}
+              <div className={`mt-1 ${isMobileApp ? 'text-[10.5px]' : 'text-[15px]'} text-emerald-700 font-semibold truncate`}>
+                Valore: € {stats.totalValue.toLocaleString('it-IT')}
               </div>
             </div>
 
             {/* Card 2: Attrezzatura in Studio Disponibile */}
-            <div className="p-4 flex flex-col justify-between bg-white border border-emerald-100 rounded-2xl shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-slate-500 uppercase tracking-wider">
-                  Disponibile in Studio
+            <div className={`${isMobileApp ? 'p-2.5 rounded-xl' : 'p-4 rounded-2xl'} flex flex-col justify-between bg-white border border-emerald-100 shadow-xs min-w-0`}>
+              <div className="flex items-center justify-between gap-1">
+                <span className={`${isMobileApp ? 'text-[10.5px]' : 'text-[15px]'} font-bold text-slate-500 uppercase tracking-wider truncate`}>
+                  In Studio
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
-                  <CheckCircle2 className="w-4.5 h-4.5" />
+                <div className={`${isMobileApp ? 'w-6 h-6 rounded-md' : 'w-8 h-8 rounded-lg'} bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 flex-shrink-0`}>
+                  <CheckCircle2 className={isMobileApp ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5'} />
                 </div>
               </div>
-              <div className="mt-2 text-[27px] font-black text-emerald-700 leading-none">
-                {stats.inStudioCount} <span className="text-[15px] font-bold text-slate-500">articoli</span>
+              <div className={`mt-1.5 ${isMobileApp ? 'text-[19px]' : 'text-[27px]'} font-black text-emerald-700 leading-none truncate`}>
+                {stats.inStudioCount} <span className={`${isMobileApp ? 'text-[11.5px]' : 'text-[15px]'} font-bold text-slate-500`}>articoli</span>
               </div>
-              <div className="mt-1.5 text-[15px] text-slate-600 font-medium">
-                Pronti subito per shooting & set
+              <div className={`mt-1 ${isMobileApp ? 'text-[10.5px]' : 'text-[15px]'} text-slate-600 font-medium truncate`}>
+                Pronti per shooting
               </div>
             </div>
 
             {/* Card 3: Oggetti Dati a Noleggio */}
-            <div className="p-4 flex flex-col justify-between bg-white border border-emerald-100 rounded-2xl shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-slate-500 uppercase tracking-wider">
-                  Oggetti a Noleggio
+            <div className={`${isMobileApp ? 'p-2.5 rounded-xl' : 'p-4 rounded-2xl'} flex flex-col justify-between bg-white border border-emerald-100 shadow-xs min-w-0`}>
+              <div className="flex items-center justify-between gap-1">
+                <span className={`${isMobileApp ? 'text-[10.5px]' : 'text-[15px]'} font-bold text-slate-500 uppercase tracking-wider truncate`}>
+                  A Noleggio
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
-                  <Clock className="w-4.5 h-4.5" />
+                <div className={`${isMobileApp ? 'w-6 h-6 rounded-md' : 'w-8 h-8 rounded-lg'} bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 flex-shrink-0`}>
+                  <Clock className={isMobileApp ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5'} />
                 </div>
               </div>
-              <div className="mt-2 text-[27px] font-black text-amber-700 leading-none">
-                {stats.rentedItemsCount} <span className="text-[15px] font-normal text-slate-500">in comodato</span>
+              <div className={`mt-1.5 ${isMobileApp ? 'text-[19px]' : 'text-[27px]'} font-black text-amber-700 leading-none truncate`}>
+                {stats.rentedItemsCount} <span className={`${isMobileApp ? 'text-[11px]' : 'text-[15px]'} font-normal text-slate-500`}>comodato</span>
               </div>
-              <div className="mt-1.5 text-[15px] text-amber-700 font-semibold">
-                {stats.dueSoonCount > 0 ? `⚠️ ${stats.dueSoonCount} rientro/i in scadenza` : 'Nessuna criticità di rientro'}
+              <div className={`mt-1 ${isMobileApp ? 'text-[10.5px]' : 'text-[15px]'} text-amber-700 font-semibold truncate`}>
+                {stats.dueSoonCount > 0 ? `⚠️ ${stats.dueSoonCount} in scadenza` : 'Rientri regolari'}
               </div>
             </div>
 
             {/* Card 4: Entrate Noleggi Pattuite */}
-            <div className="p-4 flex flex-col justify-between bg-white border border-emerald-100 rounded-2xl shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-slate-500 uppercase tracking-wider">
-                  Ricavi Noleggi Attivi
+            <div className={`${isMobileApp ? 'p-2.5 rounded-xl' : 'p-4 rounded-2xl'} flex flex-col justify-between bg-white border border-emerald-100 shadow-xs min-w-0`}>
+              <div className="flex items-center justify-between gap-1">
+                <span className={`${isMobileApp ? 'text-[10.5px]' : 'text-[15px]'} font-bold text-slate-500 uppercase tracking-wider truncate`}>
+                  Ricavi Noleggi
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#166534] flex items-center justify-center border border-emerald-100">
-                  <DollarSign className="w-4.5 h-4.5" />
+                <div className={`${isMobileApp ? 'w-6 h-6 rounded-md' : 'w-8 h-8 rounded-lg'} bg-emerald-50 text-[#166534] flex items-center justify-center border border-emerald-100 flex-shrink-0`}>
+                  <DollarSign className={isMobileApp ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5'} />
                 </div>
               </div>
-              <div className="mt-2 text-[27px] font-black text-[#166534] leading-none">
+              <div className={`mt-1.5 ${isMobileApp ? 'text-[19px]' : 'text-[27px]'} font-black text-[#166534] leading-none truncate`}>
                 € {stats.totalRentalRevenue.toLocaleString('it-IT')}
               </div>
-              <div className="mt-1.5 text-[15px] text-slate-500 font-medium">
-                Tariffe contratti in corso
+              <div className={`mt-1 ${isMobileApp ? 'text-[10.5px]' : 'text-[15px]'} text-slate-500 font-medium truncate`}>
+                Contratti in corso
               </div>
             </div>
 
           </div>
 
-          {/* ── BARRA SWITCHER TAB PRINCIPALI (+3pt grandezza riquadri e caratteri) ── */}
-          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-            <div className="flex items-center gap-2 p-1.5 bg-white/90 rounded-full shadow-2xs border-0">
-              <button
-                type="button"
-                onClick={() => setActiveTab('all')}
-                className={`px-5 py-2.5 text-[15px] font-bold rounded-full transition-all cursor-pointer ${
-                  activeTab === 'all'
-                    ? 'bg-[#16a34a] text-white shadow-xs'
-                    : 'text-slate-700 hover:text-slate-900'
-                }`}
-              >
-                Tutto l'equipaggiamento ({inventory.length})
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('rentals')}
-                className={`px-5 py-2.5 text-[15px] font-bold rounded-full transition-all flex items-center gap-2 cursor-pointer ${
-                  activeTab === 'rentals'
-                    ? 'bg-[#d97706] text-white shadow-xs'
-                    : 'text-slate-700 hover:text-slate-900'
-                }`}
-              >
-                <span>Oggetti a Noleggio</span>
-                <span className={`px-2 py-0.5 rounded-full text-[13px] font-bold ${activeTab === 'rentals' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
-                  {stats.rentedItemsCount}
-                </span>
-              </button>
-
+          {/* ── PILLOLA SWITCHER: ESCLUSIVAMENTE ELENCO ATTREZZATURE OPPURE ARTICOLI A NOLEGGIO ── */}
+          <div className={`flex items-center justify-between ${isMobileApp ? 'gap-2 mb-3' : 'gap-3 mb-4'} flex-wrap`}>
+            <div className={`flex items-center ${isMobileApp ? 'gap-1 p-1 rounded-full w-full justify-between' : 'gap-2 p-1.5 rounded-full'} bg-white/95 shadow-xs border border-emerald-200/70`}>
               <button
                 type="button"
                 onClick={() => setActiveTab('available')}
-                className={`px-5 py-2.5 text-[15px] font-bold rounded-full transition-all cursor-pointer ${
+                className={`${isMobileApp ? 'px-3 py-1.5 text-[11.5px] flex-1 text-center justify-center' : 'px-5 py-2.5 text-[15px]'} font-bold rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'available'
                     ? 'bg-[#16a34a] text-white shadow-xs'
                     : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
-                Disponibili in Studio ({stats.inStudioCount})
+                <span>{isMobileApp ? 'Elenco Attrezzature' : 'Elenco delle Attrezzature'}</span>
+                <span className={`px-1.5 py-0.2 rounded-full ${isMobileApp ? 'text-[10.5px]' : 'text-[13px]'} font-bold ${activeTab === 'available' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'}`}>
+                  {stats.inStudioCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('rentals')}
+                className={`${isMobileApp ? 'px-3 py-1.5 text-[11.5px] flex-1 text-center justify-center' : 'px-5 py-2.5 text-[15px]'} font-bold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'rentals'
+                    ? 'bg-[#d97706] text-white shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900'
+                }`}
+              >
+                <span>Articoli a Noleggio</span>
+                <span className={`px-1.5 py-0.2 rounded-full ${isMobileApp ? 'text-[10.5px]' : 'text-[13px]'} font-bold ${activeTab === 'rentals' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
+                  {stats.rentedItemsCount}
+                </span>
               </button>
             </div>
 
-            {/* Ordinamento (+3pt grandezza) */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 bg-white px-4.5 py-2.5 rounded-full border border-emerald-200 text-slate-700 text-[15px] shadow-2xs">
-                <ArrowUpDown className="w-4 h-4 text-[#166534]" />
-                <span className="text-slate-500 font-medium">Ordina:</span>
+            {/* Ordinamento */}
+            <div className={`flex items-center gap-2 ${isMobileApp ? 'w-full justify-end' : ''}`}>
+              <div className={`flex items-center gap-1.5 bg-white ${isMobileApp ? 'px-3 py-1.5 text-[12px] w-full justify-between' : 'px-4.5 py-2.5 text-[15px]'} rounded-full border border-emerald-200 text-slate-700 shadow-2xs`}>
+                <div className="flex items-center gap-1.5">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-[#166534]" />
+                  <span className="text-slate-500 font-medium">Ordina:</span>
+                </div>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-transparent text-slate-800 font-bold text-[15px] outline-none cursor-pointer"
+                  className={`bg-transparent text-slate-800 font-bold ${isMobileApp ? 'text-[12px]' : 'text-[15px]'} outline-none cursor-pointer`}
                 >
                   <option value="category">Categoria</option>
                   <option value="value_desc">Valore decrescente</option>
@@ -674,53 +928,33 @@ export default function Inventory() {
             </div>
           </div>
 
-          {/* ── FILTRI CATEGORIE: TUTTI GLI ARTICOLI RETTANGOLARE VERDE CHIARO FISSO + RIGA IN SCORRIMENTO AUTOMATICO ── */}
-          <div className="flex items-center gap-2.5 mb-4 overflow-hidden relative">
-            {/* 1. Riquadro FISSO: Tutti gli Articoli — 4 angoli retti a 90° (rounded-none), zero bordi bianchi, completamente riempito di verde chiaro (#16a34a) */}
-            <div className="flex-shrink-0 z-20 flex items-center pr-2.5">
-              <button
-                type="button"
-                onClick={() => setSelectedCategory('all')}
-                className={`px-5 py-2.5 text-[15px] font-bold whitespace-nowrap rounded-none flex items-center gap-2 transition-all cursor-pointer select-none border-0 ${
-                  selectedCategory === 'all'
-                    ? 'bg-[#16a34a] text-white shadow-md'
-                    : 'bg-[#16a34a]/90 hover:bg-[#16a34a] text-white'
-                }`}
-                style={{ borderRadius: '0px' }}
-              >
-                <span className="text-base">📦</span>
-                <span>Tutti gli Articoli</span>
-                <span
-                  className="text-[12.5px] px-2 py-0.5 font-bold bg-white/25 text-white"
-                  style={{ borderRadius: '0px' }}
-                >
-                  {inventory.length}
-                </span>
-              </button>
-            </div>
-
-            {/* 2. Container in SCORRIMENTO AUTOMATICO per le altre categorie (pausa su hover) */}
-            <div className="flex-1 overflow-hidden relative py-0.5" title="Passa il mouse per mettere in pausa lo scorrimento automatico">
+          {/* ── FILTRI CATEGORIE SPECIFICHE (SENZA PULSANTE TUTTI GLI ARTICOLI) ── */}
+          <div className={`flex items-center ${isMobileApp ? 'gap-1.5 mb-3' : 'gap-2.5 mb-4'} overflow-hidden relative`}>
+            <div className="flex-1 overflow-hidden relative py-0.5" title="Clicca su una categoria per filtrare (riclicca per rimuovere il filtro categoria)">
               <div className="animate-inventory-marquee flex items-center gap-2">
                 {/* Duplice rendering per loop continuo senza interruzioni */}
                 {[...INVENTORY_CATEGORIES.filter(c => c.id !== 'all'), ...INVENTORY_CATEGORIES.filter(c => c.id !== 'all')].map((cat, idx) => {
                   const isSelected = selectedCategory === cat.id
-                  const count = inventory.filter(i => i.category === cat.id).length
+                  const count = inventory.filter(i => {
+                    if (activeTab === 'rentals' && i.status !== 'noleggiato') return false
+                    if (activeTab === 'available' && i.status !== 'in_studio') return false
+                    return i.category === cat.id
+                  }).length
 
                   return (
                     <button
                       key={`${cat.id}-${idx}`}
                       type="button"
-                      onClick={() => setSelectedCategory(cat.id)}
-                      className={`px-4.5 py-2 text-[15px] font-bold whitespace-nowrap rounded-full flex items-center gap-2 transition-all border cursor-pointer select-none ${
+                      onClick={() => setSelectedCategory(isSelected ? 'all' : cat.id)}
+                      className={`${isMobileApp ? 'px-3 py-1.5 text-[12px] gap-1.5' : 'px-4.5 py-2 text-[15px] gap-2'} font-bold whitespace-nowrap rounded-full flex items-center transition-all border cursor-pointer select-none ${
                         isSelected
                           ? 'bg-[#16a34a] text-white border-[#16a34a] shadow-xs'
                           : 'bg-white/90 hover:bg-white text-slate-700 border-emerald-200/90'
                       }`}
                     >
-                      <span className="text-base">{cat.emoji}</span>
+                      <span className={isMobileApp ? 'text-xs' : 'text-base'}>{cat.emoji}</span>
                       <span>{cat.label}</span>
-                      <span className={`text-[12.5px] px-2 py-0.5 rounded-full font-bold ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                      <span className={`${isMobileApp ? 'text-[10.5px] px-1.5 py-0.2' : 'text-[12.5px] px-2 py-0.5'} rounded-full font-bold ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
                         {count}
                       </span>
                     </button>
@@ -731,7 +965,7 @@ export default function Inventory() {
           </div>
 
           {/* ── BARRA DI RICERCA ── */}
-          <div className="mb-4 flex items-center gap-3">
+          <div className="mb-3.5 flex items-center gap-3">
             <div
               className="relative flex items-center flex-1 px-4 py-2 transition-all duration-200 bg-white shadow-xs"
               style={{
@@ -758,36 +992,38 @@ export default function Inventory() {
               )}
             </div>
 
-            <span className="hidden sm:inline-flex px-3 py-1 bg-white/70 border border-emerald-200 rounded-full text-xs font-bold text-[#166534] whitespace-nowrap">
-              {filteredInventory.length} di {inventory.length} articoli
-            </span>
+            {!isMobileApp && (
+              <span className="hidden sm:inline-flex px-3 py-1 bg-white/70 border border-emerald-200 rounded-full text-xs font-bold text-[#166534] whitespace-nowrap">
+                {filteredInventory.length} {activeTab === 'rentals' ? 'a noleggio' : 'attrezzature'}
+              </span>
+            )}
           </div>
 
-          {/* ── LISTA / CARD DEGLI ARTICOLI ── */}
+          {/* ── ELENCO ARTICOLI UNO SOTTO L'ALTRO IN RIQUADRI DEDICATI ── */}
           {loading ? (
             <div className="py-20 flex flex-col items-center justify-center text-slate-600 gap-3">
               <div className="w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
               <span className="text-xs text-slate-500 font-medium">Caricamento inventario DADO Studio...</span>
             </div>
           ) : filteredInventory.length === 0 ? (
-            <div className="p-12 text-center bg-white/80 border border-emerald-100 rounded-2xl text-slate-700 my-4 shadow-xs">
-              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-slate-800">
+            <div className="p-8 text-center bg-white/80 border border-emerald-100 rounded-2xl text-slate-700 my-4 shadow-xs">
+              <Package className="w-10 h-10 text-slate-300 mx-auto mb-2.5" />
+              <h3 className="text-base font-bold text-slate-800">
                 Nessun articolo trovato
               </h3>
-              <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">
-                Nessun elemento corrisponde ai filtri selezionati. Prova a reimpostare la ricerca o aggiungi un nuovo pezzo.
+              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                Nessun elemento corrisponde ai filtri selezionati nella sezione {activeTab === 'rentals' ? 'Articoli a Noleggio' : 'Elenco Attrezzature'}.
               </p>
               <button
                 type="button"
-                onClick={() => { setSearch(''); setSelectedCategory('all'); setActiveTab('all'); }}
-                className="mt-4 px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-xs font-bold text-[#166534] rounded-full cursor-pointer"
+                onClick={() => { setSearch(''); setSelectedCategory('all'); }}
+                className="mt-3.5 px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-xs font-bold text-[#166534] rounded-full cursor-pointer"
               >
-                Reimposta tutti i filtri
+                Reimposta ricerca e categoria
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 mb-8">
+            <div className="flex flex-col gap-3 mb-8">
               {filteredInventory.map(item => {
                 const isRented = item.status === 'noleggiato'
                 const deadline = isRented ? getRentalDeadlineStatus(item.rental?.endDate) : null
@@ -796,15 +1032,15 @@ export default function Inventory() {
                 return (
                   <div
                     key={item.id}
-                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between relative shadow-xs hover:shadow-md ${
+                    className={`${isMobileApp ? 'p-3.5 rounded-2xl' : 'p-4 md:p-5 rounded-2xl'} w-full border transition-all flex flex-col justify-between relative shadow-xs hover:shadow-md ${
                       isRented
-                        ? 'bg-amber-50/25 border-amber-200 hover:border-amber-300'
+                        ? 'bg-white/95 border-amber-200 hover:border-amber-300'
                         : 'bg-white border-emerald-100 hover:border-emerald-300'
                     }`}
                   >
-                    {/* Header Card Articolo */}
+                    {/* Header Riquadro Dedicato Articolo */}
                     <div>
-                      <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                         {/* Categoria Badge */}
                         <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700 rounded-full">
                           <span>{catBadge.emoji}</span>
@@ -827,48 +1063,63 @@ export default function Inventory() {
                         ) : (
                           <div className="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#166534] bg-emerald-100 border border-emerald-200 rounded-full flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#166534]" />
-                            <span>IN STUDIO</span>
+                            <span>ATTREZZATURA IN STUDIO</span>
                           </div>
                         )}
                       </div>
 
-                      {/* Nome Articolo */}
-                      <h3
-                        className="text-[16px] font-bold text-slate-900 tracking-tight leading-snug hover:text-emerald-700 cursor-pointer"
-                        onClick={() => setShowDetailModal(item)}
-                      >
-                        {item.name}
-                      </h3>
+                      {/* Nome Articolo + Stima Valore sulla stessa riga orizzontale */}
+                      <div className="flex items-start justify-between gap-3">
+                        <h3
+                          className={`${isMobileApp ? 'text-[15px]' : 'text-[17px]'} font-extrabold text-slate-900 tracking-tight leading-snug hover:text-emerald-700 cursor-pointer`}
+                          onClick={() => setShowDetailModal(item)}
+                        >
+                          {item.name}
+                        </h3>
+                        <div className="text-right flex-shrink-0">
+                          <span className="text-[10.5px] font-bold uppercase text-slate-400 block leading-none">
+                            Stima
+                          </span>
+                          <strong className={`${isMobileApp ? 'text-[14px]' : 'text-[15.5px]'} font-black text-slate-900`}>
+                            € {(item.estimatedValue || 0).toLocaleString('it-IT')}
+                          </strong>
+                        </div>
+                      </div>
 
-                      {/* Brand & Seriale */}
-                      <div className="mt-1 flex items-center gap-2.5 text-xs text-slate-500">
-                        {item.brand && <span className="text-slate-800 font-bold">{item.brand}</span>}
+                      {/* Brand, Seriale e Ubicazione disposti orizzontalmente nel riquadro */}
+                      <div className="mt-1.5 flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+                        {item.brand && (
+                          <span className="text-slate-800 font-bold bg-slate-100 px-2 py-0.5 rounded-md">
+                            {item.brand}
+                          </span>
+                        )}
                         {item.serialNumber && (
-                          <span className="text-slate-400">S/N: {item.serialNumber}</span>
+                          <span className="text-slate-500 font-medium">S/N: {item.serialNumber}</span>
                         )}
                         {item.quantity > 1 && (
-                          <span className="px-2 py-0.2 bg-slate-100 text-slate-700 font-bold rounded-full">
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold rounded-full">
                             Q.tà: {item.quantity}
+                          </span>
+                        )}
+                        {item.location && (
+                          <span className="text-slate-600">
+                            <span className="text-slate-400 font-semibold">Ubicazione: </span>
+                            <strong className="text-slate-700 font-semibold">{item.location}</strong>
                           </span>
                         )}
                       </div>
 
-                      {/* Ubicazione e Note */}
-                      <div className="mt-2 text-xs text-slate-600">
-                        <span className="text-slate-400 font-semibold">Ubicazione: </span>
-                        <span className="text-slate-700 font-medium">{item.location}</span>
-                        {item.notes && (
-                          <p className="mt-1 text-slate-500 text-[11.5px] italic line-clamp-2">
-                            "{item.notes}"
-                          </p>
-                        )}
-                      </div>
+                      {item.notes && (
+                        <p className="mt-1.5 text-slate-500 text-[11.5px] italic leading-snug">
+                          "{item.notes}"
+                        </p>
+                      )}
                     </div>
 
                     {/* BOX PARTICOLARE: SE L'OGGETTO È DATO A NOLEGGIO */}
                     {isRented && item.rental && (
-                      <div className="mt-3 p-3 bg-white border border-amber-200 rounded-xl text-xs space-y-1.5 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-amber-100 pb-1.5 mb-1.5">
+                      <div className="mt-3 p-3 bg-amber-50/40 border border-amber-200 rounded-xl text-xs space-y-1.5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-amber-200/70 pb-1.5 mb-1.5 flex-wrap gap-1">
                           <span className="text-[11px] font-bold text-amber-800 uppercase flex items-center gap-1">
                             <FileText className="w-3 h-3 text-amber-600" />
                             {item.rental.contractCode}
@@ -883,15 +1134,17 @@ export default function Inventory() {
 
                         {/* Dettagli Persona / Azienda */}
                         <div className="space-y-1">
-                          <div className="text-slate-800 font-semibold truncate">
-                            {item.rental.company || 'Cliente'}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-slate-600">
-                            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="truncate">{item.rental.clientName}</span>
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="text-slate-900 font-bold">
+                              {item.rental.company || 'Cliente'}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-slate-600">
+                              <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span>{item.rental.clientName}</span>
+                            </div>
                           </div>
                           {(item.rental.contactPhone || item.rental.contactEmail) && (
-                            <div className="flex items-center gap-3 text-slate-500 text-[11px] pt-0.5">
+                            <div className="flex items-center flex-wrap gap-3 text-slate-500 text-[11px] pt-0.5">
                               {item.rental.contactPhone && (
                                 <span className="flex items-center gap-1">
                                   <Phone className="w-3 h-3" /> {item.rental.contactPhone}
@@ -906,10 +1159,16 @@ export default function Inventory() {
                           )}
 
                           {/* Date e Prezzo Pattuito */}
-                          <div className="mt-2 pt-1.5 border-t border-amber-100 flex items-center justify-between text-[11px]">
-                            <div className="text-slate-500">
-                              Rientro: <strong className="text-slate-800">{item.rental.endDate || 'N/D'}</strong>
-                            </div>
+                          <div className="mt-2 pt-1.5 border-t border-amber-200/70 flex items-center justify-between flex-wrap gap-2 text-[11px]">
+                            <button
+                              type="button"
+                              onClick={() => openRentModalForItem(item)}
+                              className="text-slate-600 hover:text-amber-800 flex items-center gap-1 cursor-pointer transition-colors"
+                              title="Clicca per modificare la data di restituzione dal calendario"
+                            >
+                              <CalendarIcon className="w-3 h-3 text-amber-600" />
+                              <span>Rientro: <strong className="text-slate-900 underline decoration-amber-400">{item.rental.endDate || 'N/D'}</strong></span>
+                            </button>
                             <div className="text-emerald-700 font-bold text-xs">
                               Pattuito: € {Number(item.rental.agreedPrice || 0).toLocaleString('it-IT')}
                             </div>
@@ -918,18 +1177,23 @@ export default function Inventory() {
                       </div>
                     )}
 
-                    {/* Footer Card: Valore Stimato & Azioni */}
-                    <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                      <div className="text-xs text-slate-500">
-                        Stima: <strong className="text-slate-800">€ {(item.estimatedValue || 0).toLocaleString('it-IT')}</strong>
-                      </div>
+                    {/* Footer Riquadro: Azioni */}
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowDetailModal(item)}
+                        className="text-[11.5px] font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Scheda tecnica</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
 
                       <div className="flex items-center gap-2">
                         {isRented ? (
                           <button
                             type="button"
                             onClick={() => handleReturnItem(item.id)}
-                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 rounded-full transition-transform active:scale-95 shadow-2xs cursor-pointer"
+                            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 rounded-full transition-transform active:scale-95 shadow-2xs cursor-pointer"
                             title="Segna come Rientrato in Studio"
                           >
                             <RotateCcw className="w-3 h-3" />
@@ -938,31 +1202,14 @@ export default function Inventory() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => {
-                              setSelectedItemForRent(item)
-                              setRentForm(prev => ({
-                                ...prev,
-                                itemId: item.id,
-                                contractCode: `DADO-RENT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`
-                              }))
-                              setShowRentModal(true)
-                            }}
-                            className="px-3 py-1 bg-[#d97706] hover:bg-[#b45309] text-white text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 rounded-full transition-transform active:scale-95 shadow-2xs cursor-pointer"
+                            onClick={() => openRentModalForItem(item)}
+                            className="px-3.5 py-1.5 bg-[#d97706] hover:bg-[#b45309] text-white text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 rounded-full transition-transform active:scale-95 shadow-2xs cursor-pointer"
                             title="Assegna questo pezzo a noleggio"
                           >
                             <Clock className="w-3 h-3" />
                             <span>Noleggia</span>
                           </button>
                         )}
-
-                        <button
-                          type="button"
-                          onClick={() => setShowDetailModal(item)}
-                          className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
-                          title="Vedi dettagli"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -998,10 +1245,11 @@ export default function Inventory() {
                 <input
                   type="text"
                   required
-                  placeholder="es. Sony FX3 Cinema Line o Godox V1 Pro"
+                  placeholder="es. Canon Cinema EOS C70 o Godox V1 Pro"
                   value={newArticle.name}
                   onChange={(e) => setNewArticle({ ...newArticle, name: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                  style={{ color: '#000000' }}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                 />
               </div>
 
@@ -1011,7 +1259,8 @@ export default function Inventory() {
                   <select
                     value={newArticle.category}
                     onChange={(e) => setNewArticle({ ...newArticle, category: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
+                    style={{ color: '#000000' }}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
                   >
                     {INVENTORY_CATEGORIES.filter(c => c.id !== 'all').map(c => (
                       <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
@@ -1023,10 +1272,11 @@ export default function Inventory() {
                   <label className="block font-bold text-slate-700 mb-1">Brand / Marca</label>
                   <input
                     type="text"
-                    placeholder="es. Sony, Godox, Aputure..."
+                    placeholder="es. Canon, Godox, Aputure..."
                     value={newArticle.brand}
                     onChange={(e) => setNewArticle({ ...newArticle, brand: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                    style={{ color: '#000000' }}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
@@ -1039,7 +1289,8 @@ export default function Inventory() {
                     placeholder="es. SN-49210"
                     value={newArticle.serialNumber}
                     onChange={(e) => setNewArticle({ ...newArticle, serialNumber: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                    style={{ color: '#000000' }}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
 
@@ -1050,7 +1301,8 @@ export default function Inventory() {
                     min="1"
                     value={newArticle.quantity}
                     onChange={(e) => setNewArticle({ ...newArticle, quantity: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                    style={{ color: '#000000' }}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
 
@@ -1061,7 +1313,8 @@ export default function Inventory() {
                     placeholder="es. 1200"
                     value={newArticle.estimatedValue}
                     onChange={(e) => setNewArticle({ ...newArticle, estimatedValue: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-emerald-700 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                    style={{ color: '#000000' }}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-black font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
@@ -1073,7 +1326,8 @@ export default function Inventory() {
                   placeholder="es. Studio / Armadio A1 o Borsa Rig 1"
                   value={newArticle.location}
                   onChange={(e) => setNewArticle({ ...newArticle, location: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                  style={{ color: '#000000' }}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                 />
               </div>
 
@@ -1084,7 +1338,8 @@ export default function Inventory() {
                   placeholder="Note sulle condizioni, compatibilità, accessori a corredo..."
                   value={newArticle.notes}
                   onChange={(e) => setNewArticle({ ...newArticle, notes: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                  style={{ color: '#000000' }}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                 />
               </div>
 
@@ -1108,181 +1363,388 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* ── MODALE: ASSEGNA A NOLEGGIO ── */}
+      {/* ── MODALE: ASSEGNA A NOLEGGIO (CON CALENDARIO INTERATTIVO RESTITUZIONE, ANNO E GIORNI DELLA SETTIMANA CLICCABILI) ── */}
       {showRentModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-emerald-100 rounded-3xl w-full max-w-lg p-6 shadow-2xl relative text-slate-800">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white border border-emerald-100 rounded-3xl w-full max-w-4xl p-5 sm:p-6 shadow-2xl relative text-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-[#d97706]" />
                 <span>Assegna Articolo a Noleggio / Comodato</span>
               </h2>
               <button
                 type="button"
                 onClick={() => { setShowRentModal(false); setSelectedItemForRent(null); }}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 cursor-pointer p-1"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAssignRental} className="space-y-3.5 text-xs">
-              {/* Selezione Articolo */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Articolo da Noleggiare *</label>
-                <select
-                  required
-                  value={rentForm.itemId || selectedItemForRent?.id || ''}
-                  onChange={(e) => setRentForm({ ...rentForm, itemId: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
-                >
-                  <option value="" disabled>Seleziona un pezzo disponibile...</option>
-                  {inventory
-                    .filter(item => item.status === 'in_studio' || item.id === selectedItemForRent?.id)
-                    .map(item => (
-                      <option key={item.id} value={item.id}>
-                        {item.name} ({item.brand || 'DADO Studio'})
-                      </option>
-                    ))}
-                </select>
+            <form onSubmit={handleAssignRental} className="text-xs">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                
+                {/* COLONNA SINISTRA: DATI CLIENTE, ARTICOLO E CONTRATTO */}
+                <div className="lg:col-span-6 space-y-3">
+                  {/* Selezione Articolo */}
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Articolo da Noleggiare *</label>
+                    <select
+                      required
+                      value={rentForm.itemId || selectedItemForRent?.id || ''}
+                      onChange={(e) => setRentForm({ ...rentForm, itemId: e.target.value })}
+                      style={{ color: '#000000' }}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
+                    >
+                      <option value="" disabled>Seleziona un pezzo disponibile...</option>
+                      {inventory
+                        .filter(item => item.status === 'in_studio' || item.id === selectedItemForRent?.id)
+                        .map(item => (
+                          <option key={item.id} value={item.id} style={{ color: '#000000' }}>
+                            {item.name} ({item.brand || 'DADO Studio'})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  {/* Dettagli Persona / Azienda */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Azienda / Studio Cliente *</label>
+                      <input
+                        type="text"
+                        required
+                        list="companies-list"
+                        placeholder="es. Fashion Brand Milano"
+                        value={rentForm.company}
+                        onChange={(e) => setRentForm({ ...rentForm, company: e.target.value })}
+                        style={{ color: '#000000' }}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                      />
+                      <datalist id="companies-list">
+                        {companies.map(c => <option key={c.id} value={c.name} />)}
+                      </datalist>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Persona Referente *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="es. Matteo Colombo"
+                        value={rentForm.clientName}
+                        onChange={(e) => setRentForm({ ...rentForm, clientName: e.target.value })}
+                        style={{ color: '#000000' }}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Contatti */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Telefono Referente</label>
+                      <input
+                        type="tel"
+                        placeholder="+39 348 1234567"
+                        value={rentForm.contactPhone}
+                        onChange={(e) => setRentForm({ ...rentForm, contactPhone: e.target.value })}
+                        style={{ color: '#000000' }}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Email Referente</label>
+                      <input
+                        type="email"
+                        placeholder="m.colombo@azienda.it"
+                        value={rentForm.contactEmail}
+                        onChange={(e) => setRentForm({ ...rentForm, contactEmail: e.target.value })}
+                        style={{ color: '#000000' }}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Data Inizio & Prezzo Pattuito */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Data Inizio Noleggio</label>
+                      <input
+                        type="date"
+                        required
+                        value={rentForm.startDate}
+                        onChange={(e) => {
+                          const nextStart = e.target.value
+                          setRentForm(prev => ({ ...prev, startDate: nextStart }))
+                        }}
+                        style={{ color: '#000000' }}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Prezzo Pattuito (€) *</label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="es. 250"
+                        value={rentForm.agreedPrice}
+                        onChange={(e) => setRentForm({ ...rentForm, agreedPrice: e.target.value })}
+                        style={{ color: '#000000' }}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tipo Tariffa e Codice Contratto */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Tipo Tariffa</label>
+                      <select
+                        value={rentForm.pricingType}
+                        onChange={(e) => setRentForm({ ...rentForm, pricingType: e.target.value })}
+                        style={{ color: '#000000' }}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
+                      >
+                        <option value="Totale forfait">Totale forfait</option>
+                        <option value="€ / Giorno">€ / Giorno</option>
+                        <option value="Tariffa Weekend">Tariffa Weekend</option>
+                        <option value="Tariffa Settimanale">Tariffa Settimanale</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Codice Contratto</label>
+                      <input
+                        type="text"
+                        value={rentForm.contractCode}
+                        onChange={(e) => setRentForm({ ...rentForm, contractCode: e.target.value })}
+                        style={{ color: '#000000' }}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Note Contratto / Condizioni consegna</label>
+                    <textarea
+                      rows="2"
+                      placeholder="Accessori inclusi nel noleggio, cavi, cauzione concordata..."
+                      value={rentForm.notes}
+                      onChange={(e) => setRentForm({ ...rentForm, notes: e.target.value })}
+                      style={{ color: '#000000' }}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 text-black font-semibold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* COLONNA DESTRA: CALENDARIO INTERATTIVO DATA DI RESTITUZIONE */}
+                <div className="lg:col-span-6 flex flex-col justify-between bg-amber-50/40 border border-amber-200 rounded-2xl p-4 shadow-2xs">
+                  <div>
+                    {/* Intestazione e Data di Restituzione Salvata */}
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <label className="font-black text-slate-900 uppercase tracking-wider text-xs flex items-center gap-1.5">
+                        <CalendarIcon className="w-4 h-4 text-[#d97706]" />
+                        <span>Data di Restituzione (Scadenza) *</span>
+                      </label>
+                      {returnDateAutoSaved && rentForm.endDate && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          <Check className="w-3 h-3 stroke-[3]" />
+                          <span>Data salvata ({returnCalYear})</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Riquadro Data Selezionata + Input diretto sincronizzato */}
+                    <div className="bg-white border-2 border-amber-400 rounded-xl p-2.5 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">
+                          Giorno e Data di Restituzione impostata:
+                        </span>
+                        <span className="text-sm sm:text-[15px] font-black text-black block leading-tight mt-0.5">
+                          {formatItalianDateWithWeekday(rentForm.endDate)}
+                        </span>
+                      </div>
+                      <input
+                        type="date"
+                        required
+                        value={rentForm.endDate}
+                        onChange={(e) => {
+                          const val = e.target.value
+                          const parsed = parseLocalIsoDate(val)
+                          if (parsed) {
+                            applyAndSaveReturnDate(parsed.getFullYear(), parsed.getMonth(), parsed.getDate())
+                          } else {
+                            setRentForm(prev => ({ ...prev, endDate: val }))
+                          }
+                        }}
+                        style={{ color: '#000000' }}
+                        className="px-2.5 py-1.5 bg-amber-50/70 border border-amber-300 text-black font-extrabold rounded-lg text-xs focus:outline-none focus:border-amber-600 cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Selettore MESE e ANNO (sincronizza immediatamente l'anno della data di restituzione) */}
+                    <div className="flex items-center justify-between gap-2 mb-3 bg-white p-2 rounded-xl border border-slate-200">
+                      {/* Navigazione Mese */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleReturnMonthChange(returnCalMonth - 1)}
+                          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 cursor-pointer"
+                          title="Mese precedente"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <select
+                          value={returnCalMonth}
+                          onChange={(e) => handleReturnMonthChange(Number(e.target.value))}
+                          style={{ color: '#000000' }}
+                          className="px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-black font-black text-xs cursor-pointer focus:outline-none focus:border-amber-500"
+                        >
+                          {ITALIAN_MONTHS.map((mName, idx) => (
+                            <option key={mName} value={idx} style={{ color: '#000000' }}>
+                              {mName}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => handleReturnMonthChange(returnCalMonth + 1)}
+                          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 cursor-pointer"
+                          title="Mese successivo"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Selettore ANNO esplicito */}
+                      <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
+                        <span className="text-[10px] font-black uppercase text-amber-800 mr-0.5">Anno:</span>
+                        <button
+                          type="button"
+                          onClick={() => handleReturnYearChange(returnCalYear - 1)}
+                          className="px-1.5 py-0.5 rounded bg-white hover:bg-amber-100 text-black font-black border border-amber-200 cursor-pointer"
+                          title="Anno precedente"
+                        >
+                          -
+                        </button>
+                        <select
+                          value={returnCalYear}
+                          onChange={(e) => handleReturnYearChange(Number(e.target.value))}
+                          style={{ color: '#000000' }}
+                          className="px-1.5 py-0.5 rounded bg-white border border-amber-300 text-black font-black text-xs cursor-pointer focus:outline-none"
+                        >
+                          {Array.from({ length: 12 }, (_, i) => 2024 + i).map(yr => (
+                            <option key={yr} value={yr} style={{ color: '#000000' }}>
+                              {yr}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => handleReturnYearChange(returnCalYear + 1)}
+                          className="px-1.5 py-0.5 rounded bg-white hover:bg-amber-100 text-black font-black border border-amber-200 cursor-pointer"
+                          title="Anno successivo"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Scelta Rapida Giorno della Settimana (Cliccando sul giorno della settimana salva in automatico la data) */}
+                    <div className="mb-3">
+                      <span className="text-[10.5px] font-extrabold text-slate-700 uppercase tracking-wider block mb-1.5">
+                        Clicca sul giorno della settimana per salvare in automatico la restituzione:
+                      </span>
+                      <div className="grid grid-cols-7 gap-1">
+                        {quickWeekDays.map((wd) => (
+                          <button
+                            key={wd.weekdayIdx}
+                            type="button"
+                            onClick={() => applyAndSaveReturnDate(wd.year, wd.month, wd.day)}
+                            title={`Salva restituzione per ${wd.fullLabel} ${wd.day} ${ITALIAN_MONTHS[wd.month]} ${wd.year}`}
+                            className={`py-1.5 px-1 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
+                              wd.isSelected
+                                ? 'bg-[#d97706] text-white border-[#b45309] shadow-xs scale-[1.03]'
+                                : 'bg-white hover:bg-amber-100/70 text-slate-800 border-slate-200'
+                            }`}
+                          >
+                            <span className={`text-[10px] font-black uppercase ${wd.isSelected ? 'text-white' : 'text-amber-800'}`}>
+                              {wd.shortLabel}
+                            </span>
+                            <span className={`text-xs font-black leading-tight ${wd.isSelected ? 'text-white' : 'text-black'}`}>
+                              {wd.day}
+                            </span>
+                            <span className={`text-[9px] font-semibold leading-none ${wd.isSelected ? 'text-amber-100' : 'text-slate-500'}`}>
+                              {wd.monthShort}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Griglia Calendario Mensile (Anche le intestazioni LUN..DOM e tutti i giorni sono cliccabili) */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-2.5">
+                      <div className="grid grid-cols-7 gap-1 mb-1">
+                        {ITALIAN_WEEKDAYS_SHORT.map((shortDay, wIdx) => (
+                          <button
+                            key={shortDay}
+                            type="button"
+                            onClick={() => handleCalendarColumnWeekdayClick(wIdx)}
+                            title={`Clicca per selezionare ${ITALIAN_WEEKDAYS_FULL[wIdx]} di ${ITALIAN_MONTHS[returnCalMonth]} ${returnCalYear}`}
+                            className="py-1 rounded-md text-[10px] font-black uppercase tracking-wider text-slate-600 hover:bg-amber-100 hover:text-amber-900 transition-colors cursor-pointer text-center"
+                          >
+                            {shortDay}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-1">
+                        {returnCalendarGrid.map((cell, idx) => {
+                          const isSelectedEnd = rentForm.endDate === cell.iso
+                          const isStart = rentForm.startDate === cell.iso
+                          const isInRange =
+                            rentForm.startDate &&
+                            rentForm.endDate &&
+                            cell.iso > rentForm.startDate &&
+                            cell.iso < rentForm.endDate
+
+                          return (
+                            <button
+                              key={`${cell.iso}-${idx}`}
+                              type="button"
+                              onClick={() => applyAndSaveReturnDate(cell.year, cell.month, cell.day)}
+                              title={`Imposta e salva restituzione: ${formatItalianDateWithWeekday(cell.iso)}`}
+                              className={`h-7 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                                isSelectedEnd
+                                  ? 'bg-[#d97706] text-white font-black shadow-xs ring-2 ring-amber-300'
+                                  : isStart
+                                    ? 'bg-emerald-600 text-white font-black'
+                                    : isInRange
+                                      ? 'bg-amber-100/80 text-amber-950 font-bold'
+                                      : cell.isCurrentMonth
+                                        ? 'text-black hover:bg-amber-100/60'
+                                        : 'text-slate-300 hover:bg-slate-100'
+                              }`}
+                            >
+                              {cell.day}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
-              {/* Dettagli Persona / Azienda */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Azienda / Studio Cliente *</label>
-                  <input
-                    type="text"
-                    required
-                    list="companies-list"
-                    placeholder="es. Fashion Brand Milano"
-                    value={rentForm.company}
-                    onChange={(e) => setRentForm({ ...rentForm, company: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
-                  />
-                  <datalist id="companies-list">
-                    {companies.map(c => <option key={c.id} value={c.name} />)}
-                  </datalist>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Persona Referente *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="es. Matteo Colombo"
-                    value={rentForm.clientName}
-                    onChange={(e) => setRentForm({ ...rentForm, clientName: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Contatti */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Telefono Referente</label>
-                  <input
-                    type="tel"
-                    placeholder="+39 348 1234567"
-                    value={rentForm.contactPhone}
-                    onChange={(e) => setRentForm({ ...rentForm, contactPhone: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Email Referente</label>
-                  <input
-                    type="email"
-                    placeholder="m.colombo@azienda.it"
-                    value={rentForm.contactEmail}
-                    onChange={(e) => setRentForm({ ...rentForm, contactEmail: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Date Noleggio */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Data Inizio Noleggio</label>
-                  <input
-                    type="date"
-                    required
-                    value={rentForm.startDate}
-                    onChange={(e) => setRentForm({ ...rentForm, startDate: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Scadenza Noleggio Contratto *</label>
-                  <input
-                    type="date"
-                    required
-                    value={rentForm.endDate}
-                    onChange={(e) => setRentForm({ ...rentForm, endDate: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-amber-300 text-amber-900 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Prezzo Pattuito e Codice Contratto */}
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Prezzo Pattuito (€) *</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="es. 250"
-                    value={rentForm.agreedPrice}
-                    onChange={(e) => setRentForm({ ...rentForm, agreedPrice: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-emerald-700 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Tipo Tariffa</label>
-                  <select
-                    value={rentForm.pricingType}
-                    onChange={(e) => setRentForm({ ...rentForm, pricingType: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
-                  >
-                    <option value="Totale forfait">Totale forfait</option>
-                    <option value="€ / Giorno">€ / Giorno</option>
-                    <option value="Tariffa Weekend">Tariffa Weekend</option>
-                    <option value="Tariffa Settimanale">Tariffa Settimanale</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Codice Contratto</label>
-                  <input
-                    type="text"
-                    value={rentForm.contractCode}
-                    onChange={(e) => setRentForm({ ...rentForm, contractCode: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 font-bold rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Note Contratto / Condizioni consegna</label>
-                <textarea
-                  rows="2"
-                  placeholder="Accessori inclusi nel noleggio, cavi, cauzione concordata..."
-                  value={rentForm.notes}
-                  onChange={(e) => setRentForm({ ...rentForm, notes: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <div className="pt-4 mt-4 border-t border-slate-200 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => { setShowRentModal(false); setSelectedItemForRent(null); }}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-full cursor-pointer transition-all"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-full cursor-pointer transition-all"
                 >
                   Annulla
                 </button>

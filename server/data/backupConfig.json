@@ -1,0 +1,18 @@
+{
+  "autoBackupEnabled": true,
+  "autoBackupIntervalMinutes": 30,
+  "backupOnEveryWrite": true,
+  "localRetentionCount": 30,
+  "cloudEnabled": true,
+  "cloudProvider": "google_and_mirror",
+  "cloudEncryptionEnabled": true,
+  "cloudWebhookUrl": "",
+  "cloudWebhookToken": "",
+  "githubGistToken": "",
+  "githubGistId": "",
+  "lastLocalBackupAt": "2026-10-28T12:51:17.087Z",
+  "lastCloudBackupAt": "2026-10-28T12:51:17.092Z",
+  "lastCloudStatus": "synced",
+  "lastCloudDestination": "DADO Cloud Vault Mirror (AES-256-GCM)",
+  "updatedAt": "2026-10-28T12:51:17.095Z"
+}

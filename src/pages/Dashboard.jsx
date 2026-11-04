@@ -1,12 +1,15 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Database, Sparkles, X, ArrowRight, ArrowUpRight, Calendar as CalendarIcon, Clock, FileText, Paperclip, LogOut, UserPlus, Receipt, CheckCircle2, Building2, Mail, ExternalLink, ShieldCheck, ChevronRight, Maximize2, Minimize2, Copy, Check, Key, Settings, Send, Eye, EyeOff } from 'lucide-react'
-import CameraShutter from '../components/CameraShutter'
-import RegisterUserIcon from '../components/RegisterUserIcon'
+import { Database, Sparkles, X, ArrowRight, ArrowUpRight, Calendar as CalendarIcon, Clock, FileText, FileEdit, Paperclip, LogOut, UserPlus, Receipt, CheckCircle2, RotateCcw, Building2, Mail, ExternalLink, ShieldCheck, ChevronRight, ChevronLeft, Maximize2, Minimize2, Copy, Check, Key, Settings, Send, Eye, EyeOff, Phone, MessageCircle } from 'lucide-react'
+import UserSwitchMenu from '../components/UserSwitchMenu'
+import DeveloperNotesSearchBar from '../components/DeveloperNotesSearchBar'
 import ConcentricRingsKpi from '../components/ConcentricRingsKpi'
+import CollaboratorsModal from '../components/CollaboratorsModal'
 import { getCurrentWeekDays, getCurrentMonthName, getTodayIso, getTomorrowIso, getCurrentWeekSundayIso, formatDayLong } from '../utils/dateUtils'
 import { getCalendarDayData } from '../utils/calendarData'
 import { useAuth } from '../context/AuthContext'
+import { useDeviceMode } from '../context/DeviceModeContext'
+import PageTopBand from '../components/PageTopBand'
 
 function KpiCard({
   label,
@@ -106,11 +109,13 @@ function KpiCard({
   )
 }
 
-// ── Box Collegamento Google Drive con Orologio (A filo inferiore con le cards superiori) ─────
+// ── Box Collegamento Google Drive con Orologio Stile Quarz (Cifre espanse negli spazi laterali non sovrapposte al logo) ─────
 function ClockDriveBox({
-  width = '160px',
-  height = '78px',
+  width = '100%',
+  height = '72px',
   minHeight,
+  isSquare = false,
+  isMobile = false,
   className = '',
 } = {}) {
   const [time, setTime] = useState(new Date())
@@ -127,57 +132,147 @@ function ClockDriveBox({
   const d3 = digits[2] || '0'
   const d4 = digits[3] || '0'
 
+  const renderDigit = (d) => {
+    return (
+      <span
+        className={`inline-flex items-center justify-center text-center ${isMobile ? 'w-[12px]' : 'w-[22px]'}`}
+        style={{
+          fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          fontVariantNumeric: 'tabular-nums',
+          fontFeatureSettings: '"tnum"',
+        }}
+      >
+        {d}
+      </span>
+    )
+  }
+
+  if (isSquare && !isMobile) {
+    return (
+      <div
+        className={`border border-[#cce5f6] hover:border-[#0284c7] rounded-2xl px-3 py-2 text-center cursor-pointer transition-all relative overflow-hidden group select-none shadow-xs hover:shadow-md hover:scale-[1.02] flex items-center justify-between bg-white ${className}`}
+        style={{
+          backgroundColor: '#ffffff',
+          width: width || '5cm',
+          height: height || '5cm',
+          minWidth: width || '5cm',
+          minHeight: height || '5cm',
+          borderRadius: '16px',
+          boxShadow: '0 2px 10px rgba(27, 183, 237, 0.08)',
+        }}
+        onClick={() => window.open('https://drive.google.com', '_blank')}
+        title={`Google Drive • Ore: ${hhmm}`}
+      >
+        {/* Cifre stile Quarz a sinistra del logo (ORE) */}
+        <div
+          className="relative z-10 flex items-center leading-none select-none text-slate-900"
+          style={{
+            fontSize: '30px',
+            fontWeight: 800,
+            letterSpacing: '0.03em',
+            color: '#0f172a',
+            fontVariantNumeric: 'tabular-nums',
+            fontFeatureSettings: '"tnum"',
+            WebkitFontSmoothing: 'antialiased',
+          }}
+        >
+          {renderDigit(d1)}
+          {renderDigit(d2)}
+        </div>
+
+        {/* Logo Google Drive al centro tra ore e minuti */}
+        <div className="relative z-10 flex items-center justify-center flex-shrink-0 px-1 pointer-events-none">
+          <img
+            src="/google-drive-logo.jpg"
+            alt="Google Drive Logo"
+            className="w-[44px] h-[44px] object-contain opacity-75 group-hover:opacity-95 transition-opacity"
+            style={{ mixBlendMode: 'multiply' }}
+          />
+        </div>
+
+        {/* Cifre stile Quarz a destra del logo (MINUTI) */}
+        <div
+          className="relative z-10 flex items-center leading-none select-none text-slate-900"
+          style={{
+            fontSize: '30px',
+            fontWeight: 800,
+            letterSpacing: '0.03em',
+            color: '#0f172a',
+            fontVariantNumeric: 'tabular-nums',
+            fontFeatureSettings: '"tnum"',
+            WebkitFontSmoothing: 'antialiased',
+          }}
+        >
+          {renderDigit(d3)}
+          {renderDigit(d4)}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
-      className={`border border-[#cce5f6] hover:border-[#0284c7] rounded-2xl py-1.5 px-3 text-center cursor-pointer transition-all relative overflow-hidden group select-none shadow-xs hover:shadow-md hover:scale-[1.01] flex flex-col justify-between shrink-0 bg-white ${className}`}
+      className={`border border-[#cce5f6] hover:border-[#0284c7] ${isMobile ? 'rounded-xl py-0.5 px-2.5' : 'rounded-2xl py-1 px-4'} text-center cursor-pointer transition-all relative overflow-hidden group select-none shadow-xs hover:shadow-md hover:scale-[1.01] flex items-center justify-between bg-white ${className}`}
       style={{
         backgroundColor: '#ffffff',
         width,
         height,
-        minHeight: minHeight || height,
-        borderRadius: '16px',
+        minHeight: minHeight !== undefined ? minHeight : height,
+        borderRadius: isMobile ? '12px' : '16px',
         boxShadow: '0 2px 10px rgba(27, 183, 237, 0.06)',
       }}
       onClick={() => window.open('https://drive.google.com', '_blank')}
       title="Clicca per aprire Google Drive"
     >
-      {/* Sfondo: Logo Google Drive dai colori vivi e meno trasparenti con blend multiply su fondo bianco */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+      {/* Sfondo al centro: Logo Google Drive, pulito e non coperto dalle cifre laterali */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0">
         <img
           src="/google-drive-logo.jpg"
           alt="Google Drive Logo"
-          className="w-[66px] h-[66px] object-contain opacity-75 group-hover:opacity-90 transition-opacity"
+          className={`${isMobile ? 'w-[24px] h-[24px]' : 'w-[46px] h-[46px]'} object-contain opacity-65 group-hover:opacity-85 transition-opacity`}
           style={{ mixBlendMode: 'multiply' }}
         />
       </div>
 
-      {/* Cifre NERE non trasparenti dell'orario centrate: font Switzer 900 */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center">
-        <div
-          className="flex items-center justify-center leading-none tracking-wider select-none text-[#000000]"
-          style={{
-            fontFamily: '"Switzer", sans-serif',
-            fontSize: '35px',
-            fontWeight: 900,
-            letterSpacing: '0.02em',
-            color: '#000000',
-            textShadow: '0 0 5px #ffffff, 0 0 10px #ffffff',
-            WebkitFontSmoothing: 'antialiased',
-          }}
-        >
-          <span style={{ color: '#000000' }}>{d1}</span>
-          <span style={{ color: '#000000' }}>{d2}</span>
-          <span style={{ color: '#000000' }} className="mx-[1.5px] font-semibold animate-pulse text-[28px] leading-none">:</span>
-          <span style={{ color: '#000000' }}>{d3}</span>
-          <span style={{ color: '#000000' }}>{d4}</span>
-        </div>
+      {/* Cifre stile Quarz ad alta leggibilità ed espanse negli spazi laterali (ORE a sinistra) */}
+      <div
+        className="relative z-10 flex items-center leading-none select-none text-slate-900"
+        style={{
+          fontSize: isMobile ? '18px' : '36px',
+          fontWeight: 800,
+          letterSpacing: '0.03em',
+          color: '#0f172a',
+          fontVariantNumeric: 'tabular-nums',
+          fontFeatureSettings: '"tnum"',
+          WebkitFontSmoothing: 'antialiased',
+        }}
+      >
+        {renderDigit(d1)}
+        {renderDigit(d2)}
+      </div>
+
+      {/* Cifre stile Quarz ad alta leggibilità ed espanse negli spazi laterali (MINUTI a destra) */}
+      <div
+        className="relative z-10 flex items-center leading-none select-none text-slate-900"
+        style={{
+          fontSize: isMobile ? '18px' : '36px',
+          fontWeight: 800,
+          letterSpacing: '0.03em',
+          color: '#0f172a',
+          fontVariantNumeric: 'tabular-nums',
+          fontFeatureSettings: '"tnum"',
+          WebkitFontSmoothing: 'antialiased',
+        }}
+      >
+        {renderDigit(d3)}
+        {renderDigit(d4)}
       </div>
     </div>
   )
 }
 
-// ── Box ASK OPEN AI (Attaccato alla banda bianca, con contenuto scalato al di sotto della banda) ──
-function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk, onOpenConsole, onOpenAiConfig, aiConfig }) {
+// ── Box ASK OPEN AI (Attaccato alla banda bianca su PC, compatto e ravvicinato su Mobile App) ──
+function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk, onOpenAiConfig, aiConfig, isMaximized = false, isMobile = false }) {
   const { canAskOpenAI, currentUser } = useAuth()
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
@@ -207,10 +302,6 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk, onOpenConsol
   }, [canAskOpenAI, loading])
 
   async function handleAsk(promptText) {
-    if (!canAskOpenAI) {
-      setError('Accesso OpenAI disabilitato per questo profilo (Riservato all’Amministratore)')
-      return
-    }
     const textToAsk = promptText || query
     if (!textToAsk.trim() || loading) return
 
@@ -243,6 +334,13 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk, onOpenConsol
       setQuery('')
     } catch (err) {
       setError(err.message)
+      if (onAskComplete) {
+        onAskComplete({
+          question: textToAsk,
+          content: `⚠️ ${err.message}`,
+          timestamp: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+        })
+      }
     } finally {
       setLoading(false)
       if (onLoadingChange) onLoadingChange(false)
@@ -251,24 +349,25 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk, onOpenConsol
 
   return (
     <div
-      className="bg-white rounded-none pt-2.5 px-4 pb-3 flex flex-col justify-between shadow-xs border-x border-b border-sky-100 min-h-0 relative z-20"
+      className={`bg-white ${isMobile ? 'rounded-2xl py-2 px-2.5 border border-[#cce5f6]' : 'rounded-none py-2 px-3 border border-[#cce5f6] border-t-0'} flex flex-col justify-between shadow-xs min-h-0 relative z-20`}
       style={{
         fontFamily: '"Switzer", sans-serif',
-        height: '98px',
-        minHeight: '98px',
-        borderRadius: '0px',
-        borderBottomLeftRadius: '0px',
-        borderBottomRightRadius: '0px',
+        height: isMobile ? 'auto' : isMaximized ? '205px' : 'calc(76px + 3cm)',
+        minHeight: isMobile ? '68px' : isMaximized ? '205px' : 'calc(76px + 3cm)',
+        borderRadius: isMobile ? '14px' : '0px',
+        borderTop: isMobile ? undefined : 'none',
+        boxShadow: '0 2px 8px rgba(27, 183, 237, 0.06)',
+        transition: 'height 300ms cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
       <div>
-        <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center justify-between mb-0.5">
           <div className="flex items-center gap-1.5">
             <h3
               className="uppercase tracking-normal leading-tight select-none"
               style={{
                 fontWeight: 900,
-                fontSize: '1.15rem',
+                fontSize: isMobile ? '0.82rem' : '0.98rem',
                 fontFamily: '"Switzer", sans-serif',
                 background: 'linear-gradient(90deg, #0284c7 0%, #0ea5e9 25%, #10b981 55%, #f59e0b 80%, #ef4444 100%)',
                 WebkitBackgroundClip: 'text',
@@ -278,39 +377,10 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk, onOpenConsol
             >
               ASK OPEN AI:
             </h3>
-            {!canAskOpenAI && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
-                🔒 Riservato Admin
+            {aiConfig?.hasKey && (
+              <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-300">
+                {aiConfig.geminiModel || aiConfig.model || 'Gemini 2.5'}
               </span>
-            )}
-            {canAskOpenAI && (
-              <div className="flex items-center gap-1">
-                {aiConfig?.hasKey && (
-                  <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded-none bg-emerald-50 text-emerald-700 border border-emerald-300">
-                    {aiConfig.model || 'GPT-4o'}
-                  </span>
-                )}
-                {onOpenAiConfig && (
-                  <button
-                    type="button"
-                    onClick={onOpenAiConfig}
-                    className="text-slate-400 hover:text-[#0284c7] font-bold p-0.5 cursor-pointer transition-colors"
-                    title="Configura Chiave API OpenAI / Modello"
-                  >
-                    <Key size={13} />
-                  </button>
-                )}
-                {onOpenConsole && (
-                  <button
-                    type="button"
-                    onClick={onOpenConsole}
-                    className="text-slate-400 hover:text-black font-bold p-0.5 cursor-pointer transition-colors"
-                    title="Espandi al massimo spazio libero della dashboard"
-                  >
-                    <Maximize2 size={13} />
-                  </button>
-                )}
-              </div>
             )}
           </div>
           {(answer || query) && (
@@ -330,14 +400,8 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk, onOpenConsol
           )}
         </div>
 
-        {!canAskOpenAI && (
-          <div className="text-[10px] text-amber-700 bg-amber-50/80 border border-amber-200/80 p-1.5 my-1 rounded">
-            Interrogazione OpenAI disabilitata per il profilo Dipendente.
-          </div>
-        )}
-
         {loading && (
-          <div className="py-2 flex items-center gap-2">
+          <div className="py-1 flex items-center gap-2">
             <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin flex-shrink-0" />
             <span className="text-[11px] font-bold text-gray-600 animate-pulse truncate">
               Analisi dati CRM in corso...
@@ -346,124 +410,107 @@ function AskOpenAiBox({ onAskComplete, onLoadingChange, onStartAsk, onOpenConsol
         )}
 
         {error && (
-          <div className="text-[10px] text-red-600 bg-red-50 p-1.5 mt-1">
+          <div className="text-[10px] text-red-600 bg-red-50 p-1 mt-0.5">
             ⚠️ {error}
           </div>
         )}
       </div>
 
-      {/* Input di testo integrato per digitare */}
+      {/* Area di testo per digitare */}
       <form
         onSubmit={(e) => {
           e.preventDefault()
           handleAsk()
         }}
-        className="mt-2 pt-2 border-t border-sky-100 flex items-center gap-1.5"
+        className={`mt-1 ${isMobile ? 'pt-1' : 'pt-1.5 border-t border-sky-100'} flex flex-1 min-h-0 ${!isMobile && isMaximized ? 'flex-col gap-2' : 'items-stretch gap-1.5'}`}
       >
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              e.preventDefault()
-              e.stopPropagation()
-              setQuery('')
-              setAnswer(null)
-              setError(null)
-              window.dispatchEvent(new CustomEvent('dado-ai-reset'))
-              window.dispatchEvent(new CustomEvent('dado-ai-focus', { detail: { active: false } }))
-            }
-          }}
-          placeholder={canAskOpenAI ? "Controlli incrociati, contratti, shooting, fatturato..." : "🔒 Funzione riservata ad Admin"}
-          disabled={loading || !canAskOpenAI}
-          className={`flex-1 border px-2.5 py-1.5 text-xs rounded-lg placeholder:text-slate-400 focus:outline-none transition-all ${
-            canAskOpenAI
-              ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#0284c7] focus:bg-white'
-              : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-          }`}
-          style={{ fontFamily: '"Switzer", sans-serif' }}
-        />
-        <button
-          type="submit"
-          disabled={loading || !query.trim() || !canAskOpenAI}
-          title={!canAskOpenAI ? 'Disabilitato per Dipendente' : 'Invia domanda'}
-          className="bg-[#0284c7] hover:bg-[#0369a1] text-white disabled:opacity-40 px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer disabled:cursor-not-allowed transition-all shadow-xs"
-        >
-          {loading ? '...' : '→'}
-        </button>
+        <div className="relative flex-1 min-h-0 flex flex-col">
+          <textarea
+            rows={isMobile ? 1 : 4}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleAsk()
+              } else if (e.key === 'Escape') {
+                e.preventDefault()
+                e.stopPropagation()
+                setQuery('')
+                setAnswer(null)
+                setError(null)
+                window.dispatchEvent(new CustomEvent('dado-ai-reset'))
+                window.dispatchEvent(new CustomEvent('dado-ai-focus', { detail: { active: false } }))
+              }
+            }}
+            placeholder={isMobile ? "Chiedi su contratti, fatture, clienti..." : isMaximized ? "Scrivi una domanda o richiesta dettagliata (es. controlli incrociati, contratti, fatture o pipeline)... Premi Invio per inviare" : "Controlli incrociati, contratti..."}
+            disabled={loading}
+            className={`w-full flex-1 border px-2.5 ${isMobile ? 'py-1 text-[11px]' : 'py-1.5 text-[11.5px]'} rounded-lg placeholder:text-slate-400 focus:outline-none transition-all resize-none leading-relaxed bg-slate-50 border-slate-200 text-slate-900 focus:border-[#0284c7] focus:bg-white shadow-inner overflow-hidden`}
+            style={{
+              fontFamily: '"Switzer", sans-serif',
+              height: isMobile ? '32px' : isMaximized ? '112px' : '100%',
+              minHeight: isMobile ? '32px' : isMaximized ? '112px' : '100%',
+              overflow: 'hidden',
+              overflowY: 'hidden',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          />
+        </div>
+        <div className={`flex items-center justify-end ${!isMobile && isMaximized ? 'w-full' : 'flex-shrink-0 self-stretch'}`}>
+          <button
+            type="submit"
+            disabled={loading || !query.trim()}
+            title="Invia domanda"
+            className={`${isMobile ? 'px-3 py-1 text-xs h-full' : isMaximized ? 'px-4 py-1.5 text-[11.5px]' : 'px-2.5 py-1.5 text-xs'} bg-[#0284c7] hover:bg-[#0369a1] text-white disabled:opacity-40 font-bold rounded-lg cursor-pointer disabled:cursor-not-allowed transition-all shadow-xs flex items-center justify-center gap-1.5 ml-auto`}
+          >
+            {loading ? '...' : (!isMobile && isMaximized ? <><span>Chiedi a AI</span> <ArrowRight size={12} /></> : '→')}
+          </button>
+        </div>
       </form>
     </div>
   )
 }
 
-// ── Campo Barra di Ricerca per Note Sviluppatore (visibile solo per Director e Amministratore) ──
-function DeveloperNotesSearchBar() {
-  const { currentUser, isAdmin } = useAuth()
-  const [note, setNote] = useState('')
-  const [sentStatus, setSentStatus] = useState(false)
 
-  const isDirectorOrAdmin =
-    isAdmin ||
-    currentUser?.badgeRole === 'Director' ||
-    currentUser?.role === 'Director' ||
-    currentUser?.badgeRole === 'Amministratore' ||
-    currentUser?.id === 'usr-admin' ||
-    currentUser?.id === 'usr-dipendente'
 
-  if (!isDirectorOrAdmin) return null
+// ── Hook per rilevare se la finestra del browser o lo schermo è ingrandito al massimo ──
+function useIsWindowMaximized() {
+  const checkMax = () => {
+    if (typeof window === 'undefined') return false
+    // 1. Fullscreen API nativo attivo (HTML5 Fullscreen)
+    if (document.fullscreenElement) return true
 
-  const handleSend = async (e) => {
-    if (e) e.preventDefault()
-    const textToSend = note.trim()
-    if (!textToSend) return
+    // 2. CSS display-mode: fullscreen
+    if (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches) return true
 
-    setNote('')
-    setSentStatus(true)
-    setTimeout(() => setSentStatus(false), 3000)
-
-    try {
-      await fetch('/api/developer-notes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-role': currentUser?.badgeRole || currentUser?.role || '',
-        },
-        body: JSON.stringify({ note: textToSend }),
-      })
-    } catch (err) {
-      console.warn('Salvataggio nota:', err)
+    // 3. Modalità a tutto schermo su macOS / browser (quando la finestra occupa tutta l'altezza dello schermo del display)
+    if (window.screen && window.screen.height) {
+      const isFullScreenHeight = window.innerHeight >= (window.screen.height - 45)
+      const isFullOuterHeight = window.outerHeight >= (window.screen.height - 15)
+      return Boolean(isFullScreenHeight || isFullOuterHeight)
     }
+
+    return false
   }
 
-  return (
-    <div className="flex items-center gap-3 select-none">
-      {/* Campo Invia una nota */}
-      <form onSubmit={handleSend} className="relative flex items-center">
-        <input
-          type="text"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder={sentStatus ? "✓ Nota inviata allo sviluppatore!" : "Invia una nota"}
-          title="Scrivi la tua nota e premi Invio per inviarla allo sviluppatore"
-          className="w-[240px] sm:w-[280px] h-[28px] px-3.5 text-[11.5px] rounded-full bg-white/95 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#00ffaa] shadow-sm transition-all"
-          style={{ fontFamily: '"Switzer", sans-serif' }}
-        />
-      </form>
+  const [isMaximized, setIsMaximized] = useState(checkMax)
 
-      {/* Dicitura a destra: Note per sviluppatore */}
-      <span
-        className="text-[12px] font-semibold text-white/90 whitespace-nowrap tracking-wide"
-        style={{ fontFamily: '"Switzer", sans-serif' }}
-      >
-        Note per sviluppatore
-      </span>
-    </div>
-  )
+  useEffect(() => {
+    const handleResize = () => setIsMaximized(checkMax())
+    window.addEventListener('resize', handleResize)
+    document.addEventListener('fullscreenchange', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      document.removeEventListener('fullscreenchange', handleResize)
+    }
+  }, [])
+
+  return isMaximized
 }
 
-// ── Box NOTE sotto Google Drive: tipo pagina girata di un libro completamente bianca con piega a destra in rilievo ──
-function TurnedPageNoteBox() {
+// ── Box NOTE: Taccuino con spirale metallica superiore (solo parte superiore a mo' di taccuino) ──
+function TurnedPageNoteBox({ className = '', height = 'calc(98px - 0.3cm)', isMaximized = false }) {
   const [noteText, setNoteText] = useState('')
   const [saved, setSaved] = useState(false)
   const { currentUser } = useAuth()
@@ -483,63 +530,115 @@ function TurnedPageNoteBox() {
           'Content-Type': 'application/json',
           'x-user-role': currentUser?.badgeRole || currentUser?.role || '',
         },
-        body: JSON.stringify({ note: text }),
+        body: JSON.stringify({
+          note: text,
+          isDeveloperNote: false,
+          author: currentUser?.name || 'Utente CRM',
+        }),
       })
+      window.dispatchEvent(new CustomEvent('dado-note-added'))
     } catch (err) {
       console.warn('Salvataggio nota:', err)
     }
   }
 
   return (
-    <div className="w-full relative select-none">
-      {/* Foglio bianco con angolo tagliato a 45° in alto a destra */}
+    <div className={`w-full relative select-none group ${className}`}>
+      {/* ── CORPO PRINCIPALE DEL TACCUINO (solo bordo superiore a spirale, esteso in larghezza sopra Funnel & KPI) ── */}
       <div
-        className="w-full bg-white shadow-xs hover:shadow-md transition-all border border-[#cce5f6]"
+        className="w-full bg-[#fdfdfc] shadow-xs hover:shadow-md transition-all border border-[#cbd5e1] rounded-b-xl rounded-t-lg relative overflow-hidden flex flex-col justify-between"
         style={{
-          borderRadius: '16px 0 16px 16px',
-          padding: '10px 14px 12px 14px',
-          clipPath: 'polygon(0% 0%, calc(100% - 22px) 0%, 100% 22px, 100% 100%, 0% 100%)',
-          minHeight: '74px',
+          minHeight: height,
+          height: height,
           fontFamily: '"Switzer", sans-serif',
+          zIndex: 2,
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
         }}
       >
-        {/* Intestazione Note */}
-        <div className="flex items-center justify-between">
-          <span
-            className="text-[#0f172a] font-bold text-[14.5px] tracking-wide"
-            style={{ fontFamily: '"Switzer", sans-serif' }}
-          >
-            Note
-          </span>
-          <span className="text-[10px] font-mono text-slate-400 mr-4 font-semibold tracking-wider uppercase">
-            {saved ? '✓ Salvata' : 'Studio'}
-          </span>
+        {/* ── BORDO SUPERIORE: FASCIA RILEGATA TACCUINO CON SPIRALE METALLICA ── */}
+        <div
+          className="w-full pt-2 pb-0.5 px-3 relative flex items-center justify-between"
+          style={{
+            background: 'linear-gradient(180deg, #1e293b 0%, #334155 100%)',
+            borderBottom: '1.5px dashed #64748b',
+          }}
+        >
+          {/* Anelli a spirale metallica lungo il bordo superiore del taccuino (7 anelli per larghezza calibrata) */}
+          <div className="absolute -top-2 left-0 right-0 flex justify-evenly px-3 pointer-events-none">
+            {[...Array(7)].map((_, i) => (
+              <div key={i} className="flex flex-col items-center">
+                {/* Anello metallico 3D con sfumatura lucida */}
+                <div
+                  className="w-2 h-3.5 rounded-full border border-slate-500/80 shadow-xs"
+                  style={{
+                    background: 'linear-gradient(135deg, #f8fafc 0%, #cbd5e1 30%, #94a3b8 65%, #334155 100%)',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                  }}
+                />
+                {/* Foro circolare nel taccuino */}
+                <div className="-mt-1 w-1.5 h-1 rounded-full bg-slate-900 shadow-inner" />
+              </div>
+            ))}
+          </div>
+
+          {/* Intestazione Note sulla fascia superiore (SENZA scritta Taccuino) */}
+          <div className="flex items-center justify-between w-full mt-0.5">
+            <Link
+              to="/appunti"
+              className="text-white hover:text-sky-300 font-extrabold text-[12px] tracking-wider uppercase transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Apri e consulta le Note & Appunti salvati"
+            >
+              <FileEdit className="w-3.5 h-3.5 text-sky-400" />
+              <span>Note</span>
+            </Link>
+            {saved ? (
+              <span className="text-[9.5px] px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-400/40">
+                ✓ Salvata
+              </span>
+            ) : (
+              <span className="text-[9.5px] text-slate-400 italic">
+                Appunto veloce
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Campo inserimento nota / promemoria */}
-        <form onSubmit={handleSave} className="mt-1.5 border-b border-slate-200 pb-1">
-          <input
-            type="text"
-            value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
-            placeholder={saved ? "✓ Nota registrata!" : ""}
-            className="w-full bg-transparent border-none outline-none text-[11.5px] text-slate-800 placeholder:text-slate-400 font-sans"
-            style={{ fontFamily: '"Switzer", sans-serif' }}
-          />
-        </form>
+        {/* ── FOGLIO A RIGHE DEL TACCUINO CON CAMPO SCRITTURA E PULSANTE IN RIGA ── */}
+        <div
+          className="flex-1 px-3 py-1.5 flex items-center justify-between relative overflow-hidden"
+          style={{
+            backgroundImage: 'repeating-linear-gradient(transparent, transparent 23px, #e2e8f0 23px, #e2e8f0 24px)',
+            backgroundPosition: '0 4px',
+          }}
+        >
+          {/* Campo inserimento nota / promemoria su più righe a righe del taccuino */}
+          <form onSubmit={handleSave} className="flex-1 flex flex-col justify-between gap-1.5 h-full py-0.5">
+            <textarea
+              rows={isMaximized ? 6 : 3}
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSave(e)
+                }
+              }}
+              placeholder={saved ? "✓ Registrata negli appunti!" : "Scrivi un appunto o promemoria rapido..."}
+              className="w-full flex-1 bg-transparent border-none outline-none text-[12.5px] font-medium text-slate-800 placeholder:text-slate-400 leading-[24px] resize-none"
+              style={{ fontFamily: '"Switzer", sans-serif', lineHeight: '24px' }}
+            />
+            <div className="flex justify-end items-center">
+              <button
+                type="submit"
+                className="px-3 py-1 rounded bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-[10.5px] uppercase tracking-wide cursor-pointer transition-all shadow-xs flex-shrink-0"
+                title="Salva nota negli appunti (oppure premi Invio)"
+              >
+                Salva ↵
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-
-      {/* Pagina girata sulla destra con lieve rilievo 3D */}
-      <div
-        className="absolute top-0 right-0 pointer-events-none"
-        style={{
-          width: '22px',
-          height: '22px',
-          background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 45%, #cbd5e1 100%)',
-          clipPath: 'polygon(0% 0%, 0% 100%, 100% 100%)',
-          filter: 'drop-shadow(-2px 3px 2.5px rgba(0, 0, 0, 0.24))',
-        }}
-      />
     </div>
   )
 }
@@ -746,7 +845,7 @@ const INITIAL_INVOICES = [
     description: "Docufilm Wedding Luxury Internazionale & Regia Multicam Villa Cora Firenze",
     shootingDates: "19 Settembre 2026",
     location: "Villa Cora Firenze (15 ore fino alle 02:30)",
-    materials: ["Sony FX3", "Sony 24-70mm GM II", "Sennheiser AVX", "Gimbal RS3 Pro"]
+    materials: ["Canon C70", "Canon RF 24-70mm f/2.8L", "Sennheiser AVX", "Gimbal RS3 Pro"]
   },
   {
     id: "inv-2026-083",
@@ -768,7 +867,7 @@ const INITIAL_INVOICES = [
     description: "Pacchetto 12 Video TikTok/Reels Verticali 9:16 + Color Grading DaVinci",
     shootingDates: "27 Settembre 2026",
     location: "Studio DADO Milano",
-    materials: ["Sony FX3", "Nanlite Pavotube II 30X", "Atomos Ninja V+"]
+    materials: ["Canon C70", "Nanlite Pavotube II 30X", "Atomos Ninja V+"]
   },
   {
     id: "inv-2026-082",
@@ -790,7 +889,7 @@ const INITIAL_INVOICES = [
     description: "Docufilm Vendemmia 2026 Brunello di Montalcino & Shooting Bottiglie Luxury",
     shootingDates: "02 Settembre 2026",
     location: "Montalcino (SI) - Vigna e Cantina",
-    materials: ["Drone DJI Mavic 3 Cine", "Sony 70-200mm GM II"]
+    materials: ["Drone DJI Mavic 3 Cine", "Canon RF 70-200mm f/2.8L"]
   },
   {
     id: "inv-2026-081",
@@ -812,7 +911,7 @@ const INITIAL_INVOICES = [
     description: "Serie 10 Video Ricette Chef Stellato con Dettagli Macro Food & Packaging",
     shootingDates: "15 Luglio 2026",
     location: "Cucina Master Napoli",
-    materials: ["Sony FX3", "Sony 24-70mm GM II", "Aputure 300x"]
+    materials: ["Canon C70", "Canon RF 24-70mm f/2.8L", "Aputure 300x"]
   },
   {
     id: "inv-2026-080",
@@ -834,7 +933,7 @@ const INITIAL_INVOICES = [
     description: "Teaser Lancio Nuova Piattaforma SaaS AI & Brand Video Identity",
     shootingDates: "28 Maggio 2026",
     location: "Sede Nexura Milano",
-    materials: ["Atomos Ninja V+", "Sony 85mm GM"]
+    materials: ["Atomos Ninja V+", "Canon RF 85mm f/1.2L"]
   },
   {
     id: "inv-2026-079",
@@ -856,7 +955,7 @@ const INITIAL_INVOICES = [
     description: "Shooting Collezione Alta Moda Sposa 2026 per Catalogo Cartaceo & Instagram",
     shootingDates: "10 Maggio 2026",
     location: "Atelier Torino",
-    materials: ["Sony 70-200mm GM II", "Softbox Octa 120cm"]
+    materials: ["Canon RF 70-200mm f/2.8L", "Softbox Octa 120cm"]
   },
   {
     id: "inv-2026-078",
@@ -921,7 +1020,7 @@ const ACTIVE_CLIENTS_DOSSIER = [
       { step: "1. Primo Contatto & Briefing", date: "15/01/2026", desc: "Richiesta video corporate 4K HDR per fiera MecSpe 2026." },
       { step: "2. Sopralluogo Tecnico", date: "28/01/2026", desc: "Sopralluogo stabilimento Monza con fonico e pilota drone certificato ENAC." },
       { step: "3. Firma Contratto", date: "10/08/2026", desc: "Accordo DADO-CTR-2026-088 siglato digitalmente per € 5.200." },
-      { step: "4. Set & Riprese", date: "15-16/09/2026", desc: "2 giorni di riprese con Sony FX3 e illuminazione cinema Aputure." },
+      { step: "4. Set & Riprese", date: "15-16/09/2026", desc: "2 giorni di riprese con Canon C70 e illuminazione cinema Aputure." },
       { step: "5. Risoluzione Imprevisto", date: "16/09/2026", desc: "Risolto sfarfallio LED 100Hz sincronizzando l'otturatore a 1/100s." },
       { step: "6. Consegna & Fatturazione", date: "25/09/2026", desc: "Master 4K consegnato; emessa fattura FAT-2026-088 con scadenza 25/10/2026." }
     ]
@@ -963,7 +1062,7 @@ const ACTIVE_CLIENTS_DOSSIER = [
       { step: "1. Primo Contatto", date: "05/03/2026", desc: "Richiesta spot TV e campagna digital agrivoltaico." },
       { step: "2. Brief Creativo", date: "20/03/2026", desc: "Definizione storyboard con Dott.ssa Chiara Valenti." },
       { step: "3. Firma Contratto", date: "12/08/2026", desc: "Siglato DADO-CTR-2026-085 (€ 4.800)." },
-      { step: "4. Shooting & Drone", date: "04-05/09/2026", desc: "Riprese parco solare con DJI Mavic 3 Cine e Sony FX3." },
+      { step: "4. Shooting & Drone", date: "04-05/09/2026", desc: "Riprese parco solare con DJI Mavic 3 Cine e Canon C70." },
       { step: "5. Risoluzione Imprevisto", date: "04/09/2026", desc: "Vento a 38 km/h gestito atterrando temporaneamente e riprendendo a terra con cavalletto zavorrato." },
       { step: "6. Conclusione & Saldo", date: "15/09/2026", desc: "Campagna consegnata e fattura FAT-2026-084 interamente saldata." }
     ]
@@ -1338,9 +1437,134 @@ function getDaySchedule(dateIso) {
   return getCalendarDayData(dateIso)
 }
 
+// ── Post-it Contatti: Come e Perché si sono sentiti (Data, Giorno e Motivo Ultimo Contatto) ──
+const RECENT_CONTACT_POSTITS = [
+  {
+    referent: 'Matteo Colombo',
+    company: 'Fashion Brand Milano',
+    category: 'Call Conoscitiva',
+    dayDate: 'Lunedì 12 Ottobre',
+    how: 'Call Conoscitiva — WhatsApp & Google Meet',
+    why: 'Call conoscitiva e briefing per preventivo video vertical reels 9:16 e calendario date shooting lookbook.',
+  },
+  {
+    referent: 'Sara Moretti',
+    company: 'NextMedia Agency',
+    category: 'Chiamata',
+    dayDate: 'Venerdì 9 Ottobre',
+    how: 'Chiamata — Telefono Ufficio + Email',
+    why: 'Chiamata di conferma ricezione master video 4K e allineamento per nuova campagna ADV autunno.',
+  },
+  {
+    referent: 'Ing. Marco Riva',
+    company: 'Officine Meccaniche Riva',
+    category: 'Appuntamento',
+    dayDate: 'Giovedì 8 Ottobre',
+    how: 'Appuntamento — Incontro in Sede & Telefono Diretto',
+    why: 'Appuntamento in azienda: delibera budget approvata per shooting corporate industriale fiera MecSpe 2026.',
+  },
+  {
+    referent: 'Dott.ssa Chiara Valenti',
+    company: 'Solaris Green Energy',
+    category: 'Briefing',
+    dayDate: 'Mercoledì 7 Ottobre',
+    how: 'Briefing — Videochiamata Google Meet',
+    why: 'Briefing operativo: revisione storyboard spot TV e piano autorizzazioni sorvolo drone parco agrivoltaico.',
+  },
+  {
+    referent: 'Matteo Ferri',
+    company: 'Alpha Studio Milano',
+    category: 'Briefing',
+    dayDate: 'Martedì 6 Ottobre',
+    how: 'Briefing — Call & Chat WhatsApp Diretta',
+    why: 'Briefing tecnico per allestimento limbo studio DADO e test lenti anamorfiche per shooting moda luxury.',
+  },
+  {
+    referent: 'Alessandro Neri',
+    company: 'Beta Digital Agency',
+    category: 'Chiamata',
+    dayDate: 'Lunedì 5 Ottobre',
+    how: 'Chiamata — Call telefonica di allineamento',
+    why: 'Chiamata di allineamento: pianificazione spot social verticali e montaggio formato 9:16 per app fintech.',
+  },
+  {
+    referent: 'Geom. Paolo Baraldi',
+    company: 'Kroma Ceramiche',
+    category: 'Appuntamento',
+    dayDate: 'Venerdì 2 Ottobre',
+    how: 'Appuntamento — Incontro di persona in azienda',
+    why: 'Appuntamento e sopralluogo showroom con campionatura lastre per catalogo fotografico 2027.',
+  },
+  {
+    referent: 'Ginevra Moretti',
+    company: 'Vogue Events & Wedding',
+    category: 'Briefing',
+    dayDate: 'Giovedì 1 Ottobre',
+    how: 'Briefing — Videochiamata Zoom',
+    why: 'Briefing regia e trailer cinematografico per evento luxury wedding a Villa Cora (Firenze).',
+  },
+  {
+    referent: 'Chef Salvatore Esposito',
+    company: 'Gusto & Tradizione Food',
+    category: 'Chiamata',
+    dayDate: 'Mercoledì 30 Settembre',
+    how: 'Chiamata — Call & Vocale WhatsApp',
+    why: 'Chiamata per revisione teaser slow-motion pizza gourmet e programmazione reel Instagram.',
+  },
+  {
+    referent: 'Dott. Andrea Pieri',
+    company: 'Tenuta Poggio Antico',
+    category: 'Appuntamento',
+    dayDate: 'Martedì 29 Settembre',
+    how: 'Appuntamento — Pianificazione Set in Tenuta',
+    why: 'Appuntamento fissato per giornate riprese vendemmia e shooting bottiglie riserva con luce d\'ambiente.',
+  },
+  {
+    referent: 'Ing. Luca Castelli',
+    company: 'Nexura Tech Solutions',
+    category: 'Call Conoscitiva',
+    dayDate: 'Lunedì 28 Settembre',
+    how: 'Call Conoscitiva — Google Meet',
+    why: 'Call conoscitiva e allineamento per consegna pitch video animato 3D per investitori Venture Capital di Londra.',
+  },
+  {
+    referent: 'Stefania Conti',
+    company: 'Atelier Sposa Bellissima',
+    category: 'Appuntamento',
+    dayDate: 'Venerdì 25 Settembre',
+    how: 'Appuntamento — Incontro in Atelier & Campionario',
+    why: 'Appuntamento in atelier per selezione abiti haute couture lookbook primaverile e riprese video backstage.',
+  },
+  {
+    referent: 'Jacopo Bonomi',
+    company: 'Urban Mobility Bike',
+    category: 'Briefing',
+    dayDate: 'Mercoledì 23 Settembre',
+    how: 'Briefing — Call telefonica + WhatsApp',
+    why: 'Briefing logistico: pianificazione percorso ciclistico urbano e permessi comunali per spot e-bike gravel.',
+  },
+  {
+    referent: 'Arch. Elena Baroni',
+    company: 'Aura Design & Architettura',
+    category: 'Call Conoscitiva',
+    dayDate: 'Lunedì 21 Settembre',
+    how: 'Call Conoscitiva — Telefono + Email PDF',
+    why: 'Call conoscitiva e invio preventivo per servizio fotografico d\'architettura e video walkthrough appartamenti.',
+  },
+  {
+    referent: 'Dott. Stefano Valenti',
+    company: 'Cantine San Biagio Wine & Resort',
+    category: 'Chiamata',
+    dayDate: 'Sabato 19 Settembre',
+    how: 'Chiamata — Telefono Ufficio Diretto',
+    why: 'Chiamata di follow-up: feedback positivo su riprese evento di gala e richiesta archivio foto in alta risoluzione.',
+  },
+]
+
 // ── Dashboard Principale ──────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate()
+  const { isMobileApp, isSwipeCopy, sidebarOpenProgress = 1 } = useDeviceMode()
   const [invoices, setInvoices] = useState(() => {
     try {
       const saved = localStorage.getItem('dado_invoices')
@@ -1352,12 +1576,23 @@ export default function Dashboard() {
   const [selectedInvoice, setSelectedInvoice] = useState(null)
   const [showNewInvoiceModal, setShowNewInvoiceModal] = useState(false)
   const [showActiveClientsModal, setShowActiveClientsModal] = useState(false)
+  const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false)
+  const [collaboratorsCount, setCollaboratorsCount] = useState(15)
+  const [contactPostItIdx, setContactPostItIdx] = useState(0)
+  const [contactPostIts, setContactPostIts] = useState(RECENT_CONTACT_POSTITS)
+  const currentContactPostIt = contactPostIts[contactPostItIdx] || contactPostIts[0]
   const [selectedClientIndex, setSelectedClientIndex] = useState(0)
   const [clientSearchQuery, setClientSearchQuery] = useState('')
   const [showInvoiceMenuModal, setShowInvoiceMenuModal] = useState(false)
+  const [isFunnelDetailsOpen, setIsFunnelDetailsOpen] = useState(false)
   const [invoiceTab, setInvoiceTab] = useState('recent')
   const [invoiceSearchQuery, setInvoiceSearchQuery] = useState('')
+  const [crmCompanies, setCrmCompanies] = useState([])
+  const [showInvoiceCompanyDropdown, setShowInvoiceCompanyDropdown] = useState(false)
+  const [highlightedCompanyIdx, setHighlightedCompanyIdx] = useState(0)
+  const [matchedInvoiceCompany, setMatchedInvoiceCompany] = useState(null)
   const [newInvoiceForm, setNewInvoiceForm] = useState({
+    companyId: '',
     companyName: '',
     amount: '',
     deposit: '',
@@ -1366,7 +1601,495 @@ export default function Dashboard() {
     description: '',
     sdi: '0000000',
     pec: '',
+    contractCode: '',
+    shootingDates: '',
+    location: '',
+    materials: [],
   })
+
+  // Directory completa aziende presenti nel database CRM con dati di fatturazione preconfigurati
+  const invoiceCompanyDirectory = useMemo(() => {
+    const presetDirectory = [
+      {
+        companyId: 'cmp-1',
+        companyName: 'Officine Meccaniche Riva',
+        sector: 'Automotive / Meccanica',
+        city: 'Brescia (BS)',
+        referent: 'Ing. Marco Riva',
+        amount: 9200,
+        deposit: 4000,
+        dueDate: '25/10/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: 'M5UXCR1',
+        pec: 'officineriva@pec.it',
+        description: 'Video Corporate Industriale 4K HDR ProRes + Cut 60s LinkedIn per Fiera MecSpe',
+        contractCode: 'DADO-CTR-2026-088',
+        shootingDates: '10–12 Ottobre 2026 (3 giornate set + drone FPV)',
+        location: 'Stabilimento Principale Riva — Brescia (BS)',
+      },
+      {
+        companyId: 'cmp-2',
+        companyName: 'Fashion Brand Milano',
+        sector: 'Moda & Luxury',
+        city: 'Milano (MI)',
+        referent: 'Matteo Colombo',
+        amount: 6800,
+        deposit: 3400,
+        dueDate: '20/11/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: 'FBM89K2',
+        pec: 'fashionbrandmilano@pec.it',
+        description: 'Produzione Lookbook Video Autunno/Inverno 4K HDR, Reel & TikTok Kit e Color Grading per Capsule Collection',
+        contractCode: 'DADO-INB-0431',
+        shootingDates: '23–25 Ottobre 2026 (Showroom + Studio Limbo)',
+        location: 'Via Tortona 31 — Milano (MI)',
+      },
+      {
+        companyId: 'cmp-3',
+        companyName: 'NextMedia Agency',
+        sector: 'Digital & Media Agency',
+        city: 'Milano (MI)',
+        referent: 'Sara Moretti',
+        amount: 5000,
+        deposit: 2500,
+        dueDate: '25/11/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: 'NXM44P1',
+        pec: 'nextmedia@pec.it',
+        description: 'Shooting Video Corporate Stabilimento con Drone 4K Indoor e Interviste Executive',
+        contractCode: 'DADO-INB-0763',
+        shootingDates: '26–27 Ottobre 2026 (2 giornate set + drone)',
+        location: 'Headquarter NextMedia — Milano Porta Nuova',
+      },
+      {
+        companyId: 'cmp-4',
+        companyName: 'Solaris Green Energy',
+        sector: 'Energie Rinnovabili',
+        city: 'Verona (VR)',
+        referent: 'Ing. Davide Sartori',
+        amount: 8400,
+        deposit: 8400,
+        dueDate: '05/10/2026',
+        paymentMethod: 'Bonifico Anticipato 100%',
+        sdi: 'KRR76B9',
+        pec: 'solarisenergy@pec.it',
+        description: 'Spot TV Broadcast Nazionale 30s + Campagna Digital ADS Green Transition',
+        contractCode: 'DADO-CTR-2026-085',
+        shootingDates: '18–20 Settembre 2026 (Parco Solare + Teatro Pose)',
+        location: 'Parco Fotovoltaico Solaris — Verona (VR)',
+      },
+      {
+        companyId: 'cmp-5',
+        companyName: 'Alpha Studio Milano',
+        sector: 'Moda & Design',
+        city: 'Milano (MI)',
+        referent: 'Dott.ssa Elena Conti',
+        amount: 7500,
+        deposit: 7500,
+        dueDate: '28/09/2026',
+        paymentMethod: 'Bonifico Vista Fattura',
+        sdi: 'SUBM70N',
+        pec: 'alphastudio@pec.it',
+        description: 'Campagna Moda Autunno/Inverno 2026 Still Life & Lookbook E-commerce',
+        contractCode: 'DADO-CTR-2026-082',
+        shootingDates: '14–15 Settembre 2026 (2 giornate Studio Limbo)',
+        location: 'DADO Studio — Sala Pose A (Milano)',
+      },
+      {
+        companyId: 'cmp-6',
+        companyName: 'Kroma Ceramiche',
+        sector: 'Arredo & Design Superfici',
+        city: 'Sassuolo (MO)',
+        referent: 'Arch. Paolo Ferri',
+        amount: 6100,
+        deposit: 3200,
+        dueDate: '15/11/2026',
+        paymentMethod: 'RIBA 60gg d.f.',
+        sdi: 'W7M2U86',
+        pec: 'kromaceramiche@pec.it',
+        description: 'Catalogo Arredo Bagno 2027: Rendering 3D, Set Virtuali & Still Life Ceramiche',
+        contractCode: 'DADO-CTR-2026-084',
+        shootingDates: '02–05 Ottobre 2026 (Showroom + CGI Studio)',
+        location: 'Showroom Kroma — Sassuolo (MO)',
+      },
+      {
+        companyId: 'cmp-7',
+        companyName: 'Vogue Events & Wedding',
+        sector: 'Luxury Events',
+        city: 'Firenze (FI)',
+        referent: 'Dott.ssa Chiara Rinaldi',
+        amount: 5800,
+        deposit: 5800,
+        dueDate: '10/09/2026',
+        paymentMethod: 'Bonifico 50% acconto / 50% alla consegna',
+        sdi: 'VGE91L4',
+        pec: 'vogueevents@pec.it',
+        description: 'Docufilm Wedding Luxury Internazionale & Regia Multicam Villa Cora Firenze',
+        contractCode: 'DADO-CTR-2026-079',
+        shootingDates: '29–30 Agosto 2026 (Evento 2 giorni + Drone)',
+        location: 'Villa Cora — Firenze (FI)',
+      },
+      {
+        companyId: 'cmp-8',
+        companyName: 'Beta Digital Agency',
+        sector: 'Marketing & Social',
+        city: 'Torino (TO)',
+        referent: 'Luca Bernardi',
+        amount: 4800,
+        deposit: 2000,
+        dueDate: '20/10/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: 'P62R9S1',
+        pec: 'betadigital@pec.it',
+        description: 'Pacchetto 12 Video TikTok/Reels Verticali 9:16 + Color Grading DaVinci',
+        contractCode: 'DADO-CTR-2026-087',
+        shootingDates: '08–09 Ottobre 2026 (2 giornate Studio Green Screen)',
+        location: 'DADO Studio — Sala Pose B (Milano)',
+      },
+      {
+        companyId: 'cmp-9',
+        companyName: 'Tenuta Poggio Antico',
+        sector: 'Wine & Hospitality',
+        city: 'Montalcino (SI)',
+        referent: 'Dott. Lorenzo Neri',
+        amount: 4200,
+        deposit: 4200,
+        dueDate: '12/08/2026',
+        paymentMethod: 'Bonifico Bancario',
+        sdi: 'USAL8PV',
+        pec: 'poggioantico@pec.it',
+        description: 'Docufilm Vendemmia 2026 Brunello di Montalcino & Shooting Bottiglie Luxury',
+        contractCode: 'DADO-CTR-2026-074',
+        shootingDates: '01–02 Agosto 2026 (Esterni Vigneti + Cantina Storica)',
+        location: 'Tenuta Poggio Antico — Montalcino (SI)',
+      },
+      {
+        companyId: 'cmp-10',
+        companyName: 'Gusto & Tradizione Food',
+        sector: 'Food & Beverage',
+        city: 'Parma (PR)',
+        referent: 'Chef Andrea Galli',
+        amount: 3900,
+        deposit: 3900,
+        dueDate: '25/07/2026',
+        paymentMethod: 'Bonifico Vista Fattura',
+        sdi: 'A4707H7',
+        pec: 'gustoetradizione@pec.it',
+        description: 'Serie 10 Video Ricette Chef Stellato con Dettagli Macro Food & Packaging',
+        contractCode: 'DADO-CTR-2026-068',
+        shootingDates: '10–11 Luglio 2026 (Set Cucina DADO)',
+        location: 'Kitchen Set DADO — Parma (PR)',
+      },
+      {
+        companyId: 'cmp-11',
+        companyName: 'Nexura Tech Solutions',
+        sector: 'SaaS & AI Tech',
+        city: 'Milano (MI)',
+        referent: 'Ing. Matteo Villa',
+        amount: 3200,
+        deposit: 3200,
+        dueDate: '18/06/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: '24M0X8B',
+        pec: 'nexuratech@pec.it',
+        description: 'Teaser Lancio Nuova Piattaforma SaaS AI & Brand Video Identity',
+        contractCode: 'DADO-CTR-2026-059',
+        shootingDates: '04 Giugno 2026 (Uffici + Motion Graphics)',
+        location: 'Nexura Hub — Milano Isola',
+      },
+      {
+        companyId: 'cmp-12',
+        companyName: 'Atelier Sposa Bellissima',
+        sector: 'Bridal & Haute Couture',
+        city: 'Como (CO)',
+        referent: 'Valeria Fontana',
+        amount: 2300,
+        deposit: 2300,
+        dueDate: '02/06/2026',
+        paymentMethod: 'Bonifico Anticipato',
+        sdi: 'BA6ET11',
+        pec: 'sposabellissima@pec.it',
+        description: 'Shooting Collezione Alta Moda Sposa 2026 per Catalogo Cartaceo & Instagram',
+        contractCode: 'DADO-CTR-2026-053',
+        shootingDates: '19 Maggio 2026 (Villa Olmo Como)',
+        location: 'Villa Olmo — Como (CO)',
+      },
+      {
+        companyId: 'cmp-13',
+        companyName: 'Urban Mobility Bike',
+        sector: 'E-Mobility & Sport',
+        city: 'Bergamo (BG)',
+        referent: 'Simone Cattaneo',
+        amount: 1500,
+        deposit: 1500,
+        dueDate: '14/05/2026',
+        paymentMethod: 'Bonifico Vista Fattura',
+        sdi: 'K0ROAC2',
+        pec: 'urbanmobility@pec.it',
+        description: 'Video Clip Dinamica Outdoor Bici Elettrica Urbana & Reels Instagram',
+        contractCode: 'DADO-CTR-2026-047',
+        shootingDates: '02 Maggio 2026 (Esterni Città Alta + Gimbal Car)',
+        location: 'Bergamo Città Alta (BG)',
+      },
+      {
+        companyId: 'cmp-14',
+        companyName: 'Aura Design & Architettura',
+        sector: 'Architettura & Interior',
+        city: 'Milano (MI)',
+        referent: 'Arch. Federico Longo',
+        amount: 4800,
+        deposit: 2400,
+        dueDate: '28/11/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: 'AUR55D8',
+        pec: 'auradesign@pec.it',
+        description: 'Servizio Fotografico Architettonico & Video Tour Progetti Interior Luxury',
+        contractCode: 'DADO-OUT-0444',
+        shootingDates: '04–05 Novembre 2026 (Attico Brera + Showroom)',
+        location: 'Brera Design District — Milano (MI)',
+      },
+      {
+        companyId: 'cmp-15',
+        companyName: 'Cantine San Biagio Wine & Resort',
+        sector: 'Wine & Luxury Resort',
+        city: 'Verona (VR)',
+        referent: 'Dott. Tommaso Marchetti',
+        amount: 6200,
+        deposit: 3100,
+        dueDate: '30/11/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: 'J3PV6T1',
+        pec: 'cantinesanbiagio@legalmail.it',
+        description: 'Docufilm Ospitalità & Degustazione Vini + Riprese Aeree Drone Tenuta',
+        contractCode: 'DADO-EVT-0455',
+        shootingDates: '12–13 Novembre 2026 (Tenuta Valpolicella)',
+        location: 'Cantine San Biagio — Valpolicella (VR)',
+      },
+      {
+        companyId: 'cmp-16',
+        companyName: 'Ceramiche Sarde Srl',
+        sector: 'Manifattura & Design',
+        city: 'Cagliari (CA)',
+        referent: 'Dott. Gianluca Serra',
+        amount: 4500,
+        deposit: 2250,
+        dueDate: '30/11/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: 'CRS90M2',
+        pec: 'ceramichesarde@pec.it',
+        description: 'Servizio Fotografico Catalogo Collezioni Artigianali & Video Spot Manifesto',
+        contractCode: 'DADO-CTR-2026-091',
+        shootingDates: '16–17 Novembre 2026 (Showroom & Laboratorio)',
+        location: 'Cagliari (CA)',
+      },
+      {
+        companyId: 'cmp-17',
+        companyName: 'Bottega Verde Srl',
+        sector: 'Cosmetica & Natural Care',
+        city: 'Siena (SI)',
+        referent: 'Dott.ssa Martina Bellini',
+        amount: 5400,
+        deposit: 2700,
+        dueDate: '30/11/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: 'BTV12L9',
+        pec: 'bottegaverde@pec.it',
+        description: 'Campagna Video Digital Skincare & Still Life Prodotti Linea Bio',
+        contractCode: 'DADO-CTR-2026-092',
+        shootingDates: '19–20 Novembre 2026 (Tenuta & Studio Pose)',
+        location: 'Palazzo Massaini — Pienza (SI)',
+      },
+      {
+        companyId: 'cmp-18',
+        companyName: 'Cantine Alto Adige',
+        sector: 'Wine & Beverage',
+        city: 'Bolzano (BZ)',
+        referent: 'Dott. Lukas Hofer',
+        amount: 4900,
+        deposit: 2450,
+        dueDate: '30/11/2026',
+        paymentMethod: 'Bonifico Bancario 30gg d.f.',
+        sdi: 'CAA77T4',
+        pec: 'cantinealtoadige@pec.it',
+        description: 'Produzione Video Vigneti Eroici & Still Life Bottiglie Riserva',
+        contractCode: 'DADO-CTR-2026-093',
+        shootingDates: '24–25 Novembre 2026 (Cantina & Vigneti)',
+        location: 'Bolzano (BZ)',
+      },
+    ]
+
+    const byName = new Map()
+    presetDirectory.forEach(item => {
+      byName.set(item.companyName.toLowerCase(), { ...item })
+    })
+
+    // Arricchisci con fatture esistenti
+    invoices.forEach(inv => {
+      if (!inv.companyName) return
+      const key = inv.companyName.trim().toLowerCase()
+      const existing = byName.get(key)
+      if (existing) {
+        byName.set(key, {
+          ...existing,
+          companyId: inv.companyId || existing.companyId,
+          amount: inv.amount || existing.amount,
+          deposit: typeof inv.deposit === 'number' ? inv.deposit : existing.deposit,
+          dueDate: inv.dueDate || existing.dueDate,
+          paymentMethod: inv.paymentMethod || existing.paymentMethod,
+          sdi: inv.sdi && inv.sdi !== '0000000' ? inv.sdi : existing.sdi,
+          pec: inv.pec || existing.pec,
+          description: inv.description || existing.description,
+          contractCode: inv.contractCode || existing.contractCode,
+          shootingDates: inv.shootingDates || existing.shootingDates,
+          location: inv.location || existing.location,
+          materials: inv.materials || existing.materials,
+        })
+      } else {
+        byName.set(key, {
+          companyId: inv.companyId || `cmp-${Date.now()}`,
+          companyName: inv.companyName.trim(),
+          sector: 'Cliente DADO Studio',
+          city: inv.location || 'Italia',
+          referent: 'Amministrazione',
+          amount: inv.amount || 3500,
+          deposit: typeof inv.deposit === 'number' ? inv.deposit : Math.round((inv.amount || 3500) * 0.5),
+          dueDate: inv.dueDate || '30/11/2026',
+          paymentMethod: inv.paymentMethod || 'Bonifico Bancario 30gg d.f.',
+          sdi: inv.sdi || '0000000',
+          pec: inv.pec || `${inv.companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}@pec.it`,
+          description: inv.description || 'Servizi di produzione video / foto DADO Studio',
+          contractCode: inv.contractCode || 'DADO-CTR-2026-090',
+          shootingDates: inv.shootingDates || 'Da pianificare con il cliente',
+          location: inv.location || 'Set DADO Studio / Sede Cliente',
+          materials: inv.materials || [],
+        })
+      }
+    })
+
+    // Arricchisci con aziende caricate dal backend CRM (/api/crm/summary)
+    crmCompanies.forEach(c => {
+      if (!c.name) return
+      const key = c.name.trim().toLowerCase()
+      const existing = byName.get(key)
+      const slug = c.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+      const parsedVal = Number(c.contractValue || c.estimatedValue || 0)
+      if (existing) {
+        byName.set(key, {
+          ...existing,
+          companyId: c.id || existing.companyId,
+          referent: c.referent || existing.referent,
+          amount: parsedVal > 0 ? parsedVal : existing.amount,
+          deposit: parsedVal > 0 && !existing.deposit ? Math.round(parsedVal * 0.5) : existing.deposit,
+          description: existing.description || c.requestedMaterials || c.notes || 'Produzione Video & Foto DADO Studio',
+          contractCode: c.contractCode || existing.contractCode,
+        })
+      } else {
+        const amt = parsedVal > 0 ? parsedVal : 4000
+        byName.set(key, {
+          companyId: c.id || `cmp-${slug}`,
+          companyName: c.name.trim(),
+          sector: c.origin || 'Cliente CRM',
+          city: 'Italia',
+          referent: c.referent || 'Referente Aziendale',
+          amount: amt,
+          deposit: Math.round(amt * 0.5),
+          dueDate: '30/11/2026',
+          paymentMethod: 'Bonifico Bancario 30gg d.f.',
+          sdi: slug.slice(0, 4).toUpperCase().padEnd(4, 'X') + '26A',
+          pec: `${slug}@pec.it`,
+          description: c.requestedMaterials || c.notes || `Produzione Video & Shooting Fotografico per ${c.name}`,
+          contractCode: c.contractCode || 'DADO-CTR-2026-095',
+          shootingDates: 'Da definire secondo calendario produzione',
+          location: `Sede ${c.name} / DADO Studio`,
+          materials: [],
+        })
+      }
+    })
+
+    return Array.from(byName.values())
+  }, [invoices, crmCompanies])
+
+  // Cerca le aziende nel database in base alle lettere digitate (prefisso, parole in qualsiasi ordine o sottostringa)
+  const getMatchingInvoiceCompanies = (rawQuery) => {
+    const q = (rawQuery || '').trim().toLowerCase()
+    if (!q) return invoiceCompanyDirectory.slice(0, 6)
+
+    const tokens = q.split(/\s+/).filter(Boolean)
+
+    const scored = invoiceCompanyDirectory
+      .map(comp => {
+        const nameLower = comp.companyName.toLowerCase()
+        const nameWords = nameLower.split(/[\s&/-]+/).filter(Boolean)
+        const refLower = (comp.referent || '').toLowerCase()
+        const sectorLower = (comp.sector || '').toLowerCase()
+
+        // 1. Corrispondenza esatta
+        if (nameLower === q) return { comp, score: 100 }
+        // 2. Inizia esattamente con le lettere digitate
+        if (nameLower.startsWith(q)) return { comp, score: 95 }
+        // 3. Una parola del nome inizia con la stringa digitata (es. "milano" o "riva")
+        if (tokens.length === 1 && nameWords.some(w => w.startsWith(q))) {
+          return { comp, score: 88 }
+        }
+        // 4. Tutte le parole digitate (anche in ordine inverso, es. "milano fashion") iniziano o sono contenute nelle parole del nome azienda
+        if (
+          tokens.length > 0 &&
+          tokens.every(t => nameWords.some(w => w.startsWith(t)) || nameLower.includes(t))
+        ) {
+          const allStartWith = tokens.every(t => nameWords.some(w => w.startsWith(t)))
+          return { comp, score: allStartWith ? 85 : 75 }
+        }
+        // 5. Sottostringa nel nome o nel referente
+        if (nameLower.includes(q)) return { comp, score: 70 }
+        if (tokens.every(t => refLower.includes(t) || sectorLower.includes(t))) {
+          return { comp, score: 55 }
+        }
+        return null
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.score - a.score)
+
+    return scored.map(s => s.comp)
+  }
+
+  const matchingInvoiceCompanies = useMemo(
+    () => getMatchingInvoiceCompanies(newInvoiceForm.companyName),
+    [newInvoiceForm.companyName, invoiceCompanyDirectory]
+  )
+
+  // Popola tutti i campi della fattura con i dati dell'azienda selezionata dal database
+  const applyCompanyToInvoiceForm = (comp, shouldSetFullCompanyName = true) => {
+    if (!comp) return
+    setMatchedInvoiceCompany(comp)
+    setNewInvoiceForm(prev => ({
+      ...prev,
+      companyId: comp.companyId || prev.companyId || '',
+      companyName: shouldSetFullCompanyName ? comp.companyName : prev.companyName,
+      amount: String(comp.amount ?? ''),
+      deposit: String(comp.deposit ?? 0),
+      dueDate: comp.dueDate || '30/11/2026',
+      paymentMethod: comp.paymentMethod || 'Bonifico Bancario 30gg d.f.',
+      sdi: comp.sdi || '0000000',
+      pec: comp.pec || '',
+      description: comp.description || '',
+      contractCode: comp.contractCode || '',
+      shootingDates: comp.shootingDates || '',
+      location: comp.location || '',
+      materials: comp.materials || [],
+    }))
+  }
+
+  // Se la modale è aperta e l'utente ha già digitato il nome di un'azienda (es. "milano fashion") ma i campi sono ancora vuoti, compila subito in automatico
+  useEffect(() => {
+    if (!showNewInvoiceModal) return
+    const q = (newInvoiceForm.companyName || '').trim()
+    if (q.length >= 2 && !newInvoiceForm.amount) {
+      const matches = getMatchingInvoiceCompanies(q)
+      if (matches.length > 0) {
+        applyCompanyToInvoiceForm(matches[0], true)
+      }
+    }
+  }, [showNewInvoiceModal, invoiceCompanyDirectory])
 
   const [calendarVersion, setCalendarVersion] = useState(0)
 
@@ -1384,11 +2107,34 @@ export default function Dashboard() {
     fetch('/api/crm/summary')
       .then(res => res.json())
       .then(data => {
+        if (data && typeof data.collaboratorsCount === 'number') {
+          setCollaboratorsCount(data.collaboratorsCount)
+        }
+        if (data && Array.isArray(data.companies)) {
+          setCrmCompanies(data.companies)
+        }
         if (data && data.nextActions) {
           try {
             localStorage.setItem('dado_crm_activities_cache', JSON.stringify(data.nextActions))
           } catch {}
           setCalendarVersion(v => v + 1)
+        }
+      })
+      .catch(() => {})
+
+    fetch('/api/crm/collaborators')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.collaborators && data.collaborators.length > 0) {
+          const list = data.collaborators.map(c => ({
+            referent: c.name || 'Referente',
+            company: c.companyName || 'Azienda',
+            dayDate: c.lastContactDayDate || (c.lastContact ? `Data: ${c.lastContact}` : 'Recente'),
+            how: c.lastContactHow || (c.mobile ? 'Call WhatsApp & Telefono' : 'Email / Ufficio'),
+            why: c.lastContactWhy || c.notes || 'Allineamento operativo sulle produzioni DADO.',
+          }))
+          setContactPostIts(list)
+          setCollaboratorsCount(data.collaborators.length)
         }
       })
       .catch(() => {})
@@ -1405,7 +2151,16 @@ export default function Dashboard() {
   const handleMarkInvoicePaid = async (invId) => {
     const updated = invoices.map(inv => {
       if (inv.id === invId || inv.number === invId) {
-        return { ...inv, deposit: inv.amount, balance: 0, status: 'Saldato', paidAt: new Date().toLocaleDateString('it-IT') }
+        return {
+          ...inv,
+          previousDeposit: inv.deposit,
+          previousBalance: inv.balance,
+          previousStatus: inv.status,
+          deposit: inv.amount,
+          balance: 0,
+          status: 'Saldato',
+          paidAt: new Date().toLocaleDateString('it-IT')
+        }
       }
       return inv
     })
@@ -1414,10 +2169,74 @@ export default function Dashboard() {
       localStorage.setItem('dado_invoices', JSON.stringify(updated))
     } catch {}
     if (selectedInvoice && (selectedInvoice.id === invId || selectedInvoice.number === invId)) {
-      setSelectedInvoice(prev => prev ? { ...prev, deposit: prev.amount, balance: 0, status: 'Saldato' } : null)
+      setSelectedInvoice(prev => prev ? {
+        ...prev,
+        previousDeposit: prev.deposit,
+        previousBalance: prev.balance,
+        previousStatus: prev.status,
+        deposit: prev.amount,
+        balance: 0,
+        status: 'Saldato',
+        paidAt: new Date().toLocaleDateString('it-IT')
+      } : null)
     }
     try {
       await fetch(`/api/crm/invoices/${invId}/pay`, { method: 'PATCH' })
+    } catch {}
+  }
+
+  const handleUnmarkInvoicePaid = async (invId) => {
+    const updated = invoices.map(inv => {
+      if (inv.id === invId || inv.number === invId) {
+        const prevBal = typeof inv.previousBalance === 'number' && inv.previousBalance > 0
+          ? inv.previousBalance
+          : Math.round(inv.amount * 0.5)
+        const prevDep = typeof inv.previousDeposit === 'number'
+          ? prev.previousDeposit
+          : Math.max(0, inv.amount - prevBal)
+        const prevStatus = inv.previousStatus && inv.previousStatus !== 'Saldato'
+          ? inv.previousStatus
+          : (prevBal > 0 ? 'In attesa saldo' : 'Emessa')
+        const { previousBalance, previousDeposit, previousStatus: _ps, paidAt, ...rest } = inv
+        return {
+          ...rest,
+          deposit: prevDep,
+          balance: prevBal,
+          status: prevStatus,
+        }
+      }
+      return inv
+    })
+    setInvoices(updated)
+    try {
+      localStorage.setItem('dado_invoices', JSON.stringify(updated))
+    } catch {}
+    if (selectedInvoice && (selectedInvoice.id === invId || selectedInvoice.number === invId)) {
+      setSelectedInvoice(prev => {
+        if (!prev) return null
+        const prevBal = typeof prev.previousBalance === 'number' && prev.previousBalance > 0
+          ? prev.previousBalance
+          : Math.round(prev.amount * 0.5)
+        const prevDep = typeof prev.previousDeposit === 'number'
+          ? prev.previousDeposit
+          : Math.max(0, prev.amount - prevBal)
+        const prevStatus = prev.previousStatus && prev.previousStatus !== 'Saldato'
+          ? prev.previousStatus
+          : (prevBal > 0 ? 'In attesa saldo' : 'Emessa')
+        return {
+          ...prev,
+          deposit: prevDep,
+          balance: prevBal,
+          status: prevStatus,
+          previousBalance: undefined,
+          previousDeposit: undefined,
+          previousStatus: undefined,
+          paidAt: undefined,
+        }
+      })
+    }
+    try {
+      await fetch(`/api/crm/invoices/${invId}/unpay`, { method: 'PATCH' })
     } catch {}
   }
 
@@ -1431,6 +2250,7 @@ export default function Dashboard() {
     const newInv = {
       id: `inv-${Date.now()}`,
       number: `FAT-2026-${Math.floor(100 + Math.random() * 900)}`,
+      companyId: newInvoiceForm.companyId || `cmp-${Date.now()}`,
       companyName: newInvoiceForm.companyName.trim(),
       amount: amt,
       vat,
@@ -1444,6 +2264,14 @@ export default function Dashboard() {
       sdi: newInvoiceForm.sdi || '0000000',
       pec: newInvoiceForm.pec || '',
       description: newInvoiceForm.description.trim() || 'Servizi di produzione video / foto DADO Studio',
+      contractCode: newInvoiceForm.contractCode || `DADO-CTR-2026-${Math.floor(100 + Math.random() * 899)}`,
+      shootingDates: newInvoiceForm.shootingDates || 'Calendario produzione concordato',
+      location: newInvoiceForm.location || 'DADO Studio / Sede Cliente',
+      materials: newInvoiceForm.materials && newInvoiceForm.materials.length > 0
+        ? newInvoiceForm.materials
+        : [
+            { item: newInvoiceForm.description.trim() || 'Produzione Video / Foto DADO Studio', qty: '1', price: amt },
+          ],
     }
     const updated = [newInv, ...invoices]
     setInvoices(updated)
@@ -1451,7 +2279,10 @@ export default function Dashboard() {
       localStorage.setItem('dado_invoices', JSON.stringify(updated))
     } catch {}
     setShowNewInvoiceModal(false)
+    setShowInvoiceCompanyDropdown(false)
+    setMatchedInvoiceCompany(null)
     setNewInvoiceForm({
+      companyId: '',
       companyName: '',
       amount: '',
       deposit: '',
@@ -1460,6 +2291,10 @@ export default function Dashboard() {
       description: '',
       sdi: '0000000',
       pec: '',
+      contractCode: '',
+      shootingDates: '',
+      location: '',
+      materials: [],
     })
     try {
       await fetch('/api/crm/invoices', {
@@ -1472,6 +2307,11 @@ export default function Dashboard() {
 
   const [aiResult, setAiResult] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
+  const [aiCurrentPrompt, setAiCurrentPrompt] = useState('')
+  const [isAiExpanded, setIsAiExpanded] = useState(false)
+  const [isClosingAi, setIsClosingAi] = useState(false)
+  const closeAiTimerRef = useRef(null)
+  const [copiedAiAnswer, setCopiedAiAnswer] = useState(false)
   const [pinnedCalendarDay, setPinnedCalendarDay] = useState(null)
   const [hoveredCalendarDay, setHoveredCalendarDay] = useState(null)
   const selectedCalendarDay = pinnedCalendarDay || hoveredCalendarDay
@@ -1490,6 +2330,7 @@ export default function Dashboard() {
   const colonnaDestraRef = useRef(null)
   const clockDriveRef = useRef(null)
   const noteBoxRef = useRef(null)
+  const isWindowMaximized = useIsWindowMaximized()
   const [nextActionsWidth, setNextActionsWidth] = useState(205)
   const [preventiviMarginTop, setPreventiviMarginTop] = useState(10)
   const [clockDriveHeight, setClockDriveHeight] = useState(null)
@@ -1663,19 +2504,14 @@ export default function Dashboard() {
   const tomorrowIso = useMemo(() => getTomorrowIso(realTimeDate), [realTimeDate])
   const sundayIso = useMemo(() => getCurrentWeekSundayIso(realTimeDate), [realTimeDate])
 
-  // Modalità Focus Allargata per Ask OpenAI & Automazione Obiettivo
-  const [isAiFocusMode, setIsAiFocusMode] = useState(false)
-  const [shutterTrigger, setShutterTrigger] = useState(null)
-  const [pendingTransition, setPendingTransition] = useState(null) // 'enter' | 'exit'
   const outputScrollRef = useRef(null)
 
-  // Stato esteso per Console AI e Configurazione API Key
-  const [aiConsoleInput, setAiConsoleInput] = useState('')
+  // Configurazione API Key e Modello AI (Google Gemini principale)
   const [showAiConfigModal, setShowAiConfigModal] = useState(false)
-  const [aiConfig, setAiConfig] = useState({ hasKey: false, maskedKey: '', model: 'gpt-4o', disableOllama: true, currentEngine: '' })
-  const [inputApiKey, setInputApiKey] = useState('')
-  const [inputModel, setInputModel] = useState('gpt-4o')
-  const [inputDisableOllama, setInputDisableOllama] = useState(true)
+  const [aiConfig, setAiConfig] = useState({ hasKey: false, hasGeminiKey: false, geminiKey: '', geminiModel: 'gemini-2.5-flash', model: 'gemini-2.5-flash', currentEngine: 'Motore CRM Interno' })
+  const [inputGeminiKey, setInputGeminiKey] = useState('')
+  const [inputModel, setInputModel] = useState('gemini-2.5-flash')
+  const [inputOpenaiKey, setInputOpenaiKey] = useState('')
   const [configSaving, setConfigSaving] = useState(false)
   const [configSuccess, setConfigSuccess] = useState('')
   const [showApiKeyText, setShowApiKeyText] = useState(false)
@@ -1687,8 +2523,8 @@ export default function Dashboard() {
       .then(r => r.json())
       .then(cfg => {
         setAiConfig(cfg)
-        if (cfg.model) setInputModel(cfg.model)
-        if (cfg.disableOllama !== undefined) setInputDisableOllama(cfg.disableOllama)
+        if (cfg.geminiModel) setInputModel(cfg.geminiModel)
+        else if (cfg.model) setInputModel(cfg.model)
       })
       .catch(() => {})
   }, [])
@@ -1702,22 +2538,21 @@ export default function Dashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          apiKey: inputApiKey.trim() || undefined,
-          model: inputModel,
-          disableOllama: inputDisableOllama,
+          geminiApiKey: inputGeminiKey.trim() || undefined,
+          geminiModel: inputModel,
+          openaiApiKey: inputOpenaiKey.trim() || undefined,
         })
       })
       const data = await res.json()
       if (res.ok) {
         setAiConfig(prev => ({
           ...prev,
-          hasKey: data.hasKey,
-          maskedKey: data.hasKey ? (inputApiKey ? `${inputApiKey.slice(0, 7)}...${inputApiKey.slice(-4)}` : prev.maskedKey) : '',
-          model: data.model,
-          disableOllama: data.disableOllama,
-          currentEngine: data.hasKey ? `OpenAI Cloud (${data.model})` : (data.disableOllama ? 'Motore CRM Interno' : 'Ollama Locale')
+          hasKey: data.hasGeminiKey || data.hasOpenaiKey,
+          hasGeminiKey: data.hasGeminiKey,
+          geminiModel: data.geminiModel,
+          currentEngine: data.hasGeminiKey ? `Google Gemini (${data.geminiModel})` : (data.hasOpenaiKey ? `OpenAI Cloud (${data.openaiModel})` : 'Motore CRM Interno')
         }))
-        setConfigSuccess('Configurazione salvata con successo!')
+        setConfigSuccess('Configurazione Gemini salvata con successo!')
         setTimeout(() => {
           setShowAiConfigModal(false)
           setConfigSuccess('')
@@ -1732,118 +2567,49 @@ export default function Dashboard() {
     }
   }
 
-  const handleAskFromConsole = async (promptOverride) => {
-    const textToAsk = (typeof promptOverride === 'string' ? promptOverride : aiConsoleInput).trim()
-    if (!textToAsk || aiLoading) return
-
-    if (typeof promptOverride === 'string') {
-      setAiConsoleInput(promptOverride)
-    }
-    setAiLoading(true)
-    setAiResult(null)
-
-    try {
-      const res = await fetch('/api/ai/ask', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-role': currentUser?.badgeRole || currentUser?.role || 'admin',
-        },
-        body: JSON.stringify({
-          prompt: textToAsk,
-          model: aiConfig.model || 'gpt-4o',
-          disableOllama: aiConfig.disableOllama ?? true,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Errore nella richiesta ad OpenAI')
-      }
-      const ansObj = {
-        question: textToAsk,
-        content: data.answer,
-        activeEngine: data.activeEngine,
-        timestamp: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
-      }
-      setAiResult(ansObj)
-      setAiConsoleInput('')
-    } catch (err) {
-      setAiResult({
-        question: textToAsk,
-        content: `⚠️ Errore durante l'elaborazione dell'analisi: ${err.message}`,
-        activeEngine: 'Errore',
-        timestamp: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
-      })
-    } finally {
-      setAiLoading(false)
-    }
-  }
-
-  const triggerEnterFocus = useCallback((immediate = false) => {
-    if (isAiFocusMode) return
-    if (immediate) {
-      setIsAiFocusMode(true)
-      window.dispatchEvent(new CustomEvent('dado-ai-focus', { detail: { active: true } }))
-    } else {
-      setPendingTransition('enter')
-      setShutterTrigger(Date.now())
-    }
-  }, [isAiFocusMode])
-
-  const triggerExitFocus = useCallback(() => {
-    if (!isAiFocusMode) {
+  const closeAiPopup = useCallback(() => {
+    setIsClosingAi(true)
+    if (closeAiTimerRef.current) clearTimeout(closeAiTimerRef.current)
+    closeAiTimerRef.current = setTimeout(() => {
+      setIsAiExpanded(false)
+      setIsClosingAi(false)
       setAiResult(null)
       setAiLoading(false)
+      setAiCurrentPrompt('')
       window.dispatchEvent(new CustomEvent('dado-ai-reset'))
-      return
-    }
-    setPendingTransition('exit')
-    setShutterTrigger(Date.now())
-  }, [isAiFocusMode])
-
-  const handleShutterMidpoint = useCallback(() => {
-    if (pendingTransition === 'enter') {
-      setIsAiFocusMode(true)
-      window.dispatchEvent(new CustomEvent('dado-ai-focus', { detail: { active: true } }))
-    } else if (pendingTransition === 'exit') {
-      setIsAiFocusMode(false)
-      setAiResult(null)
-      setAiLoading(false)
       window.dispatchEvent(new CustomEvent('dado-ai-focus', { detail: { active: false } }))
-      window.dispatchEvent(new CustomEvent('dado-ai-reset'))
-    }
-    setPendingTransition(null)
-  }, [pendingTransition])
+    }, 500)
+  }, [])
 
-  // Ascolto tasto ESC da tastiera per chiudere del tutto e resettare in automatico la ricerca
+  const handleCopyAiAnswer = useCallback(() => {
+    if (!aiResult?.content) return
+    navigator.clipboard.writeText(aiResult.content)
+    setCopiedAiAnswer(true)
+    setTimeout(() => setCopiedAiAnswer(false), 2000)
+  }, [aiResult])
+
+  // Ascolto tasto ESC da tastiera per chiudere modali, pop-up espanso e resettare la ricerca AI
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
+        setShowAiConfigModal(false)
+        setShowCollaboratorsModal(false)
         setShowInvoiceMenuModal(false)
         setShowActiveClientsModal(false)
         setSelectedInvoice(null)
         setShowNewInvoiceModal(false)
-        if (isAiFocusMode) {
-          triggerExitFocus()
-        } else if (aiResult || aiLoading) {
-          setAiResult(null)
-          setAiLoading(false)
-          window.dispatchEvent(new CustomEvent('dado-ai-reset'))
-        } else {
-          window.dispatchEvent(new CustomEvent('dado-ai-reset'))
+        if (isAiExpanded || aiResult || aiLoading) {
+          closeAiPopup()
+        }
+        if (pinnedCalendarDay || hoveredCalendarDay) {
+          setPinnedCalendarDay(null)
+          setHoveredCalendarDay(null)
         }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isAiFocusMode, aiResult, aiLoading, triggerExitFocus])
-
-  // Pulizia all'unmount per ripristinare la sidebar
-  useEffect(() => {
-    return () => {
-      window.dispatchEvent(new CustomEvent('dado-ai-focus', { detail: { active: false } }))
-    }
-  }, [])
+  }, [isAiExpanded, aiResult, aiLoading, closeAiPopup, pinnedCalendarDay, hoveredCalendarDay])
 
   // Gestore rotellina mouse: ovunque ci si trovi sul card dell'output, la rotella scorre il testo
   const handleOutputCardWheel = (e) => {
@@ -1866,10 +2632,8 @@ export default function Dashboard() {
   // Mansioni in scadenza oggi (impegni odierni dal Calendario condiviso)
   const todayDeadlines = useMemo(() => getDaySchedule(todayIso)?.events || [], [todayIso, calendarVersion])
 
-  // ── Espansione pop-up impegni al passaggio del cursore sui giorni del Calendar Week ──
-  // Le sezioni laterali sotto il calendario scorrono fluidamente verso l'esterno, la barra laterale
-  // si ritrae alle sole icone e la finestra pop-up si allarga rimanendo rigorosamente entro i margini della dashboard.
-  const isDaySelectedWithEvents = !isAiFocusMode && Boolean(selectedCalendarDay && currentDaySchedule?.events?.length > 0)
+  // ── Espansione pop-up al passaggio del cursore sui giorni del Calendar Week o richiesta ASK OpenAI ──
+  const isDaySelectedWithEvents = Boolean(selectedCalendarDay && currentDaySchedule?.events?.length > 0)
 
   useEffect(() => {
     if (isDaySelectedWithEvents) {
@@ -1894,19 +2658,68 @@ export default function Dashboard() {
   }, [isDaySelectedWithEvents, selectedCalendarDay])
 
   const isDayExpanded = isDaySelectedWithEvents || (Boolean(activeExpandedDay) && !isClosingExpanded)
+  const isAiActive = (isAiExpanded || Boolean(aiLoading) || Boolean(aiResult)) && !isClosingAi
+  const isAiOverlayMounted = isAiExpanded || Boolean(aiLoading) || Boolean(aiResult) || isClosingAi
+  const [aiOverlayEntered, setAiOverlayEntered] = useState(false)
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent('dado-sidebar-compact', { detail: { active: isDayExpanded } }))
-  }, [isDayExpanded])
+    if (isAiActive) {
+      const raf = requestAnimationFrame(() => setAiOverlayEntered(true))
+      return () => cancelAnimationFrame(raf)
+    } else {
+      setAiOverlayEntered(false)
+    }
+  }, [isAiActive])
+
+  const isDashboardExpanded = isMobileApp ? isDayExpanded : (isDayExpanded || isAiActive)
+  const isAnyClosing = isMobileApp ? isClosingExpanded : (isClosingExpanded || isClosingAi)
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('dado-sidebar-compact', { detail: { active: isDashboardExpanded || isAiActive } }))
+    window.dispatchEvent(new CustomEvent('dado-ai-focus', { detail: { active: isAiActive } }))
+  }, [isDashboardExpanded, isAiActive])
 
   useEffect(() => () => {
     window.dispatchEvent(new CustomEvent('dado-sidebar-compact', { detail: { active: false } }))
+    window.dispatchEvent(new CustomEvent('dado-ai-focus', { detail: { active: false } }))
   }, [])
 
-  // Curva di accelerazione Apple/iOS ultra-fluida per le transizioni verso l'esterno
-  const slideEase = 'cubic-bezier(0.16, 1, 0.3, 1)'
+  // Stato visibilità pop-up ultimi aggiornamenti (Smart Notification Toast):
+  // Calendar Week si accorcia SOLO ed esclusivamente quando questo pop-up è aperto e visibile
+  const [isSmartToastOpen, setIsSmartToastOpen] = useState(() => {
+    if (typeof window !== 'undefined' && window.__dadoSmartToastVisible !== undefined) {
+      return Boolean(window.__dadoSmartToastVisible)
+    }
+    return true
+  })
 
-  const colonna1SlideStyle = isDayExpanded
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.__dadoSmartToastVisible !== undefined) {
+      setIsSmartToastOpen(Boolean(window.__dadoSmartToastVisible))
+    }
+    const handleToastState = (e) => {
+      setIsSmartToastOpen(Boolean(e?.detail?.isVisible))
+    }
+    window.addEventListener('dado-smart-toast-state', handleToastState)
+    window.dispatchEvent(new CustomEvent('dado-request-smart-toast-state'))
+    return () => window.removeEventListener('dado-smart-toast-state', handleToastState)
+  }, [])
+
+  // Curva di accelerazione Apple/iOS ultra-fluida per le transizioni
+  const slideEase = 'cubic-bezier(0.22, 1, 0.36, 1)'
+
+  // Transizione verticale dell'intero contenuto Dashboard Mobile (incluso il riquadro ASK OPEN AI):
+  // - Dall'alto verso il basso quando si invia una domanda (translateY(0) -> translateY(106%))
+  // - Dal basso verso l'alto quando si chiude la schermata della risposta (translateY(106%) -> translateY(0))
+  const dashboardAiVerticalSlideStyle = {
+    transform: isAiActive ? 'translateY(106%)' : 'translateY(0)',
+    opacity: isAiActive ? 0 : 1,
+    pointerEvents: isAiActive ? 'none' : 'auto',
+    willChange: 'transform, opacity',
+    transition: `transform 520ms ${slideEase}, opacity 380ms ${slideEase}`,
+  }
+
+  const colonna1SlideStyle = isDashboardExpanded
     ? {
         transform: 'translateX(-130%)',
         opacity: 0,
@@ -1921,7 +2734,7 @@ export default function Dashboard() {
         transition: `transform 420ms ${slideEase}, opacity 350ms ${slideEase}`,
       }
 
-  const colonna2SlideStyle = isDayExpanded
+  const colonna2SlideStyle = isDashboardExpanded
     ? {
         transform: 'translateX(-130%)',
         opacity: 0,
@@ -1936,7 +2749,7 @@ export default function Dashboard() {
         transition: `transform 420ms ${slideEase} 30ms, opacity 350ms ${slideEase} 30ms`,
       }
 
-  const colonna3SlideStyle = isDayExpanded
+  const colonna3SlideStyle = isDashboardExpanded
     ? {
         transform: 'translateX(-130%)',
         opacity: 0,
@@ -1951,22 +2764,37 @@ export default function Dashboard() {
         transition: `transform 420ms ${slideEase} 60ms, opacity 350ms ${slideEase} 60ms`,
       }
 
+  const headerSlideStyle = isDashboardExpanded
+    ? {
+        transform: 'translateX(-130%)',
+        opacity: 0,
+        pointerEvents: 'none',
+        willChange: 'transform, opacity',
+        transition: `transform 420ms ${slideEase}, opacity 320ms ${slideEase}`,
+      }
+    : {
+        transform: 'translateX(0)',
+        opacity: 1,
+        willChange: 'transform, opacity',
+        transition: `transform 420ms ${slideEase}, opacity 350ms ${slideEase}`,
+      }
+
   const nextActionsSlideStyle = {
     // Si muove solidalmente con Colonna 3 senza collassare la larghezza per massima fluidità
   }
 
   const slideRightStyle = (delay = 0) => ({
-    transform: isDayExpanded ? 'translateX(130%)' : 'translateX(0)',
-    opacity: isDayExpanded ? 0 : 1,
-    pointerEvents: isDayExpanded ? 'none' : 'auto',
+    transform: isDashboardExpanded ? 'translateX(130%)' : 'translateX(0)',
+    opacity: isDashboardExpanded ? 0 : 1,
+    pointerEvents: isDashboardExpanded ? 'none' : 'auto',
     willChange: 'transform, opacity',
-    transition: isDayExpanded
+    transition: isDashboardExpanded
       ? `transform 420ms ${slideEase} ${delay}ms, opacity 320ms ${slideEase} ${delay}ms`
       : `transform 420ms ${slideEase} ${90 - delay}ms, opacity 350ms ${slideEase} ${90 - delay}ms`,
   })
 
-  // Finestra Pop-Up posizionata rigorosamente entro i margini della Dashboard (da sotto Calendar Week alla banda inferiore)
-  const popupExpandStyle = (isDayExpanded || activeExpandedDay)
+  // Finestra Pop-Up posizionata rigorosamente entro i margini della Dashboard PC
+  const popupExpandStyle = (isDashboardExpanded || activeExpandedDay || isAiActive)
     ? {
         position: 'absolute',
         left: 'calc(6px + 0.2cm)',
@@ -1983,9 +2811,9 @@ export default function Dashboard() {
         backgroundColor: '#ffffff',
         border: '1.5px solid #cce5f6',
         boxShadow: '0 16px 48px rgba(27, 183, 237, 0.18), 0 4px 16px rgba(0, 0, 0, 0.08)',
-        opacity: isClosingExpanded ? 0 : 1,
-        transform: isClosingExpanded ? 'translateY(12px) scale(0.98)' : 'translateY(0) scale(1)',
-        pointerEvents: isClosingExpanded ? 'none' : 'auto',
+        opacity: isAnyClosing ? 0 : 1,
+        transform: isAnyClosing ? 'translateY(12px) scale(0.98)' : 'translateY(0) scale(1)',
+        pointerEvents: isAnyClosing ? 'none' : 'auto',
         willChange: 'transform, opacity',
         transition: `opacity 300ms ${slideEase}, transform 380ms ${slideEase}`,
       }
@@ -1994,38 +2822,20 @@ export default function Dashboard() {
       }
 
   return (
-    <div className="h-full min-h-screen md:min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden">
-      {/* Automazione otturatore macchina fotografica Cine/Foto */}
-      <CameraShutter
-        trigger={shutterTrigger}
-        onMidpoint={handleShutterMidpoint}
-        duration={650}
-      />
-
-      {/* ── Banda Superiore: unita alla barra laterale sinistra (#2d3139) a tutta larghezza senza interruzioni ── */}
-      <div className="w-full flex-shrink-0 relative z-20">
-        <div
-          className="w-full rounded-none"
-          style={{
-            height: 'calc(3rem - 0.5cm)',
-            background: 'linear-gradient(90deg, #2d3139 0%, #2d3139 calc(100% - 480px), #64748b calc(100% - 400px), #cbd5e1 calc(100% - 340px), #ffffff calc(100% - 295px), #ffffff 100%)',
-            borderTopLeftRadius: '0px',
-            borderBottomLeftRadius: '0px',
-            borderTopRightRadius: '0px',
-            borderBottomRightRadius: '0px',
-          }}
-        />
-      </div>
+    <div className="h-full w-full bg-transparent flex flex-col flex-1 relative overflow-hidden min-h-0">
+      {/* ── Banda Superiore: unita alla barra laterale sinistra (#2d3139) e sfumata senza alcuno stacco sullo sfondo Dashboard ── */}
+      <PageTopBand title="" theme="dashboard" thickDesktop={false} />
 
       {/* Canvas Principale armonizzato (sotto la banda superiore, unificato alla barra laterale sinistra, arrotondato in basso a sinistra) */}
       <div
-        className="h-full flex-1 rounded-tl-none rounded-bl-[48px] rounded-tr-none rounded-br-none flex flex-col justify-between relative min-w-0 overflow-hidden"
+        className={`flex-1 min-h-0 rounded-tl-none ${isMobileApp ? 'rounded-bl-[32px]' : 'rounded-bl-[48px]'} rounded-tr-none rounded-br-none flex flex-col justify-between relative min-w-0 overflow-hidden`}
         style={{
-          boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+          boxShadow: '-10px 14px 24px -6px rgba(0, 0, 0, 0.38)',
           borderLeft: '1.5px solid #d4ebf9',
           background: `
-            radial-gradient(ellipse 480px 360px at 8% 18%, rgba(83, 186, 117, 0.16) 0%, rgba(83, 186, 117, 0.04) 55%, transparent 75%),
-            radial-gradient(ellipse 520px 420px at 92% 14%, rgba(27, 183, 237, 0.18) 0%, rgba(27, 183, 237, 0.05) 55%, transparent 75%),
+            linear-gradient(180deg, #f0f8fd 0px, #f0f8fd 22px, rgba(240, 248, 253, 0) 76px),
+            radial-gradient(ellipse 480px 360px at 8% 22%, rgba(83, 186, 117, 0.16) 0%, rgba(83, 186, 117, 0.04) 55%, transparent 75%),
+            radial-gradient(ellipse 520px 420px at 92% 20%, rgba(27, 183, 237, 0.18) 0%, rgba(27, 183, 237, 0.05) 55%, transparent 75%),
             radial-gradient(ellipse 460px 380px at 45% 82%, rgba(234, 56, 36, 0.13) 0%, rgba(234, 56, 36, 0.03) 55%, transparent 75%),
             radial-gradient(ellipse 440px 340px at 85% 78%, rgba(250, 196, 41, 0.16) 0%, rgba(250, 196, 41, 0.04) 55%, transparent 75%),
             radial-gradient(ellipse 380px 300px at 28% 48%, rgba(27, 183, 237, 0.12) 0%, transparent 70%),
@@ -2044,7 +2854,7 @@ export default function Dashboard() {
           <div
             className="absolute rounded-full"
             style={{
-              top: '5%',
+              top: '12%',
               left: '6%',
               width: '420px',
               height: '340px',
@@ -2057,7 +2867,7 @@ export default function Dashboard() {
           <div
             className="absolute rounded-full"
             style={{
-              top: '8%',
+              top: '14%',
               right: '4%',
               width: '460px',
               height: '360px',
@@ -2106,598 +2916,700 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* ── Contenuto Principale della Dashboard (allineato orizzontalmente e verticalmente sotto la banda bianca, z-10 sopra lo sfondo) ── */}
-        <div className="flex-1 min-h-0 pl-2 pr-8 pt-0 pb-0 flex gap-6 min-w-0 items-stretch overflow-y-auto overflow-x-hidden relative z-10">
+        {isMobileApp ? (
+          /* ════════════════════════════════════════════════════════════════════════
+             📱 LAYOUT DASHBOARD MOBILE APP (Sezioni ravvicinate, Titoli preservati,
+             Next actions & Preventivi unificati, senza Note e senza Calendar Week)
+             ════════════════════════════════════════════════════════════════════════ */
+          <div
+            className="flex-1 min-h-0 px-2 py-1.5 flex flex-col justify-between gap-1.5 overflow-y-auto no-scrollbar relative z-10"
+            style={{
+              fontFamily: '"Switzer", sans-serif',
+              ...dashboardAiVerticalSlideStyle,
+            }}
+          >
+            {isSwipeCopy ? (
+              <>
+                {/* GRUPPO SUPERIORE UNITO (Copia Barra a Scomparsa): Intestazione + Google Drive + ASK OPEN AI accostata subito sotto la riga inferiore di Google Drive */}
+                <div className="flex flex-col gap-1 flex-shrink-0">
+                  <div className="flex items-center justify-between gap-1.5 pt-0.5">
+                    <p
+                      style={{
+                        fontSize: '18px',
+                        fontFamily: '"Switzer", sans-serif',
+                        fontWeight: 800,
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1.05,
+                      }}
+                    >
+                      <span style={{ color: '#00c5ff' }}>Go get it</span>
+                      <span style={{ display: 'inline-block', width: '5px' }}>&nbsp;</span>
+                      <span style={{ color: '#22e05a', fontSize: '21px' }}>today</span>
+                    </p>
 
-        {/* ══ COLONNA SINISTRA & CENTRALE (allineata sotto la banda bianca) ══ */}
-        <div className="flex-1 flex flex-col gap-2.5 min-w-0">
+                    <ClockDriveBox
+                      isMobile={true}
+                      width="128px"
+                      height="34px"
+                      minHeight="34px"
+                      className="flex-shrink-0"
+                    />
+                  </div>
 
-          {/* Intestazione Dashboard (visibile solo se non in Focus Mode) */}
-          {!isAiFocusMode && (
-            <div className="flex items-start justify-between gap-4 flex-wrap" style={{ marginTop: 'calc(-6px + 0.7cm)' }}>
+                  {/* SEZIONE ASK OPEN AI SCAMBIATA SOPRA LE CARD E AVVICINATA AL MARGINE INFERIORE DI GOOGLE DRIVE */}
+                  <div className="w-full flex-shrink-0">
+                    <AskOpenAiBox
+                      isMobile={true}
+                      onOpenAiConfig={() => setShowAiConfigModal(true)}
+                      aiConfig={aiConfig}
+                      onStartAsk={(text) => {
+                        setAiCurrentPrompt(text)
+                        setIsAiExpanded(true)
+                        setIsClosingAi(false)
+                        setActiveOutputTab('ai')
+                      }}
+                      onAskComplete={(res) => {
+                        setAiResult(res)
+                        if (res) {
+                          setIsAiExpanded(true)
+                          setIsClosingAi(false)
+                          setActiveOutputTab('ai')
+                        }
+                      }}
+                      onLoadingChange={(loading) => {
+                        setAiLoading(loading)
+                        if (loading) {
+                          setIsAiExpanded(true)
+                          setIsClosingAi(false)
+                          setActiveOutputTab('ai')
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* 1 (Mobile Barra Fissa): INTESTAZIONE MOBILE: "Go get it today" + Orologio Quarz Google Drive */}
+                <div className="flex items-center justify-between gap-1.5 flex-shrink-0 pt-0.5">
+                  <p
+                    style={{
+                      fontSize: '18px',
+                      fontFamily: '"Switzer", sans-serif',
+                      fontWeight: 800,
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.05,
+                    }}
+                  >
+                    <span style={{ color: '#00c5ff' }}>Go get it</span>
+                    <span style={{ display: 'inline-block', width: '5px' }}>&nbsp;</span>
+                    <span style={{ color: '#22e05a', fontSize: '21px' }}>today</span>
+                  </p>
+
+                  <ClockDriveBox
+                    isMobile={true}
+                    width="128px"
+                    height="34px"
+                    minHeight="34px"
+                    className="flex-shrink-0"
+                  />
+                </div>
+
+                {/* 2 (Mobile Barra Fissa): RIGA 3 CARD KPI RAVVICINATE: CONTATTI • ACTIVE CLIENTS • INVOICE */}
+                <div className="grid grid-cols-3 gap-1.5 flex-shrink-0">
+                  {/* Card 1: CONTATTI */}
+                  <div
+                    onClick={() => setShowCollaboratorsModal(true)}
+                    className="p-2 bg-white rounded-xl border border-[#cce5f6] flex flex-col justify-between cursor-pointer transition-all hover:shadow-md active:scale-[0.98] group min-w-0"
+                    style={{
+                      minHeight: '72px',
+                      boxShadow: '0 2px 8px rgba(27, 183, 237, 0.06)',
+                    }}
+                    title="Apri Rubrica Collaboratori & Contatti Aziendali"
+                  >
+                    <div className="flex items-center justify-between gap-1 min-w-0">
+                      <span
+                        className="font-black uppercase tracking-[0.02em] leading-none truncate"
+                        style={{ fontSize: '9.5px', color: '#7c3aed' }}
+                      >
+                        CONTATTI
+                      </span>
+                      <span className="text-[9px] font-black px-1 py-0.2 rounded-full bg-purple-50 text-[#7c3aed] border border-purple-200 leading-tight flex-shrink-0">
+                        {collaboratorsCount}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between my-0.5">
+                      <UserPlus size={18} className="text-slate-800 group-hover:text-[#7c3aed] transition-colors" />
+                      <span className="text-[9px] text-purple-600 font-bold">↗</span>
+                    </div>
+                    <span className="text-[9.5px] font-semibold text-slate-500 leading-none truncate">
+                      collaborazioni
+                    </span>
+                  </div>
+
+                  {/* Card 2: ACTIVE CLIENTS */}
+                  <div
+                    onClick={() => setShowActiveClientsModal(true)}
+                    className="p-2 bg-white rounded-xl border border-[#cce5f6] flex flex-col justify-between cursor-pointer transition-all hover:shadow-md active:scale-[0.98] min-w-0"
+                    style={{
+                      minHeight: '72px',
+                      boxShadow: '0 2px 8px rgba(27, 183, 237, 0.06)',
+                    }}
+                    title="Apri Clienti Attivi"
+                  >
+                    <span
+                      className="font-black uppercase tracking-[0.02em] leading-none truncate"
+                      style={{ fontSize: '9.5px', color: '#15803d' }}
+                    >
+                      ACTIVE CLIENTS
+                    </span>
+                    <span
+                      className="font-black leading-none my-0.5 block"
+                      style={{ fontSize: '20px', color: '#0f172a' }}
+                    >
+                      11
+                    </span>
+                    <span className="text-[9.5px] font-bold text-[#15803d] leading-none truncate">
+                      11 attivi • ↗
+                    </span>
+                  </div>
+
+                  {/* Card 3: INVOICE */}
+                  <div
+                    onClick={() => setShowInvoiceMenuModal(true)}
+                    className="p-2 rounded-xl flex flex-col justify-between cursor-pointer transition-all hover:shadow-md active:scale-[0.98] min-w-0"
+                    style={{
+                      minHeight: '72px',
+                      backgroundColor: '#071325',
+                      border: '1.5px solid #d4af37',
+                      boxShadow: '0 4px 12px rgba(212, 175, 55, 0.18)',
+                    }}
+                    title="Apri Menù Invoice"
+                  >
+                    <span
+                      className="font-black uppercase tracking-[0.04em] leading-none truncate"
+                      style={{ fontSize: '9.5px', color: '#d4af37' }}
+                    >
+                      INVOICE
+                    </span>
+                    <span
+                      className="font-black leading-none my-0.5 block truncate"
+                      style={{ fontSize: '17px', color: '#fbbf24' }}
+                    >
+                      € 56.9k
+                    </span>
+                    <span className="text-[9.5px] font-bold text-[#fde68a] leading-none truncate">
+                      Saldo € 10.9k
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3 (Mobile Barra Fissa): BOX ASK OPEN AI COMPATTO MOBILE */}
+                <div className="w-full flex-shrink-0">
+                  <AskOpenAiBox
+                    isMobile={true}
+                    onOpenAiConfig={() => setShowAiConfigModal(true)}
+                    aiConfig={aiConfig}
+                    onStartAsk={(text) => {
+                      setAiCurrentPrompt(text)
+                      setIsAiExpanded(true)
+                      setIsClosingAi(false)
+                      setActiveOutputTab('ai')
+                    }}
+                    onAskComplete={(res) => {
+                      setAiResult(res)
+                      if (res) {
+                        setIsAiExpanded(true)
+                        setIsClosingAi(false)
+                        setActiveOutputTab('ai')
+                      }
+                    }}
+                    onLoadingChange={(loading) => {
+                      setAiLoading(loading)
+                      if (loading) {
+                        setIsAiExpanded(true)
+                        setIsClosingAi(false)
+                        setActiveOutputTab('ai')
+                      }
+                    }}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* 4. SEZIONE FUNNEL & KPI (Ingrandita di almeno 1,5cm sia sul margine superiore che inferiore per leggere meglio le percentuali) */}
+            <div
+              className="w-full flex-shrink-0"
+              style={isSwipeCopy ? { marginTop: '0.5cm', marginBottom: '0.2cm' } : undefined}
+            >
+              <ConcentricRingsKpi
+                isMobile={true}
+                width="100%"
+                height={isFunnelDetailsOpen ? 'auto' : 'calc(142px + 3.2cm)'}
+                isExpanded={isFunnelDetailsOpen}
+                onToggleExpand={(nextVal) => {
+                  const resolved = typeof nextVal === 'boolean' ? nextVal : !isFunnelDetailsOpen
+                  setIsFunnelDetailsOpen(resolved)
+                }}
+              />
+            </div>
+
+            {/* 5. SEZIONE NEXT ACTIONS */}
+            <div
+              className="w-full bg-white rounded-2xl border border-[#cce5f6] p-2.5 flex flex-col justify-between flex-shrink-0"
+              style={{
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              {/* Intestazione Sezione Next actions */}
+              <div className="flex items-center justify-between gap-2">
+                <Link
+                  to="/tasks"
+                  className="group/title flex items-center gap-1.5 cursor-pointer hover:opacity-85 transition-opacity"
+                >
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <h2
+                        className="text-slate-900 group-hover/title:text-sky-600 font-extrabold leading-tight transition-colors"
+                        style={{ fontSize: '13.5px', fontFamily: '"Switzer", sans-serif' }}
+                      >
+                        Next actions
+                      </h2>
+                      <ArrowUpRight size={13} className="text-slate-400 group-hover/title:text-sky-600 transition-all" />
+                    </div>
+                    <p
+                      className="font-medium leading-tight text-slate-500"
+                      style={{ fontSize: '9.5px', fontFamily: '"Switzer", sans-serif' }}
+                    >
+                      No races. Keep your pace.
+                    </p>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/opportunities"
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-[#0284c7] border border-sky-200 hover:bg-sky-100 transition-colors"
+                >
+                  Pipeline ↗
+                </Link>
+              </div>
+
+              {/* 3 Pulsanti Next Actions affiancati (disposizione invariata) */}
+              <div className="grid grid-cols-3 gap-1.5 mt-2">
+                <Link
+                  to="/call-reports"
+                  className="px-2 py-2 rounded-xl text-center hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                  style={{
+                    background: 'linear-gradient(180deg, #fd7430 0%, #f96720 100%)',
+                  }}
+                >
+                  <span className="text-white font-black text-[11px] tracking-wide leading-none whitespace-nowrap">
+                    call reports
+                  </span>
+                </Link>
+
+                <Link
+                  to="/leads"
+                  className="px-2 py-2 rounded-xl text-center hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                  style={{
+                    background: 'linear-gradient(180deg, #d8a74e 0%, #cf9f40 100%)',
+                  }}
+                >
+                  <span className="text-white font-black text-[11px] tracking-wide leading-none whitespace-nowrap">
+                    leads
+                  </span>
+                </Link>
+
+                <Link
+                  to="/opportunities"
+                  className="px-2 py-2 rounded-xl text-center hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                  style={{
+                    background: 'linear-gradient(180deg, #994cf4 0%, #9045f1 100%)',
+                  }}
+                >
+                  <span className="text-white font-black text-[10.5px] tracking-tight leading-none whitespace-nowrap">
+                    opportunities
+                  </span>
+                </Link>
+              </div>
+            </div>
+
+            {/* RIGA 3 CARD KPI (CONTATTI • ACTIVE CLIENTS • INVOICE) SPOSTATA NELLA PARTE INFERIORE TRA NEXT ACTIONS E PREVENTIVI (Copia Barra a Scomparsa) */}
+            {isSwipeCopy && (
+              <div className="grid grid-cols-3 gap-1.5 flex-shrink-0">
+                {/* Card 1: CONTATTI */}
+                <div
+                  onClick={() => setShowCollaboratorsModal(true)}
+                  className="p-2 bg-white rounded-xl border border-[#cce5f6] flex flex-col justify-between cursor-pointer transition-all hover:shadow-md active:scale-[0.98] group min-w-0"
+                  style={{
+                    minHeight: '72px',
+                    boxShadow: '0 2px 8px rgba(27, 183, 237, 0.08)',
+                  }}
+                  title="Apri Rubrica Collaboratori & Contatti Aziendali"
+                >
+                  <div className="flex items-center justify-between gap-1 min-w-0">
+                    <span
+                      className="font-black uppercase tracking-[0.02em] leading-none truncate"
+                      style={{ fontSize: '9.5px', color: '#7c3aed' }}
+                    >
+                      CONTATTI
+                    </span>
+                    <span className="text-[9px] font-black px-1 py-0.2 rounded-full bg-purple-50 text-[#7c3aed] border border-purple-200 leading-tight flex-shrink-0">
+                      {collaboratorsCount}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between my-0.5">
+                    <UserPlus size={18} className="text-slate-800 group-hover:text-[#7c3aed] transition-colors" />
+                    <span className="text-[9px] text-purple-600 font-bold">↗</span>
+                  </div>
+                  <span className="text-[9.5px] font-semibold text-slate-500 leading-none truncate">
+                    collaborazioni
+                  </span>
+                </div>
+
+                {/* Card 2: ACTIVE CLIENTS */}
+                <div
+                  onClick={() => setShowActiveClientsModal(true)}
+                  className="p-2 bg-white rounded-xl border border-[#cce5f6] flex flex-col justify-between cursor-pointer transition-all hover:shadow-md active:scale-[0.98] min-w-0"
+                  style={{
+                    minHeight: '72px',
+                    boxShadow: '0 2px 8px rgba(27, 183, 237, 0.08)',
+                  }}
+                  title="Apri Clienti Attivi"
+                >
+                  <span
+                    className="font-black uppercase tracking-[0.02em] leading-none truncate"
+                    style={{ fontSize: '9.5px', color: '#15803d' }}
+                  >
+                    ACTIVE CLIENTS
+                  </span>
+                  <span
+                    className="font-black leading-none my-0.5 block"
+                    style={{ fontSize: '20px', color: '#0f172a' }}
+                  >
+                    11
+                  </span>
+                  <span className="text-[9.5px] font-bold text-[#15803d] leading-none truncate">
+                    11 attivi • ↗
+                  </span>
+                </div>
+
+                {/* Card 3: INVOICE */}
+                <div
+                  onClick={() => setShowInvoiceMenuModal(true)}
+                  className="p-2 rounded-xl flex flex-col justify-between cursor-pointer transition-all hover:shadow-md active:scale-[0.98] min-w-0"
+                  style={{
+                    minHeight: '72px',
+                    backgroundColor: '#071325',
+                    border: '1.5px solid #d4af37',
+                    boxShadow: '0 4px 12px rgba(212, 175, 55, 0.18)',
+                  }}
+                  title="Apri Menù Invoice"
+                >
+                  <span
+                    className="font-black uppercase tracking-[0.04em] leading-none truncate"
+                    style={{ fontSize: '9.5px', color: '#d4af37' }}
+                  >
+                    INVOICE
+                  </span>
+                  <span
+                    className="font-black leading-none my-0.5 block truncate"
+                    style={{ fontSize: '17px', color: '#fbbf24' }}
+                  >
+                    € 56.9k
+                  </span>
+                  <span className="text-[9.5px] font-bold text-[#fde68a] leading-none truncate">
+                    Saldo € 10.9k
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Riquadro Preventivi leggermente distaccato */}
+            <div
+              className="w-full mt-1 rounded-2xl overflow-hidden border border-[#cce5f6] bg-white flex flex-col divide-y divide-slate-200/60 flex-shrink-0"
+              style={{
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              {/* 1. preventivi in scadenza */}
+              <Link
+                to="/opportunities"
+                className="px-3 py-1.5 flex items-center justify-between gap-2 hover:opacity-95 transition-all group"
+                style={{ backgroundColor: '#fff5f5' }}
+              >
+                <span className="text-slate-900 font-bold text-[12.5px] leading-tight">
+                  preventivi in scadenza
+                </span>
+                <div className="flex items-center">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                    3 in scadenza
+                  </span>
+                </div>
+              </Link>
+
+              {/* 2. preventivi inviati (senza freccettina, con data e ora dell'ultimo preventivo inviato) */}
+              <Link
+                to="/opportunities"
+                className="px-3 py-1.5 flex items-center justify-between gap-2 hover:opacity-95 transition-all group"
+                style={{ backgroundColor: '#f0f9ff' }}
+              >
+                <span className="text-slate-900 font-bold text-[12.5px] leading-tight">
+                  preventivi inviati
+                </span>
+                <div className="flex items-center">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800">
+                    02/05/2026 • 16:40
+                  </span>
+                </div>
+              </Link>
+
+              {/* 3. ultimo preventivo */}
+              <Link
+                to="/opportunities"
+                className="px-3 py-1.5 flex items-center justify-between gap-2 hover:opacity-95 transition-all group"
+                style={{ backgroundColor: '#effdf4' }}
+              >
+                <span className="text-slate-900 font-bold text-[12.5px] leading-tight">
+                  ultimo preventivo
+                </span>
+                <div className="flex items-center">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    FAT-2026-079
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            {/* 6. FOOTER LOGO DADO CREATIVE STUDIO */}
+            <div className="flex items-center justify-end pt-0.5 pb-0.5 flex-shrink-0">
+              <a
+                href="https://dadocreative.studio"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 opacity-85 hover:opacity-100 transition-opacity"
+                title="Visita il sito ufficiale dadocreative.studio"
+              >
+                <div className="w-[74px] overflow-hidden shadow-2xs border border-white/50 rounded">
+                  <img
+                    src="/dado-creative-studio.png"
+                    alt="DADO creative · studio"
+                    className="w-full h-auto object-contain block"
+                  />
+                </div>
+                <span className="text-[8.5px] font-semibold text-slate-400">® 2026</span>
+              </a>
+            </div>
+          </div>
+        ) : (
+        /* ── Contenuto Principale della Dashboard PC (allineato orizzontalmente e verticalmente sotto la banda bianca, z-10 sopra lo sfondo) ── */
+        <div className="flex-1 min-h-0 pl-2 pr-0 pt-0 pb-0 flex min-w-0 items-stretch overflow-hidden no-scrollbar relative z-10" style={{ gap: '0.3cm', paddingRight: '0.2cm' }}>
+
+        {/* ══ COLONNA 1 & 2 (Sinistra e Centrale) ══ */}
+        <div
+          className={`${isFunnelDetailsOpen ? 'flex-1' : 'flex-shrink-0'} flex items-stretch self-stretch gap-4 min-w-0 h-full`}
+          style={{
+            marginRight: isFunnelDetailsOpen ? '0.1cm' : '0px',
+            transition: 'all 420ms cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+
+          {/* COLONNA 1 (Sinistra): "Go get it today" + Card CONTATTI, ACTIVE CLIENTS, INVOICE */}
+          <div
+            className="flex flex-col justify-between flex-shrink-0 self-stretch h-full"
+            style={{
+              width: '185px',
+              ...colonna1SlideStyle,
+            }}
+          >
+            {/* Intestazione Dashboard */}
+            <div className="flex items-start justify-between flex-wrap" style={{ marginTop: '0.4cm', ...headerSlideStyle }}>
               <div className="flex items-start">
                 <div>
-                  {/* Sottotitolo "Go get it today" */}
-                  <p style={{ marginTop: '4px', marginBottom: '6px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 700, letterSpacing: '-0.02em' }}>
-                    <span style={{ color: '#0ca0e4' }}>Go get it</span>
+                  {/* Sottotitolo "Go get it today" — Allineato a sinistra con Colonna 1, font 20px, Go get it azzurro chiaro brillante */}
+                  <p style={{ marginLeft: '0.2cm', marginTop: '2px', marginBottom: '4px', fontSize: '20px', fontFamily: '"Switzer", sans-serif', fontWeight: 700, letterSpacing: '-0.02em' }}>
+                    <span style={{ color: '#00c5ff' }}>Go get it</span>
                     <span style={{ display: 'inline-block', width: '10px' }}>&nbsp;</span>
-                    <span style={{ color: '#22e05a', fontSize: 'calc(18px + 3pt)' }}>today</span>
+                    <span style={{ color: '#22e05a', fontSize: 'calc(20px + 3pt)' }}>today</span>
                   </p>
                 </div>
               </div>
             </div>
-          )}
 
-
-          {/* ── IN FOCUS MODE: SEZIONE OUTPUT ALLARGATA A TUTTO LO SPAZIO DISPONIBILE DELLA DASHBOARD ── */}
-          {isAiFocusMode && (
+            {/* Gruppo Card Sinistra: Contatti & Active Clients nella parte bassa di Funnel & KPI, discostate di 3cm da Invoice */}
             <div
-              onWheel={handleOutputCardWheel}
-              className="w-full flex-1 flex flex-col justify-between p-5 shadow-2xl relative animate-fadeIn"
+              className="flex flex-col justify-end flex-1 min-h-0"
               style={{
-                backgroundColor: '#0a0f1d',
-                border: '1.5px solid #1e293b',
-                boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.85), inset 0 1px 2px rgba(255, 255, 255, 0.08)',
-                minHeight: '520px',
-                height: 'calc(100vh - 170px)',
-                fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                borderRadius: '0px',
+                marginTop: 'auto',
+                marginBottom: '0.5cm',
+                transition: 'all 400ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
-              {/* 1. Header Superiore della Console AI */}
-              <div className="flex items-center justify-between pb-3.5 border-b border-slate-800 gap-4 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-none bg-sky-500/20 text-[#38bdf8] border border-sky-400/30 flex items-center justify-center font-black text-sm">
-                    AI
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2.5">
-                      <h2 className="text-white font-black text-base tracking-wide uppercase select-none">
-                        ASK OPENAI • INTELLIGENZA AZIENDALE DADO
-                      </h2>
-                      <span
-                        className={`text-[10.5px] px-2.5 py-0.5 font-bold uppercase tracking-wider border rounded-none ${
-                          aiConfig.hasKey
-                            ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/80'
-                            : 'bg-amber-950/80 text-amber-300 border-amber-800/80'
-                        }`}
-                      >
-                        {aiConfig.hasKey ? `🟢 ${aiConfig.currentEngine || 'OpenAI Cloud'}` : '⚙️ API Key da Configurare'}
-                      </span>
-                    </div>
-                    <p className="text-[11.5px] text-slate-400 font-medium">
-                      Audit incrociato in tempo reale: contratti, shooting, fatturato, saldi scoperti e inventario
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setShowAiConfigModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-none bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition-all cursor-pointer"
-                    title="Configura Chiave API OpenAI / Modello"
-                  >
-                    <Key size={13} className="text-[#38bdf8]" />
-                    <span>Configura API Key</span>
-                  </button>
-
-                  {aiResult?.content && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (aiResult?.content) {
-                          navigator.clipboard.writeText(aiResult.content)
-                          setCopiedAnswer(true)
-                          setTimeout(() => setCopiedAnswer(false), 2000)
-                        }
-                      }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-none bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition-all cursor-pointer"
-                      title="Copia l'analisi negli appunti"
-                    >
-                      {copiedAnswer ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-                      <span>{copiedAnswer ? 'Copiato!' : 'Copia Analisi'}</span>
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAiResult(null)
-                      setAiConsoleInput('')
-                    }}
-                    className="px-2.5 py-1.5 rounded-none bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-xs font-semibold transition-all cursor-pointer"
-                    title="Azzera la sessione di ricerca"
-                  >
-                    Nuova Ricerca
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={triggerExitFocus}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-none bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-                    title="Chiudi la console ed esci dalla visuale a schermo intero (ESC)"
-                  >
-                    <span>✕ Chiudi</span>
-                    <kbd className="px-1 py-0.2 rounded bg-black/40 text-[9px] text-white font-mono border border-white/20">
-                      ESC
-                    </kbd>
-                  </button>
-                </div>
-              </div>
-
-              {/* 2. Barra Controlli Rapidi Incrociati */}
-              <div className="pt-2.5 pb-2 flex items-center gap-1.5 overflow-x-auto flex-shrink-0 text-xs">
-                <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap mr-1 flex items-center gap-1">
-                  <Sparkles size={12} className="text-[#38bdf8]" />
-                  Controlli Rapidi:
-                </span>
-                {[
-                  { label: '⚡ Contratti vs Fatturato e Saldi Aperti', query: 'Incrocia i contratti firmati con il fatturato emesso e gli incassi reali: quali aziende hanno ancora un saldo aperto da pagare e quali importi mancano?' },
-                  { label: '🎥 Attrezzature vs Date di Shooting', query: 'Verifica il calendario delle date di shooting a settembre e incrocialo con le attrezzature assegnate (Sony FX3, Mavic 3 Cine, Aputure 600d): ci sono conflitti di disponibilità o sovrapposizioni?' },
-                  { label: '⚠️ Verifica Acconti Non Versati', query: 'Controlla lo stato dei contratti e delle fatture nel CRM: ci sono aziende che non hanno ancora versato l\'acconto previsto o che risultano scoperte sul primo pagamento?' },
-                  { label: '📊 Redditività e Sinergie Commesse', query: 'Analizza la redditività giornaliera delle produzioni in corso e identifica sinergie o cluster di clienti per attrezzatura e format video.' },
-                ].map((btn, bIdx) => (
-                  <button
-                    key={bIdx}
-                    type="button"
-                    disabled={aiLoading}
-                    onClick={() => handleAskFromConsole(btn.query)}
-                    className="px-2.5 py-1 rounded-none bg-slate-900/90 hover:bg-sky-950 text-slate-300 hover:text-sky-200 border border-slate-700/80 hover:border-sky-500/50 text-[11.5px] font-medium whitespace-nowrap transition-all cursor-pointer"
-                  >
-                    {btn.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* 3. Corpo Centrale Scorrevole con Output */}
+              {/* Card Superiori: CONTATTI e ACTIVE CLIENTS separate da 3cm rispetto ad Invoice */}
               <div
-                ref={outputScrollRef}
-                className="flex-1 overflow-y-auto overscroll-contain pr-2 my-2 space-y-3 select-text"
+                className="flex flex-col gap-2.5 flex-shrink-0"
                 style={{
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: '#38bdf8 #0f172a',
+                  marginBottom: '3cm',
+                  transition: 'margin-bottom 400ms cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               >
-                {aiLoading ? (
-                  <div className="h-full min-h-[220px] flex flex-col items-center justify-center text-slate-300 gap-3 py-12">
-                    <div className="w-9 h-9 border-3 border-sky-400 border-t-transparent rounded-full animate-spin" />
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-sm font-bold text-white tracking-wide animate-pulse">
-                        Interrogazione database CRM in corso con {aiConfig.hasKey ? (aiConfig.model || 'OpenAI GPT-4o') : 'motore di audit'}...
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        Incrocio e verifica relazionale dei contratti, date di set, inventario e saldi contabili
-                      </span>
-                    </div>
-                  </div>
-                ) : aiResult ? (
-                  <div className="space-y-3">
-                    {aiResult.question && (
-                      <div className="p-3 bg-slate-900/90 rounded-none border border-slate-700/80 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sky-400 text-xs uppercase font-bold tracking-wider">Richiesta:</span>
-                          <span className="text-white font-bold text-sm">"{aiResult.question}"</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {aiResult.activeEngine && (
-                            <span className="text-[10px] px-2 py-0.5 font-mono text-slate-400 bg-slate-800 border border-slate-700">
-                              {aiResult.activeEngine}
-                            </span>
-                          )}
-                          {aiResult.timestamp && (
-                            <span className="text-slate-400 text-xs font-mono">{aiResult.timestamp}</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div
-                      className="p-5 rounded-none bg-slate-900/60 border border-slate-800 text-[14.5px] leading-relaxed whitespace-pre-line text-slate-100 shadow-inner font-sans tracking-wide"
-                      style={{
-                        lineHeight: '1.75',
-                        fontFamily: '"Switzer", sans-serif',
-                      }}
+                {/* 1. Card CONTATTI / COLLABORAZIONI (Calibrata) */}
+                <div
+                  onClick={() => setShowCollaboratorsModal(true)}
+                  className="flex flex-col justify-between shrink-0 p-3 bg-white transition-all hover:shadow-md hover:scale-[1.02] group cursor-pointer relative"
+                  style={{
+                    width: '185px',
+                    height: isWindowMaximized ? '106px' : '102px',
+                    border: '1.5px solid #cce5f6',
+                    borderRadius: '16px',
+                    boxShadow: '0 2px 10px rgba(27, 183, 237, 0.06)',
+                    fontFamily: '"Switzer", sans-serif',
+                  }}
+                  title="Apri Rubrica Collaboratori & Contatti Aziendali"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-black uppercase tracking-[0.08em] leading-tight whitespace-nowrap" style={{ fontSize: '13.5px', color: '#7c3aed' }}>
+                      CONTATTI
+                    </span>
+                    <span
+                      className="text-[11px] font-black px-2 py-0.5 rounded-full bg-purple-50 text-[#7c3aed] border border-purple-200"
+                      title={`${collaboratorsCount} contatti collaboratori registrati`}
                     >
-                      {aiResult.content}
-                    </div>
+                      {collaboratorsCount}
+                    </span>
                   </div>
-                ) : (
-                  <div className="h-full min-h-[220px] flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-800 rounded-none bg-slate-950/40">
-                    <Sparkles size={36} className="text-[#38bdf8] mb-3 opacity-80" />
-                    <h3 className="text-base font-bold text-white mb-1.5 uppercase tracking-wide">
-                      Centro Controlli Incrociati & Audit CRM
-                    </h3>
-                    <p className="text-xs text-slate-300 max-w-xl leading-relaxed mb-4">
-                      Poni qualsiasi controllo incrociato sui dati reali dello studio. Il modello incrocerà contratti firmati,
-                      calendario delle date di shooting, disponibilità e conflitti dell'attrezzatura, fatturato, acconti e saldi aperti.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {!aiConfig.hasKey && (
-                        <button
-                          type="button"
-                          onClick={() => setShowAiConfigModal(true)}
-                          className="px-3.5 py-1.5 rounded-none bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
-                        >
-                          <Key size={13} />
-                          <span>Inserisci Chiave API OpenAI per GPT-4o</span>
-                        </button>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <UserPlus size={30} className="text-slate-800 group-hover:text-[#7c3aed] transition-colors" />
+                    <span className="text-[10.5px] text-purple-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                      Apri ↗
+                    </span>
                   </div>
-                )}
+                  <span className="text-slate-500 leading-tight" style={{ fontSize: '12.5px' }}>
+                    collaborazioni
+                  </span>
+                </div>
+
+                {/* 2. Card ACTIVE CLIENTS (Calibrata) */}
+                <div
+                  onClick={() => setShowActiveClientsModal(true)}
+                  className="block hover:opacity-95 hover:scale-[1.02] transition-all flex flex-col group cursor-pointer shrink-0"
+                  title="Clicca per aprire la finestra Clienti Attivi (Storico, Primo Contatto, Ultima Email, Ultimo Contratto)"
+                >
+                  <KpiCard
+                    label="ACTIVE CLIENTS"
+                    value="11"
+                    bg="#ffffff"
+                    border="1.5px solid #cce5f6"
+                    boxShadow="0 2px 10px rgba(27, 183, 237, 0.06)"
+                    labelColor="#15803d"
+                    valueColor="#0f172a"
+                    fontFamily='"Switzer", sans-serif'
+                    letterSpacing="0.02em"
+                    sub="11 attivi • Clicca ↗"
+                    subColor="#15803d"
+                    width="185px"
+                    minHeight={isWindowMaximized ? '106px' : '102px'}
+                    height={isWindowMaximized ? '106px' : '102px'}
+                    labelSize="13.5px"
+                    valueSize="26px"
+                    subSize="12px"
+                  />
+                </div>
               </div>
 
-              {/* 4. Barra di Input Multi-Riga per Scrivere Nuove Richieste / Ricerche */}
-              <div className="pt-3 border-t border-slate-800 flex-shrink-0">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    handleAskFromConsole()
-                  }}
-                  className="flex flex-col gap-2"
-                >
-                  <div className="flex items-end gap-2.5">
-                    <div className="flex-1 relative">
-                      <textarea
-                        value={aiConsoleInput}
-                        onChange={(e) => setAiConsoleInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault()
-                            handleAskFromConsole()
-                          } else if (e.key === 'Escape') {
-                            e.preventDefault()
-                            triggerExitFocus()
-                          }
-                        }}
-                        rows={2}
-                        placeholder="Scrivi qui la tua richiesta o controllo incrociato (es. 'Incrocia i contratti con le date di shooting e dimmi quali attrezzature mancano')... [Invio per cercare]"
-                        disabled={aiLoading}
-                        className="w-full px-3.5 py-2.5 text-[13.5px] rounded-none bg-slate-900 border border-slate-700 text-white placeholder:text-slate-400 focus:outline-none focus:border-[#38bdf8] focus:bg-slate-950 transition-all resize-none font-sans"
-                        style={{ fontFamily: '"Switzer", sans-serif' }}
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={aiLoading || !aiConsoleInput.trim()}
-                      className={`px-5 py-3 rounded-none font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all flex-shrink-0 cursor-pointer ${
-                        aiLoading || !aiConsoleInput.trim()
-                          ? 'bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-700'
-                          : 'bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-md'
-                      }`}
-                      style={{ minHeight: '62px' }}
-                    >
-                      {aiLoading ? (
-                        <>
-                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>Analisi...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Send size={14} />
-                          <span>Invia Controllo</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
-                    <span>💡 <b>Invio</b> per inviare • <b>Shift + Invio</b> per andare a capo • <b>ESC</b> per chiudere il riquadro</span>
-                    <span className="font-mono text-slate-400">DADO STUDIO • CRM INTELLIGENCE</span>
-                  </div>
-                </form>
+              {/* 3. Card INVOICE — Posizionata sul fondo di Colonna 1, a 3cm di distanza sotto Active Clients */}
+              <div
+                onClick={() => setShowInvoiceMenuModal(true)}
+                className="block hover:opacity-95 hover:scale-[1.02] transition-all flex flex-col group cursor-pointer shrink-0"
+                style={{
+                  marginTop: '0',
+                  marginBottom: '0',
+                }}
+                title="Clicca per aprire il pop-up menù Invoice (Ultime invoice, da inviare & riassunto incassi)"
+              >
+                <KpiCard
+                  label="INVOICE"
+                  value="€ 56.9k"
+                  bg="#071325"
+                  border="1.5px solid #d4af37"
+                  boxShadow="0 4px 15px rgba(212, 175, 55, 0.2)"
+                  labelColor="#d4af37"
+                  valueColor="#fbbf24"
+                  fontFamily='"Switzer", sans-serif'
+                  letterSpacing="0.02em"
+                  sub="11 fat. • Saldo € 10.9k"
+                  subColor="#fde68a"
+                  width="185px"
+                  minHeight={isWindowMaximized ? '106px' : '102px'}
+                  height={isWindowMaximized ? '106px' : '102px'}
+                  labelSize="13.5px"
+                  valueSize="26px"
+                  subSize="12px"
+                />
               </div>
             </div>
-          )}
+          </div>
 
-          {/* ── IN VISUALE STANDARD: Riga 1 (TO DO + Week + Active Clients) + Riga 2 (Next actions + Pop-up estesa al centro) ── */}
-          {!isAiFocusMode && (
-            <div className="flex flex-col mb-1 flex-1 min-w-0">
+          {/* COLONNA 2: Sezione FUNNEL & KPI — Quando si clicca "Dettagli" si estende al centro fino a Note e Next actions (più in orizzontale che in verticale) */}
+          <div
+            className={`relative flex flex-col self-stretch h-full justify-end ${isFunnelDetailsOpen ? 'flex-1 min-w-0' : 'flex-shrink-0'}`}
+            style={{
+              width: isFunnelDetailsOpen
+                ? '100%'
+                : isWindowMaximized
+                ? '360px'
+                : 'calc(260px + 2.5cm)',
+              transition: 'all 420ms cubic-bezier(0.16, 1, 0.3, 1)',
+              ...colonna2SlideStyle,
+            }}
+          >
+            {/* Slot notifica smart: posizionato pulito sopra la colonna */}
+            <div id="dado-toast-slot" className="absolute z-[60]" style={{ top: '0.3cm', left: '0px' }} />
+            {/* Sezione FUNNEL & KPI — Estensione combinata (prevalente in orizzontale fino a Note/Next actions + incremento calibrato in verticale) */}
+            <div
+              className="w-full flex flex-col justify-end"
+              style={{
+                height: isFunnelDetailsOpen
+                  ? isWindowMaximized
+                    ? 'calc(420px + 4.8cm)'
+                    : 'calc(100% - 42px)'
+                  : isWindowMaximized
+                  ? 'calc(420px + 3cm)'
+                  : 'calc(100% - 98px - 0.8cm)',
+                maxHeight: isFunnelDetailsOpen
+                  ? isWindowMaximized
+                    ? 'calc(100% - 0.7cm)'
+                    : '505px'
+                  : isWindowMaximized
+                  ? 'calc(420px + 3cm)'
+                  : '430px',
+                marginTop: isFunnelDetailsOpen
+                  ? isWindowMaximized
+                    ? 'auto'
+                    : '0.35cm'
+                  : isWindowMaximized
+                  ? 'auto'
+                  : 'calc(98px + 0.3cm)',
+                marginBottom: isFunnelDetailsOpen ? '0.25cm' : '0.5cm',
+                transition: 'all 420ms cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
+              <ConcentricRingsKpi
+                width="100%"
+                height="100%"
+                isExpanded={isFunnelDetailsOpen}
+                onToggleExpand={(nextVal) => {
+                  const resolved = typeof nextVal === 'boolean' ? nextVal : !isFunnelDetailsOpen
+                  setIsFunnelDetailsOpen(resolved)
+                }}
+              />
+            </div>
+          </div>
 
-              {/* Layout a Tre Colonne: Colonna 1 (Contatti -> Active Clients -> In scadenza) + Colonna 2 (Funnel & KPI) + Colonna 3 (Invoice -> Next actions) */}
-              <div className="dado-dashboard-row flex items-stretch gap-4 flex-1 min-h-0" style={{ marginTop: '2.4cm', marginBottom: '0.2cm' }}>
 
-                {/* COLONNA 1 (Sinistra): Card CONTATTI + Card ACTIVE CLIENTS (in alto) -> Card INVOICE resa uniforme (in basso) */}
-                <div
-                  className="flex flex-col justify-between flex-shrink-0"
-                  style={{
-                    width: '160px',
-                    minHeight: 'calc(378px + 0.8cm)',
-                    ...colonna1SlideStyle,
-                  }}
-                >
-                  {/* Gruppo Card Superiori (Contatti & Active Clients) */}
-                  <div className="flex flex-col gap-2.5 flex-shrink-0">
-                    {/* 1. Card CONTATTI / COLLABORAZIONI */}
-                    <Link
-                      to="/leads"
-                      className="flex flex-col justify-between shrink-0 p-3.5 bg-white transition-all hover:shadow-md hover:scale-[1.02] group"
-                      style={{
-                        width: '160px',
-                        height: '104px',
-                        border: '1.5px solid #cce5f6',
-                        borderRadius: '16px',
-                        boxShadow: '0 2px 10px rgba(27, 183, 237, 0.06)',
-                        fontFamily: '"Switzer", sans-serif',
-                      }}
-                      title="Apri Contatti & Collaborazioni"
-                    >
-                      <span className="font-black uppercase tracking-[0.08em] leading-tight whitespace-nowrap" style={{ fontSize: '13px', color: '#7c3aed' }}>
-                        CONTATTI
-                      </span>
-                      <UserPlus size={30} className="text-slate-800 group-hover:text-[#7c3aed] transition-colors" />
-                      <span className="text-slate-500 leading-tight" style={{ fontSize: '12.5px' }}>
-                        collaborazioni
-                      </span>
-                    </Link>
-
-                    {/* 2. Card ACTIVE CLIENTS */}
-                    <div
-                      onClick={() => setShowActiveClientsModal(true)}
-                      className="block hover:opacity-95 hover:scale-[1.02] transition-all flex flex-col group cursor-pointer shrink-0"
-                      title="Clicca per aprire la finestra Clienti Attivi (Storico, Primo Contatto, Ultima Email, Ultimo Contratto)"
-                    >
-                      <KpiCard
-                        label="ACTIVE CLIENTS"
-                        value="11"
-                        bg="#ffffff"
-                        border="1.5px solid #cce5f6"
-                        boxShadow="0 2px 10px rgba(27, 183, 237, 0.06)"
-                        labelColor="#15803d"
-                        valueColor="#0f172a"
-                        fontFamily='"Switzer", sans-serif'
-                        letterSpacing="0.02em"
-                        sub="11 attivi • Clicca ↗"
-                        subColor="#15803d"
-                        width="160px"
-                        minHeight="104px"
-                        height="104px"
-                        labelSize="13px"
-                        valueSize="24px"
-                        subSize="11.5px"
-                      />
-                    </div>
-                  </div>
-
-                  {/* 3. Card INVOICE — Posizionata qui a sinistra dopo lo scambio con In Scadenza Oggi (Formattazione originale Blu Notte & Oro) */}
-                  <div
-                    onClick={() => setShowInvoiceMenuModal(true)}
-                    className="block hover:opacity-95 hover:scale-[1.02] transition-all flex flex-col group cursor-pointer shrink-0 mt-auto"
-                    title="Clicca per aprire il pop-up menù Invoice (Ultime invoice, da inviare & riassunto incassi)"
-                  >
-                    <KpiCard
-                      label="INVOICE"
-                      value="€ 56.9k"
-                      bg="#071325"
-                      border="1.5px solid #d4af37"
-                      boxShadow="0 4px 15px rgba(212, 175, 55, 0.2)"
-                      labelColor="#d4af37"
-                      valueColor="#fbbf24"
-                      fontFamily='"Switzer", sans-serif'
-                      letterSpacing="0.02em"
-                      sub="11 fat. • Saldo € 10.9k"
-                      subColor="#fde68a"
-                      width="160px"
-                      minHeight="104px"
-                      height="104px"
-                      labelSize="13px"
-                      valueSize="28px"
-                      subSize="11.5px"
-                    />
-                  </div>
-                </div>
-
-                {/* COLONNA 2: Sezione FUNNEL & KPI — Scambiata con Next actions, estesa 1cm verso l'alto e ingrandita di 3 cm */}
-                <div
-                  className="flex flex-col justify-between flex-shrink-0"
-                  style={{
-                    width: 'calc(290px + 3cm)',
-                    minHeight: 'calc(378px + 1.8cm)',
-                    marginTop: '-1cm',
-                    ...colonna2SlideStyle,
-                  }}
-                >
-                  <ConcentricRingsKpi width="100%" height="100%" />
-                </div>
-
-                {/* COLONNA 3: Sezione IN SCADENZA OGGI (in alto) + Sezione NEXT ACTIONS (in basso, accorciata di 1,5cm) */}
-                <div
-                  className="flex flex-col justify-between flex-shrink-0"
-                  style={{
-                    width: 'calc(185px + 1.5cm)',
-                    minHeight: 'calc(378px + 0.8cm)',
-                    ...colonna3SlideStyle,
-                  }}
-                >
-                  {/* 1. Sezione IN SCADENZA OGGI — Scambiata con Invoice (Cliccabile verso /calendar) */}
-                  <Link
-                    to={`/calendar?date=${todayIso}&day=today`}
-                    className="flex flex-col flex-shrink-0 overflow-hidden border border-rose-200 shadow-xs hover:shadow-md hover:border-rose-300 hover:scale-[1.01] transition-all group cursor-pointer"
-                    style={{
-                      width: '100%',
-                      height: '180px',
-                      backgroundColor: '#ffffff',
-                      borderRadius: '16px',
-                      fontFamily: '"Switzer", sans-serif',
-                    }}
-                    title="Apri e visualizza il dettaglio delle scadenze di oggi nel Calendario"
-                  >
-                    <div
-                      className="px-2.5 py-2 flex items-center justify-between border-b border-rose-100 flex-shrink-0"
-                      style={{ backgroundColor: '#fff5f5' }}
-                    >
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="w-2 h-2 rounded-full bg-[#ef4444] flex-shrink-0 group-hover:scale-125 transition-transform" />
-                        <span className="text-slate-900 font-bold tracking-tight leading-snug whitespace-nowrap group-hover:text-[#ef4444] transition-colors" style={{ fontSize: '12px' }}>
-                          in scadenza oggi
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[12px] font-black text-[#ef4444]">{todayDeadlines.length}</span>
-                        <ArrowUpRight size={13} className="text-[#ef4444] opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto px-2.5 py-1.5 flex flex-col gap-1.5 bg-white">
-                      {todayDeadlines.length === 0 ? (
-                        <span className="text-[11.5px] text-slate-500">Nessuna scadenza</span>
-                      ) : (
-                        todayDeadlines.map((ev, i) => (
-                          <div key={i} className="flex flex-col gap-0.5 pb-1.5 border-b border-slate-100 last:border-b-0">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="text-[11px] font-bold text-[#ef4444] whitespace-nowrap">
-                                {(ev.time || '').split(' - ')[0]}
-                              </span>
-                              {ev.company && (
-                                <span className="text-[11.5px] font-bold text-slate-900 truncate">{ev.company}</span>
-                              )}
-                            </div>
-                            <span
-                              className="text-[11px] text-slate-600 leading-tight"
-                              style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' }}
-                            >
-                              {ev.title}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </Link>
-
-                  {/* 2. Sezione NEXT ACTIONS posizionata in basso — Cliccabile verso /activities (Accorciata di 1,5cm in larghezza e altezza ridotta rispetto ai riquadri, 0,1 cm dal perimetro al riquadro New Opportunities) */}
-                  <div
-                    ref={nextActionsRef}
-                    onClick={(e) => {
-                      if (!e.target.closest('a') && !e.target.closest('button')) {
-                        navigate('/activities')
-                      }
-                    }}
-                    className="bg-white px-3.5 pt-3 flex flex-col flex-shrink-0 rounded-2xl overflow-hidden mt-auto cursor-pointer hover:border-sky-300 transition-colors group/card"
-                    style={{
-                      width: '100%',
-                      paddingBottom: '0.1cm',
-                      borderRadius: '16px',
-                      border: '1.5px solid #cce5f6',
-                      boxShadow: 'none',
-                      fontFamily: '"Switzer", sans-serif',
-                      ...nextActionsSlideStyle,
-                    }}
-                    title="Clicca per aprire le attività e prossime azioni dettagliate"
-                  >
-                    <Link
-                      to="/activities"
-                      className="group/title flex items-center justify-between cursor-pointer hover:opacity-85 transition-opacity"
-                      title="Visualizza tutte le attività e prossime azioni"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <h2
-                            className="text-slate-900 group-hover/title:text-sky-600 font-bold leading-tight transition-colors"
-                            style={{ fontSize: '16px', fontFamily: '"Switzer", sans-serif' }}
-                          >
-                            Next actions
-                          </h2>
-                          <ArrowUpRight size={14} className="text-slate-400 group-hover/title:text-sky-600 group-hover/title:translate-x-0.5 group-hover/title:-translate-y-0.5 transition-all" />
-                        </div>
-                        <p
-                          className="mt-0.5 font-medium leading-tight whitespace-nowrap text-slate-500"
-                          style={{ fontSize: '11.5px', fontFamily: '"Switzer", sans-serif' }}
-                        >
-                          No races. Keep your pace.
-                        </p>
-                      </div>
-                    </Link>
-
-                    {/* Contenitore azioni con riquadri senza ombreggiature */}
-                    <div className="flex flex-col gap-1.5 mt-2" style={{ paddingBottom: '0.1cm' }}>
-                      {/* 1. Leads — Color Senape / Sabbia */}
-                      <div className="w-full">
-                        <Link
-                          to="/leads"
-                          className="px-3 py-1.5 w-full text-center rounded-xl hover:scale-[1.03] transition-all block cursor-pointer"
-                          style={{
-                            background: 'linear-gradient(135deg, #dfb15b 0%, #c4922e 100%)',
-                            border: '1.5px solid #ebd08c',
-                            boxShadow: 'none',
-                          }}
-                          title="Apri la sezione Leads"
-                        >
-                          <span
-                            style={{
-                              fontFamily: '"Switzer", sans-serif',
-                              color: '#ffffff',
-                              fontWeight: 900,
-                              fontSize: '0.95rem',
-                              letterSpacing: '0.03em',
-                              lineHeight: 1.15,
-                            }}
-                          >
-                            Leads
-                          </span>
-                        </Link>
-                      </div>
-
-                      {/* 2. Call Reports — Arancione Fiammeggiante Sgargiante */}
-                      <div className="w-full">
-                        <Link
-                          to="/activities?type=call"
-                          className="px-3 py-1.5 w-full text-center rounded-xl hover:scale-[1.03] transition-all block cursor-pointer"
-                          style={{
-                            background: 'linear-gradient(135deg, #ff6b35 0%, #f97316 100%)',
-                            border: '1.5px solid #fb923c',
-                            boxShadow: 'none',
-                          }}
-                          title="Visualizza Call Reports"
-                        >
-                          <span
-                            style={{
-                              fontFamily: '"Switzer", sans-serif',
-                              color: '#ffffff',
-                              fontSize: '0.92rem',
-                              fontWeight: 900,
-                              letterSpacing: '0.03em',
-                              lineHeight: 1.15,
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            call reports
-                          </span>
-                        </Link>
-                      </div>
-
-                      {/* 3. New Opportunities — Viola / Magenta Elettrico Sgargiante (mantiene esattamente 0,1 cm di margine) */}
-                      <div className="w-full">
-                        <Link
-                          to="/opportunities"
-                          className="px-2 py-1.5 w-full text-center rounded-xl hover:scale-[1.03] transition-all block cursor-pointer"
-                          style={{
-                            background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
-                            border: '1.5px solid #c084fc',
-                            boxShadow: 'none',
-                          }}
-                          title="Apri la sezione Nuove Opportunità"
-                        >
-                          <span
-                            style={{
-                              fontFamily: '"Switzer", sans-serif',
-                              fontSize: '0.86rem',
-                              fontWeight: 900,
-                              letterSpacing: '0.02em',
-                              lineHeight: 1.15,
-                              color: '#ffffff',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            New Opportunities
-                          </span>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                   {/* Sezione Output / Pop-up Allargata nello spazio guadagnato al centro della dashboard */}
-                  {(aiResult || aiLoading || activeExpandedDay || (selectedCalendarDay && currentDaySchedule?.events?.length > 0)) && (
+                  {!isFunnelDetailsOpen && (isAiExpanded || aiResult || aiLoading || activeExpandedDay || (selectedCalendarDay && currentDaySchedule?.events?.length > 0)) && (
                     <div
                       ref={popupContainerRef}
                       onMouseEnter={handlePopupMouseEnter}
@@ -2710,12 +3622,12 @@ export default function Dashboard() {
                       style={{
                         backgroundColor: '#ffffff',
                         border: '1.5px solid #cce5f6',
-                        boxShadow: (isDayExpanded || activeExpandedDay)
+                        boxShadow: (isDashboardExpanded || activeExpandedDay || isAiActive)
                           ? '0 16px 48px rgba(27, 183, 237, 0.18), 0 4px 16px rgba(0, 0, 0, 0.08)'
                           : '0 10px 30px rgba(27, 183, 237, 0.10)',
-                        height: (isDayExpanded || activeExpandedDay) ? 'auto' : 'calc(100vh - 280px)',
-                        minHeight: (isDayExpanded || activeExpandedDay) ? 'auto' : '380px',
-                        maxHeight: (isDayExpanded || activeExpandedDay) ? 'none' : 'calc(100vh - 280px)',
+                        height: (isDashboardExpanded || activeExpandedDay || isAiActive) ? 'auto' : 'calc(100dvh - 280px)',
+                        minHeight: (isDashboardExpanded || activeExpandedDay || isAiActive) ? 'auto' : '380px',
+                        maxHeight: (isDashboardExpanded || activeExpandedDay || isAiActive) ? 'none' : 'calc(100dvh - 280px)',
                         fontFamily: '"Switzer", sans-serif',
                         overscrollBehavior: 'contain',
                         borderRadius: '16px',
@@ -2738,7 +3650,7 @@ export default function Dashboard() {
                               </span>
                             )}
                           </div>
-                        ) : aiResult && activeDayForSchedule ? (
+                        ) : (aiResult || isAiActive) && activeDayForSchedule ? (
                           <div className="flex items-center gap-1.5 bg-sky-50 p-1 rounded-lg border border-sky-100">
                             <button
                               onClick={() => setActiveOutputTab('day')}
@@ -2764,24 +3676,35 @@ export default function Dashboard() {
                             </button>
                           </div>
                         ) : (
-                          <span
-                            className="text-slate-800 font-semibold tracking-wide text-[15px] truncate"
-                            style={{ fontFamily: '"Switzer", sans-serif' }}
-                          >
-                            {aiLoading ? 'Analisi in corso...' : 'Indagine CRM & Punti in Comune (OpenAI)'}
-                          </span>
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className="text-slate-900 font-bold tracking-wide text-[16px]"
+                              style={{ fontFamily: '"Switzer", sans-serif' }}
+                            >
+                              {aiLoading ? 'Analisi Database in corso...' : 'Risultato Richiesta OpenAI'}
+                            </span>
+                            {aiConfig?.model && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-300">
+                                {aiConfig.model}
+                              </span>
+                            )}
+                          </div>
                         )}
 
-                        {(isDayExpanded || activeExpandedDay) && (
+                        {(isDashboardExpanded || activeExpandedDay || isAiActive) && (
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation()
-                              setPinnedCalendarDay(null)
-                              setHoveredCalendarDay(null)
+                              if (isAiActive) {
+                                closeAiPopup()
+                              } else {
+                                setPinnedCalendarDay(null)
+                                setHoveredCalendarDay(null)
+                              }
                             }}
                             className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                            title="Chiudi pop-up"
+                            title="Chiudi pop-up (ESC)"
                           >
                             <X size={15} />
                           </button>
@@ -2911,41 +3834,100 @@ export default function Dashboard() {
                           )}
                         </div>
                       ) : (
-                        /* Contenuto AI OpenAI distribuito senza verde e con font Switzer */
+                        /* Contenuto AI OpenAI a tutta larghezza, altamente leggibile, font Switzer */
                         <div
+                          className="w-full flex-1 flex flex-col min-h-0"
                           style={{
-                            fontSize: '13.5px',
-                            color: '#f4f2ea',
-                            fontWeight: 400,
                             fontFamily: '"Switzer", sans-serif',
                           }}
                         >
                           {aiLoading ? (
-                            <div className="h-36 flex flex-col items-center justify-center text-white/75 gap-2">
-                              <div className="w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-                              <span className="text-[13px] animate-pulse">
-                                Interrogazione database in tempo reale con OpenAI...
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="space-y-2">
-                              {aiResult?.question && (
-                                <div className="p-2 bg-white/5 rounded-lg text-xs text-slate-200 flex items-center gap-2">
-                                  <span className="text-white/50 text-[10px] uppercase tracking-wider">Domanda:</span>
-                                  <span className="text-white font-semibold">"{aiResult.question}"</span>
+                            <div className="flex-1 min-h-[300px] flex flex-col items-center justify-center py-12 px-6 text-center">
+                              {/* Box domanda in corso se presente */}
+                              {aiCurrentPrompt && (
+                                <div className="max-w-xl w-full mb-6 p-3.5 bg-sky-50/80 border border-sky-200 rounded-xl text-left shadow-xs">
+                                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#0284c7] mb-1">
+                                    Domanda inoltrata:
+                                  </div>
+                                  <div className="text-sm font-semibold text-slate-900 break-words">
+                                    "{aiCurrentPrompt}"
+                                  </div>
                                 </div>
                               )}
-                              <div className="leading-relaxed whitespace-pre-line text-[13px] text-white/90 bg-white/5 p-3 rounded-lg max-h-[180px] overflow-y-auto">
-                                {aiResult?.content}
+
+                              {/* Spinner e animazione di analisi */}
+                              <div className="relative flex items-center justify-center mb-4">
+                                <div className="w-12 h-12 border-3 border-sky-100 border-t-[#0284c7] rounded-full animate-spin" />
+                                <Sparkles size={20} className="text-[#0284c7] absolute animate-pulse" />
                               </div>
-                              <div className="flex justify-end pt-1">
+
+                              <h4 className="text-base font-bold text-slate-800 tracking-tight mb-1">
+                                Interrogazione database in tempo reale con OpenAI...
+                              </h4>
+                              <p className="text-xs text-slate-500 max-w-md">
+                                Analisi incrociata di lead, clienti, preventivi, fatture e attività in corso.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="flex-1 flex flex-col min-h-0 gap-3">
+                              {/* Domanda e metadati */}
+                              {(aiResult?.question || aiCurrentPrompt) && (
+                                <div className="p-3.5 bg-gradient-to-r from-sky-50/90 to-blue-50/50 border border-sky-200/90 rounded-xl flex items-start justify-between gap-3 shadow-xs shrink-0">
+                                  <div className="flex items-start gap-2.5 min-w-0">
+                                    <span className="px-2 py-0.5 rounded-md bg-[#0284c7] text-white text-[10px] font-black uppercase tracking-wider shrink-0 mt-0.5">
+                                      Richiesta
+                                    </span>
+                                    <span className="text-slate-900 font-bold text-[14px] leading-snug break-words">
+                                      "{aiResult?.question || aiCurrentPrompt}"
+                                    </span>
+                                  </div>
+                                  {aiResult?.timestamp && (
+                                    <span className="text-[11px] font-semibold text-slate-400 shrink-0">
+                                      {aiResult.timestamp}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Contenuto Risposta OpenAI: completamente espanso, testo scuro ad alto contrasto, scrollabile fluido */}
+                              <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-popup-scrollbar bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs select-text">
+                                <div className="text-[14.5px] leading-relaxed text-slate-800 whitespace-pre-line font-normal selection:bg-sky-100 selection:text-sky-900">
+                                  {aiResult?.content || 'Nessuna risposta disponibile.'}
+                                </div>
+                              </div>
+
+                              {/* Barra inferiore delle azioni: Copia testo, Info modello, Tasto Chiudi ESC */}
+                              <div className="pt-2 flex items-center justify-between flex-shrink-0 border-t border-slate-100 text-xs">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={handleCopyAiAnswer}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer transition-all shadow-xs"
+                                    title="Copia testo negli appunti"
+                                  >
+                                    {copiedAiAnswer ? (
+                                      <>
+                                        <Check size={14} className="text-emerald-600" />
+                                        <span className="text-emerald-700">Copiato!</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Copy size={14} className="text-slate-500" />
+                                        <span>Copia Risposta</span>
+                                      </>
+                                    )}
+                                  </button>
+                                  <span className="text-[11px] text-slate-400">
+                                    Premi <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 text-[10px] font-semibold text-slate-600">ESC</kbd> per chiudere e ripristinare la dashboard
+                                  </span>
+                                </div>
+
                                 <button
                                   type="button"
-                                  onClick={() => triggerEnterFocus()}
-                                  className="text-[11.5px] text-slate-300 hover:text-white hover:underline flex items-center gap-1 cursor-pointer font-medium"
-                                  style={{ fontFamily: '"Switzer", sans-serif' }}
+                                  onClick={closeAiPopup}
+                                  className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-semibold cursor-pointer transition-all shadow-xs"
                                 >
-                                  <span>Espandi a schermo intero [ESC]</span>
+                                  Chiudi
                                 </button>
                               </div>
                             </div>
@@ -2955,38 +3937,36 @@ export default function Dashboard() {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
-          )}
-
         </div>
 
-        {/* ══ COLONNA DESTRA ══ */}
-        <div ref={colonnaDestraRef} className="self-stretch flex-shrink-0 flex flex-col gap-3 min-w-0 items-end relative">
+        {/* ══ COLONNA DESTRA (Calendar Week + Drive Clock a sinistra, Ask OpenAI + Preventivi + Next actions a destra) ══ */}
+        <div ref={colonnaDestraRef} className="self-stretch flex-shrink-0 flex items-stretch justify-start min-w-0 relative" style={{ gap: '0.8cm', marginLeft: 'auto', marginRight: '0px' }}>
 
-          {/* Riga Superiore: Calendar Week e ASK Open AI affiancati a 0,3cm di distanza */}
-          <div className="flex items-start justify-end flex-shrink-0" style={{ gap: '0.3cm' }}>
-            {/* Sezione CALENDAR WEEK: ingrandita, 0,3cm da Ask Open AI e 0,3cm dalla banda superiore, a filo inferiore con Ask OpenAI, angoli retti */}
+          {/* Sotto-colonna Centrale: Calendar Week con sottostanti Sezione Note e Next actions */}
+          <div className="flex flex-col flex-shrink-0 h-full" style={{ width: 'calc(255px + 0.4cm)' }}>
+            {/* Sezione CALENDAR WEEK: accorciata solo quando c'è il pop-up notifica */}
             <div
               ref={calendarContainerRef}
               onMouseEnter={handleCalendarMouseEnter}
               onMouseLeave={handleCalendarMouseLeave}
-              className="px-3 py-1.5 bg-white shadow-xs flex flex-col justify-between border border-[#cce5f6] select-none shrink-0"
+              className="px-3 py-2 bg-white shadow-xs flex flex-col justify-between border border-[#cce5f6] select-none shrink-0"
               style={{
                 backgroundColor: '#ffffff',
-                width: 'calc(250px + 3cm)',
+                width: (isSmartToastOpen || isFunnelDetailsOpen) ? '100%' : 'calc(100% + 2cm)', // accorciato esattamente fino alla sezione Note sottostante (width 100%, marginLeft 0.5cm)
                 height: 'calc(98px - 0.3cm)',
                 minHeight: 'calc(98px - 0.3cm)',
                 borderRadius: '0px',
                 boxShadow: '0 2px 8px rgba(27, 183, 237, 0.06)',
                 fontFamily: '"Switzer", sans-serif',
                 marginTop: '0.3cm',
+                marginLeft: (isSmartToastOpen || isFunnelDetailsOpen) ? '0.5cm' : 'calc(0.5cm - 2cm)',
+                transition: 'width 480ms cubic-bezier(0.16, 1, 0.3, 1), margin-left 480ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
               {/* Header: Nome del mese corrente */}
               <div className="flex items-center px-0.5">
                 <span
-                  className="font-extrabold uppercase tracking-[0.08em] block leading-tight text-[12px]"
+                  className="font-extrabold uppercase tracking-[0.08em] block leading-tight text-[12.5px]"
                   style={{ fontFamily: '"Switzer", sans-serif', color: '#0f172a' }}
                 >
                   {currentMonthName}
@@ -2994,7 +3974,7 @@ export default function Dashboard() {
               </div>
 
               {/* 7 Caselle Giorni: prima lettera (L M M G V S D) */}
-              <div className="grid grid-cols-7 gap-1.5 mt-1 flex-1 items-stretch">
+              <div className="grid grid-cols-7 gap-1 mt-1 flex-1 items-stretch">
                 {currentWeekDays.map((d, index) => {
                   const isSelected = selectedCalendarDay?.date === d.date
                   const isPinned = pinnedCalendarDay?.date === d.date
@@ -3018,7 +3998,7 @@ export default function Dashboard() {
                           setActiveOutputTab('day')
                         }
                       }}
-                      className={`flex flex-col items-center justify-center transition-all group py-1 border cursor-pointer ${
+                      className={`flex flex-col items-center justify-center transition-all group py-1.5 border cursor-pointer ${
                         isSelected
                           ? 'ring-1 ring-[#0284c7] bg-sky-50 shadow-xs border-[#0284c7]'
                           : d.isToday
@@ -3051,160 +4031,503 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* 1. Box ASK OPEN AI (Sfondo bianco, collegato alla sezione output) */}
-            <div ref={askOpenAiRef} className="w-64 flex-shrink-0">
+            {/* Sezione NOTE (Taccuino) — Estesa verso il basso a schermo intero */}
+            <div
+              ref={noteBoxRef}
+              className="flex-shrink-0"
+              style={{
+                width: '100%',
+                marginLeft: '0.5cm',
+                marginTop: '0.5rem',
+                ...colonna3SlideStyle,
+              }}
+            >
+              <TurnedPageNoteBox
+                isMaximized={isWindowMaximized}
+                height={isWindowMaximized ? 'calc(135px + 1cm)' : '135px'}
+              />
+            </div>
+
+            {/* 3. Box Next actions — Mantenuta in basso (mt-auto) e calibrata per non debordare mai */}
+            <div
+              ref={nextActionsRef}
+              onClick={(e) => {
+                if (!e.target.closest('a') && !e.target.closest('button')) {
+                  navigate('/tasks')
+                }
+              }}
+              className="bg-white px-3 pt-2.5 pb-2 flex flex-col flex-none min-h-0 overflow-hidden cursor-pointer hover:border-sky-300 transition-colors group/card border border-[#cce5f6] mt-auto"
+              style={{
+                borderRadius: '16px',
+                width: '100%',
+                marginLeft: '0.5cm',
+                marginTop: 'auto',
+                marginBottom: '0.5cm', // distanza dalla banda inferiore
+                height: isWindowMaximized ? 'calc(185px + 1cm)' : '185px',
+                minHeight: isWindowMaximized ? 'calc(185px + 1cm)' : '185px',
+                maxHeight: isWindowMaximized ? 'calc(185px + 1cm)' : '185px',
+                fontFamily: '"Switzer", sans-serif',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
+                transition: 'all 400ms cubic-bezier(0.16, 1, 0.3, 1)',
+                ...colonna3SlideStyle,
+              }}
+              title="Clicca per aprire le attività e prossime azioni"
+            >
+              <Link
+                to="/tasks"
+                className="group/title flex items-center justify-between cursor-pointer hover:opacity-85 transition-opacity"
+                title="Visualizza tutte le attività e prossime azioni"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h2
+                      className="text-slate-900 group-hover/title:text-sky-600 font-bold leading-tight transition-colors"
+                      style={{ fontSize: '13.5px', fontFamily: '"Switzer", sans-serif' }}
+                    >
+                      Next actions
+                    </h2>
+                    <ArrowUpRight size={13} className="text-slate-400 group-hover/title:text-sky-600 group-hover/title:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  </div>
+                  <p
+                    className="mt-0.5 font-medium leading-tight whitespace-nowrap text-slate-500"
+                    style={{ fontSize: '10px', fontFamily: '"Switzer", sans-serif' }}
+                  >
+                    No races. Keep your pace.
+                  </p>
+                </div>
+              </Link>
+
+              {/* Contenitore azioni con collegamenti ai singoli riquadri */}
+              <div className="flex flex-col justify-evenly gap-1 mt-2 flex-1 min-h-0">
+                {/* 1. call reports */}
+                <div className="w-full flex-1 min-h-0" style={{ maxHeight: isWindowMaximized ? '90px' : '64px' }}>
+                  <Link
+                    to="/call-reports"
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-2.5 py-1.5 w-full text-center rounded-lg hover:scale-[1.02] transition-all flex items-center justify-center h-full cursor-pointer"
+                    style={{
+                      background: 'linear-gradient(180deg, #fd7430 0%, #f96720 100%)',
+                      backgroundColor: '#fc6e28',
+                      boxShadow: 'none',
+                    }}
+                    title="Apri la schermata Call Reports"
+                  >
+                    <span
+                      style={{
+                        fontFamily: '"Switzer", sans-serif',
+                        color: '#ffffff',
+                        fontSize: '0.82rem',
+                        fontWeight: 900,
+                        letterSpacing: '0.02em',
+                        lineHeight: 1.15,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      call reports
+                    </span>
+                  </Link>
+                </div>
+
+                {/* 2. leads */}
+                <div className="w-full flex-1 min-h-0" style={{ maxHeight: isWindowMaximized ? '90px' : '64px' }}>
+                  <Link
+                    to="/leads"
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-2.5 py-1.5 w-full text-center rounded-lg hover:scale-[1.02] transition-all flex items-center justify-center h-full cursor-pointer"
+                    style={{
+                      background: 'linear-gradient(180deg, #d8a74e 0%, #cf9f40 100%)',
+                      backgroundColor: '#d2a346',
+                      boxShadow: 'none',
+                    }}
+                    title="Apri la schermata Leads"
+                  >
+                    <span
+                      style={{
+                        fontFamily: '"Switzer", sans-serif',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '0.82rem',
+                        letterSpacing: '0.02em',
+                        lineHeight: 1.15,
+                      }}
+                    >
+                      leads
+                    </span>
+                  </Link>
+                </div>
+
+                {/* 3. new opportunities */}
+                <div className="w-full flex-1 min-h-0" style={{ maxHeight: isWindowMaximized ? '90px' : '64px' }}>
+                  <Link
+                    to="/opportunities"
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-2.5 py-1.5 w-full text-center rounded-lg hover:scale-[1.02] transition-all flex items-center justify-center h-full cursor-pointer"
+                    style={{
+                      background: 'linear-gradient(180deg, #994cf4 0%, #9045f1 100%)',
+                      backgroundColor: '#9549f3',
+                      boxShadow: 'none',
+                    }}
+                    title="Apri la schermata New Opportunities"
+                  >
+                    <span
+                      style={{
+                        fontFamily: '"Switzer", sans-serif',
+                        fontSize: '0.82rem',
+                        fontWeight: 900,
+                        letterSpacing: '0.02em',
+                        lineHeight: 1.15,
+                        color: '#ffffff',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      new opportunities
+                    </span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sotto-colonna Destra (ASK OPEN AI + Box Preventivi + Next actions + Logo in basso a destra) */}
+          <div className="w-[275px] flex flex-col flex-shrink-0 items-stretch self-stretch">
+            {/* 1. Box ASK OPEN AI (Sfondo bianco, saldato a filo con la banda superiore) */}
+            <div
+              ref={askOpenAiRef}
+              className="w-full flex-shrink-0"
+              style={{
+                marginTop: '0px',
+                fontFamily: '"Switzer", sans-serif',
+                ...slideRightStyle(0),
+              }}
+            >
               <AskOpenAiBox
-                onOpenConsole={() => {
-                  triggerEnterFocus(true)
-                }}
+                isMaximized={isWindowMaximized}
                 onOpenAiConfig={() => {
                   setShowAiConfigModal(true)
                 }}
                 aiConfig={aiConfig}
                 onStartAsk={(text) => {
-                  triggerEnterFocus()
+                  setAiCurrentPrompt(text)
+                  setIsAiExpanded(true)
+                  setIsClosingAi(false)
+                  setActiveOutputTab('ai')
+                  setPinnedCalendarDay(null)
+                  setHoveredCalendarDay(null)
                 }}
                 onAskComplete={(res) => {
                   setAiResult(res)
                   if (res) {
+                    setIsAiExpanded(true)
+                    setIsClosingAi(false)
                     setActiveOutputTab('ai')
-                    if (!isAiFocusMode) triggerEnterFocus()
                   }
                 }}
                 onLoadingChange={(loading) => {
                   setAiLoading(loading)
                   if (loading) {
+                    setIsAiExpanded(true)
+                    setIsClosingAi(false)
                     setActiveOutputTab('ai')
-                    if (!isAiFocusMode) triggerEnterFocus()
                   }
                 }}
               />
             </div>
-          </div>
 
-          {/* 2. Box Collegamento Google Drive con Orologio (Centrato sotto Ask OpenAI, parte inferiore a filo delle cards) */}
-          <div ref={clockDriveRef} className="w-64 flex justify-center" style={slideRightStyle(0)}>
-            <ClockDriveBox height={clockDriveHeight ? `${clockDriveHeight}px` : '78px'} />
-          </div>
-
-          {/* Box Note sotto Google Drive: tipo pagina girata di un libro completamente bianca con piega a destra in rilievo */}
-          <div ref={noteBoxRef} className="w-64" style={slideRightStyle(60)}>
-            <TurnedPageNoteBox />
-          </div>
-
-          {/* 3. Box Preventivi — Stile coordinato alle altre sezioni */}
-          <div
-            className="w-64 flex flex-col shadow-xs overflow-hidden bg-white border border-[#cce5f6] rounded-2xl"
-            style={{
-              borderRadius: '16px',
-              marginTop: preventiviMarginTop !== null ? `${preventiviMarginTop}px` : '12px',
-              fontFamily: '"Switzer", sans-serif',
-              ...slideRightStyle(120),
-            }}
-          >
-            {/* 1. preventivi in scadenza */}
-            <Link
-              to="/opportunities?status=scadenza"
-              className="px-3.5 py-3 min-h-[50px] flex items-center gap-2.5 hover:bg-rose-50/60 transition-colors block group border-b border-rose-100"
-              style={{ backgroundColor: '#fff5f5' }}
-              title="Visualizza preventivi in scadenza"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444] flex-shrink-0 group-hover:scale-125 transition-transform" />
-                <span
-                  className="text-slate-900 font-bold tracking-tight leading-snug"
-                  style={{ fontSize: '15px', fontFamily: '"Switzer", sans-serif' }}
-                >
-                  preventivi in scadenza
-                </span>
-              </div>
-            </Link>
-
-            {/* 2. preventivi inviati */}
-            <Link
-              to="/opportunities?status=inviati"
-              className="px-3.5 py-3 min-h-[50px] flex items-center gap-2.5 hover:bg-sky-50/60 transition-colors block group border-b border-sky-100"
-              style={{ backgroundColor: '#f0f9ff' }}
-              title="Visualizza preventivi inviati"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7] flex-shrink-0 group-hover:scale-125 transition-transform" />
-                <span
-                  className="text-slate-900 font-bold tracking-tight leading-snug"
-                  style={{ fontSize: '15px', fontFamily: '"Switzer", sans-serif' }}
-                >
-                  preventivi inviati
-                </span>
-              </div>
-            </Link>
-
-            {/* 3. ultimo preventivo */}
-            <Link
-              to="/opportunities?sort=latest"
-              className="px-3.5 py-3 min-h-[50px] flex items-center gap-2.5 hover:bg-emerald-50/60 transition-colors block group"
-              style={{ backgroundColor: '#f0fdf4' }}
-              title="Visualizza ultimo preventivo"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] flex-shrink-0 group-hover:scale-125 transition-transform" />
-                <span
-                  className="text-slate-900 font-bold tracking-tight leading-snug"
-                  style={{ fontSize: '15px', fontFamily: '"Switzer", sans-serif' }}
-                >
-                  ultimo preventivo
-                </span>
-              </div>
-            </Link>
-          </div>
-
-          {/* 3. Logo DADO Creative Studio collegato a dadocreative.studio con dicitura ® 2026 a filo destro */}
-          <a
-            href="https://dadocreative.studio"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-auto w-[130px] flex flex-col items-end gap-0.5 group block cursor-pointer transition-all hover:opacity-95"
-            style={{
-              marginBottom: '0.2cm', // a 0,2 cm dalla banda sottostante
-              ...slideRightStyle(180),
-            }}
-            title="Visita il sito ufficiale dadocreative.studio"
-          >
+            {/* 2. Box Preventivi — scalata verso il basso a 1.2cm dal box ASK OPEN AI quando ingrandito a tutto schermo */}
             <div
-              className="w-[130px] overflow-hidden shadow-sm border border-white/40 block group-hover:scale-105 transition-transform"
-              style={{ borderRadius: '4px' }}
+              className="w-full flex flex-col flex-shrink-0 overflow-hidden border border-[#cce5f6]"
+              style={{
+                borderRadius: '16px',
+                marginTop: isWindowMaximized ? '1.2cm' : '0.4cm',
+                fontFamily: '"Switzer", sans-serif',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
+                transition: 'margin-top 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+                ...slideRightStyle(60),
+              }}
             >
-              <img
-                src="/dado-creative-studio.png"
-                alt="DADO creative · studio"
-                className="w-full h-auto object-contain block"
+              {/* 1. preventivi in scadenza */}
+              <Link
+                to="/opportunities"
+                className="px-4 py-2.5 min-h-[48px] flex items-center justify-between gap-2.5 hover:opacity-95 transition-all block group border-b border-red-100/70"
+                style={{ backgroundColor: '#fff5f5' }}
+                title="Visualizza preventivi in scadenza"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="text-slate-900 font-bold tracking-tight leading-snug"
+                    style={{ fontSize: '14px', fontFamily: '"Switzer", sans-serif' }}
+                  >
+                    preventivi in scadenza
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11.5px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 shadow-2xs">
+                    3 in scadenza
+                  </span>
+                  <ArrowUpRight size={14} className="text-red-400 group-hover:text-red-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                </div>
+              </Link>
+
+              {/* 2. preventivi inviati */}
+              <Link
+                to="/opportunities"
+                className="px-4 py-2.5 min-h-[48px] flex items-center justify-between gap-2.5 hover:opacity-95 transition-all block group border-b border-sky-100/70"
+                style={{ backgroundColor: '#f0f9ff' }}
+                title="Visualizza preventivi inviati"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="text-slate-900 font-bold tracking-tight leading-snug"
+                    style={{ fontSize: '14px', fontFamily: '"Switzer", sans-serif' }}
+                  >
+                    preventivi inviati
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ArrowUpRight size={14} className="text-sky-400 group-hover:text-sky-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                </div>
+              </Link>
+
+              {/* 3. ultimo preventivo */}
+              <Link
+                to="/opportunities"
+                className="px-4 py-2.5 min-h-[48px] flex items-center justify-between gap-2.5 hover:opacity-95 transition-all block group"
+                style={{ backgroundColor: '#effdf4' }}
+                title="Visualizza ultimo preventivo"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="text-slate-900 font-bold tracking-tight leading-snug"
+                    style={{ fontSize: '14px', fontFamily: '"Switzer", sans-serif' }}
+                  >
+                    ultimo preventivo
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 tracking-tight shadow-2xs">
+                    FAT-2026-079
+                  </span>
+                  <ArrowUpRight size={14} className="text-emerald-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                </div>
+              </Link>
+            </div>
+
+            {/* 3. Sezione GOOGLE DRIVE con OROLOGIO — Rettangolare non a tutto schermo, quadrato 5x5 a tutto schermo */}
+            <div
+              ref={clockDriveRef}
+              className={`flex-shrink-0 flex flex-col mt-auto ${
+                isWindowMaximized ? 'items-end' : 'items-stretch w-full'
+              }`}
+              style={{
+                marginTop: 'auto',
+                marginBottom: isWindowMaximized ? '1cm' : '0.3cm',
+                paddingRight: isWindowMaximized ? '0.2cm' : '0px',
+                fontFamily: '"Switzer", sans-serif',
+                transition: 'all 400ms cubic-bezier(0.16, 1, 0.3, 1)',
+                ...slideRightStyle(120),
+              }}
+            >
+              <ClockDriveBox
+                isSquare={isWindowMaximized}
+                width={isWindowMaximized ? '5cm' : '100%'}
+                height={isWindowMaximized ? '5cm' : '68px'}
+                minHeight={isWindowMaximized ? '5cm' : '68px'}
+                className="transition-all duration-300"
               />
             </div>
-            <span
-              className="w-full text-right text-[11px] font-mono text-slate-700 group-hover:text-slate-900 font-bold select-none pr-0 leading-none mt-0.5"
-              style={{ letterSpacing: '0.1em' }}
+
+            {/* 4. Logo DADO Creative Studio: alla base della colonna destra, posizionato sotto Google Drive senza mai sovrapporsi */}
+            <div
+              className="flex-shrink-0 flex flex-col items-end self-end pointer-events-auto"
+              style={{
+                marginBottom: '0.35cm',
+                paddingRight: '0.2cm',
+                ...slideRightStyle(180),
+              }}
             >
-              ® 2026
-            </span>
-          </a>
+              <a
+                href="https://dadocreative.studio"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-end justify-center gap-0.5 group cursor-pointer transition-all hover:opacity-95"
+                style={{
+                  width: '105px',
+                }}
+                title="Visita il sito ufficiale dadocreative.studio"
+              >
+                <div
+                  className="w-[105px] overflow-hidden shadow-xs border border-white/40 block group-hover:scale-105 transition-transform"
+                  style={{ borderRadius: '4px' }}
+                >
+                  <img
+                    src="/dado-creative-studio.png"
+                    alt="DADO creative · studio"
+                    className="w-full h-auto object-contain block"
+                  />
+                </div>
+                <span
+                  className="text-[9px] font-semibold text-slate-400 group-hover:text-slate-600 transition-colors select-none whitespace-nowrap text-right pr-0.5"
+                  style={{ fontFamily: '"Switzer", sans-serif' }}
+                >
+                  ® 2026
+                </span>
+              </a>
+            </div>
+
+          </div>
 
         </div>
 
       </div>
+      )}
+
+      {/* ── SCHERMATA RISPOSTA ASK OPEN AI A TUTTO SCHERMO (con transizione verticale sincronizzata - SOLO MOBILE) ── */}
+      {isMobileApp && isAiOverlayMounted && (
+        <div
+          className="absolute inset-0 z-40 flex flex-col p-2.5 sm:p-4 overflow-hidden select-text"
+          style={{
+            fontFamily: '"Switzer", sans-serif',
+            transform: aiOverlayEntered && !isClosingAi ? 'translateY(0)' : 'translateY(-104%)',
+            opacity: aiOverlayEntered && !isClosingAi ? 1 : 0,
+            pointerEvents: aiOverlayEntered && !isClosingAi ? 'auto' : 'none',
+            willChange: 'transform, opacity',
+            transition: `transform 520ms ${slideEase}, opacity 380ms ${slideEase}`,
+          }}
+        >
+          <div
+            className="w-full h-full bg-white rounded-2xl border border-[#38bdf8] shadow-2xl flex flex-col overflow-hidden"
+            style={{
+              boxShadow: '0 20px 55px rgba(2, 132, 199, 0.22), 0 4px 18px rgba(0, 0, 0, 0.08)',
+              fontFamily: '"Switzer", sans-serif',
+            }}
+          >
+            {/* Intestazione Risposta Full-Screen */}
+            <div className="px-3.5 py-2.5 sm:px-5 sm:py-3.5 border-b border-sky-100 bg-gradient-to-r from-sky-50/80 via-white to-emerald-50/50 flex items-center justify-between gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className="uppercase tracking-normal leading-tight select-none truncate"
+                  style={{
+                    fontWeight: 900,
+                    fontSize: isMobileApp ? '0.92rem' : '1.08rem',
+                    fontFamily: '"Switzer", sans-serif',
+                    background: 'linear-gradient(90deg, #0284c7 0%, #0ea5e9 25%, #10b981 55%, #f59e0b 80%, #ef4444 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    display: 'inline-block',
+                  }}
+                >
+                  {aiLoading ? 'ASK OPEN AI • ANALISI IN CORSO...' : 'ASK OPEN AI • RISPOSTA'}
+                </span>
+                {aiConfig?.hasKey && (
+                  <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 flex-shrink-0">
+                    {aiConfig.geminiModel || aiConfig.model || 'Gemini 2.5'}
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={closeAiPopup}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold transition-all cursor-pointer shadow-xs flex-shrink-0"
+                title="Chiudi risposta e torna alla Dashboard (ESC)"
+              >
+                <span>Chiudi</span>
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Corpo Centrale a Tutto Schermo */}
+            <div
+              ref={popupScrollRef}
+              className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-5 flex flex-col gap-3 custom-popup-scrollbar overscroll-contain"
+              style={{ fontFamily: '"Switzer", sans-serif' }}
+            >
+              {/* Riquadro Domanda Inviata */}
+              {(aiResult?.question || aiCurrentPrompt) && (
+                <div className="p-3 sm:p-3.5 bg-gradient-to-r from-sky-50/90 to-blue-50/50 border border-sky-200/90 rounded-xl flex items-start justify-between gap-2.5 shadow-2xs flex-shrink-0">
+                  <div className="flex items-start gap-2 min-w-0">
+                    <span className="px-2 py-0.5 rounded-md bg-[#0284c7] text-white text-[10px] font-black uppercase tracking-wider flex-shrink-0 mt-0.5">
+                      Domanda
+                    </span>
+                    <span className="text-slate-900 font-bold text-[13px] sm:text-[14.5px] leading-snug break-words">
+                      "{aiResult?.question || aiCurrentPrompt}"
+                    </span>
+                  </div>
+                  {aiResult?.timestamp && (
+                    <span className="text-[10.5px] font-semibold text-slate-400 flex-shrink-0">
+                      {aiResult.timestamp}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {aiLoading ? (
+                <div className="flex-1 min-h-[220px] flex flex-col items-center justify-center py-10 px-4 text-center">
+                  <div className="relative flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 border-3 border-sky-100 border-t-[#0284c7] rounded-full animate-spin" />
+                    <Sparkles size={20} className="text-[#0284c7] absolute animate-pulse" />
+                  </div>
+                  <h4 className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight mb-1">
+                    Interrogazione database CRM in tempo reale...
+                  </h4>
+                  <p className="text-xs text-slate-500 max-w-md">
+                    Analisi incrociata di lead, clienti, preventivi, fatture e attività in corso.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex-1 min-h-0 bg-slate-50/60 rounded-xl border border-slate-200/80 p-3.5 sm:p-5 shadow-inner overflow-y-auto">
+                  <div className="text-[13.5px] sm:text-[15px] leading-relaxed text-slate-800 whitespace-pre-line font-medium selection:bg-sky-100 selection:text-sky-900">
+                    {aiResult?.content || 'Nessuna risposta disponibile.'}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Azioni Full-Screen */}
+            <div className="px-3.5 py-2.5 sm:px-5 sm:py-3 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                {!aiLoading && aiResult?.content && (
+                  <button
+                    type="button"
+                    onClick={handleCopyAiAnswer}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-all shadow-2xs"
+                    title="Copia risposta negli appunti"
+                  >
+                    {copiedAiAnswer ? (
+                      <>
+                        <Check size={14} className="text-emerald-600" />
+                        <span className="text-emerald-700">Copiato!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} className="text-slate-500" />
+                        <span>Copia Risposta</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={closeAiPopup}
+                className="px-4 py-1.5 rounded-lg bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-extrabold cursor-pointer transition-all shadow-xs"
+              >
+                Chiudi e torna alla Dashboard ↑
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Banda Inferiore: stessa tonalità di grigio della barra laterale (#2d3139), campo ricerca note sviluppatore a destra e taglio netto a 90° col display ── */}
-      <div className="w-full flex items-center justify-between flex-shrink-0 mt-auto pl-0">
-        <Link
-          to="/register"
-          title="Registra nuovo utente (con credenziali casuali)"
-          className="p-1 rounded-xl text-[#f59e0b] hover:text-[#00d2ff] hover:bg-white/5 transition-all cursor-pointer flex items-center justify-center shrink-0"
-          style={{ marginLeft: 'calc(6px + 0.5cm)', marginRight: '2px' }}
-        >
-          <RegisterUserIcon size={18} />
-        </Link>
+      <div className="w-full flex items-center justify-between flex-shrink-0 mt-auto pl-0 relative z-20">
+        <UserSwitchMenu />
         <div
-          className="rounded-tl-2xl rounded-tr-none rounded-br-none rounded-bl-none flex-1 flex items-center justify-end pl-2 pr-6 overflow-hidden py-1"
+          className="rounded-tl-2xl rounded-tr-none rounded-br-none rounded-bl-none flex-1 flex items-center justify-end pl-2 pr-2.5 overflow-hidden py-0"
           style={{
-            height: '42px',
+            height: '29px',
             backgroundColor: '#2d3139',
             borderTopLeftRadius: '1rem',
             borderTopRightRadius: '0px',
@@ -3218,25 +4541,25 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Modale Dettaglio Fattura Studio (Blu Notte & Oro) ── */}
+      {/* ── Modale Dettaglio Fattura Studio (Blu Notte & Oro) — Estesa come le altre card ── */}
       {selectedInvoice && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn"
+          className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-2.5 bg-black/80 backdrop-blur-md animate-fadeIn"
           onClick={() => setSelectedInvoice(null)}
         >
           <div
-            className="w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl border transition-all"
+            className="w-[98.5vw] max-w-[98.5vw] h-[94vh] max-h-[94vh] rounded-2xl overflow-hidden shadow-2xl border transition-all flex flex-col"
             style={{
               backgroundColor: '#071325',
               borderColor: '#d4af37',
               fontFamily: '"Switzer", sans-serif',
-              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 30px rgba(212, 175, 55, 0.25)',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.25)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Modale */}
             <div
-              className="px-6 py-4 flex items-center justify-between border-b"
+              className="px-6 py-4 flex items-center justify-between border-b flex-shrink-0"
               style={{
                 backgroundColor: '#0b1c36',
                 borderColor: 'rgba(212, 175, 55, 0.35)',
@@ -3261,7 +4584,7 @@ export default function Dashboard() {
                       {selectedInvoice.status === 'Saldato' || (selectedInvoice.balance || 0) === 0 ? 'Saldato' : 'In attesa saldo'}
                     </span>
                   </div>
-                  <p className="text-xs text-amber-200/70 font-mono">
+                  <p className="text-xs text-amber-200/70">
                     Contratto {selectedInvoice.contractCode || 'DADO Studio'} • Data emissione: {selectedInvoice.date}
                   </p>
                 </div>
@@ -3276,10 +4599,10 @@ export default function Dashboard() {
             </div>
 
             {/* Corpo Modale */}
-            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-slate-200">
+            <div className="flex-1 min-h-0 p-6 sm:p-8 space-y-5 overflow-y-auto text-slate-200">
               {/* Cliente & Progetto */}
               <div className="bg-[#0b1c36] p-4 rounded-xl border border-[#d4af37]/20">
-                <span className="text-[11px] font-mono uppercase text-[#d4af37] block font-bold tracking-wider">
+                <span className="text-[11px] uppercase text-[#d4af37] block font-bold tracking-wider">
                   Cliente & Oggetto
                 </span>
                 <div className="text-base font-bold text-white mt-0.5">
@@ -3293,25 +4616,25 @@ export default function Dashboard() {
               {/* Riquadro Dati Finanziari */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div className="bg-[#0b1c36] p-3 rounded-xl border border-[#d4af37]/20">
-                  <span className="text-[10.5px] text-slate-400 block font-mono">Imponibile Netto</span>
+                  <span className="text-[10.5px] text-slate-400 block">Imponibile Netto</span>
                   <span className="text-sm font-bold text-white">
                     € {(selectedInvoice.amount || 0).toLocaleString('it-IT')}
                   </span>
                 </div>
                 <div className="bg-[#0b1c36] p-3 rounded-xl border border-[#d4af37]/20">
-                  <span className="text-[10.5px] text-slate-400 block font-mono">IVA 22%</span>
+                  <span className="text-[10.5px] text-slate-400 block">IVA 22%</span>
                   <span className="text-sm font-bold text-slate-300">
                     € {(selectedInvoice.vat || Math.round((selectedInvoice.amount || 0) * 0.22)).toLocaleString('it-IT')}
                   </span>
                 </div>
                 <div className="bg-[#0b1c36] p-3 rounded-xl border border-[#d4af37]/20">
-                  <span className="text-[10.5px] text-slate-400 block font-mono">Totale Lordo</span>
+                  <span className="text-[10.5px] text-slate-400 block">Totale Lordo</span>
                   <span className="text-sm font-black text-[#fbbf24]">
                     € {(selectedInvoice.totalWithVat || Math.round((selectedInvoice.amount || 0) * 1.22)).toLocaleString('it-IT')}
                   </span>
                 </div>
                 <div className="bg-[#0b1c36] p-3 rounded-xl border border-[#d4af37]/20">
-                  <span className="text-[10.5px] text-slate-400 block font-mono">Saldo Dovuto</span>
+                  <span className="text-[10.5px] text-slate-400 block">Saldo Dovuto</span>
                   <span className={`text-sm font-black ${
                     (selectedInvoice.balance || 0) > 0 ? 'text-amber-400' : 'text-emerald-400'
                   }`}>
@@ -3323,15 +4646,15 @@ export default function Dashboard() {
               {/* Dettagli Pagamento & Fiscali */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="bg-[#091830] p-3 rounded-xl border border-white/10 space-y-1">
-                  <span className="text-[10.5px] font-mono uppercase text-slate-400 block">Condizioni Pagamento</span>
+                  <span className="text-[10.5px] uppercase text-slate-400 block">Condizioni Pagamento</span>
                   <div><strong>Scadenza:</strong> <span className="text-amber-200">{selectedInvoice.dueDate}</span></div>
                   <div><strong>Metodo:</strong> {selectedInvoice.paymentMethod}</div>
                   <div><strong>Acconto già versato:</strong> € {(selectedInvoice.deposit || 0).toLocaleString('it-IT')}</div>
                 </div>
                 <div className="bg-[#091830] p-3 rounded-xl border border-white/10 space-y-1">
-                  <span className="text-[10.5px] font-mono uppercase text-slate-400 block">Dati Fatturazione Elettronica</span>
-                  <div><strong>Codice SDI:</strong> <span className="font-mono text-cyan-300">{selectedInvoice.sdi}</span></div>
-                  <div><strong>PEC:</strong> <span className="font-mono text-cyan-300">{selectedInvoice.pec}</span></div>
+                  <span className="text-[10.5px] uppercase text-slate-400 block">Dati Fatturazione Elettronica</span>
+                  <div><strong>Codice SDI:</strong> <span className=" text-cyan-300">{selectedInvoice.sdi}</span></div>
+                  <div><strong>PEC:</strong> <span className=" text-cyan-300">{selectedInvoice.pec}</span></div>
                   <div><strong>Stato fiscale:</strong> Emessa & Trasmessa SDI</div>
                 </div>
               </div>
@@ -3339,7 +4662,7 @@ export default function Dashboard() {
               {/* Set & Attrezzatura collegata */}
               {(selectedInvoice.shootingDates || selectedInvoice.materials) && (
                 <div className="bg-[#091830] p-3 rounded-xl border border-white/10 text-xs space-y-1">
-                  <span className="text-[10.5px] font-mono uppercase text-[#d4af37] block font-bold">
+                  <span className="text-[10.5px] uppercase text-[#d4af37] block font-bold">
                     Produzione Studio & Set Collegato
                   </span>
                   {selectedInvoice.shootingDates && (
@@ -3354,21 +4677,32 @@ export default function Dashboard() {
 
             {/* Footer Modale con Azioni */}
             <div
-              className="px-6 py-4 flex flex-wrap items-center justify-between gap-3 border-t"
+              className="px-6 py-4 flex flex-wrap items-center justify-between gap-3 border-t flex-shrink-0"
               style={{
                 backgroundColor: '#0b1c36',
                 borderColor: 'rgba(212, 175, 55, 0.35)',
               }}
             >
               <div className="flex items-center gap-2">
-                {(selectedInvoice.balance || 0) > 0 && selectedInvoice.status !== 'Saldato' && (
+                {(selectedInvoice.balance || 0) > 0 && selectedInvoice.status !== 'Saldato' ? (
                   <button
                     type="button"
                     onClick={() => handleMarkInvoicePaid(selectedInvoice.id)}
                     className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+                    title="Segna la fattura come saldata al 100%"
                   >
                     <CheckCircle2 size={15} />
                     <span>Segna come Saldato</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleUnmarkInvoicePaid(selectedInvoice.id)}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-600/90 hover:bg-amber-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer border border-amber-400/40"
+                    title="Annulla il saldo 100% e ripristina la fattura come da saldare"
+                  >
+                    <RotateCcw size={15} />
+                    <span>Annulla Saldo 100%</span>
                   </button>
                 )}
                 <button
@@ -3396,167 +4730,354 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── Modale Creazione Nuova Fattura (Blu Notte & Oro) ── */}
+      {/* ── Modale Creazione Nuova Fattura (Blu Notte & Oro) — Estesa come le altre card ── */}
       {showNewInvoiceModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn"
-          onClick={() => setShowNewInvoiceModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-2.5 bg-black/80 backdrop-blur-md animate-fadeIn"
+          onClick={() => {
+            setShowInvoiceCompanyDropdown(false)
+            setShowNewInvoiceModal(false)
+          }}
         >
           <div
-            className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border transition-all"
+            className="w-[98.5vw] max-w-[98.5vw] h-[94vh] max-h-[94vh] rounded-2xl overflow-hidden shadow-2xl border transition-all flex flex-col"
             style={{
               backgroundColor: '#071325',
               borderColor: '#d4af37',
               fontFamily: '"Switzer", sans-serif',
-              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 30px rgba(212, 175, 55, 0.25)',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.25)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className="px-6 py-4 flex items-center justify-between border-b"
+              className="px-6 py-4 flex items-center justify-between border-b rounded-t-2xl flex-shrink-0"
               style={{
                 backgroundColor: '#0b1c36',
                 borderColor: 'rgba(212, 175, 55, 0.35)',
               }}
             >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/40 flex items-center justify-center">
+                  <Receipt size={22} className="text-[#fbbf24]" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black tracking-wide text-white uppercase">
+                    Nuova Fattura Studio DADO
+                  </h3>
+                  <p className="text-xs text-amber-200/70">
+                    Emissione nuova fattura collegata alle aziende e commesse del database CRM
+                  </p>
+                </div>
+              </div>
               <div className="flex items-center gap-2.5">
-                <Receipt size={20} className="text-[#fbbf24]" />
-                <h3 className="text-base font-black text-white">
-                  Nuova Fattura Studio DADO
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowNewInvoiceModal(false)}
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-xs font-bold transition-all cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateInvoice} className="p-6 space-y-3.5 text-xs text-slate-200">
-              <div>
-                <label className="block text-[11px] font-mono text-[#d4af37] font-bold uppercase mb-1">
-                  Cliente / Azienda *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Es. Alfa Motors Srl"
-                  value={newInvoiceForm.companyName}
-                  onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, companyName: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#0b1c36] border border-[#d4af37]/30 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-mono text-[#d4af37] font-bold uppercase mb-1">
-                    Imponibile Netto (€) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    placeholder="Es. 3500"
-                    value={newInvoiceForm.amount}
-                    onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, amount: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#0b1c36] border border-[#d4af37]/30 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-mono text-slate-400 uppercase mb-1">
-                    Acconto Versato (€)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Es. 1000"
-                    value={newInvoiceForm.deposit}
-                    onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, deposit: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-mono text-slate-400 uppercase mb-1">
-                    Scadenza Pagamento
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Es. 30/11/2026"
-                    value={newInvoiceForm.dueDate}
-                    onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, dueDate: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-mono text-slate-400 uppercase mb-1">
-                    Metodo di Pagamento
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Bonifico 30gg d.f."
-                    value={newInvoiceForm.paymentMethod}
-                    onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, paymentMethod: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-mono text-slate-400 uppercase mb-1">
-                    Codice SDI
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="0000000"
-                    value={newInvoiceForm.sdi}
-                    onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, sdi: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-mono text-slate-400 uppercase mb-1">
-                    PEC
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="azienda@pec.it"
-                    value={newInvoiceForm.pec}
-                    onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, pec: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono text-slate-400 uppercase mb-1">
-                  Descrizione / Commessa
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Descrizione del servizio di produzione foto/video..."
-                  value={newInvoiceForm.description}
-                  onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24]"
-                />
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
-                  onClick={() => setShowNewInvoiceModal(false)}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-bold transition-all cursor-pointer"
+                  onClick={() => {
+                    setShowInvoiceCompanyDropdown(false)
+                    setShowNewInvoiceModal(false)
+                    setShowInvoiceMenuModal(true)
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                >
+                  ← Torna a Elenco Fatture
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowInvoiceCompanyDropdown(false)
+                    setShowNewInvoiceModal(false)
+                  }}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition-all cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateInvoice} className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-8 flex flex-col justify-between gap-4 text-xs sm:text-sm text-slate-200">
+              <div className="space-y-5 max-w-5xl w-full mx-auto">
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs text-[#d4af37] font-bold uppercase tracking-wide">
+                      Cliente / Azienda *
+                    </label>
+                    {matchedInvoiceCompany && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-xs font-bold text-emerald-300">
+                        ✓ Dati database CRM inseriti ({matchedInvoiceCompany.companyName})
+                      </span>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    autoComplete="off"
+                    placeholder="Digita le prime lettere dell'azienda (es. Fashion, Officine, Solaris...)"
+                    value={newInvoiceForm.companyName}
+                    onFocus={() => {
+                      setShowInvoiceCompanyDropdown(true)
+                      setHighlightedCompanyIdx(0)
+                    }}
+                    onChange={(e) => {
+                      const typed = e.target.value
+                      setShowInvoiceCompanyDropdown(true)
+                      setHighlightedCompanyIdx(0)
+                      const trimmed = typed.trim()
+                      if (!trimmed) {
+                        setMatchedInvoiceCompany(null)
+                        setNewInvoiceForm({
+                          companyId: '',
+                          companyName: '',
+                          amount: '',
+                          deposit: '',
+                          dueDate: '',
+                          paymentMethod: 'Bonifico Bancario 30gg d.f.',
+                          description: '',
+                          sdi: '0000000',
+                          pec: '',
+                          contractCode: '',
+                          shootingDates: '',
+                          location: '',
+                          materials: [],
+                        })
+                        return
+                      }
+                      const matches = getMatchingInvoiceCompanies(trimmed)
+                      if (trimmed.length >= 2 && matches.length > 0) {
+                        const best = matches[0]
+                        setMatchedInvoiceCompany(best)
+                        setNewInvoiceForm({
+                          companyId: best.companyId || '',
+                          companyName: typed,
+                          amount: String(best.amount ?? ''),
+                          deposit: String(best.deposit ?? 0),
+                          dueDate: best.dueDate || '30/11/2026',
+                          paymentMethod: best.paymentMethod || 'Bonifico Bancario 30gg d.f.',
+                          sdi: best.sdi || '0000000',
+                          pec: best.pec || '',
+                          description: best.description || '',
+                          contractCode: best.contractCode || '',
+                          shootingDates: best.shootingDates || '',
+                          location: best.location || '',
+                          materials: best.materials || [],
+                        })
+                      } else {
+                        setMatchedInvoiceCompany(null)
+                        setNewInvoiceForm({ ...newInvoiceForm, companyName: typed })
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (!showInvoiceCompanyDropdown || matchingInvoiceCompanies.length === 0) return
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault()
+                        setHighlightedCompanyIdx(prev => (prev + 1) % Math.min(matchingInvoiceCompanies.length, 6))
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault()
+                        const maxLen = Math.min(matchingInvoiceCompanies.length, 6)
+                        setHighlightedCompanyIdx(prev => (prev - 1 + maxLen) % maxLen)
+                      } else if (e.key === 'Enter' && showInvoiceCompanyDropdown) {
+                        const chosen = matchingInvoiceCompanies[highlightedCompanyIdx] || matchingInvoiceCompanies[0]
+                        if (chosen) {
+                          e.preventDefault()
+                          applyCompanyToInvoiceForm(chosen, true)
+                          setShowInvoiceCompanyDropdown(false)
+                        }
+                      } else if (e.key === 'Tab') {
+                        const chosen = matchingInvoiceCompanies[highlightedCompanyIdx] || matchingInvoiceCompanies[0]
+                        if (chosen && newInvoiceForm.companyName.trim().length >= 1) {
+                          applyCompanyToInvoiceForm(chosen, true)
+                        }
+                        setShowInvoiceCompanyDropdown(false)
+                      } else if (e.key === 'Escape') {
+                        setShowInvoiceCompanyDropdown(false)
+                      }
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setShowInvoiceCompanyDropdown(false)
+                        const q = (newInvoiceForm.companyName || '').trim()
+                        if (q.length >= 2) {
+                          const matches = getMatchingInvoiceCompanies(q)
+                          if (matches.length > 0) {
+                            applyCompanyToInvoiceForm(matches[0], true)
+                          }
+                        }
+                      }, 160)
+                    }}
+                    className="w-full px-4 py-3 rounded-xl bg-[#0b1c36] border border-[#d4af37]/40 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24] text-sm"
+                  />
+
+                  {/* Menu a tendina suggerimenti aziende dal database CRM */}
+                  {showInvoiceCompanyDropdown && matchingInvoiceCompanies.length > 0 && (
+                    <div
+                      className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl border overflow-hidden shadow-2xl max-h-64 overflow-y-auto"
+                      style={{
+                        backgroundColor: '#09172e',
+                        borderColor: '#d4af37',
+                        boxShadow: '0 18px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(212, 175, 55, 0.25)',
+                      }}
+                    >
+                      <div className="px-3.5 py-2 bg-[#0b1c36] border-b border-[#d4af37]/25 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-[#fbbf24]">
+                        <span>Aziende nel Database CRM ({matchingInvoiceCompanies.length})</span>
+                        <span className="text-slate-400 font-normal normal-case">Clicca o premi Invio per autocompilare</span>
+                      </div>
+                      {matchingInvoiceCompanies.slice(0, 6).map((comp, idx) => {
+                        const isHighlighted = idx === highlightedCompanyIdx
+                        return (
+                          <button
+                            key={comp.companyId || comp.companyName}
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault()
+                              applyCompanyToInvoiceForm(comp, true)
+                              setShowInvoiceCompanyDropdown(false)
+                            }}
+                            onMouseEnter={() => setHighlightedCompanyIdx(idx)}
+                            className={`w-full text-left px-4 py-3 flex items-center justify-between gap-3 border-b border-white/5 last:border-b-0 transition-colors cursor-pointer ${
+                              isHighlighted ? 'bg-[#d4af37]/20' : 'hover:bg-white/5'
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-white text-sm truncate">
+                                  {comp.companyName}
+                                </span>
+                                {comp.sector && (
+                                  <span className="px-2 py-0.5 rounded bg-white/10 text-[11px] text-slate-300 shrink-0">
+                                    {comp.sector}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-slate-400 truncate mt-0.5">
+                                Ref: <span className="text-slate-200">{comp.referent}</span> · SDI: <span className="text-[#fbbf24]">{comp.sdi}</span> · PEC: <span className="text-slate-300">{comp.pec}</span>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <div className="text-sm font-black text-[#fbbf24]">
+                                € {Number(comp.amount || 0).toLocaleString('it-IT')}
+                              </div>
+                              <div className="text-xs text-emerald-400 font-semibold">
+                                Acc. € {Number(comp.deposit || 0).toLocaleString('it-IT')}
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-[#d4af37] font-bold uppercase mb-1.5">
+                      Imponibile Netto (€) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      placeholder="Es. 3500"
+                      value={newInvoiceForm.amount}
+                      onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, amount: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-[#0b1c36] border border-[#d4af37]/30 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">
+                      Acconto Versato (€)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Es. 1000"
+                      value={newInvoiceForm.deposit}
+                      onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, deposit: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24] text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">
+                      Scadenza Pagamento
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Es. 30/11/2026"
+                      value={newInvoiceForm.dueDate}
+                      onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, dueDate: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">
+                      Metodo di Pagamento
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Bonifico 30gg d.f."
+                      value={newInvoiceForm.paymentMethod}
+                      onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, paymentMethod: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24] text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">
+                      Codice SDI
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="0000000"
+                      value={newInvoiceForm.sdi}
+                      onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, sdi: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">
+                      PEC
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="azienda@pec.it"
+                      value={newInvoiceForm.pec}
+                      onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, pec: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24] text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">
+                    Descrizione / Commessa
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="Descrizione del servizio di produzione foto/video..."
+                    value={newInvoiceForm.description}
+                    onChange={(e) => setNewInvoiceForm({ ...newInvoiceForm, description: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-[#0b1c36] border border-white/20 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#fbbf24] text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#d4af37]/25 max-w-5xl w-full mx-auto flex items-center justify-end gap-3 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowInvoiceCompanyDropdown(false)
+                    setShowNewInvoiceModal(false)
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 text-xs sm:text-sm font-bold transition-all cursor-pointer"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#d4af37] hover:bg-[#fbbf24] text-[#071325] text-xs font-black transition-all shadow-md cursor-pointer hover:scale-105"
+                  className="px-6 py-2.5 rounded-xl bg-[#d4af37] hover:bg-[#fbbf24] text-[#071325] text-xs sm:text-sm font-black transition-all shadow-md cursor-pointer hover:scale-105"
                 >
                   Emetti Fattura
                 </button>
@@ -3568,9 +5089,13 @@ export default function Dashboard() {
 
       {/* ── Modale Configurazione AI & Chiave API OpenAI ── */}
       {showAiConfigModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+        <div 
+          onClick={() => setShowAiConfigModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn cursor-pointer"
+        >
           <div
-            className="w-full max-w-lg bg-[#0f172a] border border-slate-700 text-white p-6 shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg bg-[#0f172a] border border-slate-700 text-white p-6 shadow-2xl relative cursor-default"
             style={{
               borderRadius: '0px',
               fontFamily: '"Switzer", sans-serif',
@@ -3594,16 +5119,26 @@ export default function Dashboard() {
 
             <form onSubmit={handleSaveAiConfig} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5 text-[11px]">
-                  OpenAI API Key (sk-...)
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-slate-300 font-bold uppercase tracking-wider text-[11px]">
+                    Google Gemini API Key (AIzaSy...)
+                  </label>
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] text-sky-400 hover:text-sky-300 underline"
+                  >
+                    Ottieni chiave gratuita su Google AI Studio ↗
+                  </a>
+                </div>
                 <div className="relative">
                   <input
                     type={showApiKeyText ? 'text' : 'password'}
-                    value={inputApiKey}
-                    onChange={(e) => setInputApiKey(e.target.value)}
-                    placeholder={aiConfig.hasKey ? `Attiva: ${aiConfig.maskedKey} (incolla una nuova per sostituire)` : 'Incolla la tua chiave sk-proj-...'}
-                    className="w-full px-3 py-2 pr-10 bg-slate-900 border border-slate-700 text-white placeholder:text-slate-400 rounded-none focus:outline-none focus:border-[#38bdf8] font-mono text-xs"
+                    value={inputGeminiKey}
+                    onChange={(e) => setInputGeminiKey(e.target.value)}
+                    placeholder={aiConfig.hasGeminiKey ? `Chiave attiva: ${aiConfig.geminiKey || 'Configurata'} (incolla per sostituire)` : 'Incolla la tua chiave Google Gemini (AIzaSy...)'}
+                    className="w-full px-3 py-2 pr-10 bg-slate-900 border border-slate-700 text-white placeholder:text-slate-400 rounded-none focus:outline-none focus:border-[#38bdf8] text-xs"
                   />
                   <button
                     type="button"
@@ -3614,59 +5149,65 @@ export default function Dashboard() {
                   </button>
                 </div>
                 <p className="mt-1 text-[10.5px] text-slate-400 leading-normal">
-                  La chiave viene memorizzata nel file <code>.env</code> locale. Con una chiave OpenAI attiva, le richieste vengono elaborate direttamente da OpenAI senza passare da modelli locali.
+                  La chiave si collega direttamente al database CRM di DADO Creative Studio con una finestra di contesto di 1 milione di token per analisi istantanee.
                 </p>
               </div>
 
               <div>
                 <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5 text-[11px]">
-                  Modello da Utilizzare
+                  Modello Google Gemini da Utilizzare
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
-                    onClick={() => setInputModel('gpt-4o')}
+                    onClick={() => setInputModel('gemini-2.5-flash')}
                     className={`p-2.5 border text-left rounded-none transition-all cursor-pointer ${
-                      inputModel === 'gpt-4o'
+                      inputModel === 'gemini-2.5-flash'
                         ? 'bg-sky-950/70 border-sky-400 text-white'
                         : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <div className="font-bold text-xs text-white">GPT-4o (Consigliato)</div>
-                    <div className="text-[10px] text-slate-300 mt-0.5">Massima intelligenza, italiano perfetto e audit complessi</div>
+                    <div className="font-bold text-xs text-white">Gemini 2.5 Flash</div>
+                    <div className="text-[10px] text-slate-300 mt-0.5">Consigliato: velocissimo (&lt;1s), 1M token, perfetto per dati CRM e traduzioni</div>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setInputModel('gpt-4o-mini')}
+                    onClick={() => setInputModel('gemini-2.5-flash-lite')}
                     className={`p-2.5 border text-left rounded-none transition-all cursor-pointer ${
-                      inputModel === 'gpt-4o-mini'
+                      inputModel === 'gemini-2.5-flash-lite'
                         ? 'bg-sky-950/70 border-sky-400 text-white'
                         : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <div className="font-bold text-xs text-white">GPT-4o-mini</div>
-                    <div className="text-[10px] text-slate-300 mt-0.5">Ultra-veloce, economico ed eccellente nella grammatica</div>
+                    <div className="font-bold text-xs text-white">Gemini 2.5 Flash Lite</div>
+                    <div className="text-[10px] text-slate-300 mt-0.5">Ultra-leggero e minima latenza di risposta</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInputModel('gemini-2.5-pro')}
+                    className={`p-2.5 border text-left rounded-none transition-all cursor-pointer ${
+                      inputModel === 'gemini-2.5-pro'
+                        ? 'bg-sky-950/70 border-sky-400 text-white'
+                        : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="font-bold text-xs text-white">Gemini 2.5 Pro</div>
+                    <div className="text-[10px] text-slate-300 mt-0.5">Massimo ragionamento logico per audit complessi e strategie</div>
                   </button>
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-none">
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={inputDisableOllama}
-                    onChange={(e) => setInputDisableOllama(e.target.checked)}
-                    className="w-4 h-4 rounded-none accent-[#0284c7]"
-                  />
-                  <div>
-                    <span className="font-bold text-white text-[11.5px] block">
-                      Disabilita completamente Ollama locale
-                    </span>
-                    <span className="text-[10.5px] text-slate-400 block">
-                      Evita risposte da modelli piccoli a 3 miliardi di parametri, usando solo OpenAI Cloud o fallback interno.
-                    </span>
-                  </div>
+              <div>
+                <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1 text-[10.5px]">
+                  Backup Alternativo: OpenAI API Key (Opzionale)
                 </label>
+                <input
+                  type="password"
+                  value={inputOpenaiKey}
+                  onChange={(e) => setInputOpenaiKey(e.target.value)}
+                  placeholder="Opzionale: sk-proj-... (usata solo se Gemini non è impostato)"
+                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 rounded-none focus:outline-none focus:border-slate-600 text-xs"
+                />
               </div>
 
               {configSuccess && (
@@ -3689,7 +5230,7 @@ export default function Dashboard() {
                   disabled={configSaving}
                   className="px-4 py-1.5 rounded-none bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold cursor-pointer transition-all shadow-sm"
                 >
-                  {configSaving ? 'Salvataggio...' : 'Salva e Attiva Motore'}
+                  {configSaving ? 'Salvataggio...' : 'Salva e Collega a Gemini'}
                 </button>
               </div>
             </form>
@@ -3715,11 +5256,11 @@ export default function Dashboard() {
 
         return (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-fadeIn"
+            className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-2.5 bg-black/80 backdrop-blur-md animate-fadeIn"
             onClick={() => setShowActiveClientsModal(false)}
           >
             <div
-              className="w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl border border-slate-700 bg-[#0f172a] text-slate-100 flex flex-col max-h-[90vh]"
+              className="w-[98.5vw] max-w-[98.5vw] h-[94vh] max-h-[94vh] rounded-2xl overflow-hidden shadow-2xl border border-slate-700 bg-[#0f172a] text-slate-100 flex flex-col"
               style={{
                 fontFamily: '"Switzer", sans-serif',
                 boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(16, 185, 129, 0.15)',
@@ -3741,7 +5282,7 @@ export default function Dashboard() {
                         11 In Portafoglio
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 font-mono">
+                    <p className="text-xs text-slate-400">
                       DADO Creative Studio • Storico relazioni, primo contatto, ultima email & contratti vigenti
                     </p>
                   </div>
@@ -3775,21 +5316,21 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Corpo Finestra Diviso a 2 Colonne */}
-              <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
-                {/* Colonna Sinistra: Lista 11 Clienti */}
+              {/* Corpo Finestra Diviso a 2 Colonne Esteso Orizzontalmente */}
+              <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden w-full">
+                {/* Colonna Sinistra: Lista 11 Clienti (Senza riquadrini "Attivo") */}
                 <div
-                  className="w-full md:w-[280px] border-r border-slate-700/80 bg-[#0b1424] flex flex-col flex-shrink-0"
+                  className="w-full md:w-[340px] lg:w-[380px] border-r border-slate-700/80 bg-[#0b1424] flex flex-col flex-shrink-0"
                   style={{ scrollbarWidth: 'thin' }}
                 >
                   <div className="px-3.5 py-2.5 bg-[#0e192c] border-b border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
-                    <span className="font-mono uppercase font-bold text-[11px] text-emerald-400">
+                    <span className=" uppercase font-bold text-[11px] text-emerald-400">
                       Elenco Clienti ({filteredClients.length})
                     </span>
                     <span className="text-[10.5px]">Seleziona per dettagli</span>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                  <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
                     {filteredClients.length === 0 ? (
                       <div className="p-4 text-center text-xs text-slate-500">
                         Nessun cliente corrisponde alla ricerca
@@ -3801,28 +5342,25 @@ export default function Dashboard() {
                           <div
                             key={client.id}
                             onClick={() => setSelectedClientIndex(idx)}
-                            className={`p-2.5 rounded-xl transition-all cursor-pointer border flex flex-col gap-0.5 text-left ${
+                            className={`p-3 rounded-xl transition-all cursor-pointer border flex flex-col gap-1 text-left ${
                               isSelected
                                 ? 'bg-[#152843] border-emerald-500 shadow-md text-white'
                                 : 'bg-[#0f1d33]/50 border-slate-800 hover:border-slate-600 hover:bg-[#13223b] text-slate-300'
                             }`}
                           >
                             <div className="flex items-center justify-between gap-1">
-                              <span className="font-bold text-[13px] truncate text-white">
+                              <span className="font-bold text-[14px] truncate text-white">
                                 {client.name}
                               </span>
-                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
-                                Attivo
-                              </span>
                             </div>
-                            <span className="text-[11px] text-slate-400 truncate">
+                            <span className="text-[11.5px] text-slate-400 truncate">
                               {client.industry}
                             </span>
-                            <div className="flex items-center justify-between text-[10.5px] pt-1 text-slate-400 border-t border-white/5 mt-0.5">
-                              <span className="text-emerald-400 truncate font-medium">
+                            <div className="flex items-center justify-between text-[11.5px] pt-1 text-slate-400 border-t border-white/5 mt-0.5">
+                              <span className="text-emerald-400 truncate font-semibold">
                                 {client.contactPerson.name}
                               </span>
-                              <span className="font-mono text-slate-500">
+                              <span className="text-slate-400 font-medium">
                                 {client.contract.code}
                               </span>
                             </div>
@@ -3836,19 +5374,16 @@ export default function Dashboard() {
                 {/* Colonna Destra: Dossier Approfondito del Cliente Selezionato */}
                 {currentClient && (
                   <div
-                    className="flex-1 min-h-0 overflow-y-auto p-6 space-y-4 bg-[#0d1829] select-text"
+                    className="flex-1 min-w-0 min-h-0 overflow-y-auto p-6 space-y-4 bg-[#0d1829] select-text w-full"
                     style={{ scrollbarWidth: 'thin', scrollbarColor: '#22c55e #0d1829' }}
                   >
-                    {/* Header Scheda Cliente */}
+                    {/* Header Scheda Cliente (Senza riquadrino "CLIENTE ATTIVO") */}
                     <div className="p-4 rounded-xl bg-[#112036] border border-slate-700/80 flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2.5">
                           <h2 className="text-xl font-black text-white">
                             {currentClient.name}
                           </h2>
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-600/50">
-                            CLIENTE ATTIVO
-                          </span>
                         </div>
                         <p className="text-sm md:text-base text-slate-300 mt-1 flex items-center gap-2 flex-wrap">
                           <span>Settore:</span>
@@ -3856,7 +5391,7 @@ export default function Dashboard() {
                             {currentClient.industry}
                           </strong>
                           <span className="text-slate-500">•</span>
-                          <span className="text-xs text-slate-400 font-mono">ID CRM: {currentClient.id}</span>
+                          <span className="text-xs text-slate-400">ID CRM: {currentClient.id}</span>
                         </p>
                       </div>
 
@@ -3875,21 +5410,21 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between border-b border-sky-500/20 pb-2.5 flex-wrap gap-2">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">🎯</span>
-                          <span className="text-sm font-black uppercase tracking-wider text-sky-400 font-mono">
+                          <span className="text-sm font-black uppercase tracking-wider text-sky-400">
                             1. STORICO RICHIESTA & MOTIVO DEL PRIMO CONTATTO
                           </span>
                         </div>
-                        <span className="text-xs md:text-sm font-mono text-slate-300 bg-sky-950/80 px-2.5 py-1 rounded-lg border border-sky-600/30">
+                        <span className="text-xs md:text-sm text-slate-300 bg-sky-950/80 px-2.5 py-1 rounded-lg border border-sky-600/30">
                           Data primo contatto: <strong className="text-sky-300 font-black text-sm">{currentClient.firstContact.date}</strong>
                         </span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                         <div className="bg-[#0b1626] p-3.5 rounded-xl border border-white/10">
-                          <span className="text-xs font-mono uppercase text-slate-400 block font-bold">Canale di Acquisizione</span>
+                          <span className="text-xs uppercase text-slate-400 block font-bold">Canale di Acquisizione</span>
                           <span className="font-black text-base text-sky-300 mt-1 block">{currentClient.firstContact.channel}</span>
                         </div>
                         <div className="sm:col-span-2 bg-[#0b1626] p-3.5 rounded-xl border border-white/10">
-                          <span className="text-xs font-mono uppercase text-slate-400 block font-bold">Motivo & Richiesta Iniziale del Cliente</span>
+                          <span className="text-xs uppercase text-slate-400 block font-bold">Motivo & Richiesta Iniziale del Cliente</span>
                           <p className="text-slate-100 mt-1 text-sm md:text-base leading-relaxed font-semibold">
                             {currentClient.firstContact.notes}
                           </p>
@@ -3897,46 +5432,49 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Riquadro 2: L'Ultima Email (Anche Referente) */}
+                    {/* Riquadro 2: L'Ultima Email (Anche Referente con Numero esteso subito sopra l'Email) */}
                     <div className="p-4 rounded-xl bg-[#0f2438] border border-emerald-500/30 space-y-2.5">
                       <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2.5 flex-wrap gap-2">
                         <div className="flex items-center gap-2">
                           <Mail size={18} className="text-emerald-400" />
-                          <span className="text-sm font-black uppercase tracking-wider text-emerald-400 font-mono">
+                          <span className="text-sm font-black uppercase tracking-wider text-emerald-400">
                             2. L'ULTIMA EMAIL & REFERENTE AZIENDALE
                           </span>
                         </div>
-                        <span className="text-xs md:text-sm font-mono text-slate-300 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-600/30">
+                        <span className="text-xs md:text-sm text-slate-300 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-600/30">
                           Ricevuta il: <strong className="text-emerald-300 font-black text-sm">{currentClient.lastEmail.date}</strong>
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <div className="bg-[#091724] p-3.5 rounded-xl border border-white/10 space-y-1.5">
-                          <span className="text-xs font-mono uppercase text-slate-400 block font-bold">Referente Aziendale Principale</span>
+                        <div className="bg-[#091724] p-3.5 rounded-xl border border-white/10 space-y-2">
+                          <span className="text-xs uppercase text-slate-400 block font-bold">Referente Aziendale Principale</span>
                           <div className="text-base md:text-lg font-black text-white">
                             {currentClient.contactPerson.name}
                           </div>
                           <div className="text-slate-200 text-xs md:text-sm">
                             Ruolo: <strong className="text-emerald-300 font-bold">{currentClient.contactPerson.role}</strong>
                           </div>
-                          <div className="text-slate-300 text-xs font-mono pt-1">
-                            Email: <span className="text-cyan-300 font-bold">{currentClient.email}</span>
-                          </div>
+                          {/* Numero esteso subito sopra l'indirizzo email */}
                           {currentClient.phone && (
-                            <div className="text-slate-300 text-xs font-mono">
-                              Tel: <span className="text-slate-100 font-bold">{currentClient.phone}</span>
+                            <div className="w-full px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-700/40 text-emerald-300 text-xs md:text-sm font-bold flex items-center gap-2">
+                              <Phone size={14} className="text-emerald-400 shrink-0" />
+                              <span>Tel: {currentClient.phone}</span>
                             </div>
                           )}
+                          <div className="w-full px-3 py-1.5 rounded-lg bg-slate-900/90 border border-sky-700/40 text-cyan-300 text-xs md:text-sm font-bold flex items-center gap-2">
+                            <Mail size={14} className="text-sky-400 shrink-0" />
+                            <span className="truncate">Email: {currentClient.email}</span>
+                          </div>
                         </div>
 
                         <div className="bg-[#091724] p-3.5 rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
                           <div>
-                            <span className="text-xs font-mono uppercase text-slate-400 block font-bold">Oggetto Ultima Email</span>
+                            <span className="text-xs uppercase text-slate-400 block font-bold">Oggetto Ultima Email</span>
                             <div className="font-bold text-slate-100 text-sm mt-0.5">
                               "{currentClient.lastEmail.subject}"
                             </div>
-                            <div className="text-xs text-slate-400 font-mono mt-0.5">
+                            <div className="text-xs text-slate-400 mt-0.5">
                               Da: {currentClient.lastEmail.referent} ({currentClient.lastEmail.email})
                             </div>
                           </div>
@@ -3952,37 +5490,37 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between border-b border-amber-500/20 pb-2">
                         <div className="flex items-center gap-2">
                           <FileText size={16} className="text-[#fbbf24]" />
-                          <span className="text-xs font-black uppercase tracking-wider text-[#fbbf24] font-mono">
+                          <span className="text-xs font-black uppercase tracking-wider text-[#fbbf24]">
                             3. L'ULTIMO CONTRATTO VIGENTE
                           </span>
                         </div>
-                        <span className="text-[11px] font-mono text-amber-300 font-bold">
+                        <span className="text-[11px] text-amber-300 font-bold">
                           {currentClient.contract.code}
                         </span>
                       </div>
 
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
                         <div className="bg-[#0f1728] p-2.5 rounded-lg border border-white/5">
-                          <span className="text-[10px] font-mono uppercase text-slate-400 block">Stato Contratto</span>
+                          <span className="text-[10px] font-semibold uppercase text-slate-400 block">Stato Contratto</span>
                           <span className="font-bold text-emerald-400 mt-0.5 block">{currentClient.contract.status}</span>
                         </div>
                         <div className="bg-[#0f1728] p-2.5 rounded-lg border border-white/5">
-                          <span className="text-[10px] font-mono uppercase text-slate-400 block">Data Sottoscrizione</span>
+                          <span className="text-[10px] font-semibold uppercase text-slate-400 block">Data Sottoscrizione</span>
                           <span className="font-bold text-slate-200 mt-0.5 block">{currentClient.contract.signedDate}</span>
                         </div>
                         <div className="bg-[#0f1728] p-2.5 rounded-lg border border-white/5">
-                          <span className="text-[10px] font-mono uppercase text-slate-400 block">Valore Economico</span>
+                          <span className="text-[10px] font-semibold uppercase text-slate-400 block">Valore Economico</span>
                           <span className="font-black text-[#fbbf24] mt-0.5 block">€ {currentClient.contract.amount.toLocaleString('it-IT')}</span>
                         </div>
                         <div className="bg-[#0f1728] p-2.5 rounded-lg border border-white/5">
-                          <span className="text-[10px] font-mono uppercase text-slate-400 block">Fattura Collegata</span>
-                          <span className="font-mono font-bold text-cyan-300 mt-0.5 block">{currentClient.contract.invoiceNumber}</span>
+                          <span className="text-[10px] font-semibold uppercase text-slate-400 block">Fattura Collegata</span>
+                          <span className=" font-bold text-cyan-300 mt-0.5 block">{currentClient.contract.invoiceNumber}</span>
                         </div>
                       </div>
 
                       <div className="bg-[#0f1728] p-3 rounded-lg border border-white/5 text-xs space-y-1">
                         <div>
-                          <strong>File documentale:</strong> <span className="font-mono text-slate-300">{currentClient.contract.fileName}</span> ({currentClient.contract.digitalFormat})
+                          <strong>File documentale:</strong> <span className=" text-slate-300">{currentClient.contract.fileName}</span> ({currentClient.contract.digitalFormat})
                         </div>
                         <div>
                           <strong>Termini & Clausole chiave:</strong> <span className="text-slate-300">{currentClient.contract.terms}</span>
@@ -3995,11 +5533,11 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between border-b border-purple-500/20 pb-2">
                         <div className="flex items-center gap-2">
                           <Clock size={16} className="text-purple-400" />
-                          <span className="text-xs font-black uppercase tracking-wider text-purple-300 font-mono">
+                          <span className="text-xs font-black uppercase tracking-wider text-purple-300">
                             4. STORICO DELLA COLLABORAZIONE (TIMELINE PROGRESSIONE)
                           </span>
                         </div>
-                        <span className="text-[11px] font-mono text-purple-300">
+                        <span className="text-[11px] font-semibold text-purple-300">
                           {currentClient.history.length} Tappe documentate
                         </span>
                       </div>
@@ -4007,13 +5545,13 @@ export default function Dashboard() {
                       <div className="space-y-2 pt-1">
                         {currentClient.history.map((h, i) => (
                           <div key={i} className="flex items-start gap-3 text-xs bg-[#0f1324] p-2.5 rounded-lg border border-white/5">
-                            <span className="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">
+                            <span className="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                               {i + 1}
                             </span>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
                                 <span className="font-bold text-white text-[12px]">{h.step}</span>
-                                <span className="text-[10.5px] font-mono text-slate-400">{h.date}</span>
+                                <span className="text-[10.5px] text-slate-400">{h.date}</span>
                               </div>
                               <p className="text-slate-300 text-[11.5px] mt-0.5 leading-snug">{h.desc}</p>
                             </div>
@@ -4110,11 +5648,11 @@ export default function Dashboard() {
 
         return (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-fadeIn"
+            className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-2.5 bg-black/80 backdrop-blur-md animate-fadeIn"
             onClick={() => setShowInvoiceMenuModal(false)}
           >
             <div
-              className="w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl border border-[#d4af37]/60 bg-[#071325] text-slate-100 flex flex-col max-h-[88vh]"
+              className="w-[98.5vw] max-w-[98.5vw] h-[94vh] max-h-[94vh] rounded-2xl overflow-hidden shadow-2xl border border-[#d4af37]/60 bg-[#071325] text-slate-100 flex flex-col"
               style={{
                 fontFamily: '"Switzer", sans-serif',
                 boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.25)',
@@ -4142,7 +5680,7 @@ export default function Dashboard() {
                         {invoices.length} Fatture
                       </span>
                     </div>
-                    <p className="text-xs text-amber-200/70 font-mono">
+                    <p className="text-xs text-amber-200/70">
                       Pop-up Menù • Ultime invoice, da inviare & riassunto incassi
                     </p>
                   </div>
@@ -4179,7 +5717,7 @@ export default function Dashboard() {
                 }}
               >
                 <div className="bg-[#0b1c36] p-3 rounded-xl border border-[#d4af37]/20">
-                  <span className="text-[10.5px] text-slate-400 font-mono block">Totale Fatturato Netto</span>
+                  <span className="text-[10.5px] text-slate-400 block">Totale Fatturato Netto</span>
                   <span className="text-base font-black text-[#fbbf24] block mt-0.5">
                     € {totalNet.toLocaleString('it-IT')}
                   </span>
@@ -4187,27 +5725,27 @@ export default function Dashboard() {
                 </div>
 
                 <div className="bg-[#0b1c36] p-3 rounded-xl border border-[#d4af37]/20">
-                  <span className="text-[10.5px] text-slate-400 font-mono block">Totale Incassato</span>
+                  <span className="text-[10.5px] text-slate-400 block">Totale Incassato</span>
                   <span className="text-base font-black text-emerald-400 block mt-0.5">
                     € {totalCollected.toLocaleString('it-IT')}
                   </span>
-                  <span className="text-[10px] text-emerald-300/80 font-mono">81% del fatturato totale</span>
+                  <span className="text-[10px] font-semibold text-emerald-300/80">81% del fatturato totale</span>
                 </div>
 
                 <div className="bg-[#0b1c36] p-3 rounded-xl border border-[#d4af37]/20">
-                  <span className="text-[10.5px] text-slate-400 font-mono block">Da Saldare / In Sospeso</span>
+                  <span className="text-[10.5px] text-slate-400 block">Da Saldare / In Sospeso</span>
                   <span className="text-base font-black text-amber-400 block mt-0.5">
                     € {totalPending.toLocaleString('it-IT')}
                   </span>
-                  <span className="text-[10px] text-amber-300/80 font-mono">{pendingCount} commesse aperte</span>
+                  <span className="text-[10px] font-semibold text-amber-300/80">{pendingCount} commesse aperte</span>
                 </div>
 
                 <div className="bg-[#0b1c36] p-3 rounded-xl border border-[#d4af37]/20">
-                  <span className="text-[10.5px] text-slate-400 font-mono block">Stato Fiscale SDI</span>
+                  <span className="text-[10.5px] text-slate-400 block">Stato Fiscale SDI</span>
                   <span className="text-base font-black text-cyan-300 block mt-0.5">
                     11 Validate
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">0 scarti • 100% compliant</span>
+                  <span className="text-[10px] font-semibold text-slate-400">0 scarti • 100% compliant</span>
                 </div>
               </div>
 
@@ -4304,14 +5842,14 @@ export default function Dashboard() {
                         {/* Riga Superiore: Numero, Importi, Data */}
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-mono font-bold text-[#fbbf24] group-hover:underline">
+                            <span className="text-sm font-bold text-[#fbbf24] group-hover:underline">
                               {inv.number}
                             </span>
-                            <span className="text-[11px] font-mono text-slate-400">
+                            <span className="text-[11px] font-semibold text-slate-400">
                               Emessa: {inv.date}
                             </span>
                             {inv.contractCode && (
-                              <span className="text-[10.5px] font-mono px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">
+                              <span className="text-[10.5px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">
                                 {inv.contractCode}
                               </span>
                             )}
@@ -4322,7 +5860,7 @@ export default function Dashboard() {
                               <span className="text-sm font-black text-[#fbbf24]">
                                 € {(inv.amount || 0).toLocaleString('it-IT')}
                               </span>
-                              <span className="text-[10px] text-slate-400 block font-mono">
+                              <span className="text-[10px] font-semibold text-slate-400 block">
                                 Lordo: € {(inv.totalWithVat || Math.round((inv.amount || 0) * 1.22)).toLocaleString('it-IT')}
                               </span>
                             </div>
@@ -4353,7 +5891,7 @@ export default function Dashboard() {
                             >
                               {isPaid ? 'Saldato al 100%' : `Da Saldare: € ${(inv.balance || 0).toLocaleString('it-IT')}`}
                             </span>
-                            <span className={`text-[11px] font-mono ${isPaid ? 'text-slate-400' : 'text-amber-300 font-bold'}`}>
+                            <span className={`text-[11px] ${isPaid ? 'text-slate-400' : 'text-amber-300 font-bold'}`}>
                               Scadenza: {inv.dueDate}
                             </span>
                             <span className="text-[10.5px] text-slate-400">
@@ -4362,7 +5900,7 @@ export default function Dashboard() {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            {!isPaid && (
+                            {!isPaid ? (
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -4370,9 +5908,21 @@ export default function Dashboard() {
                                   handleMarkInvoicePaid(inv.id || inv.number)
                                 }}
                                 className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition-all shadow-xs cursor-pointer"
-                                title="Segna questa fattura come saldata"
+                                title="Segna questa fattura come saldata al 100%"
                               >
                                 ✓ Segna Saldato
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleUnmarkInvoicePaid(inv.id || inv.number)
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-amber-600/80 hover:bg-amber-500 text-white text-[11px] font-bold transition-all shadow-xs cursor-pointer border border-amber-400/40"
+                                title="Annulla il saldo 100% e ripristina la fattura come da saldare"
+                              >
+                                ↺ Annulla Saldo
                               </button>
                             )}
 
@@ -4440,6 +5990,31 @@ export default function Dashboard() {
           </div>
         )
       })()}
+
+      {/* Modale Rubrica Collaboratori Estrapolati dalle Aziende */}
+      <CollaboratorsModal
+        isOpen={showCollaboratorsModal}
+        onClose={() => {
+          setShowCollaboratorsModal(false)
+          fetch('/api/crm/collaborators')
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.collaborators && data.collaborators.length > 0) {
+                const list = data.collaborators.map(c => ({
+                  referent: c.name || 'Referente',
+                  company: c.companyName || 'Azienda',
+                  dayDate: c.lastContactDayDate || (c.lastContact ? `Data: ${c.lastContact}` : 'Recente'),
+                  how: c.lastContactHow || (c.mobile ? 'Call WhatsApp / Cellulare' : 'Email / Ufficio'),
+                  why: c.lastContactWhy || c.notes || 'Allineamento operativo sulle produzioni DADO.',
+                }))
+                setContactPostIts(list)
+                setCollaboratorsCount(data.collaborators.length)
+              }
+            })
+            .catch(() => {})
+        }}
+        onCountChange={(cnt) => setCollaboratorsCount(cnt)}
+      />
 
       </div>
     </div>

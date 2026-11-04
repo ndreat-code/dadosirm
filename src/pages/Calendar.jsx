@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useDeviceMode } from '../context/DeviceModeContext'
+import PageTopBand from '../components/PageTopBand'
 import { getTodayIso, getTomorrowIso, getCurrentWeekSundayIso } from '../utils/dateUtils'
 import { getCalendarDayData, saveCalendarDayData } from '../utils/calendarData'
 import {
@@ -16,6 +18,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Circle,
+  ArrowLeft,
+  MapPin,
+  Users,
+  Briefcase,
 } from 'lucide-react'
 
 // Nomi dei mesi e dei giorni in italiano
@@ -39,6 +45,7 @@ const BRAND_COLORS = [
 ]
 
 export default function Calendar() {
+  const { isMobileApp } = useDeviceMode()
   const [searchParams] = useSearchParams()
 
   // Data e ora in tempo reale
@@ -62,7 +69,7 @@ export default function Calendar() {
   })
 
   const [highlightedDayIso, setHighlightedDayIso] = useState(null)
-  const [calendarVersion, setCalendarVersion] = useState(0)
+  const [, setCalendarVersion] = useState(0)
   const [crmActivities, setCrmActivities] = useState(() => {
     try {
       const cached = localStorage.getItem('dado_crm_activities_cache')
@@ -114,32 +121,60 @@ export default function Calendar() {
 
   const [selectedDayModal, setSelectedDayModal] = useState(null)
   const [editingNote, setEditingNote] = useState('')
+  // Vista a tutto schermo per la commessa / il task quando si clicca un giorno col pallino rosso (da vista 1 Mese o 2 Mesi)
+  const [fullScreenDayTask, setFullScreenDayTask] = useState(null)
 
-  // Modalità di visualizzazione: 'week' (settimanale standard) o 'month' (inquadratura mensile)
+  // Livelli di Zoom automatici (con 2 dita / pinch):
+  // 'day'        = Zoom In massimo (Singolo Giorno)
+  // 'week'       = Settimana (giorni uno sotto l'altro, 3 di base visibili e ingranditi)
+  // 'month'      = 1 Mese intero
+  // 'two-months' = Zoom Out massimo (2 Mesi nella stessa schermata)
+  const ZOOM_ORDER = ['day', 'week', 'month', 'two-months']
   const [viewMode, setViewMode] = useState('week')
-  // Offset mese: 0 = mese corrente (es. Ottobre), 1 = mese successivo (es. Novembre)
-  const [monthOffset, setMonthOffset] = useState(0)
+  const [monthOffset] = useState(0)
 
-  // Mese di riferimento calcolato
+  const weekListScrollRef = useRef(null)
+  const calendarBodyRef = useRef(null)
+
+  const handleZoomIn = useCallback(() => {
+    setFullScreenDayTask(null)
+    setViewMode((prev) => {
+      const idx = ZOOM_ORDER.indexOf(prev)
+      if (idx > 0) return ZOOM_ORDER[idx - 1]
+      return prev
+    })
+  }, [])
+
+  const handleZoomOut = useCallback(() => {
+    setFullScreenDayTask(null)
+    setViewMode((prev) => {
+      const idx = ZOOM_ORDER.indexOf(prev)
+      if (idx !== -1 && idx < ZOOM_ORDER.length - 1) return ZOOM_ORDER[idx + 1]
+      return prev
+    })
+  }, [])
+
+  // Mese principale e secondo mese calcolati
   const displayedMonthDate = useMemo(() => {
-    return new Date(realTimeNow.getFullYear(), realTimeNow.getMonth() + monthOffset, 1)
-  }, [realTimeNow, monthOffset])
+    return new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset, 1)
+  }, [currentDate, monthOffset])
 
-  // Calcolo dei giorni della griglia mensile completa (multiplo di 7, lunedì-domenica)
-  const monthGridDays = useMemo(() => {
-    const year = displayedMonthDate.getFullYear()
-    const month = displayedMonthDate.getMonth()
+  const secondDisplayedMonthDate = useMemo(() => {
+    return new Date(displayedMonthDate.getFullYear(), displayedMonthDate.getMonth() + 1, 1)
+  }, [displayedMonthDate])
+
+  // Funzione pura per costruire la griglia mensile (Lunedì-Domenica) di qualunque mese
+  const buildMonthGrid = useCallback((targetMonthDate) => {
+    const year = targetMonthDate.getFullYear()
+    const month = targetMonthDate.getMonth()
     const firstDay = new Date(year, month, 1)
     const lastDay = new Date(year, month + 1, 0)
     const daysInMonth = lastDay.getDate()
 
-    // 0 = domenica, 1 = lunedì ... 6 = sabato. Settimana da Lunedì (0=Lun ... 6=Dom)
     const startDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1
-
     const days = []
     const todayIso = getTodayIso(realTimeNow)
 
-    // Giorni del mese precedente per completare la prima riga
     const prevMonthLastDay = new Date(year, month, 0).getDate()
     for (let i = startDayOfWeek - 1; i >= 0; i--) {
       const prevDate = new Date(year, month - 1, prevMonthLastDay - i)
@@ -158,7 +193,6 @@ export default function Calendar() {
       })
     }
 
-    // Giorni del mese
     for (let d = 1; d <= daysInMonth; d++) {
       const curDate = new Date(year, month, d)
       const iso = getTodayIso(curDate)
@@ -176,7 +210,6 @@ export default function Calendar() {
       })
     }
 
-    // Giorni del mese successivo per completare la griglia (multiplo di 7)
     const remaining = (7 - (days.length % 7)) % 7
     for (let d = 1; d <= remaining; d++) {
       const nextDate = new Date(year, month + 1, d)
@@ -196,15 +229,18 @@ export default function Calendar() {
     }
 
     return days
-  }, [displayedMonthDate, realTimeNow])
+  }, [realTimeNow])
 
-  // Gestione gesture zoom in / zoom out del touchpad (Pinch-to-zoom su Mac)
+  const monthGridDays = useMemo(() => buildMonthGrid(displayedMonthDate), [buildMonthGrid, displayedMonthDate])
+  const secondMonthGridDays = useMemo(() => buildMonthGrid(secondDisplayedMonthDate), [buildMonthGrid, secondDisplayedMonthDate])
+
+  // Gestione automatica Zoom con 2 dita (Touch Pinch-to-Zoom su smartphone/tablet + Trackpad Pinch)
   const lastZoomGestureTime = useRef(0)
   const zoomAccumulator = useRef(0)
+  const pinchStateRef = useRef({ active: false, startDist: 0 })
 
   useEffect(() => {
     function handleWheel(e) {
-      // Su macOS, il pinch su touchpad emette un evento wheel con ctrlKey === true
       if (e.ctrlKey) {
         e.preventDefault()
         zoomAccumulator.current += e.deltaY
@@ -214,19 +250,11 @@ export default function Calendar() {
 
         if (Math.abs(zoomAccumulator.current) > 20) {
           if (zoomAccumulator.current < 0) {
-            // ZOOM IN (dita che si allontanano): inquadra tutto il mese corrente!
-            if (viewMode === 'month' && monthOffset === 0) {
-              setViewMode('week')
-            } else {
-              setViewMode('month')
-              setMonthOffset(0)
-            }
+            handleZoomIn()
             lastZoomGestureTime.current = now
             zoomAccumulator.current = 0
           } else if (zoomAccumulator.current > 0) {
-            // ZOOM OUT (dita che si avvicinano): inquadra il mese successivo!
-            setViewMode('month')
-            setMonthOffset(1)
+            handleZoomOut()
             lastZoomGestureTime.current = now
             zoomAccumulator.current = 0
           }
@@ -234,25 +262,16 @@ export default function Calendar() {
       }
     }
 
-    // Supporto per Safari macOS GestureEvent
     function handleGestureChange(e) {
       e.preventDefault()
       const now = Date.now()
       if (now - lastZoomGestureTime.current < 300) return
 
       if (e.scale > 1.05) {
-        // ZOOM IN: mese corrente
-        if (viewMode === 'month' && monthOffset === 0) {
-          setViewMode('week')
-        } else {
-          setViewMode('month')
-          setMonthOffset(0)
-        }
+        handleZoomIn()
         lastZoomGestureTime.current = now
       } else if (e.scale < 0.95) {
-        // ZOOM OUT: mese successivo
-        setViewMode('month')
-        setMonthOffset(1)
+        handleZoomOut()
         lastZoomGestureTime.current = now
       }
     }
@@ -264,7 +283,68 @@ export default function Calendar() {
       window.removeEventListener('wheel', handleWheel)
       window.removeEventListener('gesturechange', handleGestureChange)
     }
-  }, [viewMode, monthOffset])
+  }, [handleZoomIn, handleZoomOut])
+
+  // Touch pinch con due dita direttamente sul corpo del calendario
+  useEffect(() => {
+    const el = calendarBodyRef.current
+    if (!el) return
+
+    function getTouchDist(touches) {
+      const dx = touches[0].clientX - touches[1].clientX
+      const dy = touches[0].clientY - touches[1].clientY
+      return Math.hypot(dx, dy)
+    }
+
+    function onTouchStart(e) {
+      if (e.touches.length === 2) {
+        pinchStateRef.current = {
+          active: true,
+          startDist: getTouchDist(e.touches),
+        }
+      }
+    }
+
+    function onTouchMove(e) {
+      if (e.touches.length === 2 && pinchStateRef.current.active) {
+        if (e.cancelable) e.preventDefault()
+        const curDist = getTouchDist(e.touches)
+        const delta = curDist - pinchStateRef.current.startDist
+        const now = Date.now()
+        if (now - lastZoomGestureTime.current < 260) return
+
+        if (delta > 36) {
+          // Allargando due dita -> Zoom In (2 Mesi -> 1 Mese -> Settimana -> 1 Giorno)
+          handleZoomIn()
+          lastZoomGestureTime.current = now
+          pinchStateRef.current.startDist = curDist
+        } else if (delta < -36) {
+          // Avvicinando due dita -> Zoom Out (1 Giorno -> Settimana -> 1 Mese -> 2 Mesi)
+          handleZoomOut()
+          lastZoomGestureTime.current = now
+          pinchStateRef.current.startDist = curDist
+        }
+      }
+    }
+
+    function onTouchEnd(e) {
+      if (e.touches.length < 2) {
+        pinchStateRef.current.active = false
+      }
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true, capture: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: false, capture: true })
+    el.addEventListener('touchend', onTouchEnd, { passive: true, capture: true })
+    el.addEventListener('touchcancel', onTouchEnd, { passive: true, capture: true })
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart, { capture: true })
+      el.removeEventListener('touchmove', onTouchMove, { capture: true })
+      el.removeEventListener('touchend', onTouchEnd, { capture: true })
+      el.removeEventListener('touchcancel', onTouchEnd, { capture: true })
+    }
+  }, [handleZoomIn, handleZoomOut])
 
   // Calcola i 7 giorni della singola settimana (Lunedì → Domenica)
   const currentWeekDays = useMemo(() => {
@@ -299,42 +379,52 @@ export default function Calendar() {
     return days
   }, [currentDate, realTimeNow])
 
-  // Calcolo linea fine colorata per giorni con impegni:
-  // Se 2 o più giorni di fila, alterna in successione i colori del brand logo DADO (Verde, Rosso, Ciano, Giallo)
-  const commitmentCadenceMap = useMemo(() => {
-    const map = {}
-    let streakIndex = -1
+  // Giorno attivo di riferimento (Oggi se presente nella settimana, altrimenti currentDate)
+  const activeReferenceDay = useMemo(() => {
+    const todayInWeek = currentWeekDays.find((d) => d.isToday)
+    if (todayInWeek && viewMode === 'week') return todayInWeek
+    const curIso = getTodayIso(currentDate)
+    const matchInWeek = currentWeekDays.find((d) => d.iso === curIso)
+    if (matchInWeek) return matchInWeek
+    return currentWeekDays[0]
+  }, [currentWeekDays, currentDate, viewMode])
 
-    for (let i = 0; i < currentWeekDays.length; i++) {
-      const day = currentWeekDays[i]
-      const dayData = getCalendarDayData(day.iso, crmActivities)
-      const hasEvents = (dayData?.events || []).length > 0
-
-      if (hasEvents) {
-        if (streakIndex === -1) {
-          // Controlla se il giorno immediatamente precedente aveva impegni
-          const prevDate = new Date(day.dateObj)
-          prevDate.setDate(prevDate.getDate() - 1)
-          const prevIso = getTodayIso(prevDate)
-          const prevData = getCalendarDayData(prevIso, crmActivities)
-          if ((prevData?.events || []).length > 0) {
-            streakIndex = 1
-          } else {
-            streakIndex = 0
-          }
-        } else {
-          streakIndex = (streakIndex + 1) % BRAND_COLORS.length
-        }
-        map[day.iso] = BRAND_COLORS[streakIndex]
-      } else {
-        streakIndex = -1
-        map[day.iso] = null
+  // Centra automaticamente il giorno attuale al centro dei 3 giorni visibili nella vista Settimana
+  useEffect(() => {
+    if (viewMode !== 'week') return
+    const container = weekListScrollRef.current
+    if (!container || !activeReferenceDay?.iso) return
+    const timer = setTimeout(() => {
+      const targetEl = container.querySelector(`[data-day-iso="${activeReferenceDay.iso}"]`)
+      if (targetEl) {
+        const targetTop =
+          targetEl.offsetTop - container.clientHeight / 2 + targetEl.clientHeight / 2
+        container.scrollTo({
+          top: Math.max(0, targetTop),
+          behavior: 'smooth',
+        })
       }
-    }
-    return map
-  }, [currentWeekDays, calendarVersion, crmActivities])
+    }, 40)
+    return () => clearTimeout(timer)
+  }, [viewMode, activeReferenceDay?.iso, currentDate])
 
-  // Spostamento di settimana in settimana
+  // Navigazione Giorno / Settimana / Mese
+  function handlePrevDay() {
+    setCurrentDate((prev) => {
+      const n = new Date(prev)
+      n.setDate(n.getDate() - 1)
+      return n
+    })
+  }
+
+  function handleNextDay() {
+    setCurrentDate((prev) => {
+      const n = new Date(prev)
+      n.setDate(n.getDate() + 1)
+      return n
+    })
+  }
+
   function handlePrevWeek() {
     setCurrentDate((prev) => {
       const n = new Date(prev)
@@ -351,16 +441,48 @@ export default function Calendar() {
     })
   }
 
+  function handlePrevMonth() {
+    setCurrentDate((prev) => {
+      const n = new Date(prev)
+      n.setMonth(n.getMonth() - 1)
+      return n
+    })
+  }
+
+  function handleNextMonth() {
+    setCurrentDate((prev) => {
+      const n = new Date(prev)
+      n.setMonth(n.getMonth() + 1)
+      return n
+    })
+  }
+
+  function handlePrimaryPrev() {
+    // Vista 3 giorni e vista giorno singolo (con gli altri 7 accanto): si scorre di settimana in settimana
+    if (viewMode === 'day' || viewMode === 'week') handlePrevWeek()
+    else handlePrevMonth()
+  }
+
+  function handlePrimaryNext() {
+    if (viewMode === 'day' || viewMode === 'week') handleNextWeek()
+    else handleNextMonth()
+  }
+
   // Navigazione da tastiera: freccia sinistra (←) e freccia destra (→)
   useEffect(() => {
     function handleKeyDown(e) {
-      // Non intercettare se l'utente sta digitando in un campo input o textarea
       const targetTag = e.target?.tagName?.toLowerCase()
       if (targetTag === 'input' || targetTag === 'textarea' || e.target?.isContentEditable) {
         return
       }
 
-      // Se il modale di dettaglio del giorno è aperto, non cambiare settimana (Escape per chiudere)
+      if (fullScreenDayTask) {
+        if (e.key === 'Escape') {
+          setFullScreenDayTask(null)
+        }
+        return
+      }
+
       if (selectedDayModal) {
         if (e.key === 'Escape') {
           setSelectedDayModal(null)
@@ -370,25 +492,31 @@ export default function Calendar() {
 
       if (e.key === 'ArrowLeft') {
         e.preventDefault()
-        handlePrevWeek()
+        handlePrimaryPrev()
       } else if (e.key === 'ArrowRight') {
         e.preventDefault()
-        handleNextWeek()
+        handlePrimaryNext()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedDayModal])
+  }, [selectedDayModal, fullScreenDayTask, viewMode])
 
-  // Apertura editor giorno
+  // Apertura editor giorno (usato in vista Giorno / Settimana)
   function openDayEditor(dayInfo) {
     const existing = getCalendarDayData(dayInfo.iso, crmActivities)
     setEditingNote(existing?.notes || '')
     setSelectedDayModal({ ...dayInfo, data: existing })
   }
 
-  // Toggle stato attività direttamente dal modale del giorno
+  // Apertura a tutto schermo della commessa / task (usata in vista 1 Mese / 2 Mesi cliccando il giorno col pallino rosso)
+  function openFullScreenTaskForDay(dayInfo) {
+    const existing = getCalendarDayData(dayInfo.iso, crmActivities)
+    setFullScreenDayTask({ ...dayInfo, data: existing })
+  }
+
+  // Toggle stato attività
   async function toggleActivityStatusInModal(activityId, currentStatus) {
     const isCompleted = currentStatus === 'completed' || currentStatus === 'Completata'
     const newStatus = isCompleted ? 'pending' : 'completed'
@@ -409,6 +537,10 @@ export default function Calendar() {
         if (selectedDayModal?.iso) {
           const updatedDay = getCalendarDayData(selectedDayModal.iso, next)
           setSelectedDayModal(cur => ({ ...cur, data: updatedDay }))
+        }
+        if (fullScreenDayTask?.iso) {
+          const updatedDay = getCalendarDayData(fullScreenDayTask.iso, next)
+          setFullScreenDayTask(cur => ({ ...cur, data: updatedDay }))
         }
         setCalendarVersion(v => v + 1)
         window.dispatchEvent(new CustomEvent('dado-calendar-update', { detail: { activityId, newStatus } }))
@@ -503,147 +635,309 @@ export default function Calendar() {
 
   const startDay = currentWeekDays[0] || {}
   const endDay = currentWeekDays[6] || {}
-  const currentMonthName = MONTH_NAMES[realTimeNow.getMonth()]?.toUpperCase()
 
-  // Render dei 7 riquadri orizzontali della settimana (3 sopra, 3 sotto, 1 sotto ancora)
+  // Render Singolo Giorno (Zoom In massimo: fino al singolo giorno)
+  function renderSingleDayView() {
+    const curIso = getTodayIso(currentDate)
+    const dayObj = currentWeekDays.find((d) => d.iso === curIso) || currentWeekDays[0]
+    if (!dayObj) return null
+    const dayIdx = currentWeekDays.findIndex((d) => d.iso === dayObj.iso)
+    const isSunday = dayIdx === 6
+    const dayData = getCalendarDayData(dayObj.iso, crmActivities)
+    const events = dayData?.events || []
+    const hasEvents = events.length > 0
+    const hasNotes = Boolean(dayData?.notes && dayData.notes.trim())
+
+    return (
+      <div
+        className="w-full h-full flex flex-col min-h-0 flex-1 px-1.5 sm:px-3 py-1 gap-2 overflow-y-auto no-scrollbar [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {/* Selettore rapido dei 7 giorni della settimana */}
+        <div className="grid grid-cols-7 gap-1 flex-shrink-0">
+          {currentWeekDays.map((d, idx) => {
+            const isSelected = d.iso === dayObj.iso
+            const isSun = idx === 6
+            return (
+              <button
+                key={d.iso}
+                type="button"
+                onClick={() => setCurrentDate(new Date(d.dateObj))}
+                className={`py-1.5 px-1 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer border ${
+                  isSelected
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-sm scale-[1.02]'
+                    : isSun
+                    ? 'bg-[#fbfaf5] text-slate-800 border-[#dfd9c8]'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/80'
+                }`}
+              >
+                <span className="text-[9.5px] font-black uppercase tracking-wider opacity-80">{d.shortName}</span>
+                <span className="text-[13px] font-black leading-tight">{d.dayNum}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Riquadro grande del Singolo Giorno (senza barra colorata laterale) */}
+        <div
+          onClick={() => openDayEditor(dayObj)}
+          className={`flex-1 min-h-0 flex items-stretch cursor-pointer transition-all relative ${
+            isSunday ? 'p-4 sm:p-5 rounded-[28px]' : 'p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs'
+          }`}
+          style={
+            isSunday
+              ? {
+                  border: '2px solid #e2ddd0',
+                  background: 'linear-gradient(180deg, #ffffff 0%, #fbfaf5 54%, #f2eee3 100%)',
+                  boxShadow:
+                    '0 10px 24px -4px rgba(15, 23, 42, 0.14), 0 3px 8px -2px rgba(15, 23, 42, 0.08), inset 0 2px 2px #ffffff, inset 0 -2px 4px rgba(214, 208, 194, 0.55)',
+                }
+              : {
+                  backgroundColor: dayObj.isToday ? '#f8fdfb' : '#ffffff',
+                }
+          }
+        >
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-200/80">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-lg sm:text-2xl font-black uppercase tracking-tight text-slate-900">
+                  {dayObj.longName} {dayObj.dayNum} {MONTH_NAMES_SHORT[dayObj.monthNum]}
+                </span>
+                {dayObj.isToday && (
+                  <span className="bg-[#007a50] text-white text-[11px] px-2.5 py-0.5 font-black rounded-full uppercase tracking-wider">
+                    Oggi
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] font-bold text-[#0284c7] bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-lg">
+                Tocca per note/allegati
+              </span>
+            </div>
+
+            <div
+              className="flex-1 min-h-0 overflow-y-auto pt-3 flex flex-col gap-2.5 no-scrollbar [&::-webkit-scrollbar]:hidden"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {hasEvents ? (
+                events.map((ev, evIdx) => (
+                  <div
+                    key={ev.id || evIdx}
+                    className="p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/80 flex flex-col gap-1"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-black text-sm sm:text-base text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                        {ev.time}
+                      </span>
+                      <span className="font-black text-sm sm:text-base text-[#0284c7] truncate">
+                        {ev.company}
+                      </span>
+                    </div>
+                    <div className="font-bold text-slate-800 text-sm sm:text-base">
+                      {ev.title || ev.category || 'Attività programmata'}
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                      <span className="font-semibold">{ev.people || ev.attendees || 'Team DADO'}</span>
+                      {ev.location && <span>📍 {ev.location}</span>}
+                    </div>
+                  </div>
+                ))
+              ) : hasNotes ? (
+                <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200 text-sm text-slate-700 italic">
+                  "{dayData.notes}"
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-sm text-slate-400 font-semibold">
+                  Nessun impegno registrato per {dayObj.longName} {dayObj.dayNum}. Tocca per aggiungere note o allegati.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Render dei 7 giorni della settimana UNO SOTTO L'ALTRO:
+  // - Riquadri ingranditi lasciandone di base 3 visibili nello schermo
+  // - Rimosse le barre colorate al lato di ogni singolo giorno (eccetto Domenica col suo riquadro in rilievo)
+  // - Rimossa la barra verticale di scroll a destra
   function renderWeekRow(weekDays) {
     return (
-      <div className="grid grid-cols-3 grid-rows-3 gap-2 sm:gap-2.5 w-full h-full min-h-0 flex-1 px-0.5 sm:px-1">
+      <div
+        ref={weekListScrollRef}
+        className={`flex flex-col ${
+          isMobileApp ? 'gap-2 px-1.5 py-1' : 'gap-2.5 px-3 py-2'
+        } w-full h-full min-h-0 flex-1 overflow-y-auto scroll-smooth no-scrollbar [&::-webkit-scrollbar]:hidden`}
+        style={{
+          touchAction: 'pan-y',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
         {weekDays.map((day, idx) => {
           const dayData = getCalendarDayData(day.iso, crmActivities)
           const events = dayData?.events || []
           const hasEvents = events.length > 0
           const hasNotes = Boolean(dayData?.notes && dayData.notes.trim())
           const isToday = day.isToday
+          const isCenterActive = activeReferenceDay?.iso === day.iso
           const isHighlighted = highlightedDayIso === day.iso
           const isSunday = idx === 6
 
-          // Colore del brand logo DADO per ciascun giorno (Verde D, Rosso A, Ciano D, Giallo O)
+          // Colore del brand logo DADO per le barre separatrici orizzontali tra i giorni
           const dayBrandColor = BRAND_COLORS[idx % BRAND_COLORS.length]
 
           return (
             <div
               key={day.iso}
-              onClick={() => {
-                setHighlightedDayIso(day.iso)
-                openDayEditor(day)
-              }}
-              className={`px-2 sm:px-2.5 py-1.5 sm:py-2 flex items-stretch cursor-pointer transition-colors relative select-none min-w-0 h-full rounded-2xl ${
-                isHighlighted
-                  ? 'ring-2 ring-[#0284c7] bg-sky-50/40'
-                  : 'hover:bg-slate-50/70'
-              } ${isSunday ? 'col-start-2' : ''}`}
+              data-day-iso={day.iso}
+              className="flex flex-col shrink-0"
               style={{
-                // Sostituzione: bordo grigio orizzontale superiore per la Domenica (7° giorno)
-                borderTop: isSunday ? '2px solid #cbd5e1' : 'none',
-                borderBottom: 'none',
-                borderLeft: 'none',
-                borderRight: 'none',
-                backgroundColor: isToday ? '#fcfdfd' : 'transparent',
+                height: 'calc((100% - 16px) / 3)',
+                minHeight: isMobileApp ? '174px' : '202px',
               }}
-              title={`Clicca per gestire dettagli (${day.shortName} ${day.dayNum})`}
             >
-              {/* Barra di delimitazione verticale: presente nei primi 6 giorni (Lunedì-Sabato).
-                  Sostituita dal bordo orizzontale grigio superiore nell'ultimo giorno (Domenica). */}
-              {!isSunday && (
-                <div
-                  className="w-[5px] sm:w-[6px] rounded-full self-stretch my-0.5 mr-2 sm:mr-2.5 flex-shrink-0 transition-colors"
-                  style={{ backgroundColor: dayBrandColor }}
-                />
+              {/* Barra separatrice orizzontale nei soliti colori DADO tra un giorno e l'altro */}
+              {idx > 0 && (
+                <div className="flex items-center justify-center pb-1.5 flex-shrink-0">
+                  <div
+                    className="w-full h-[3.5px] rounded-full opacity-90"
+                    style={{
+                      backgroundColor: isSunday ? '#dfd9c8' : dayBrandColor,
+                    }}
+                  />
+                </div>
               )}
 
-              {/* Contenuto principale del giorno */}
-              <div className="flex flex-col justify-between flex-1 min-w-0">
-                {/* 1. Intestazione Giorno: Nome e Data centrati (+2pt font) */}
-                <div className="flex items-center justify-center gap-2 pb-1 flex-shrink-0">
-                  <span className="text-[17px] sm:text-[18px] font-black tracking-wider uppercase text-slate-600 font-switzer">
-                    {day.shortName}
-                  </span>
-                  <span className={`text-[23px] sm:text-[25px] font-black leading-none ${
-                    day.isToday ? 'text-[#007a50]' : 'text-slate-900'
-                  }`}>
-                    {day.dayNum}
-                  </span>
-                  {day.isToday && (
-                    <span className="bg-[#007a50] text-white text-[12px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ml-1">
-                      Oggi
-                    </span>
-                  )}
-                </div>
+              <div
+                onClick={() => {
+                  setHighlightedDayIso(day.iso)
+                  setCurrentDate(new Date(day.dateObj))
+                  openDayEditor(day)
+                }}
+                className={`${
+                  isSunday
+                    ? isMobileApp
+                      ? 'px-3.5 py-3 rounded-[26px]'
+                      : 'px-5 py-4 rounded-[30px]'
+                    : isMobileApp
+                    ? 'px-3.5 py-3 rounded-2xl'
+                    : 'px-5 py-4 rounded-2xl'
+                } flex-1 min-h-0 flex items-stretch cursor-pointer transition-all relative select-none min-w-0 ${
+                  isHighlighted
+                    ? 'ring-2 ring-[#0284c7] bg-sky-50/40'
+                    : isToday || isCenterActive
+                    ? 'ring-2 ring-[#007a50]/70 shadow-md'
+                    : isSunday
+                    ? 'hover:brightness-[0.99]'
+                    : 'hover:bg-slate-50/80 border border-slate-200/90 shadow-xs'
+                }`}
+                style={
+                  isSunday
+                    ? {
+                        border: '2px solid #e2ddd0',
+                        background: 'linear-gradient(180deg, #ffffff 0%, #fbfaf5 54%, #f2eee3 100%)',
+                        boxShadow:
+                          '0 8px 20px -4px rgba(15, 23, 42, 0.14), 0 3px 7px -2px rgba(15, 23, 42, 0.08), inset 0 2px 2px #ffffff, inset 0 -2px 4px rgba(214, 208, 194, 0.55)',
+                      }
+                    : {
+                        backgroundColor: isToday ? '#f4fbf8' : '#ffffff',
+                      }
+                }
+                title={`Tocca per dettagli (${day.longName} ${day.dayNum})`}
+              >
+                {/* Contenuto principale del giorno (senza barra colorata verticale al lato) */}
+                <div className="flex flex-col justify-between flex-1 min-w-0">
+                  {/* 1. Intestazione Giorno ingrandita */}
+                  <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-100 flex-shrink-0">
+                    <div
+                      className={
+                        isSunday
+                          ? `inline-flex items-center justify-center ${
+                              isMobileApp ? 'gap-2 px-3.5 py-1' : 'gap-2.5 px-4 py-1'
+                            } rounded-full`
+                          : 'inline-flex items-center gap-2'
+                      }
+                      style={
+                        isSunday
+                          ? {
+                              background: 'linear-gradient(180deg, #ffffff 0%, #f7f4ea 100%)',
+                              border: '1.5px solid #dfd9c8',
+                              boxShadow:
+                                '0 2px 6px rgba(15, 23, 42, 0.08), inset 0 1.5px 1px #ffffff',
+                            }
+                          : undefined
+                      }
+                    >
+                      <span className={`${isMobileApp ? 'text-[14px]' : 'text-[17px]'} font-black tracking-wider uppercase text-slate-700 font-switzer`}>
+                        {day.longName}
+                      </span>
+                      <span className={`${isMobileApp ? 'text-[19px]' : 'text-[23px]'} font-black leading-none ${
+                        day.isToday ? 'text-[#007a50]' : 'text-slate-900'
+                      }`}>
+                        {day.dayNum}
+                      </span>
+                      {day.isToday && (
+                        <span className="bg-[#007a50] text-white text-[10px] sm:text-[11px] px-2.5 py-0.5 font-black rounded-full uppercase tracking-wider">
+                          Oggi
+                        </span>
+                      )}
+                    </div>
 
-                {/* 2. Contenuto impegni (+2pt font) */}
-                <div className="flex-1 min-h-0 overflow-y-auto pt-1 flex flex-col justify-between text-left pr-0.5">
-                  {hasEvents ? (
-                    events.map((ev, evIdx) => (
-                      <div
-                        key={ev.id || evIdx}
-                        className={`text-left select-text flex flex-col justify-between ${
-                          events.length === 1 ? 'h-full' : 'flex-1'
-                        } ${
-                          evIdx > 0 ? 'pt-2 mt-2 border-t border-slate-100' : ''
-                        }`}
-                      >
-                        <div>
-                          {/* Orario e Nome Azienda (+2pt font) */}
-                          <div className="flex items-baseline justify-between gap-1.5 mb-1">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="font-mono font-black text-[15.5px] sm:text-[16px] text-slate-900 tracking-tight whitespace-nowrap">
-                                {ev.time}
+                    <span className="text-[11px] font-bold text-slate-400">
+                      {hasEvents ? `${events.length} ${events.length === 1 ? 'impegno' : 'impegni'}` : 'Libero'}
+                    </span>
+                  </div>
+
+                  {/* 2. Contenuto impegni del giorno */}
+                  <div className="flex-1 min-h-0 pt-1.5 flex flex-col justify-center text-left overflow-hidden">
+                    {hasEvents ? (
+                      <div className="flex flex-col gap-2">
+                        {events.slice(0, 2).map((ev, evIdx) => (
+                          <div
+                            key={ev.id || evIdx}
+                            className={`text-left flex flex-col justify-between ${
+                              evIdx > 0 ? 'pt-1.5 border-t border-slate-100' : ''
+                            }`}
+                          >
+                            <div className="flex items-baseline justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className={`font-black ${isMobileApp ? 'text-[12.5px]' : 'text-[15px]'} text-slate-900 tracking-tight whitespace-nowrap`}>
+                                  {ev.time}
+                                </span>
+                                <span className={`font-bold ${isMobileApp ? 'text-[13.5px]' : 'text-[15.5px]'} text-slate-800 truncate`}>
+                                  {ev.title || ev.category || 'Attività programmata'}
+                                </span>
+                              </div>
+                              <span className={`font-black text-[#0284c7] ${isMobileApp ? 'text-[12.5px]' : 'text-[15px]'} truncate shrink-0 max-w-[44%] text-right`} title={ev.company}>
+                                {ev.company}
                               </span>
-                              {ev.isCrmActivity && (
-                                <span
-                                  className={`text-[12px] font-black uppercase px-1.5 py-0.5 rounded leading-none ${
-                                    ev.completed
-                                      ? 'bg-emerald-100 text-emerald-800'
-                                      : 'bg-amber-100 text-amber-800'
-                                  }`}
-                                  title={ev.completed ? 'Attività CRM completata' : 'Attività CRM in programma'}
-                                >
-                                  {ev.completed ? '✓ Fatto' : 'Task'}
+                            </div>
+
+                            <div className={`flex items-center justify-between gap-2 ${isMobileApp ? 'text-[11.5px]' : 'text-[13px]'} text-slate-500 mt-0.5`}>
+                              <span className="truncate font-semibold">
+                                {ev.people || ev.attendees || 'Team DADO'}
+                              </span>
+                              {ev.location && (
+                                <span className="truncate text-right text-slate-500 font-medium">
+                                  📍 {ev.location}
                                 </span>
                               )}
                             </div>
-                            <span className="font-black text-slate-900 text-[17px] sm:text-[18px] truncate flex-1 text-right" title={ev.company}>
-                              {ev.company}
-                            </span>
                           </div>
-
-                          {/* Titolo / Attività da svolgere (+2pt font) */}
-                          <div className="text-[15.5px] sm:text-[16px] font-bold text-slate-800 leading-snug line-clamp-2 my-1">
-                            {ev.title || ev.category || 'Attività programmata'}
-                          </div>
-                        </div>
-
-                        {/* Dettagli partecipanti, location e note (+2pt font) */}
-                        <div className="pt-1.5 flex flex-col gap-0.5 text-[14px] sm:text-[14.5px] text-slate-600">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="truncate max-w-[50%] font-semibold">
-                              {ev.people || ev.attendees || 'Team DADO'}
-                            </span>
-                            {ev.location && (
-                              <span className="truncate max-w-[50%] text-right text-slate-500 font-medium">
-                                {ev.location}
-                              </span>
-                            )}
-                          </div>
-
-                          {(ev.notes || ev.materials) && (
-                            <div className="text-[13.5px] sm:text-[14px] text-slate-500 italic truncate mt-0.5">
-                              {ev.notes || ev.materials}
-                            </div>
-                          )}
-                        </div>
+                        ))}
                       </div>
-                    ))
-                  ) : hasNotes ? (
-                    <div className="h-full flex items-center justify-center p-2 text-[15.5px] sm:text-[16.5px] text-slate-600 font-medium leading-relaxed italic text-center">
-                      "{dayData.notes}"
-                    </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-[14px] text-slate-300">
-                      {/* Spazio pulito nel riquadro */}
-                    </div>
-                  )}
+                    ) : hasNotes ? (
+                      <div className={`p-1 ${isMobileApp ? 'text-[12.5px]' : 'text-[14.5px]'} text-slate-600 font-medium leading-snug italic`}>
+                        "{dayData.notes}"
+                      </div>
+                    ) : (
+                      <div className="text-[12px] text-slate-400 italic">
+                        Nessun impegno programmato — tocca per aggiungere note
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -653,240 +947,328 @@ export default function Calendar() {
     )
   }
 
-  // Render della vista mensile completa (inquadra tutto il mese corrente o successivo senza scroll)
-  function renderMonthView() {
-    const monthName = MONTH_NAMES[displayedMonthDate.getMonth()]
-    const year = displayedMonthDate.getFullYear()
-    const isCurrentMonth = monthOffset === 0
+  // Render di una singola griglia mensile (usata solo quando si visualizza 1 Mese o 2 Mesi insieme):
+  // - Quadratino singolo ridotto alle dimensioni precise che contengono sia il numero del mese che il pallino rosso
+  // - Cliccando la giornata in cui è contenuto il pallino rosso si apre a tutto schermo la commessa / il task di quella giornata
+  function renderSingleMonthGrid(monthDateObj, gridDays, compact = false) {
+    const monthName = MONTH_NAMES[monthDateObj.getMonth()]
+    const year = monthDateObj.getFullYear()
 
     return (
-      <div className="w-full h-full flex flex-col min-h-0 flex-1 select-none animate-in fade-in duration-150 px-0.5 sm:px-1">
-        
-        {/* Header Mese: Nome Mese, Indicatore e Pulsanti di Switch */}
-        <div className="flex items-center justify-between px-2 sm:px-3 py-1 flex-shrink-0 border-b border-slate-200 mb-1">
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-xl sm:text-2xl font-black font-mono tracking-tight text-slate-900 uppercase">
-              {monthName} {year}
-            </h2>
-            <span className={`text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full ${
-              isCurrentMonth
-                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                : 'bg-sky-100 text-sky-800 border border-sky-300'
-            }`}>
-              {isCurrentMonth ? 'Mese Corrente' : 'Mese Successivo'}
-            </span>
-            <span className="text-[11px] font-mono text-slate-400 hidden md:inline">
-              (Zoom In touchpad: Mese Corrente | Zoom Out: Mese Successivo)
-            </span>
-          </div>
-
-          {/* Switcher rapido Mese Corrente / Successivo / Torna alla Settimana */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <button
-              onClick={() => setMonthOffset(0)}
-              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                isCurrentMonth
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-              title="Inquadra tutto il mese corrente (oppure zoom in con touchpad)"
-            >
-              Mese Corrente
-            </button>
-            <button
-              onClick={() => setMonthOffset(1)}
-              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                !isCurrentMonth
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-              title="Inquadra il mese successivo (oppure zoom out con touchpad)"
-            >
-              Mese Successivo
-            </button>
-            <button
-              onClick={() => setViewMode('week')}
-              className="ml-1 sm:ml-2 px-3 py-1 text-xs font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
-              title="Torna alla vista settimanale"
-            >
-              <span>← Vista Settimana</span>
-            </button>
+      <div className="w-full flex flex-col items-center justify-center select-none px-2 py-1">
+        <div className={`w-full max-w-[380px] flex items-center justify-between px-1 ${compact ? 'py-1' : 'py-1.5'} border-b border-slate-200 mb-1.5 flex-shrink-0`}>
+          <h2 className={`${compact ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'} font-black tabular-nums tracking-tight text-slate-900 uppercase`}>
+            {monthName} {year}
+          </h2>
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+            <span className="w-2 h-2 rounded-full bg-[#ea3824] inline-block" />
+            <span>Tocca il pallino per aprire</span>
           </div>
         </div>
 
         {/* Intestazione Colonne Giorni (LUN → DOM) */}
-        <div className="grid grid-cols-7 gap-1 sm:gap-1.5 py-0.5 text-center font-mono font-bold text-xs sm:text-sm text-slate-500 uppercase flex-shrink-0">
+        <div className="w-full max-w-[380px] grid grid-cols-7 gap-1.5 py-1 text-center font-bold text-[10px] sm:text-xs text-slate-500 uppercase flex-shrink-0">
           {DAY_NAMES_SHORT.map((name, i) => (
-            <div key={i} className="py-0.5">
+            <div
+              key={i}
+              className={`py-0.5 ${i === 6 ? 'rounded-full bg-[#f7f4ea] border border-[#dfd9c8] text-slate-800 font-black' : ''}`}
+            >
               {name}
             </div>
           ))}
         </div>
 
-        {/* Griglia mensile: 7 colonne a tutta altezza senza barre di scroll */}
-        <div className="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 min-h-0 w-full" style={{ gridAutoRows: '1fr' }}>
-          {monthGridDays.map((day, idx) => {
+        {/* Griglia mensile con quadratini ridotti alle dimensioni precise per numero + pallino rosso */}
+        <div className={`w-full max-w-[380px] grid grid-cols-7 ${compact ? 'gap-1.5 py-0.5' : 'gap-2 py-1.5'} place-items-center`}>
+          {gridDays.map((day, idx) => {
             const dayData = getCalendarDayData(day.iso, crmActivities)
             const events = dayData?.events || []
             const hasEvents = events.length > 0
             const isToday = day.isToday
             const isHighlighted = highlightedDayIso === day.iso
-            const brandColor = BRAND_COLORS[(day.dayNum * 7 + idx) % BRAND_COLORS.length]
+            const isSunday = idx % 7 === 6
 
             return (
-              <div
+              <button
                 key={day.iso}
+                type="button"
                 onClick={() => {
                   setHighlightedDayIso(day.iso)
-                  openDayEditor(day)
+                  setCurrentDate(new Date(day.dateObj))
+                  if (hasEvents) {
+                    openFullScreenTaskForDay(day)
+                  } else {
+                    openDayEditor(day)
+                  }
                 }}
-                className={`p-1 sm:p-1.5 rounded-xl border flex flex-col justify-between cursor-pointer transition-all min-h-0 overflow-hidden ${
+                className={`${
+                  compact
+                    ? 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl'
+                    : 'w-10 h-10 sm:w-11 sm:h-11 rounded-xl'
+                } border flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all active:scale-95 ${
                   !day.isCurrentMonth
                     ? 'bg-slate-50/40 text-slate-300 border-slate-100'
+                    : hasEvents
+                    ? 'bg-white border-red-200 shadow-xs hover:border-[#ea3824]'
                     : isToday
-                    ? 'bg-emerald-50/40 border-emerald-400 ring-1 ring-emerald-400 text-slate-900'
+                    ? 'bg-emerald-50/70 border-emerald-500 ring-1 ring-emerald-500 text-slate-900'
                     : isHighlighted
                     ? 'bg-sky-50/60 border-sky-400 ring-1 ring-sky-400 text-slate-900'
+                    : isSunday
+                    ? 'bg-[#fbfaf5] border-[#dfd9c8] text-slate-900 shadow-2xs'
                     : 'bg-white hover:bg-slate-50/80 border-slate-200 text-slate-800'
                 }`}
-                title={`Clicca per gestire dettagli (${day.longName} ${day.dayNum})`}
+                title={
+                  hasEvents
+                    ? `${day.longName} ${day.dayNum}: tocca per aprire commessa / task a tutto schermo`
+                    : `${day.longName} ${day.dayNum} ${MONTH_NAMES[day.monthNum]}`
+                }
               >
-                {/* Header giorno nella cella */}
-                <div className="flex items-center justify-between flex-shrink-0">
-                  <span className={`text-[12px] sm:text-[13px] font-black ${
-                    day.isCurrentMonth ? (isToday ? 'text-emerald-700' : 'text-slate-900') : 'text-slate-400'
-                  }`}>
-                    {day.dayNum}
-                  </span>
-                  {isToday && (
-                    <span className="bg-[#007a50] text-white text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase">
-                      Oggi
-                    </span>
-                  )}
-                  {hasEvents && !isToday && (
-                    <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: brandColor }}
-                      title={`${events.length} impegni`}
-                    />
-                  )}
-                </div>
+                <span
+                  className={`${compact ? 'text-[11.5px]' : 'text-[13px]'} font-black leading-none ${
+                    day.isCurrentMonth
+                      ? isToday
+                        ? 'text-emerald-700'
+                        : 'text-slate-900'
+                      : 'text-slate-300'
+                  }`}
+                >
+                  {day.dayNum}
+                </span>
 
-                {/* Eventi o anteprima nella cella del mese */}
-                <div className="flex-1 min-h-0 overflow-hidden flex flex-col justify-end gap-0.5 mt-0.5">
-                  {hasEvents ? (
-                    events.slice(0, 2).map((ev, evIdx) => (
-                      <div
-                        key={evIdx}
-                        className="text-[10px] sm:text-[11px] font-bold text-slate-700 truncate bg-slate-100/90 px-1 py-0.2 rounded flex items-center gap-1"
-                        title={`${ev.time} - ${ev.company}: ${ev.title}`}
-                      >
-                        <span className="font-mono text-slate-900 font-black text-[9.5px] sm:text-[10px] flex-shrink-0">{ev.time}</span>
-                        <span className="truncate">{ev.company || ev.title}</span>
-                      </div>
-                    ))
-                  ) : dayData?.notes ? (
-                    <div className="text-[9.5px] text-slate-400 italic truncate">
-                      "{dayData.notes}"
-                    </div>
-                  ) : null}
-                  {events.length > 2 && (
-                    <div className="text-[9px] font-bold text-slate-500 text-right pr-0.5">
-                      +{events.length - 2} altri
-                    </div>
-                  )}
-                </div>
-              </div>
+                {/* Pallino rosso solo quando quella giornata ha una commessa / task */}
+                {hasEvents ? (
+                  <span
+                    className={`${compact ? 'w-2 h-2' : 'w-2.5 h-2.5'} rounded-full bg-[#ea3824] shrink-0 shadow-[0_0_0_2px_rgba(234,56,36,0.2)]`}
+                  />
+                ) : (
+                  <span className={`${compact ? 'w-2 h-1' : 'w-2.5 h-1.5'} shrink-0 opacity-0`} />
+                )}
+              </button>
             )
           })}
         </div>
-
       </div>
     )
   }
 
-  return (
-    <div className="h-full min-h-screen md:min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden font-sans">
-      
-      {/* ── CANVAS BIANCO: Margini laterali ottimizzati per guadagnare il massimo spazio ── */}
+  // Vista 2 Mesi nella stessa schermata (Zoom Out massimo)
+  function renderTwoMonthsView() {
+    return (
       <div
-        className="h-full flex-1 bg-white rounded-tl-none rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden text-slate-800 px-0.5 sm:px-1 pt-1.5 pb-1"
+        className="w-full h-full flex flex-col items-center justify-around gap-1 min-h-0 flex-1 overflow-y-auto px-0.5 no-scrollbar [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {renderSingleMonthGrid(displayedMonthDate, monthGridDays, true)}
+        <div className="w-full max-w-[380px] h-[1.5px] bg-slate-200/80 shrink-0 rounded-full" />
+        {renderSingleMonthGrid(secondDisplayedMonthDate, secondMonthGridDays, true)}
+      </div>
+    )
+  }
+
+  // Testo compatto "dal ... al ... + prime 3 lettere del mese"
+  const startMonth3 = MONTH_NAMES_SHORT[startDay.monthNum] || ''
+  const endMonth3 = MONTH_NAMES_SHORT[endDay.monthNum] || ''
+  const weekRangeLabel =
+    startDay.monthNum === endDay.monthNum
+      ? `dal ${startDay.dayNum} al ${endDay.dayNum} ${endMonth3}`
+      : `dal ${startDay.dayNum} ${startMonth3} al ${endDay.dayNum} ${endMonth3}`
+
+  return (
+    <div className="h-full min-h-dvh md:min-h-0 bg-transparent flex flex-col flex-1 relative overflow-hidden font-sans">
+      {/* ── BANDA SUPERIORE CON SFUMATURA ARMONIZZATA ALLO SFONDO BIANCO DI CALENDAR ── */}
+      <PageTopBand title="Calendar" theme="calendar" thickDesktop={false} />
+
+      {/* ── CANVAS BIANCO ── */}
+      <div
+        className={`h-full flex-1 bg-white rounded-tl-none ${isMobileApp ? 'rounded-bl-[32px]' : 'rounded-bl-[48px]'} flex flex-col justify-between relative min-w-0 overflow-hidden text-slate-800 px-1 sm:px-2 pt-1 pb-2`}
         style={{
           borderLeft: '1.5px solid #e2e8f0',
-          boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+          boxShadow: '-10px 14px 24px -6px rgba(0, 0, 0, 0.38)',
           borderTopLeftRadius: '0px',
         }}
       >
 
-        {/* ── CORPO PRINCIPALE: VISTA SETTIMANA O VISTA MESE COMPLETO ── */}
-        <div className="flex-1 min-h-0 w-full select-none pb-1 flex flex-col">
-          {viewMode === 'month' ? renderMonthView() : renderWeekRow(currentWeekDays)}
+        {/* ── CORPO PRINCIPALE CON ZOOM AUTOMATICO A 2 DITA (1 GIORNO ↔ SETTIMANA 3 GG ↔ 1 MESE ↔ 2 MESI) ── */}
+        <div
+          ref={calendarBodyRef}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          className="flex-1 min-h-0 w-full select-none flex flex-col overflow-hidden items-center justify-center"
+        >
+          {viewMode === 'day'
+            ? renderSingleDayView()
+            : viewMode === 'week'
+            ? renderWeekRow(currentWeekDays)
+            : viewMode === 'month'
+            ? renderSingleMonthGrid(displayedMonthDate, monthGridDays, false)
+            : renderTwoMonthsView()}
         </div>
 
-        {/* ── BARRA DI NAVIGAZIONE SETTIMANE (VISIBILE IN VISTA SETTIMANA) ── */}
-        {viewMode === 'week' && (
-          <div
-            className="w-full flex items-center justify-between pt-1 pb-1 select-none flex-shrink-0"
-            style={{
-              paddingLeft: 'calc(1.5rem + 4cm)',
-              paddingRight: 'calc(1.5rem + 4cm)',
-            }}
-          >
-            
-            {/* Pulsante Sinistro (verso sinistra) */}
+        {/* ── BARRA INFERIORE CON TASTI ANCORA PIÙ GRANDI E TESTO "DAL AL + MESE (PRIME 3 LETTERE)" ── */}
+        <div className="w-full pt-2 pb-1 px-1.5 sm:px-4 border-t border-slate-200/90 bg-white/95 select-none flex-shrink-0">
+          <div className="w-full flex items-center justify-between gap-2.5 sm:gap-4">
+            {/* Tasto Sinistro INGRANDITO per muoversi tra le settimane col dito */}
             <button
-              onClick={handlePrevWeek}
-              className="w-14 sm:w-16 h-10 sm:h-11 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group rounded-xl border border-slate-300 shadow-xs"
-              title="Settimana precedente (oppure usa tasto freccia ←)"
+              type="button"
+              onClick={handlePrimaryPrev}
+              className={`${
+                isMobileApp
+                  ? 'min-w-[96px] h-14 px-4 rounded-2xl'
+                  : 'min-w-[152px] h-16 px-6 rounded-2xl'
+              } bg-[#e2e6ec] hover:bg-[#d5dbe3] active:bg-[#c5ccd6] text-slate-900 flex items-center justify-center cursor-pointer transition-all active:scale-95 border border-slate-300 shadow-sm flex-shrink-0`}
+              title="Settimana precedente"
             >
-              <ChevronLeft size={36} strokeWidth={3} className="text-black group-hover:-translate-x-1 transition-transform" />
+              <ChevronLeft size={isMobileApp ? 30 : 34} strokeWidth={3.2} className="text-slate-900 shrink-0" />
             </button>
 
-            {/* Testo Centrale: Senza riquadro con link rapido alle viste mensili (+2pt di grandezza) */}
-            <div className="text-center px-4 flex flex-col items-center">
-              <span className="text-[21px] sm:text-[23px] font-black font-mono text-slate-800 tracking-wide">
-                {startDay.monthNum === endDay.monthNum
-                  ? `dal ${startDay.dayNum} al ${endDay.dayNum} ${MONTH_NAMES[endDay.monthNum]}`
-                  : `dal ${startDay.dayNum} ${MONTH_NAMES[startDay.monthNum]} al ${endDay.dayNum} ${MONTH_NAMES[endDay.monthNum]}`}
+            {/* Centro: "dal ... al ... + prime tre lettere del mese" (toccandolo riporta a Oggi) */}
+            <button
+              type="button"
+              onClick={() => setCurrentDate(new Date())}
+              className="text-center px-1 py-2 flex flex-col items-center justify-center min-w-0 flex-1 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors cursor-pointer"
+              title="Tocca per tornare alla settimana attuale (Oggi)"
+            >
+              <span className={`${isMobileApp ? 'text-[15.5px] sm:text-[17px]' : 'text-[21px] sm:text-[24px]'} font-black text-slate-900 tracking-tight leading-tight truncate max-w-full`}>
+                {weekRangeLabel}
               </span>
-              <div className="flex items-center gap-2 mt-0.5">
-                <button
-                  onClick={() => {
-                    setViewMode('month')
-                    setMonthOffset(0)
-                  }}
-                  className="text-[11.5px] font-bold text-slate-500 hover:text-[#0284c7] transition-colors cursor-pointer"
-                  title="Inquadra tutto il mese corrente (oppure zoom in con il touchpad)"
-                >
-                  Mese Corrente (Zoom In)
-                </button>
-                <span className="text-slate-300 text-xs">•</span>
-                <button
-                  onClick={() => {
-                    setViewMode('month')
-                    setMonthOffset(1)
-                  }}
-                  className="text-[11.5px] font-bold text-slate-500 hover:text-[#0284c7] transition-colors cursor-pointer"
-                  title="Inquadra il mese successivo (oppure zoom out con il touchpad)"
-                >
-                  Mese Successivo (Zoom Out)
-                </button>
-              </div>
-            </div>
-
-            {/* Pulsante Destro (verso destra) */}
-            <button
-              onClick={handleNextWeek}
-              className="w-14 sm:w-16 h-10 sm:h-11 bg-[#d1d5db] hover:bg-[#c4c8cf] active:bg-[#b0b5be] text-black flex items-center justify-center cursor-pointer transition-all active:scale-95 group rounded-xl border border-slate-300 shadow-xs"
-              title="Settimana successiva (oppure usa tasto freccia →)"
-            >
-              <ChevronRight size={36} strokeWidth={3} className="text-black group-hover:translate-x-1 transition-transform" />
             </button>
 
+            {/* Tasto Destro INGRANDITO per muoversi tra le settimane col dito */}
+            <button
+              type="button"
+              onClick={handlePrimaryNext}
+              className={`${
+                isMobileApp
+                  ? 'min-w-[96px] h-14 px-4 rounded-2xl'
+                  : 'min-w-[152px] h-16 px-6 rounded-2xl'
+              } bg-[#e2e6ec] hover:bg-[#d5dbe3] active:bg-[#c5ccd6] text-slate-900 flex items-center justify-center cursor-pointer transition-all active:scale-95 border border-slate-300 shadow-sm flex-shrink-0`}
+              title="Settimana successiva"
+            >
+              <ChevronRight size={isMobileApp ? 30 : 34} strokeWidth={3.2} className="text-slate-900 shrink-0" />
+            </button>
           </div>
-        )}
+        </div>
 
       </div>
+
+      {/* ── SCHERMATA A TUTTO SCHERMO PER COMMESSA / TASK DELLA GIORNATA COL PALLINO ROSSO (DA 1 MESE / 2 MESI) ── */}
+      {fullScreenDayTask && (
+        <div
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden animate-in fade-in duration-150 font-sans"
+        >
+          {/* Barra in alto con pulsante contenente SOLO l'icona della freccia per tornare alla schermata precedente */}
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-slate-200 bg-white flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setFullScreenDayTask(null)}
+              aria-label="Torna alla schermata precedente"
+              title="Torna alla schermata precedente"
+              className="w-12 h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-900 flex items-center justify-center cursor-pointer transition-all active:scale-95 border border-slate-200/90 shadow-xs"
+            >
+              <ArrowLeft className="w-6 h-6 text-slate-900" strokeWidth={2.8} />
+            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ea3824]" />
+              <h2 className="text-base sm:text-xl font-black uppercase tracking-tight text-slate-900">
+                {fullScreenDayTask.longName} {fullScreenDayTask.dayNum} {MONTH_NAMES_SHORT[fullScreenDayTask.monthNum]} {fullScreenDayTask.year}
+              </h2>
+            </div>
+
+            <div className="w-12" />
+          </div>
+
+          {/* Contenuto a tutto schermo della commessa / task della giornata */}
+          <div
+            className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 flex flex-col gap-4 bg-slate-50/60 no-scrollbar [&::-webkit-scrollbar]:hidden"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {(fullScreenDayTask.data?.events || []).map((ev, i) => (
+              <div
+                key={ev.id || i}
+                className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col gap-4"
+              >
+                <div className="flex items-center justify-between gap-2 flex-wrap border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-black text-sm sm:text-base text-slate-900 bg-slate-100 px-3 py-1 rounded-xl border border-slate-200">
+                      {ev.time}
+                    </span>
+                    <span className="text-xs font-black uppercase px-3 py-1 rounded-xl bg-red-50 text-[#ea3824] border border-red-200">
+                      {ev.category || 'Commessa / Task'}
+                    </span>
+                  </div>
+
+                  {ev.isCrmActivity && ev.activityId && (
+                    <button
+                      type="button"
+                      onClick={() => toggleActivityStatusInModal(ev.activityId, ev.status)}
+                      className={`text-xs font-black px-3.5 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                        ev.completed
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                          : 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100'
+                      }`}
+                    >
+                      {ev.completed ? <Check className="w-4 h-4 text-emerald-600" /> : <Circle className="w-4 h-4 text-amber-600" />}
+                      <span>{ev.completed ? 'Completata' : 'Segna Completata'}</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Commessa / Azienda */}
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[#0284c7] shrink-0">
+                    <Briefcase className="w-5 h-5" />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+                      Commessa / Cliente
+                    </span>
+                    <span className="text-lg sm:text-2xl font-black text-[#0284c7] leading-tight">
+                      {ev.company || 'DADO Media Production'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Task / Attività */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                  <div className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                    Task / Dettaglio Operativo
+                  </div>
+                  <div className="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">
+                    {ev.title || ev.category || 'Attività programmata'}
+                  </div>
+                </div>
+
+                {/* Team & Location */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="flex items-center gap-2.5 bg-slate-50/80 border border-slate-200/70 rounded-2xl px-3.5 py-2.5 text-sm font-bold text-slate-700">
+                    <Users className="w-4 h-4 text-slate-500 shrink-0" />
+                    <span className="truncate">{ev.people || ev.attendees || 'Team DADO'}</span>
+                  </div>
+                  {ev.location && (
+                    <div className="flex items-center gap-2.5 bg-slate-50/80 border border-slate-200/70 rounded-2xl px-3.5 py-2.5 text-sm font-bold text-slate-700">
+                      <MapPin className="w-4 h-4 text-[#ea3824] shrink-0" />
+                      <span className="truncate">{ev.location}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {fullScreenDayTask.data?.notes && (
+              <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 text-sm font-semibold text-slate-800">
+                <div className="text-[11px] font-black uppercase tracking-wider text-amber-800 mb-1">
+                  Note della Giornata
+                </div>
+                <div>{fullScreenDayTask.data.notes}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── MODALE GESTIONE NOTE & ALLEGATI DEL GIORNO ── */}
       {selectedDayModal && (
@@ -902,10 +1284,10 @@ export default function Calendar() {
                   <Folder className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-[11px] font-mono text-[#00ffaa] uppercase tracking-wider font-bold">
+                  <div className="text-[11px] text-[#00ffaa] uppercase tracking-wider font-bold">
                     Dettagli & Attività del Giorno
                   </div>
-                  <h3 className="text-xl font-black text-white font-mono flex items-center gap-2">
+                  <h3 className="text-xl font-black text-white tabular-nums flex items-center gap-2">
                     <span>{selectedDayModal.longName}</span>
                     <span className="text-[#38bdf8]">{selectedDayModal.dayNum} {MONTH_NAMES[selectedDayModal.monthNum]} {selectedDayModal.year}</span>
                   </h3>
@@ -927,19 +1309,19 @@ export default function Calendar() {
               {/* 1. Impegni & Attività CRM Programmate */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-mono text-white/70 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                  <label className="text-xs text-white/70 uppercase tracking-wider font-bold flex items-center gap-1.5">
                     <CalendarIcon className="w-4 h-4 text-[#38bdf8]" />
                     Impegni & Attività CRM ({(selectedDayModal.data?.events || []).length}):
                   </label>
                   {selectedDayModal.data?.tag && (
-                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white/10 text-white/80">
+                    <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-white/10 text-white/80">
                       {selectedDayModal.data.tag}
                     </span>
                   )}
                 </div>
 
                 {(selectedDayModal.data?.events || []).length === 0 ? (
-                  <div className="p-3 bg-white/5 border border-dashed border-white/10 rounded-xl text-center text-xs text-white/40 font-mono">
+                  <div className="p-3 bg-white/5 border border-dashed border-white/10 rounded-xl text-center text-xs text-white/40">
                     Nessuna attività o impegno programmato per questa data.
                   </div>
                 ) : (
@@ -951,14 +1333,14 @@ export default function Calendar() {
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-mono font-bold text-white text-[12px] bg-white/10 px-1.5 py-0.5 rounded">
+                            <span className=" font-bold text-white text-[12px] bg-white/10 px-1.5 py-0.5 rounded">
                               {ev.time}
                             </span>
-                            <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-sky-950/80 text-sky-300 border border-sky-700/50">
+                            <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-sky-950/80 text-sky-300 border border-sky-700/50">
                               {ev.category}
                             </span>
                             {ev.isCrmActivity && (
-                              <span className={`text-[9.5px] font-mono uppercase px-1.5 py-0.5 rounded font-bold ${
+                              <span className={`text-[9.5px] uppercase px-1.5 py-0.5 rounded font-bold ${
                                 ev.completed
                                   ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-700/50'
                                   : 'bg-amber-950/80 text-amber-300 border border-amber-700/50'
@@ -973,7 +1355,7 @@ export default function Calendar() {
                             <button
                               type="button"
                               onClick={() => toggleActivityStatusInModal(ev.activityId, ev.status)}
-                              className={`text-[10.5px] font-mono px-2 py-0.5 rounded border transition-colors cursor-pointer flex items-center gap-1 ${
+                              className={`text-[10.5px] px-2 py-0.5 rounded border transition-colors cursor-pointer flex items-center gap-1 ${
                                 ev.completed
                                   ? 'border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/20'
                                   : 'border-white/20 text-white/70 hover:text-white hover:bg-white/10'
@@ -1003,7 +1385,7 @@ export default function Calendar() {
 
               {/* 2. Note della Giornata */}
               <div>
-                <label className="block text-xs font-mono text-white/70 uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
+                <label className="block text-xs text-white/70 uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5">
                   <StickyNote className="w-4 h-4 text-[#00ffaa]" />
                   Note della Giornata:
                 </label>
@@ -1018,7 +1400,7 @@ export default function Calendar() {
                   <button
                     type="button"
                     onClick={saveNoteForDay}
-                    className="px-3 py-1.5 bg-[#00ffaa] hover:bg-[#00e575] text-[#111111] text-xs font-bold rounded-lg font-mono flex items-center gap-1 transition-transform active:scale-95"
+                    className="px-3 py-1.5 bg-[#00ffaa] hover:bg-[#00e575] text-[#111111] text-xs font-bold rounded-lg flex items-center gap-1 transition-transform active:scale-95"
                   >
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                     Salva Nota
@@ -1029,12 +1411,12 @@ export default function Calendar() {
               {/* 3. File Allegati */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-mono text-white/70 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                  <label className="text-xs text-white/70 uppercase tracking-wider font-bold flex items-center gap-1.5">
                     <Paperclip className="w-4 h-4 text-[#38bdf8]" />
                     Documenti & File Allegati ({(selectedDayModal.data?.files || []).length}):
                   </label>
 
-                  <label className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white text-xs font-mono rounded cursor-pointer flex items-center gap-1 transition-colors">
+                  <label className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white text-xs rounded cursor-pointer flex items-center gap-1 transition-colors">
                     <UploadCloud className="w-3.5 h-3.5 text-[#38bdf8]" />
                     <span>+ Allega File</span>
                     <input
@@ -1046,7 +1428,7 @@ export default function Calendar() {
                 </div>
 
                 {(selectedDayModal.data?.files || []).length === 0 ? (
-                  <div className="p-3 bg-white/5 border border-dashed border-white/10 rounded-xl text-center text-xs text-white/40 font-mono">
+                  <div className="p-3 bg-white/5 border border-dashed border-white/10 rounded-xl text-center text-xs text-white/40">
                     Nessun file allegato. Clicca su "+ Allega File" per caricare contratti, PDF o liberatorie.
                   </div>
                 ) : (
@@ -1054,7 +1436,7 @@ export default function Calendar() {
                     {selectedDayModal.data.files.map((file, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between p-2.5 bg-white/5 border border-white/10 rounded-lg text-xs font-mono"
+                        className="flex items-center justify-between p-2.5 bg-white/5 border border-white/10 rounded-lg text-xs"
                       >
                         <div className="flex items-center gap-2 truncate">
                           <FileText className="w-4 h-4 text-[#38bdf8] flex-shrink-0" />
@@ -1090,7 +1472,7 @@ export default function Calendar() {
               <button
                 type="button"
                 onClick={() => setSelectedDayModal(null)}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-lg font-mono transition-colors"
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-lg transition-colors"
               >
                 Chiudi
               </button>

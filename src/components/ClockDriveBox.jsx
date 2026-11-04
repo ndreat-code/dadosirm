@@ -22,6 +22,24 @@ export default function ClockDriveBox({
   const d3 = digits[2] || '0'
   const d4 = digits[3] || '0'
 
+  const renderDigit = (d, width = '14px') => {
+    const isOne = d === '1'
+    return (
+      <span
+        className="inline-block text-center"
+        style={{
+          width,
+          fontWeight: isOne ? 900 : 700,
+          fontFamily: isOne
+            ? '"Arial", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, sans-serif'
+            : '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        }}
+      >
+        {d}
+      </span>
+    )
+  }
+
   if (compact) {
     return (
       <div
@@ -37,43 +55,45 @@ export default function ClockDriveBox({
         onClick={() => window.open('https://drive.google.com', '_blank')}
         title={`Google Drive • Ore: ${hhmm}`}
       >
-        {/* Sfondo: Logo Google Drive nitido in watermark con blend multiply su fondo bianco */}
+        {/* Sfondo: Logo Google Drive con trasparenza intermedia tra prima e ora */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <img
             src="/google-drive-logo.jpg"
             alt="Google Drive Logo"
-            className="w-[36px] h-[36px] object-contain opacity-25 group-hover:opacity-40 transition-opacity"
+            className="w-[36px] h-[36px] object-contain opacity-50 group-hover:opacity-65 transition-opacity"
             style={{ mixBlendMode: 'multiply' }}
           />
         </div>
 
-        {/* Cifre NERE dell'orologio ad alto contrasto */}
+        {/* Cifre sobrie dell'orologio (21px, allontanate alle estremità) */}
         <div
-          className="relative z-10 leading-none flex items-center justify-center select-none text-[#000000]"
+          className="relative z-10 leading-none flex items-center justify-between w-full px-2 select-none text-slate-800"
           style={{
-            fontFamily: '"Switzer", sans-serif',
-            fontSize: '18px',
-            fontWeight: 900,
-            letterSpacing: '0.03em',
-            color: '#000000',
-            textShadow: '0 0 4px #ffffff, 0 0 8px #ffffff',
+            fontSize: '21px',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            color: '#1e293b',
             WebkitFontSmoothing: 'antialiased'
           }}
         >
-          <span style={{ color: '#000000' }}>{d1}</span>
-          <span style={{ color: '#000000' }}>{d2}</span>
-          <span style={{ color: '#000000' }} className="mx-[1.5px] font-bold animate-pulse text-[15px]">:</span>
-          <span style={{ color: '#000000' }}>{d3}</span>
-          <span style={{ color: '#000000' }}>{d4}</span>
+          <div className="flex items-center">
+            {renderDigit(d1, '12px')}
+            {renderDigit(d2, '12px')}
+          </div>
+          <span className="font-medium text-slate-400 animate-pulse text-[16px]">:</span>
+          <div className="flex items-center">
+            {renderDigit(d3, '12px')}
+            {renderDigit(d4, '12px')}
+          </div>
         </div>
       </div>
     )
   }
 
-  // Versione allargata (barra estesa in Dashboard o altri contesti)
+  // Versione allargata / accorciata a metà (barra estesa in Dashboard)
   return (
     <div
-      className={`rounded-2xl py-2 px-3 text-center cursor-pointer transition-all relative overflow-hidden group select-none flex flex-col items-center justify-center shrink-0 bg-white hover:shadow-md hover:scale-[1.02] ${className}`}
+      className={`rounded-2xl py-1.5 px-3 text-center cursor-pointer transition-all relative overflow-hidden group select-none flex flex-col items-center justify-center shrink-0 bg-white hover:shadow-md hover:scale-[1.02] ${className}`}
       style={{
         background: '#ffffff',
         border: '1.5px solid #e2e8f0',
@@ -85,35 +105,46 @@ export default function ClockDriveBox({
       onClick={() => window.open('https://drive.google.com', '_blank')}
       title="Google Drive"
     >
-      {/* Sfondo: Logo Google Drive centrato in trasparenza nitida */}
+      {/* Sfondo: Logo Google Drive centrato in trasparenza intermedia tra prima e ora */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
         <img
           src="/google-drive-logo.jpg"
           alt="Google Drive Logo"
-          className="w-[60px] h-[60px] object-contain opacity-25 group-hover:opacity-40 transition-opacity"
+          className="w-[46px] h-[46px] object-contain opacity-50 group-hover:opacity-65 transition-opacity"
           style={{ mixBlendMode: 'multiply' }}
         />
       </div>
 
-      {/* Cifre Ingrandite e Nitide ad alto contrasto: Giallo canarino luminoso, Viola, Blu (tenue), Rosa pesca */}
-      <div className="relative z-10 leading-none flex items-center justify-center">
+      {/* Cifre sobrie ad alto contrasto (23px, allontanate alle estremità) */}
+      <div className="relative z-10 leading-none flex items-center justify-between w-full px-3.5">
         <div
-          className="leading-none flex items-center justify-center tracking-wider"
+          className="flex items-center leading-none tracking-wider text-slate-800"
           style={{
-            fontSize: '21px',
-            fontFamily: '"Switzer", sans-serif',
-            fontWeight: 900,
-            letterSpacing: '0.05em',
-            color: '#000000',
-            textShadow: '0 0 4px #ffffff, 0 0 8px #ffffff',
+            fontSize: '23px',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            color: '#1e293b',
             WebkitFontSmoothing: 'antialiased'
           }}
         >
-          <span style={{ color: '#000000' }}>{d1}</span>
-          <span style={{ color: '#000000' }}>{d2}</span>
-          <span style={{ color: '#000000' }} className="mx-[2px] font-bold animate-pulse text-[18px]">:</span>
-          <span style={{ color: '#000000' }}>{d3}</span>
-          <span style={{ color: '#000000' }}>{d4}</span>
+          {renderDigit(d1, '14px')}
+          {renderDigit(d2, '14px')}
+        </div>
+
+        <span className="font-medium text-slate-400 animate-pulse text-[18px]">:</span>
+
+        <div
+          className="flex items-center leading-none tracking-wider text-slate-800"
+          style={{
+            fontSize: '23px',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            color: '#1e293b',
+            WebkitFontSmoothing: 'antialiased'
+          }}
+        >
+          {renderDigit(d3, '14px')}
+          {renderDigit(d4, '14px')}
         </div>
       </div>
     </div>

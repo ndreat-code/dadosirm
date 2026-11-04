@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   Sparkles,
@@ -7,7 +8,6 @@ import {
   Calendar,
   HardDrive,
   Video,
-  Sliders,
   Shield,
   Bell,
   Save,
@@ -15,8 +15,6 @@ import {
   RefreshCw,
   Download,
   Cpu,
-  Building2,
-  CreditCard,
   Layers,
   CheckCircle2,
   AlertCircle,
@@ -80,7 +78,7 @@ export const DEFAULT_TASK_RULES = [
     trigger: 'contract_signed',
     triggerLabel: 'Dalla firma del contratto digitale',
     delayDays: 2,
-    actionTask: 'Verifica disponibilità kit camere Sony FX3, ottiche GM e ricarica batterie set',
+    actionTask: 'Verifica disponibilità kit camere Canon C70 & R5 C, ottiche RF L-series e ricarica batterie set',
     assignedTo: 'Staff Studio',
     category: 'shooting',
     priority: 'Media',
@@ -167,7 +165,7 @@ export const DEFAULT_PIPELINE_STAGES = [
     name: '6. Trattativa Chiusa Persa',
     shortName: 'Chiuso Perso',
     probability: 0,
-    color: '#f43f5e', // Rose
+    color: '#000000', // Nero
     description: 'Trattativa interrotta o non andata a buon fine. Richiede motivazione obbligatoria per analisi Win/Loss.',
     order: 6,
     isWon: false,
@@ -210,8 +208,7 @@ function SecretAccessDenied({ title, reason }) {
 export default function Settings() {
   const { currentUser, isAdmin, isDipendente, users } = useAuth()
 
-  // Se dipendente, la tab di partenza è 'system'; altrimenti 'google_ai'
-  const [activeTab, setActiveTab] = useState(() => isDipendente ? 'system' : 'google_ai')
+  const [activeTab, setActiveTab] = useState('google_ai')
   const [savedToast, setSavedToast] = useState(false)
   const [ruleTestToast, setRuleTestToast] = useState(null)
   const [showAddRuleModal, setShowAddRuleModal] = useState(false)
@@ -239,36 +236,15 @@ export default function Settings() {
   })
   const [forecastSimulatorValue, setForecastSimulatorValue] = useState(10000)
 
-  // Reindirizzamento immediato a 'system' se il profilo dipendente si trova in una tab segreta
-  useEffect(() => {
-    if (isDipendente && (activeTab === 'google_ai' || activeTab === 'identity' || activeTab === 'pipeline' || activeTab === 'notifications')) {
-      setActiveTab('system')
-    }
-  }, [isDipendente, activeTab])
-
   // Stato Impostazioni con persistenza su localStorage
   const [settings, setSettings] = useState(() => {
     const defaultSettings = {
       // 1. Google Workspace
-      googleAccount: 'n.drea.t@gmail.com',
+      googleAccount: 'info@dadocreativestudio.com',
       gmailSync: true,
       gdriveSync: true,
       gdriveFolder: 'DADO Studio/Clienti 2026/Contratti',
       gcalSync: true,
-
-      // 2. Identità Studio
-      studioName: 'DADO Creative Studio',
-      brandClaim: 'Produzioni Video, Set Fotografici & Direzione Creativa',
-      vatNumber: 'IT09876543210',
-      taxCode: 'TRTNDR92M15F205K',
-      legalEmail: 'dado.creativestudio@pec.it',
-      contactEmail: 'info@dadocreativestudio.com',
-      phone: '+39 340 1234567',
-      iban: 'IT60X0542811101000000123456',
-      bankName: 'Banca Intesa Sanpaolo',
-      rateFullDay: '1200',
-      rateHalfDay: '700',
-      rateHourlyPost: '65',
 
       // 3. Pipeline Commerciale & Forecasting (Studi Foto/Video)
       pipelineStages: DEFAULT_PIPELINE_STAGES,
@@ -278,10 +254,10 @@ export default function Settings() {
 
       // 4. Attrezzatura Kit DADO
       equipment: [
-        { id: 'eq-1', name: 'Sony FX3 Cinema Line Full-Frame', category: 'Camera', status: 'Disponibile', serial: 'FX3-90214' },
-        { id: 'eq-2', name: 'Sony Alpha 7 IV (B-Cam)', category: 'Camera', status: 'Disponibile', serial: 'A74-11842' },
-        { id: 'eq-3', name: 'Sony G-Master 24-70mm f/2.8 II', category: 'Ottica', status: 'Disponibile', serial: 'GM-2470-33' },
-        { id: 'eq-4', name: 'Sony G-Master 70-200mm f/2.8 OSS II', category: 'Ottica', status: 'Disponibile', serial: 'GM-70200-88' },
+        { id: 'eq-1', name: 'Canon Cinema EOS C70 (Super 35 / RF)', category: 'Camera', status: 'Disponibile', serial: 'C70-90214' },
+        { id: 'eq-2', name: 'Canon EOS R5 C (8K RAW / 45MP Foto)', category: 'Camera', status: 'Disponibile', serial: 'R5C-11842' },
+        { id: 'eq-3', name: 'Canon RF 24-70mm f/2.8L IS USM', category: 'Ottica', status: 'Disponibile', serial: 'RF-2470-33' },
+        { id: 'eq-4', name: 'Canon RF 70-200mm f/2.8L IS USM', category: 'Ottica', status: 'Disponibile', serial: 'RF-70200-88' },
         { id: 'eq-5', name: 'DJI Mavic 3 Pro Cine + Radiocomando Pro', category: 'Drone', status: 'Disponibile', serial: 'M3P-88410' },
         { id: 'eq-6', name: 'DJI Ronin RS3 Pro Gimbal', category: 'Supporto', status: 'Su Set', serial: 'RS3P-5521' },
         { id: 'eq-7', name: 'Kit Luci Aputure 300d II + Light Dome 150', category: 'Lighting', status: 'Disponibile', serial: 'AP-300D-01' },
@@ -296,12 +272,6 @@ export default function Settings() {
       backupFrequency: 'Settimanale su Drive',
       webhookUrl: 'https://api.dadocreativestudio.com/webhook/crm-sync',
       taskRules: DEFAULT_TASK_RULES,
-
-      // 6. Sistema
-      currency: 'EUR (€)',
-      dateFormat: 'DD/MM/YYYY',
-      defaultView: 'timeline',
-      soundEffects: true
     }
 
     const saved = localStorage.getItem('dado_crm_settings')
@@ -311,7 +281,11 @@ export default function Settings() {
         return {
           ...defaultSettings,
           ...parsed,
-          pipelineStages: (Array.isArray(parsed.pipelineStages) && parsed.pipelineStages.length > 0 ? parsed.pipelineStages : DEFAULT_PIPELINE_STAGES).map(s => (s.id === 'stage-lead' && s.color === '#38bdf8' ? { ...s, color: '#ffffff' } : s)),
+          pipelineStages: (Array.isArray(parsed.pipelineStages) && parsed.pipelineStages.length > 0 ? parsed.pipelineStages : DEFAULT_PIPELINE_STAGES).map(s => {
+            if (s.id === 'stage-lead' && s.color === '#38bdf8') return { ...s, color: '#ffffff' }
+            if (s.id === 'stage-lost') return { ...s, color: '#000000' }
+            return s
+          }),
           lostReasons: Array.isArray(parsed.lostReasons) && parsed.lostReasons.length > 0 ? parsed.lostReasons : DEFAULT_LOST_REASONS,
           requireLostReason: parsed.requireLostReason !== undefined ? parsed.requireLostReason : true,
           requireLostNotes: parsed.requireLostNotes !== undefined ? parsed.requireLostNotes : true,
@@ -549,16 +523,44 @@ export default function Settings() {
     }))
   }
 
+  // Scarica un backup JSON con i dati CRM presenti sul server e le impostazioni locali
+  const handleExportData = async () => {
+    let crmData = null
+    try {
+      const res = await fetch('/api/crm/summary')
+      if (res.ok) crmData = await res.json()
+    } catch (err) {
+      console.error('Errore esportazione dati CRM:', err)
+    }
+    if (!crmData) {
+      setRuleTestToast('⚠️ Backup non riuscito: impossibile leggere i dati dal server.')
+      setTimeout(() => setRuleTestToast(null), 4500)
+      return
+    }
+    const backup = { exportedAt: new Date().toISOString(), settings, crm: crmData }
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `dado-crm-backup-${new Date().toISOString().slice(0, 10)}.json`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
   const allTabs = [
     { id: 'google_ai', label: 'Google Workspace', icon: Mail, secret: true },
-    { id: 'identity', label: 'Identità & Brand', icon: Building2, secret: true },
+    { id: 'b2b_enrichment', label: 'B2B Data Enrichment', icon: Zap, secret: true },
     { id: 'pipeline', label: 'Fasi Pipeline & Forecasting', icon: TrendingUp, secret: true },
     { id: 'notifications', label: 'Notifiche & Task Automatici', icon: Bell, secret: true },
-    { id: 'system', label: 'Sistema & Preferenze', icon: Sliders, secret: false },
   ]
 
   // Rimuove completamente le schede segrete per il profilo dipendente
   const tabs = allTabs.filter(tab => !isDipendente || !tab.secret)
+
+  // Tutte le schede rimaste sono riservate all'amministratore: il profilo Dipendente non ha nulla da vedere qui
+  if (isDipendente) return <Navigate to="/calendar" replace />
 
   return (
     <div
@@ -594,7 +596,7 @@ export default function Settings() {
               </div>
               <p style={{ marginTop: '2px', fontSize: '18px', fontFamily: '"Switzer", sans-serif', fontWeight: 700 }}>
                 <span className="text-white text-xl md:text-2xl font-black">Impostazioni studio & </span>
-                <span className="text-slate-400 text-xl md:text-2xl font-normal">preferenze di sistema</span>
+                <span className="text-slate-400 text-xl md:text-2xl font-normal">automazioni</span>
               </p>
             </div>
 
@@ -839,170 +841,119 @@ export default function Settings() {
           )}
 
           {/* ═════════════════════════════════════════════════════════════════ */}
-          {/* TAB 2: IDENTITÀ STUDIO, DATI AZIENDA & PREZZI                     */}
+          {/* TAB: B2B DATA ENRICHMENT (ATOKA, LINKEDIN, ZOOMINFO, D&B)         */}
           {/* ═════════════════════════════════════════════════════════════════ */}
-          {activeTab === 'identity' && (
+          {activeTab === 'b2b_enrichment' && (
             isDipendente ? (
               <SecretAccessDenied
-                title="Dati Dettagli Azienda & Impostazioni Prezzi Riservati"
-                reason="I dati fiscali dello studio (P.IVA, PEC, IBAN) e il listino prezzi (tariffe giornata intera, mezza giornata, post-produzione) sono protetti e accessibili solo con credenziali Amministratore."
+                title="Integrazione Database B2B Riservata"
+                reason="La configurazione delle API esterne camerali (Atoka, Cerved, Registro Imprese) e B2B Intelligence (LinkedIn, ZoomInfo, Dun & Bradstreet) è riservata all'Amministratore."
               />
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-
-              {/* Colonna Sinistra / Centrale: Dati Studio */}
-              <div className="lg:col-span-2 p-5 md:p-6 bg-[#121722] border border-[#1f293d] rounded-xl shadow-lg">
-                <div className="flex items-center gap-3 mb-5 border-b border-[#1c2436] pb-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#00ff66]/10 text-[#00ff66] border border-[#00ff66]/30">
-                    <Building2 className="w-5 h-5 stroke-[2.4]" />
-                  </div>
-                  <div>
-                    <h3 className="text-white text-base font-bold">
-                      Dati Aziendali & Intestazione Preventivi
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      Informazioni legali e contatti che compaiono nei contratti digitali
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-slate-300 mb-1 font-bold">Ragione Sociale / Studio</label>
-                    <input
-                      type="text"
-                      value={settings.studioName}
-                      onChange={(e) => setSettings({ ...settings, studioName: e.target.value })}
-                      className="w-full bg-[#0b0e14] border border-[#222c3d] px-3.5 py-2 text-xs md:text-sm text-slate-100 rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-300 mb-1 font-bold">Claim / Attività</label>
-                    <input
-                      type="text"
-                      value={settings.brandClaim}
-                      onChange={(e) => setSettings({ ...settings, brandClaim: e.target.value })}
-                      className="w-full bg-[#0b0e14] border border-[#222c3d] px-3.5 py-2 text-xs md:text-sm text-slate-100 rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-300 mb-1 font-bold">Partita IVA</label>
-                    <input
-                      type="text"
-                      value={settings.vatNumber}
-                      onChange={(e) => setSettings({ ...settings, vatNumber: e.target.value })}
-                      className="w-full bg-[#0b0e14] border border-[#222c3d] px-3.5 py-2 text-xs md:text-sm text-slate-100 rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-300 mb-1 font-bold">Codice Fiscale</label>
-                    <input
-                      type="text"
-                      value={settings.taxCode}
-                      onChange={(e) => setSettings({ ...settings, taxCode: e.target.value })}
-                      className="w-full bg-[#0b0e14] border border-[#222c3d] px-3.5 py-2 text-xs md:text-sm text-slate-100 rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-300 mb-1 font-bold">Email PEC Ufficiale</label>
-                    <input
-                      type="email"
-                      value={settings.legalEmail}
-                      onChange={(e) => setSettings({ ...settings, legalEmail: e.target.value })}
-                      className="w-full bg-[#0b0e14] border border-[#222c3d] px-3.5 py-2 text-xs md:text-sm text-slate-100 rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-300 mb-1 font-bold">Telefono Studio / Set</label>
-                    <input
-                      type="text"
-                      value={settings.phone}
-                      onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                      className="w-full bg-[#0b0e14] border border-[#222c3d] px-3.5 py-2 text-xs md:text-sm text-slate-100 rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-xs text-slate-300 mb-1 font-bold">IBAN per Bonifici & Acconti</label>
-                    <input
-                      type="text"
-                      value={settings.iban}
-                      onChange={(e) => setSettings({ ...settings, iban: e.target.value })}
-                      className="w-full bg-[#0b0e14] border border-[#222c3d] px-3.5 py-2 text-xs md:text-sm text-slate-100 font-mono font-bold rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Colonna Destra: Listino Base DADO Studio */}
-              <div className="p-5 md:p-6 bg-[#121722] border border-[#1f293d] rounded-xl shadow-lg flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-3 mb-4 border-b border-[#1c2436] pb-3">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                      <CreditCard className="w-5 h-5 stroke-[2.4]" />
+              <div className="flex flex-col gap-6 mb-8 text-white">
+                {/* Intro Card */}
+                <div className="p-5 md:p-6 bg-[#121722] border border-[#1f293d] rounded-xl shadow-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-[#1c2436] pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-purple-500/15 text-purple-400 border border-purple-500/30">
+                        <Zap className="w-5 h-5 stroke-[2.4]" />
+                      </div>
+                      <div>
+                        <h3 className="text-base md:text-lg font-black tracking-tight text-white flex items-center gap-2">
+                          Integrazione Database B2B & Data Enrichment
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/40">
+                            Attiva
+                          </span>
+                        </h3>
+                        <p className="text-xs text-slate-400">
+                          Autocompletamento istantaneo delle schede aziendali appena inserisci una Partita IVA o un Nome Azienda.
+                        </p>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Provider Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                      {
+                        name: 'Atoka / Cerved (Dati Camerali)',
+                        tag: 'CAMERALE & BILANCI',
+                        desc: 'Estrae ragione sociale ufficiale, codice ATECO, numero REA, capitale sociale, fatturato e dipendenti censiti.',
+                        color: '#0284c7',
+                        status: 'Connesso (API v2)'
+                      },
+                      {
+                        name: 'Registro Imprese CCIAA',
+                        tag: 'REGISTRO UFFICIALE',
+                        desc: 'Verifica visura camerale, sede legale con indirizzo/CAP, PEC ufficiale e codice destinatario SDI per fattura elettronica.',
+                        color: '#059669',
+                        status: 'Connesso (Telemaco/OpenAPI)'
+                      },
+                      {
+                        name: 'LinkedIn Talent Insights',
+                        tag: 'ORGANIGRAMMA B2B',
+                        desc: 'Individua i decision maker aziendali (Marketing Director, Art Buyer, Head of Creative, CEO) con profili verificati.',
+                        color: '#0077b5',
+                        status: 'Connesso (B2B Graph)'
+                      },
+                      {
+                        name: 'ZoomInfo B2B Intelligence',
+                        tag: 'CONTATTI VERIFICATI',
+                        desc: 'Estrae pattern email aziendali verificate, numeri di telefono centralino diretti e buyer profile per produzioni media.',
+                        color: '#10b981',
+                        status: 'Connesso (ZoomInfo API)'
+                      },
+                      {
+                        name: 'Dun & Bradstreet (D-U-N-S)',
+                        tag: 'RATING & SOLVIBILITÀ',
+                        desc: 'Assegna il numero D-U-N-S®, calcola il Paydex Score (1-100), il rating di affidabilità creditizia e raccomanda i termini di pagamento.',
+                        color: '#f59e0b',
+                        status: 'Connesso (D&B Direct+ v3)'
+                      },
+                      {
+                        name: 'DADO AI Synthesis',
+                        tag: 'STRATEGIA COMMERCIALE',
+                        desc: 'Combina i dati pubblici ed elabora la migliore strategia audiovisiva per Studio DADO (servizi consigliati, pitch angle, budget stimato).',
+                        color: '#a855f7',
+                        status: 'Attivo (OpenAI & Modelli Locali)'
+                      }
+                    ].map((p, idx) => (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-xl bg-[#0c1017] border border-[#1e2636] hover:border-purple-500/40 transition-all flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span
+                              className="text-[10px] font-black uppercase px-2 py-0.5 rounded"
+                              style={{ backgroundColor: `${p.color}20`, color: p.color, border: `1px solid ${p.color}40` }}
+                            >
+                              {p.tag}
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              {p.status}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-white text-sm mb-1">{p.name}</h4>
+                          <p className="text-xs text-slate-400 leading-relaxed">{p.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <h3 className="text-white text-base font-bold">
-                        Tariffario Standard
-                      </h3>
-                      <p className="text-xs text-slate-400">
-                        Prezzi base per stime veloci
+                      <h4 className="font-bold text-sm text-purple-200">Come funziona il completamento automatico?</h4>
+                      <p className="text-xs text-slate-300 mt-0.5">
+                        Nella pagina <strong>Aziende</strong>, quando crei una nuova scheda, ti basta digitare la Partita IVA (11 cifre) o il Nome Aziendale. L'AI interroga in parallelo tutti i registri ed inserisce istantaneamente ragione sociale, ATECO, referente LinkedIn, PEC, SDI e rating creditizio.
                       </p>
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1 font-bold">Giornata Intera Shooting (Full Day)</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">€</span>
-                        <input
-                          type="number"
-                          value={settings.rateFullDay}
-                          onChange={(e) => setSettings({ ...settings, rateFullDay: e.target.value })}
-                          className="w-full bg-[#0b0e14] border border-[#222c3d] pl-8 pr-3.5 py-2 text-sm text-slate-100 font-bold rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1 font-bold">Mezza Giornata (Half Day)</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">€</span>
-                        <input
-                          type="number"
-                          value={settings.rateHalfDay}
-                          onChange={(e) => setSettings({ ...settings, rateHalfDay: e.target.value })}
-                          className="w-full bg-[#0b0e14] border border-[#222c3d] pl-8 pr-3.5 py-2 text-sm text-slate-100 font-bold rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1 font-bold">Tariffa Oraria Post-Produzione</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">€</span>
-                        <input
-                          type="number"
-                          value={settings.rateHourlyPost}
-                          onChange={(e) => setSettings({ ...settings, rateHourlyPost: e.target.value })}
-                          className="w-full bg-[#0b0e14] border border-[#222c3d] pl-8 pr-3.5 py-2 text-sm text-slate-100 font-bold rounded-xl focus:outline-none focus:bg-[#0e1219] focus:border-[#00ff66] focus:ring-1 focus:ring-[#00ff66]/30 transition-all"
-                        />
-                      </div>
-                    </div>
+                    <span className="px-3 py-1.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-black uppercase whitespace-nowrap self-start sm:self-center">
+                      Algoritmo Modulo 10 + VIES
+                    </span>
                   </div>
                 </div>
-
-                <div className="mt-5 p-3.5 rounded-xl bg-[#0a1219] border border-[#00ff66]/20 text-xs text-slate-300 leading-relaxed font-sans">
-                  💡 I parametri orari e giornalieri sono i coefficienti ufficiali usati dal CRM per il calcolo dei preventivi.
-                </div>
-              </div>
-
               </div>
             )
           )}
@@ -1172,7 +1123,10 @@ export default function Settings() {
                         <div
                           key={stage.id}
                           className="p-4 rounded-xl bg-[#0c1017] border border-[#1c2436] hover:border-[#2b3952] transition-all space-y-3"
-                          style={{ borderLeft: `4px solid ${stage.color}` }}
+                          style={{
+                            borderLeft: `4px solid ${stage.color}`,
+                            ...(stage.color === '#000000' ? { borderLeftColor: '#000000', boxShadow: 'inset 2px 0 0 rgba(255,255,255,0.2)' } : {})
+                          }}
                         >
                           {/* Riga Superiore: Badge, Nome, Slider % e Azioni */}
                           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
@@ -1180,9 +1134,9 @@ export default function Settings() {
                               <span
                                 className="px-2 py-0.5 rounded text-[11px] font-black tracking-wider uppercase shrink-0 border"
                                 style={{
-                                  backgroundColor: `${stage.color}15`,
-                                  borderColor: `${stage.color}40`,
-                                  color: stage.color,
+                                  backgroundColor: stage.color === '#000000' ? '#000000' : `${stage.color}15`,
+                                  borderColor: stage.color === '#000000' ? '#475569' : `${stage.color}40`,
+                                  color: stage.color === '#000000' ? '#ffffff' : stage.color,
                                 }}
                               >
                                 Step {idx + 1}
@@ -1205,7 +1159,7 @@ export default function Settings() {
                                     100% (Fisso Vinto)
                                   </span>
                                 ) : stage.isLost ? (
-                                  <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                                  <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-black text-white border border-slate-700 shadow-sm">
                                     0% (Fisso Perso)
                                   </span>
                                 ) : (
@@ -1306,7 +1260,10 @@ export default function Settings() {
                         <div
                           key={stg.id}
                           className="p-3 rounded-xl bg-[#0d1118] border border-[#1c2434] flex flex-col justify-between"
-                          style={{ borderTop: `3px solid ${stg.color}` }}
+                          style={{
+                            borderTop: `3px solid ${stg.color}`,
+                            ...(stg.color === '#000000' ? { borderTopColor: '#000000', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)' } : {})
+                          }}
                         >
                           <div>
                             <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 truncate" title={stg.shortName || stg.name}>
@@ -1978,7 +1935,7 @@ export default function Settings() {
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-[#1c2436] text-xs text-slate-400">
-                      Canale notifiche: In-App Toast & Gmail (`n.drea.t@gmail.com`)
+                      Canale notifiche: In-App Toast & Gmail
                     </div>
                   </div>
 
@@ -2053,101 +2010,6 @@ export default function Settings() {
 
               </div>
             )
-          )}
-
-          {/* ═════════════════════════════════════════════════════════════════ */}
-          {/* TAB 5: SISTEMA & PREFERENZE INTERFACCIA                           */}
-          {/* ═════════════════════════════════════════════════════════════════ */}
-          {activeTab === 'system' && (
-            <div className="mb-8">
-              <div className="p-5 md:p-6 bg-[#121722] border border-[#1f293d] rounded-xl shadow-lg max-w-2xl">
-                <div className="flex items-center gap-3 mb-5 border-b border-[#1c2436] pb-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#00ff66]/10 text-[#00ff66] border border-[#00ff66]/30">
-                    <Sliders className="w-5 h-5 stroke-[2.4]" />
-                  </div>
-                  <div>
-                    <h3 className="text-white text-base font-bold">
-                      Preferenze Sistema & Visualizzazione
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      Parametri regionali, valuta e comportamenti dell'interfaccia
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1 font-bold">
-                        Valuta Predefinita
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.currency}
-                        disabled
-                        className="w-full bg-[#0a0d13] border border-[#1a2230] px-3.5 py-2 text-xs md:text-sm text-slate-400 rounded-xl"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1 font-bold">
-                        Formato Data
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.dateFormat}
-                        disabled
-                        className="w-full bg-[#0a0d13] border border-[#1a2230] px-3.5 py-2 text-xs md:text-sm text-slate-400 rounded-xl"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#0d1118] border border-[#1c2434]">
-                    <div>
-                      <div className="text-xs text-slate-200 font-bold">
-                        Feedback Sonori & Click Tattili
-                      </div>
-                      <div className="text-[12px] text-slate-400">
-                        Suono lieve al salvataggio o alla marcatura di un'attività
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => toggleSetting('soundEffects')}
-                      disabled={isDipendente}
-                      className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5 border border-[#2a374c] ${
-                        isDipendente ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
-                      }`}
-                      style={{
-                        backgroundColor: settings.soundEffects ? COLOR_ALIEN_GREEN : '#1c2434',
-                        boxShadow: settings.soundEffects ? '0 0 10px rgba(0,255,102,0.45)' : 'none',
-                      }}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded-full bg-[#090d12] border border-[#00ff66]/50 transition-transform ${
-                          settings.soundEffects ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-3 border-t border-[#1c2436] flex justify-end">
-                  {isDipendente ? (
-                    <span className="text-xs text-slate-400 italic flex items-center gap-1.5">
-                      <Lock className="w-3 h-3 text-amber-400" />
-                      <span>Preferenze in sola visualizzazione per il profilo Dipendente</span>
-                    </span>
-                  ) : (
-                    <button
-                      onClick={handleSave}
-                      className="px-5 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer bg-[#00ff66] hover:bg-[#00e65c] text-[#061009] shadow-[0_0_14px_rgba(0,255,102,0.25)] active:scale-95 border border-[#00ff66]"
-                    >
-                      Salva Preferenze
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
           )}
 
         </div>

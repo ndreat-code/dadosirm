@@ -9,8 +9,8 @@ export const CRM_SCREENS = [
   { path: '/activities', permission: 'activities', label: 'Activities (Attività)',   shortLabel: 'Attività' },
   { path: '/calendar',   permission: 'calendar',   label: 'Calendar (Calendario)',   shortLabel: 'Calendario' },
   { path: '/inventory',  permission: 'inventory',  label: 'Inventario (Attrezzature)', shortLabel: 'Inventario' },
-  { path: '/users',      permission: 'users',      label: 'Utenti & Permessi',       shortLabel: 'Utenti' },
   { path: '/appunti',    permission: 'dashboard',  label: 'Idee & Appunti',          shortLabel: 'Appunti' },
+  { path: '/users',      permission: 'users',      label: 'Utenti & Permessi',       shortLabel: 'Utenti' },
   { path: '/settings',   permission: null,         label: 'Impostazioni Studio',     shortLabel: 'Impostazioni' },
 ]
 
@@ -20,6 +20,7 @@ function normalizePath(pathname) {
   if (pathname === '/utenti') return '/users'
   if (pathname === '/idee') return '/appunti'
   if (pathname === '/opportunities') return '/leads'
+  if (pathname === '/tasks') return '/activities'
   return pathname
 }
 
@@ -133,6 +134,11 @@ export function useSwipeNavigation() {
         return
       }
 
+      // Nelle schermate con tabelle e layout orizzontali densi (Companies e Tasks/Activities), non intercettare lo scorrimento orizzontale
+      if (currentNormalized === '/companies' || currentNormalized === '/activities' || currentNormalized === '/tasks') {
+        return
+      }
+
       const absX = Math.abs(e.deltaX)
       const absY = Math.abs(e.deltaY)
 
@@ -199,6 +205,12 @@ export function useSwipeNavigation() {
     let isMultiTouchActive = false
 
     const handleTouchStart = (e) => {
+      // Sulle schermate con tabelle orizzontali dense (Companies e Tasks), consenti lo scorrimento a 2 dita senza cambiare pagina
+      if ((currentNormalized === '/companies' || currentNormalized === '/activities' || currentNormalized === '/tasks') && e.touches.length < 4) {
+        isMultiTouchActive = false
+        return
+      }
+
       // Supporta 4 dita (touch.length === 4), 3 dita e 2 dita
       if (e.touches.length >= 2) {
         isMultiTouchActive = true

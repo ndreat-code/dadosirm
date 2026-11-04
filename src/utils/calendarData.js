@@ -345,7 +345,7 @@ export const INITIAL_CRM_ACTIVITIES = [
     due: 'today',
     priority: 'high',
     status: 'pending',
-    assignedTo: 'Giulia M. (Production Manager)',
+    assignedTo: 'Laura R. (Production Manager)',
     notes: 'Esportare animazione bozza in 16:9 e 9:16 su Frame.io/Drive con timecode per note del cliente.'
   },
   {

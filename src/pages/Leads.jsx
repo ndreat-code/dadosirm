@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Globe,
   Instagram,
@@ -16,6 +16,7 @@ import {
   Zap,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   Filter,
   Search,
   ExternalLink,
@@ -26,6 +27,7 @@ import {
   FileText,
   Building2
 } from 'lucide-react'
+import LeadWorkflowInteractiveDiagram from '../components/LeadWorkflowInteractiveDiagram'
 
 // ── SCHEMA CANALI DI ACQUISIZIONE & MOTIVO DEL CONTATTO ────────────────────────
 export const LEAD_CHANNELS = [
@@ -246,6 +248,86 @@ export default function Leads() {
   const [emailModalType, setEmailModalType] = useState('proposta') // 'proposta' | 'conferma'
   const [emailStatus, setEmailStatus] = useState(null) // 'sending', 'sent'
 
+  // Carica aggiornamenti strutturati da /api/crm/summary (Indirizzi email, Referenti, Dettagli contratto, Richieste da oggetto mail)
+  useEffect(() => {
+    async function syncLeadsFromSummary() {
+      try {
+        const res = await fetch('/api/crm/summary')
+        if (!res.ok) return
+        const data = await res.json()
+        const crmEmails = Array.isArray(data.emails) ? data.emails : []
+        const crmCompanies = Array.isArray(data.companies) ? data.companies : []
+
+        setLeads(prev => {
+          const updated = prev.map(l => {
+            const matchedEmail = crmEmails.find(e => e.company?.toLowerCase() === l.company.toLowerCase())
+            const matchedComp = crmCompanies.find(c => c.name?.toLowerCase() === l.company.toLowerCase())
+            if (!matchedEmail && !matchedComp) return l
+
+            const emailAddr = matchedEmail?.senderEmail || matchedComp?.contact?.directEmail || matchedComp?.contact?.email || l.email
+            const refName = matchedEmail?.contactPerson?.name || matchedComp?.contactPerson?.name || l.contact
+            const refRole = matchedEmail?.contactPerson?.role || matchedComp?.contactPerson?.role || l.role
+            const subjectReqs = matchedEmail?.subjectRequests || matchedComp?.subjectRequests || [l.need]
+            const contractInfo = {
+              status: matchedComp?.contract?.status || matchedEmail?.contractDetails?.status || 'In valutazione',
+              terms: matchedComp?.contract?.terms || matchedEmail?.contractDetails?.terms || '50% acconto / 50% saldo a consegna',
+              code: matchedComp?.contract?.code || 'DADO-INB'
+            }
+
+            return {
+              ...l,
+              email: emailAddr,
+              contact: refName,
+              role: refRole,
+              need: subjectReqs.join(' • '),
+              subjectRequests: subjectReqs,
+              originEmailSubject: matchedEmail?.subject || matchedComp?.contract?.lastSubject || l.need,
+              contractDetails: contractInfo,
+              estimatedValue: matchedComp?.compensation?.amount || l.estimatedValue
+            }
+          })
+
+          // Aggiungi eventuali lead inbound presenti nelle email CRM non ancora in INITIAL_LEADS
+          for (const em of crmEmails) {
+            if (!em.company) continue
+            const exists = updated.some(u => u.company.toLowerCase() === em.company.toLowerCase())
+            if (!exists) {
+              const matchedComp = crmCompanies.find(c => c.name?.toLowerCase() === em.company.toLowerCase())
+              updated.push({
+                id: `lead-${em.id}`,
+                company: em.company,
+                contact: em.contactPerson?.name || matchedComp?.contactPerson?.name || 'Referente Aziendale',
+                role: em.contactPerson?.role || matchedComp?.contactPerson?.role || 'Referente Commerciale',
+                email: em.senderEmail || matchedComp?.contact?.directEmail || '',
+                phone: matchedComp?.contact?.mobile || matchedComp?.contact?.phone || '+39 02 8900123',
+                channelId: 'web_form',
+                status: 'qualificato',
+                estimatedValue: matchedComp?.compensation?.amount || 6500,
+                need: Array.isArray(em.subjectRequests) ? em.subjectRequests.join(' • ') : em.subject,
+                subjectRequests: em.subjectRequests || [em.subject],
+                originEmailSubject: em.subject,
+                contractDetails: {
+                  status: matchedComp?.contract?.status || em.contractDetails?.status || 'In valutazione',
+                  terms: matchedComp?.contract?.terms || em.contractDetails?.terms || '50% acconto / 50% saldo a consegna',
+                  code: matchedComp?.contract?.code || 'DADO-CTR-2026'
+                },
+                assetSent: 'Showreel & Condizioni Contrattuali DADO',
+                bant: { b: true, a: true, n: true, t: true, score: 4 },
+                preferredPlace: matchedComp?.workSchedule?.location || 'Google Meet / Studio DADO',
+                scheduledSlot: matchedComp?.workSchedule?.datesFormatted || null,
+                meetLink: null
+              })
+            }
+          }
+          return updated
+        })
+      } catch (e) {
+        console.warn('Errore sync leads da /api/crm/summary:', e)
+      }
+    }
+    syncLeadsFromSummary()
+  }, [])
+
   // Filtro lead per canale e ricerca
   const filteredLeads = useMemo(() => {
     return leads.filter(l => {
@@ -305,8 +387,47 @@ export default function Leads() {
   }
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white p-4 md:p-8 font-sans selection:bg-[#d8ff00] selection:text-black">
-      
+    <div
+      className="h-full flex-1 min-h-0 overflow-y-auto bg-[#111111] text-white p-4 md:p-8 font-sans selection:bg-[#d8ff00] selection:text-black custom-popup-scrollbar"
+      style={{ fontFamily: '"Switzer", sans-serif' }}
+    >
+      {/* ── BARRA DI NAVIGAZIONE RAPIDA NEXT ACTIONS ── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/10">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-bold text-white transition-all cursor-pointer"
+        >
+          <ArrowLeft size={15} className="text-[#d2a346]" />
+          <span>Torna alla Dashboard</span>
+        </button>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            to="/call-reports"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/15 transition-all"
+          >
+            1. Call Reports
+          </Link>
+          <Link
+            to="/leads"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-md transition-all"
+            style={{
+              background: 'linear-gradient(180deg, #d8a74e 0%, #cf9f40 100%)',
+              boxShadow: '0 0 16px rgba(210, 163, 70, 0.45)',
+            }}
+          >
+            2. Leads
+          </Link>
+          <Link
+            to="/opportunities"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/15 transition-all"
+          >
+            3. New Opportunities
+          </Link>
+        </div>
+      </div>
+
       {/* ── HEADER SUPERIORE ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-8 border-b border-white/10 gap-4">
         <div>
@@ -314,14 +435,14 @@ export default function Leads() {
             <span className="w-2.5 h-2.5 rounded-full bg-[#00ffaa] animate-pulse" />
             <span
               className="text-xs font-bold uppercase tracking-widest text-[#00ffaa]"
-              style={{ fontFamily: '"Space Mono", monospace' }}
+              style={{ fontFamily: '"Switzer", sans-serif' }}
             >
               DADO STUDIO INBOUND & ACQUISIZIONE
             </span>
           </div>
           <h1
             className="text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-baseline gap-2"
-            style={{ fontFamily: '"Goldman", sans-serif' }}
+            style={{ fontFamily: '"Switzer", sans-serif' }}
           >
             SEZIONE LEADS & CANALI
           </h1>
@@ -335,7 +456,7 @@ export default function Leads() {
           <button
             onClick={() => setShowWorkflowModal(true)}
             className="px-3.5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold flex items-center gap-2 rounded-sm transition-all cursor-pointer hover:border-[#d8ff00] hover:text-[#d8ff00]"
-            style={{ fontFamily: '"Space Mono", monospace' }}
+            style={{ fontFamily: '"Switzer", sans-serif' }}
           >
             <Sparkles className="w-4 h-4 text-[#d8ff00]" />
             <span>SCHEMA WORKFLOW AI</span>
@@ -346,23 +467,23 @@ export default function Leads() {
       {/* ── KPI METRICS BAR ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <div className="bg-white/5 border border-white/10 p-3.5 rounded-sm">
-          <div className="text-[11px] font-mono text-white/50 uppercase">Lead Attivi in Pipeline</div>
-          <div className="text-2xl font-black mt-1 font-mono text-white">{leads.length}</div>
+          <div className="text-[11px] font-semibold text-white/50 uppercase">Lead Attivi in Pipeline</div>
+          <div className="text-2xl font-black mt-1 tabular-nums text-white">{leads.length}</div>
           <div className="text-[10px] text-white/40 mt-0.5">5 canali monitorati</div>
         </div>
         <div className="bg-white/5 border border-white/10 p-3.5 rounded-sm">
-          <div className="text-[11px] font-mono text-white/50 uppercase">Qualificati B.A.N.T.</div>
-          <div className="text-2xl font-black mt-1 font-mono text-[#00ffaa]">{qualifiedCount} / {leads.length}</div>
+          <div className="text-[11px] font-semibold text-white/50 uppercase">Qualificati B.A.N.T.</div>
+          <div className="text-2xl font-black mt-1 tabular-nums text-[#00ffaa]">{qualifiedCount} / {leads.length}</div>
           <div className="text-[10px] text-[#00ffaa]/60 mt-0.5">Score medio 3.6 / 4</div>
         </div>
         <div className="bg-white/5 border border-white/10 p-3.5 rounded-sm">
-          <div className="text-[11px] font-mono text-white/50 uppercase">Valore Pipeline Potenziale</div>
-          <div className="text-2xl font-black mt-1 font-mono text-[#fac429]">€ {totalValue.toLocaleString('it-IT')}</div>
+          <div className="text-[11px] font-semibold text-white/50 uppercase">Valore Pipeline Potenziale</div>
+          <div className="text-2xl font-black mt-1 tabular-nums text-[#fac429]">€ {totalValue.toLocaleString('it-IT')}</div>
           <div className="text-[10px] text-[#fac429]/60 mt-0.5">Ticket medio € 6.100</div>
         </div>
         <div className="bg-white/5 border border-white/10 p-3.5 rounded-sm">
-          <div className="text-[11px] font-mono text-white/50 uppercase">Risposta Utente Email</div>
-          <div className="text-2xl font-black mt-1 font-mono text-[#1bb7ed]">&lt; 15 min</div>
+          <div className="text-[11px] font-semibold text-white/50 uppercase">Risposta Utente Email</div>
+          <div className="text-2xl font-black mt-1 tabular-nums text-[#1bb7ed]">&lt; 15 min</div>
           <div className="text-[10px] text-[#1bb7ed]/60 mt-0.5">Invio automatico attivo</div>
         </div>
       </div>
@@ -371,12 +492,12 @@ export default function Leads() {
       <div className="mb-10">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono bg-[#d8ff00] text-black px-1.5 py-0.5 font-bold">1</span>
+            <span className="text-xs bg-[#d8ff00] text-black px-1.5 py-0.5 font-bold">1</span>
             <h2 className="text-sm md:text-base font-bold uppercase tracking-wider text-white" style={{ fontFamily: '"Goldman", sans-serif' }}>
               Architettura di Flusso del Lead (Workflow Operativo)
             </h2>
           </div>
-          <span className="text-[11px] text-white/40 font-mono">Dall'ingestione alla conversione a contratto</span>
+          <span className="text-[11px] font-semibold text-white/40">Dall'ingestione alla conversione a contratto</span>
         </div>
 
         {/* 6 Step orizzontali reattivi */}
@@ -386,11 +507,11 @@ export default function Leads() {
               key={s.step}
               className="bg-black/60 border border-white/10 p-3 rounded-sm flex flex-col justify-between hover:border-white/30 transition-all group relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-8 h-8 bg-white/5 rounded-bl flex items-center justify-center text-[10px] font-mono font-bold text-white/40 group-hover:text-[#d8ff00] group-hover:bg-[#d8ff00]/10 transition-colors">
+              <div className="absolute top-0 right-0 w-8 h-8 bg-white/5 rounded-bl flex items-center justify-center text-[10px] font-bold text-white/40 group-hover:text-[#d8ff00] group-hover:bg-[#d8ff00]/10 transition-colors">
                 {s.step}
               </div>
               <div>
-                <span className="text-[10px] font-mono uppercase text-[#00ffaa] font-bold block mb-1">
+                <span className="text-[10px] uppercase text-[#00ffaa] font-bold block mb-1">
                   Step {s.step}
                 </span>
                 <h3 className="text-xs font-bold text-white leading-tight mb-1 group-hover:text-[#d8ff00] transition-colors">
@@ -402,8 +523,8 @@ export default function Leads() {
               </div>
 
               <div className="mt-3 pt-2 border-t border-white/5">
-                <span className="text-[9px] font-mono text-white/40 uppercase block">Risposta Utente:</span>
-                <span className="text-[10px] font-mono text-[#fac429] font-bold">{s.timing}</span>
+                <span className="text-[10px] font-semibold text-white/40 uppercase block">Risposta Utente:</span>
+                <span className="text-[10px] text-[#fac429] font-bold">{s.timing}</span>
               </div>
             </div>
           ))}
@@ -414,14 +535,14 @@ export default function Leads() {
       <div className="mb-10">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono bg-[#00ffaa] text-black px-1.5 py-0.5 font-bold">2</span>
+            <span className="text-xs bg-[#00ffaa] text-black px-1.5 py-0.5 font-bold">2</span>
             <h2 className="text-sm md:text-base font-bold uppercase tracking-wider text-white" style={{ fontFamily: '"Goldman", sans-serif' }}>
               Schema Canali di Acquisizione & Motivo del Contatto
             </h2>
           </div>
 
           {/* Filtro Rapido Canale */}
-          <div className="flex items-center gap-1.5 text-xs font-mono">
+          <div className="flex items-center gap-1.5 text-xs">
             <span className="text-white/40 text-[11px] uppercase mr-1">Filtra per canale:</span>
             <button
               onClick={() => setSelectedChannel('all')}
@@ -480,7 +601,7 @@ export default function Leads() {
                       <Icon className="w-4 h-4" />
                     </div>
                     <span
-                      className="text-[9px] font-mono uppercase font-bold px-1.5 py-0.5 rounded-sm"
+                      className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-sm"
                       style={{ color: ch.color, backgroundColor: ch.accentBg }}
                     >
                       {ch.badge}
@@ -490,29 +611,29 @@ export default function Leads() {
                   <h3 className="text-xs font-bold text-white mb-0.5 leading-snug">
                     {ch.name}
                   </h3>
-                  <div className="text-[10px] font-mono text-white/50 mb-2">{ch.type}</div>
+                  <div className="text-[10px] font-semibold text-white/50 mb-2">{ch.type}</div>
 
                   <div className="space-y-2 mt-2 pt-2 border-t border-white/10 text-[11px]">
                     <div>
-                      <span className="text-[9px] font-mono text-white/40 uppercase block">Motivo Principale:</span>
+                      <span className="text-[10px] font-semibold text-white/40 uppercase block">Motivo Principale:</span>
                       <p className="text-white/80 leading-snug text-[10.5px] mt-0.5">{ch.reason}</p>
                     </div>
 
                     <div>
-                      <span className="text-[9px] font-mono text-white/40 uppercase block">Asset DADO Richiesto:</span>
-                      <p className="text-[#fac429] font-mono text-[10px] mt-0.5 leading-snug">{ch.assetRequired}</p>
+                      <span className="text-[10px] font-semibold text-white/40 uppercase block">Asset DADO Richiesto:</span>
+                      <p className="text-[#fac429] text-[10px] font-semibold mt-0.5 leading-snug">{ch.assetRequired}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
                   <div>
-                    <span className="text-[9px] font-mono text-white/40 block">Qualità</span>
-                    <span className="text-[11px] font-mono font-bold text-white">{ch.scoreLabel}</span>
+                    <span className="text-[10px] font-semibold text-white/40 block">Qualità</span>
+                    <span className="text-[11px] font-bold text-white">{ch.scoreLabel}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[9px] font-mono text-white/40 block">Lead Attivi</span>
-                    <span className="text-xs font-mono font-bold text-[#00ffaa]">{leadCount}</span>
+                    <span className="text-[10px] font-semibold text-white/40 block">Lead Attivi</span>
+                    <span className="text-xs font-bold text-[#00ffaa]">{leadCount}</span>
                   </div>
                 </div>
               </div>
@@ -525,7 +646,7 @@ export default function Leads() {
       <div>
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono bg-[#fac429] text-black px-1.5 py-0.5 font-bold">3</span>
+            <span className="text-xs bg-[#fac429] text-black px-1.5 py-0.5 font-bold">3</span>
             <h2 className="text-sm md:text-base font-bold uppercase tracking-wider text-white" style={{ fontFamily: '"Goldman", sans-serif' }}>
               Gestione Lead & Invio Email Automatiche Call
             </h2>
@@ -564,7 +685,7 @@ export default function Leads() {
 
                     {/* Canale badge */}
                     <span
-                      className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-sm border"
+                      className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-sm border"
                       style={{
                         color: channel.color,
                         backgroundColor: channel.accentBg,
@@ -576,12 +697,12 @@ export default function Leads() {
                     </span>
 
                     {/* Score B.A.N.T. Badge */}
-                    <span className="text-[10px] font-mono bg-white/10 text-white/80 px-2 py-0.5 rounded-sm">
+                    <span className="text-[10px] font-semibold bg-white/10 text-white/80 px-2 py-0.5 rounded-sm">
                       B.A.N.T.: <strong className="text-[#00ffaa]">{lead.bant.score}/4</strong>
                     </span>
 
                     {/* Stato Processo */}
-                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-sm uppercase ${
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase ${
                       lead.status === 'call_confermata'
                         ? 'bg-[#00ffaa]/20 text-[#00ffaa] border border-[#00ffaa]/40'
                         : lead.status === 'call_proposta'
@@ -592,20 +713,36 @@ export default function Leads() {
                     </span>
                   </div>
 
-                  {/* Referente & Contatti */}
-                  <div className="flex items-center gap-4 text-xs text-white/60 mb-2 flex-wrap font-mono">
+                  {/* Referente & Indirizzo Email Estratti */}
+                  <div className="flex items-center gap-4 text-xs text-white/60 mb-2 flex-wrap">
                     <span className="flex items-center gap-1 text-white/90">
+                      <span className="text-white/40 uppercase text-[10px] font-bold">Referente:</span>
                       <strong className="text-white">{lead.contact}</strong> ({lead.role})
                     </span>
-                    <span>• {lead.email}</span>
+                    <span className="text-[#1bb7ed] font-semibold">✉ {lead.email}</span>
                     <span>• {lead.phone}</span>
-                    <span className="text-[#fac429]">Valore: € {lead.estimatedValue.toLocaleString('it-IT')}</span>
+                    <span className="text-[#fac429] font-bold">Valore Contratto: € {(lead.estimatedValue || 0).toLocaleString('it-IT')}</span>
                   </div>
 
-                  {/* Esigenza & Luogo Preferito */}
-                  <div className="text-xs text-white/80 space-y-1">
-                    <p><strong className="text-white/40 font-mono text-[10px] uppercase">Esigenza:</strong> {lead.need}</p>
-                    <div className="flex items-center gap-3 text-[11px] font-mono text-white/50">
+                  {/* Dettagli Contratto & Richieste in base all'Oggetto della Mail */}
+                  <div className="text-xs text-white/80 space-y-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <strong className="text-white/40 text-[10px] font-semibold uppercase">Dettagli Contratto:</strong>
+                      <span className="px-2 py-0.5 bg-white/10 border border-white/15 rounded-sm text-[11px] font-semibold text-white">
+                        {lead.contractDetails?.status || 'In valutazione'} — {lead.contractDetails?.terms || '50% acconto / 50% saldo a consegna'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <strong className="text-white/40 text-[10px] font-semibold uppercase">Richieste (da Oggetto Mail):</strong>
+                      {(Array.isArray(lead.subjectRequests) && lead.subjectRequests.length > 0 ? lead.subjectRequests : [lead.need]).map((req, idx) => (
+                        <span key={idx} className="px-2 py-0.5 bg-[#00ffaa]/10 border border-[#00ffaa]/30 text-[#00ffaa] rounded-sm text-[11px] font-bold">
+                          {req}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-3 text-[11px] font-semibold text-white/50 pt-0.5">
                       <span><strong>Luogo preferito:</strong> {lead.preferredPlace}</span>
                       {lead.scheduledSlot && (
                         <span className="text-[#00ffaa]"><strong>Appuntamento:</strong> {lead.scheduledSlot}</span>
@@ -628,7 +765,7 @@ export default function Leads() {
                       setEmailModalType('proposta')
                     }}
                     className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white rounded-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:border-[#1bb7ed] hover:text-[#1bb7ed]"
-                    style={{ fontFamily: '"Space Mono", monospace' }}
+                    style={{ fontFamily: '"Switzer", sans-serif' }}
                     title="Invia email con proposta slot calendario verificati"
                   >
                     <Calendar className="w-3.5 h-3.5 text-[#1bb7ed]" />
@@ -642,7 +779,7 @@ export default function Leads() {
                       setEmailModalType('conferma')
                     }}
                     className="px-3 py-2 bg-[#00ffaa] hover:bg-[#00ffaa]/80 text-black text-xs font-black rounded-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                    style={{ fontFamily: '"Space Mono", monospace' }}
+                    style={{ fontFamily: '"Switzer", sans-serif' }}
                     title="Invia email di conferma ufficiale con link Google Meet e recap"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
@@ -652,7 +789,7 @@ export default function Leads() {
                   {/* Tasto 3: Visualizza anagrafica in Companies */}
                   <button
                     onClick={() => navigate('/companies')}
-                    className="px-2.5 py-2 bg-white/5 hover:bg-white/15 border border-white/10 text-xs font-mono font-bold text-white/80 rounded-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:border-white/30"
+                    className="px-2.5 py-2 bg-white/5 hover:bg-white/15 border border-white/10 text-xs font-bold text-white/80 rounded-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:border-white/30"
                     title="Visualizza anagrafica consolidata in Companies"
                   >
                     <Building2 className="w-3.5 h-3.5 text-[#fac429]" />
@@ -664,61 +801,16 @@ export default function Leads() {
           })}
 
           {filteredLeads.length === 0 && (
-            <div className="p-8 text-center text-white/40 font-mono text-xs border border-white/10 rounded-sm">
+            <div className="p-8 text-center text-white/40 text-xs border border-white/10 rounded-sm">
               Nessun lead trovato con i criteri di filtro selezionati.
             </div>
           )}
         </div>
       </div>
 
-      {/* ── MODALE 1: WORKFLOW MERMAID SCHEMA ── */}
+      {/* ── MODALE 1: WORKFLOW DIAGRAMMA INTERATTIVO & REGOLE AI ── */}
       {showWorkflowModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#181818] border border-white/20 max-w-3xl w-full p-6 rounded-sm shadow-2xl relative">
-            <button
-              onClick={() => setShowWorkflowModal(false)}
-              className="absolute top-4 right-4 text-white/50 hover:text-white p-1 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-[#d8ff00]" />
-              <span className="text-xs font-mono uppercase text-[#d8ff00] font-bold">
-                Architettura e Logica di Automazione
-              </span>
-            </div>
-            <h3 className="text-lg font-bold text-white mb-4" style={{ fontFamily: '"Goldman", sans-serif' }}>
-              Workflow Completo di Gestione Lead
-            </h3>
-
-            {/* Codice Mermaid evidenziato */}
-            <div className="bg-black/90 p-4 border border-white/10 rounded font-mono text-xs text-white/80 overflow-x-auto leading-relaxed">
-              <pre>{`flowchart TD
-    A["Multi-Canale Inbound/Outbound (Web, IG/TikTok, Referral, Cold Email, Eventi)"] --> B["Ingestione Automatica Lead (Parser AI)"]
-    B --> C{"Qualificazione B.A.N.T. (Score 0-4)"}
-    
-    C -->|"Lead Freddo / Info Generiche"| D["Email Automatica Showreel & Portfolio DADO"]
-    C -->|"Lead Caldo / Richiesta Call"| E["Check Anti-Conflitto Calendario Google"]
-    
-    E --> F["Email Automatica Proposta Call (2 Slot Intelligenti)"]
-    F --> G{"Il Lead risponde o seleziona slot"}
-    
-    G --> H["Email Automatica Conferma Appuntamento (Link Meet + Limbo DADO)"]
-    H --> I["Promemoria Automatico 24h & 1h prima della Call"]
-    I --> J["Conversione in Preventivo / Contratto DADO Studio"]`}</pre>
-            </div>
-
-            <div className="mt-5 pt-4 border-t border-white/10 flex justify-end">
-              <button
-                onClick={() => setShowWorkflowModal(false)}
-                className="px-4 py-2 bg-white text-black font-bold text-xs rounded-sm hover:bg-gray-200 cursor-pointer"
-              >
-                Chiudi Schema
-              </button>
-            </div>
-          </div>
-        </div>
+        <LeadWorkflowInteractiveDiagram onClose={() => setShowWorkflowModal(false)} />
       )}
 
       {/* ── MODALE 2: ANTEPRIMA & INVIO EMAIL AUTOMATICA (PROPOSTA CALL / CONFERMA) ── */}
@@ -734,7 +826,7 @@ export default function Leads() {
 
             <div className="flex items-center gap-2 mb-1.5">
               <Zap className="w-4 h-4 text-[#00ffaa]" />
-              <span className="text-xs font-mono uppercase text-[#00ffaa] font-bold">
+              <span className="text-xs uppercase text-[#00ffaa] font-bold">
                 {emailModalType === 'proposta' ? 'Email Automatica Proposta Call' : 'Email Automatica Conferma Appuntamento'}
               </span>
             </div>
@@ -744,7 +836,7 @@ export default function Leads() {
             </h3>
 
             {/* Scheda Email con Campi */}
-            <div className="bg-black/70 border border-white/10 p-4 rounded-sm space-y-3 font-mono text-xs">
+            <div className="bg-black/70 border border-white/10 p-4 rounded-sm space-y-3 text-xs">
               <div>
                 <span className="text-white/40 block text-[10px]">A:</span>
                 <span className="text-white">{activeLeadForEmail.email}</span>
@@ -771,7 +863,7 @@ export default function Leads() {
                       <p className="mt-1.5">
                         Per comprendere al meglio le vostre esigenze visive e fornirvi un piano operativo su misura, vi proponiamo una rapida video call di 15-20 minuti su Google Meet.
                       </p>
-                      <div className="my-2 p-2 bg-[#1bb7ed]/10 border border-[#1bb7ed]/30 rounded font-mono text-xs text-[#1bb7ed]">
+                      <div className="my-2 p-2 bg-[#1bb7ed]/10 border border-[#1bb7ed]/30 rounded text-xs text-[#1bb7ed]">
                         📅 <strong>Slot Verificati a Calendario:</strong><br />
                         • Martedì 29 Settembre alle ore 11:30<br />
                         • Mercoledì 30 Settembre alle ore 15:30
@@ -787,7 +879,7 @@ export default function Leads() {
                       <p className="mt-1.5">
                         Confermiamo con piacere il nostro appuntamento fissato per:
                       </p>
-                      <div className="my-2 p-2.5 bg-[#00ffaa]/10 border border-[#00ffaa]/30 rounded font-mono text-xs text-[#00ffaa]">
+                      <div className="my-2 p-2.5 bg-[#00ffaa]/10 border border-[#00ffaa]/30 rounded text-xs text-[#00ffaa]">
                         📅 <strong>Data & Orario:</strong> Martedì 29 Settembre 2026 alle ore 11:30<br />
                         💻 <strong>Google Meet:</strong> https://meet.google.com/dad-meet-call<br />
                         📍 <strong>Location alternativa:</strong> Limbo A - DADO Studio Milano
@@ -807,21 +899,21 @@ export default function Leads() {
 
             {/* Tasti di invio */}
             <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-              <span className="text-[10px] font-mono text-white/40">
+              <span className="text-[10px] font-semibold text-white/40">
                 {emailStatus === 'sent' ? '✓ Email inviata con successo!' : emailStatus === 'sending' ? 'Invio in corso...' : 'Pronta per l\'invio'}
               </span>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setActiveLeadForEmail(null)}
-                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-mono text-xs rounded-sm cursor-pointer"
+                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-sm cursor-pointer"
                 >
                   Annulla
                 </button>
                 <button
                   onClick={handleSendEmail}
                   disabled={emailStatus === 'sending' || emailStatus === 'sent'}
-                  className="px-4 py-1.5 bg-[#d8ff00] hover:bg-[#d8ff00]/80 text-black font-mono font-bold text-xs rounded-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-4 py-1.5 bg-[#d8ff00] hover:bg-[#d8ff00]/80 text-black font-bold text-xs rounded-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{emailStatus === 'sending' ? 'Invio...' : emailStatus === 'sent' ? 'Inviata ✓' : 'Invia Email Ora'}</span>

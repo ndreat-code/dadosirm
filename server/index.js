@@ -5,6 +5,8 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import OpenAI from 'openai'
+import { GoogleGenAI } from '@google/genai'
+import { google } from 'googleapis'
 import { 
   startBackgroundPipeline, 
   executePipelineSweep, 
@@ -13,7 +15,11 @@ import {
   sendDraft,
   updateDraft,
   deleteDraft,
-  checkCalendarSlotAvailability
+  checkCalendarSlotAvailability,
+  getTrainingExamples,
+  saveTrainingExample,
+  deleteTrainingExample,
+  makeRawEmail
 } from './pipeline/gmailLlmPipeline.js'
 import { 
   runCrmCrossCheck, 
@@ -21,23 +27,52 @@ import {
   auditOperations, 
   auditCompany 
 } from './services/crossCheckEngine.js'
+import {
+  detectCollaborationIntent,
+  buildCollaborationReport,
+  buildCollaborations,
+  buildCompactCrm,
+  resolvePeriod,
+  GROUNDING_RULES
+} from './services/reportEngine.js'
+import {
+  enrichCompanyData,
+  PROVIDERS_CONFIG,
+  validateItalianVat,
+  KNOWN_COMPANIES_REGISTRY
+} from './services/enrichmentService.js'
+import {
+  getBackupConfig,
+  saveBackupConfig,
+  createLocalBackupSnapshot,
+  listLocalBackups,
+  getLocalBackupById,
+  createCloudBackupSnapshot,
+  listCloudBackups,
+  getCloudBackupDecryptedById,
+  restoreFromSnapshotObject,
+  ensureInitialDualBackups,
+} from './services/backupService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const rootDir = path.resolve(__dirname, '..')
+import os from 'os'
+import { DATA_DIR, STATE_DIR, PORT, PUBLIC_URL, IS_PUBLIC_DEPLOY, ENABLE_AUTO_SYNC } from './runtimeConfig.js'
 
 // Carica variabili d'ambiente da .env
 dotenv.config({ path: path.join(rootDir, '.env') })
 
 const app = express()
-const PORT = 3001
 
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: '15mb' }))
 
-const DATA_FILE = path.join(__dirname, 'data', 'crmData.json')
-const CREDENTIALS_FILE = path.join(rootDir, 'credentials.json')
-const TOKEN_FILE = path.join(rootDir, 'tokens.json')
+const DATA_FILE = path.join(DATA_DIR, 'crmData.json')
+const CREDENTIALS_FILE = path.join(STATE_DIR, 'credentials.json')
+const TOKEN_FILE = path.join(STATE_DIR, 'tokens.json')
+
+let lastAutoWriteBackupTs = 0
 
 // Helper per leggere e scrivere dati CRM
 function getCrmData() {
@@ -53,15 +88,33 @@ function getCrmData() {
 function saveCrmData(data) {
   try {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8')
+    // Auto-Backup (Sistema #1 Locale + Sistema #2 Cloud) con debounce di 60s
+    const now = Date.now()
+    const cfg = getBackupConfig()
+    if (cfg.backupOnEveryWrite && now - lastAutoWriteBackupTs > 60000) {
+      lastAutoWriteBackupTs = now
+      setImmediate(async () => {
+        try {
+          createLocalBackupSnapshot({ reason: 'auto_data_change' })
+          if (cfg.cloudEnabled) {
+            await createCloudBackupSnapshot({
+              reason: 'auto_cloud_replica',
+              oauth2Client: getAuthenticatedClient(),
+            })
+          }
+        } catch (err) {
+          console.warn('Errore auto-backup dopo modifica dati:', err.message)
+        }
+      })
+    }
   } catch (err) {
     console.error('Errore salvataggio crmData.json:', err)
   }
 }
 
-// Inizializza OpenAI (supporta anche modelli locali compatibili come Ollama e LM Studio)
+// Inizializza OpenAI Client (opzionale per fallback)
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'local-key',
-  baseURL: process.env.OPENAI_BASE_URL || undefined,
 })
 
 // Inizializza Google OAuth Client
@@ -76,7 +129,9 @@ function getOAuth2Client(preferredRedirectUri = null) {
 
     let redirectUri = preferredRedirectUri
     if (!redirectUri) {
-      if (keys.redirect_uris && keys.redirect_uris.includes('http://localhost:3000/oauth2callback')) {
+      if (IS_PUBLIC_DEPLOY) {
+        redirectUri = `${PUBLIC_URL}/oauth2callback`
+      } else if (keys.redirect_uris && keys.redirect_uris.includes('http://localhost:3000/oauth2callback')) {
         redirectUri = 'http://localhost:3000/oauth2callback'
       } else if (keys.redirect_uris && keys.redirect_uris[0]) {
         redirectUri = keys.redirect_uris[0]
@@ -104,7 +159,7 @@ function getAuthenticatedClient() {
         const current = fs.existsSync(TOKEN_FILE) ? JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf-8')) : {}
         const merged = { ...current, ...newTokens }
         fs.writeFileSync(TOKEN_FILE, JSON.stringify(merged, null, 2), 'utf-8')
-        const dataToken = path.join(__dirname, 'data/google_tokens.json')
+        const dataToken = path.join(DATA_DIR, 'google_tokens.json')
         fs.writeFileSync(dataToken, JSON.stringify(merged, null, 2), 'utf-8')
       } catch (err) {
         console.error('Errore refresh token:', err)
@@ -122,7 +177,14 @@ function getAuthenticatedClient() {
 // ─────────────────────────────────────────────────────────────
 const distPath = path.join(rootDir, 'dist')
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath))
+  app.use(express.static(distPath, {
+    setHeaders: (res, filePath) => {
+      // Il service worker e il manifest devono sempre essere ricontrollati dal browser
+      if (/(^|[\\/])(sw\.js|manifest\.webmanifest)$/.test(filePath)) {
+        res.setHeader('Cache-Control', 'no-cache')
+      }
+    },
+  }))
 } else {
   // ROOT STATUS ENDPOINT DI FALLBACK SE DIST NON È COMPILATO
   app.get('/', (req, res) => {
@@ -188,8 +250,453 @@ app.get('/api/crm/summary', (req, res) => {
       totalPending: (data.invoices || []).reduce((sum, inv) => sum + (inv.balance || 0), 0),
       count: (data.invoices || []).length,
     },
+    collaboratorsCount: (data.collaborators || ensureCollaborators(data)).length,
     googleConnected: fs.existsSync(TOKEN_FILE),
   })
+})
+// ─────────────────────────────────────────────────────────────
+// GESTIONE AUTOMAZIONI & TRIGGER AUTOMATICI (DADO STUDIO)
+// ─────────────────────────────────────────────────────────────
+
+const AUTOMATIONS_FILE = path.join(DATA_DIR, 'automations.json')
+
+function getAutomationsData() {
+  try {
+    if (fs.existsSync(AUTOMATIONS_FILE)) {
+      return JSON.parse(fs.readFileSync(AUTOMATIONS_FILE, 'utf-8'))
+    }
+  } catch (err) {
+    console.error('Errore lettura automations.json:', err)
+  }
+  return []
+}
+
+function saveAutomationsData(automations) {
+  try {
+    fs.writeFileSync(AUTOMATIONS_FILE, JSON.stringify(automations, null, 2), 'utf-8')
+    return true
+  } catch (err) {
+    console.error('Errore salvataggio automations.json:', err)
+    return false
+  }
+}
+
+app.get('/api/crm/automations', (req, res) => {
+  res.json(getAutomationsData())
+})
+
+app.post('/api/crm/automations', (req, res) => {
+  const list = getAutomationsData()
+  const newAuto = {
+    id: `aut-${Date.now()}`,
+    name: req.body.name || 'Nuova Automazione',
+    description: req.body.description || '',
+    trigger: req.body.trigger || 'deal_won',
+    triggerLabel: req.body.triggerLabel || '',
+    action: req.body.action || 'create_task',
+    actionLabel: req.body.actionLabel || '',
+    active: req.body.active !== undefined ? req.body.active : true,
+    category: req.body.category || 'production',
+    executionCount: 0,
+    lastExecuted: 'In attesa del primo trigger',
+    createdAt: new Date().toISOString(),
+  }
+  list.unshift(newAuto)
+  saveAutomationsData(list)
+  res.json({ success: true, automation: newAuto })
+})
+
+app.put('/api/crm/automations/:id', (req, res) => {
+  const list = getAutomationsData()
+  const idx = list.findIndex(a => a.id === req.params.id)
+  if (idx === -1) return res.status(404).json({ error: 'Automazione non trovata' })
+  list[idx] = { ...list[idx], ...req.body }
+  saveAutomationsData(list)
+  res.json({ success: true, automation: list[idx] })
+})
+
+app.delete('/api/crm/automations/:id', (req, res) => {
+  let list = getAutomationsData()
+  list = list.filter(a => a.id !== req.params.id)
+  saveAutomationsData(list)
+  res.json({ success: true })
+})
+
+app.post('/api/crm/automations/:id/trigger', (req, res) => {
+  const list = getAutomationsData()
+  const auto = list.find(a => a.id === req.params.id)
+  if (!auto) return res.status(404).json({ error: 'Automazione non trovata' })
+  auto.executionCount = (auto.executionCount || 0) + 1
+  auto.lastExecuted = 'Oggi alle ' + new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  saveAutomationsData(list)
+  res.json({
+    success: true,
+    message: `Automazione "${auto.name}" eseguita con successo! Azione scatenata: ${auto.actionLabel || auto.action}`,
+    automation: auto
+  })
+})
+
+// ─────────────────────────────────────────────────────────────
+// GESTIONE COLLABORATORI & REFERENTI AZIENDALI
+// ─────────────────────────────────────────────────────────────
+
+function ensureCollaborators(data) {
+  if (Array.isArray(data.collaborators) && data.collaborators.length > 0) {
+    return data.collaborators
+  }
+  const collabs = []
+  const companies = data.companies || []
+  companies.forEach((comp, idx) => {
+    let name = ''
+    let role = ''
+    if (typeof comp.contactPerson === 'object' && comp.contactPerson !== null) {
+      name = comp.contactPerson.name || ''
+      role = comp.contactPerson.role || ''
+    } else if (typeof comp.contactPerson === 'string') {
+      name = comp.contactPerson
+      role = comp.contactPersonRole || comp.role || 'Referente'
+    }
+    if (name) {
+      const email = comp.contact?.directEmail || comp.contact?.email || comp.email || ''
+      const phone = comp.contact?.phone || comp.phone || ''
+      const mobile = comp.contact?.mobile || comp.mobile || ''
+      const createdDate = typeof comp.firstContact === 'object' && comp.firstContact?.date
+        ? comp.firstContact.date
+        : (typeof comp.firstContact === 'string' && comp.firstContact.trim() ? comp.firstContact : '2026-01-15')
+
+      let lastContactDate = 'Recente'
+      if (typeof comp.lastContact === 'string') {
+        lastContactDate = comp.lastContact.includes('T') ? comp.lastContact.split('T')[0] : comp.lastContact
+      }
+
+      collabs.push({
+        id: `collab-${comp.id || idx + 1}`,
+        companyId: comp.id || '',
+        companyName: comp.name || 'Azienda',
+        companyIndustry: comp.industry || 'B2B',
+        name: name.trim(),
+        role: role.trim() || 'Referente Aziendale',
+        email: email.trim(),
+        phone: phone.trim(),
+        mobile: mobile.trim(),
+        notes: comp.notes || `Contatto aziendale primario per ${comp.name}`,
+        relationshipStatus: comp.relationshipStatus || comp.status || 'Attivo',
+        lastContact: lastContactDate,
+        lastContactCategory: 'Briefing',
+        lastContactDayDate: 'Lunedì 12 Ottobre',
+        lastContactHow: 'Briefing — Call WhatsApp & Google Meet',
+        lastContactWhy: `Briefing operativo e allineamento per ${comp.name}.`,
+        createdAt: createdDate,
+        updatedAt: new Date().toISOString().split('T')[0],
+      })
+    }
+  })
+  data.collaborators = collabs
+  saveCrmData(data)
+  return collabs
+}
+
+app.get('/api/crm/collaborators', (req, res) => {
+  try {
+    const data = getCrmData()
+    const collaborators = ensureCollaborators(data)
+    const companies = (data.companies || []).map(c => ({ id: c.id, name: c.name, industry: c.industry }))
+    res.json({
+      success: true,
+      count: collaborators.length,
+      collaborators,
+      companies,
+    })
+  } catch (err) {
+    console.error('Errore get /api/crm/collaborators:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/crm/collaborators', (req, res) => {
+  try {
+    const data = getCrmData()
+    const collaborators = ensureCollaborators(data)
+    const {
+      name,
+      role,
+      companyId,
+      companyName,
+      email,
+      phone,
+      mobile,
+      notes,
+      relationshipStatus,
+      lastContactCategory,
+      lastContactDayDate,
+      lastContactHow,
+      lastContactWhy,
+    } = req.body
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Il nome del collaboratore è obbligatorio' })
+    }
+
+    const newCollab = {
+      id: `collab-${Date.now()}`,
+      companyId: companyId || '',
+      companyName: companyName || 'Azienda Partner',
+      companyIndustry: '',
+      name: name.trim(),
+      role: (role && role.trim()) || 'Collaboratore',
+      email: (email && email.trim()) || '',
+      phone: (phone && phone.trim()) || '',
+      mobile: (mobile && mobile.trim()) || '',
+      notes: (notes && notes.trim()) || '',
+      relationshipStatus: relationshipStatus || 'Attivo',
+      lastContact: new Date().toISOString().split('T')[0],
+      lastContactCategory: lastContactCategory || 'Call Conoscitiva',
+      lastContactDayDate: lastContactDayDate || 'Oggi',
+      lastContactHow: lastContactHow || 'Call Conoscitiva — Telefono / Google Meet',
+      lastContactWhy: lastContactWhy || (notes && notes.trim()) || 'Primo contatto conoscitivo e briefing operativo.',
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+    }
+
+    if (companyId) {
+      const comp = (data.companies || []).find(c => c.id === companyId)
+      if (comp) {
+        newCollab.companyIndustry = comp.industry || ''
+        newCollab.companyName = comp.name
+      }
+    }
+
+    collaborators.unshift(newCollab)
+    data.collaborators = collaborators
+    saveCrmData(data)
+
+    res.status(201).json({ success: true, collaborator: newCollab })
+  } catch (err) {
+    console.error('Errore post /api/crm/collaborators:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.put('/api/crm/collaborators/:id', (req, res) => {
+  try {
+    const { id } = req.params
+    const data = getCrmData()
+    const collaborators = ensureCollaborators(data)
+    const idx = collaborators.findIndex(c => c.id === id)
+
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Collaboratore non trovato' })
+    }
+
+    const current = collaborators[idx]
+    const updated = {
+      ...current,
+      ...req.body,
+      id: current.id,
+      updatedAt: new Date().toISOString().split('T')[0],
+    }
+
+    collaborators[idx] = updated
+    data.collaborators = collaborators
+
+    if (updated.companyId) {
+      const comp = (data.companies || []).find(c => c.id === updated.companyId)
+      if (comp) {
+        if (typeof comp.contactPerson === 'object') {
+          comp.contactPerson.name = updated.name
+          comp.contactPerson.role = updated.role
+        } else {
+          comp.contactPerson = { name: updated.name, role: updated.role }
+        }
+        comp.contact = comp.contact || {}
+        if (updated.email) comp.contact.directEmail = updated.email
+        if (updated.phone) comp.contact.phone = updated.phone
+        if (updated.mobile) comp.contact.mobile = updated.mobile
+      }
+    }
+
+    saveCrmData(data)
+    res.json({ success: true, collaborator: updated })
+  } catch (err) {
+    console.error('Errore put /api/crm/collaborators:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.delete('/api/crm/collaborators/:id', (req, res) => {
+  try {
+    const { id } = req.params
+    const data = getCrmData()
+    const collaborators = ensureCollaborators(data)
+    const filtered = collaborators.filter(c => c.id !== id)
+
+    if (filtered.length === collaborators.length) {
+      return res.status(404).json({ error: 'Collaboratore non trovato' })
+    }
+
+    data.collaborators = filtered
+    saveCrmData(data)
+    res.json({ success: true, deletedId: id })
+  } catch (err) {
+    console.error('Errore delete /api/crm/collaborators:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
+// ENDPOINT B2B DATA ENRICHMENT (ATOKA, LINKEDIN, D&B, CCIAA)
+// ─────────────────────────────────────────────────────────────
+
+app.get('/api/crm/enrich/providers', (req, res) => {
+  try {
+    const hasOpenAI = Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-'))
+    res.json({
+      success: true,
+      hasOpenAI,
+      providers: PROVIDERS_CONFIG,
+      preloadedRegistryCount: KNOWN_COMPANIES_REGISTRY.length
+    })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/crm/enrich', async (req, res) => {
+  try {
+    const { query, vatNumber, companyName } = req.body || {}
+    const activeApiKey = process.env.OPENAI_API_KEY || ''
+    const enriched = await enrichCompanyData({ query, vatNumber, companyName, activeApiKey })
+    res.json(enriched)
+  } catch (err) {
+    console.error('Errore /api/crm/enrich:', err)
+    res.status(400).json({ success: false, error: err.message })
+  }
+})
+
+app.post('/api/crm/companies', (req, res) => {
+  try {
+    const company = req.body
+    if (!company || !company.name) {
+      return res.status(400).json({ error: 'Dati azienda non validi (manca il nome)' })
+    }
+
+    const data = getCrmData()
+    if (!data.companies) data.companies = []
+
+    const newCompany = {
+      id: company.id || ('comp-' + Date.now()),
+      ...company,
+      createdAt: company.createdAt || new Date().toISOString()
+    }
+
+    // Aggiungi in cima alla lista aziende
+    data.companies.unshift(newCompany)
+
+    // Se l'azienda ha un referente, sincronizzalo automaticamente nei collaboratori
+    if (newCompany.contactPerson && newCompany.contactPerson.name) {
+      const collaborators = ensureCollaborators(data)
+      const existingCollab = collaborators.find(c => c.companyId === newCompany.id || (c.name.toLowerCase() === newCompany.contactPerson.name.toLowerCase() && c.companyName.toLowerCase() === newCompany.name.toLowerCase()))
+      if (!existingCollab) {
+        collaborators.unshift({
+          id: `collab-${newCompany.id}`,
+          companyId: newCompany.id,
+          companyName: newCompany.name,
+          companyIndustry: newCompany.industry || 'Settore B2B',
+          name: newCompany.contactPerson.name,
+          role: newCompany.contactPerson.role || 'Referente Direzione',
+          email: newCompany.contact?.email || newCompany.contact?.directEmail || '',
+          officePhone: newCompany.contact?.phone || newCompany.phone || '',
+          mobilePhone: newCompany.contact?.mobile || '',
+          notes: `Referente registrato automaticamente tramite B2B Data Enrichment (${newCompany.name})`,
+          relationshipStatus: 'Attivo',
+          createdAt: new Date().toISOString()
+        })
+      }
+    }
+
+    saveCrmData(data)
+    res.status(201).json({ success: true, company: newCompany, totalCompanies: data.companies.length })
+  } catch (err) {
+    console.error('Errore post /api/crm/companies:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.put('/api/crm/companies/:id', (req, res) => {
+  try {
+    const { id } = req.params
+    const updates = req.body || {}
+    const data = getCrmData()
+    const idx = (data.companies || []).findIndex(c => c.id === id)
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Azienda non trovata' })
+    }
+
+    data.companies[idx] = {
+      ...data.companies[idx],
+      ...updates,
+      id,
+      updatedAt: new Date().toISOString()
+    }
+
+    saveCrmData(data)
+    res.json({ success: true, company: data.companies[idx] })
+  } catch (err) {
+    console.error('Errore put /api/crm/companies:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.put('/api/crm/companies/:id/enrich', async (req, res) => {
+  try {
+    const { id } = req.params
+    const data = getCrmData()
+    const idx = (data.companies || []).findIndex(c => c.id === id)
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Azienda non trovata' })
+    }
+
+    const company = data.companies[idx]
+    const activeApiKey = process.env.OPENAI_API_KEY || ''
+    const enriched = await enrichCompanyData({ 
+      query: company.piva || company.name, 
+      vatNumber: company.piva, 
+      companyName: company.name, 
+      activeApiKey 
+    })
+
+    const crmMap = enriched.crmMapping
+    data.companies[idx] = {
+      ...company,
+      piva: crmMap.piva || company.piva,
+      fiscalCode: crmMap.fiscalCode || company.fiscalCode,
+      rea: crmMap.rea || company.rea,
+      ateco: crmMap.ateco || company.ateco,
+      sdi: crmMap.sdi || company.sdi,
+      pec: crmMap.pec || company.pec,
+      duns: crmMap.duns || company.duns,
+      paydex: crmMap.paydex || company.paydex,
+      creditRating: crmMap.creditRating || company.creditRating,
+      legalAddress: crmMap.legalAddress || company.legalAddress,
+      enrichedData: {
+        enrichedAt: enriched.enrichedAt,
+        confidenceScore: enriched.confidenceScore,
+        matchedSource: enriched.matchedSource,
+        sourcesConsulted: enriched.sourcesConsulted,
+        revenueRange: enriched.company?.revenueRange,
+        employeesExact: enriched.company?.employeesExact,
+        recommendedPaymentTerms: enriched.company?.recommendedPaymentTerms,
+        recommendedDadoServices: enriched.company?.recommendedDadoServices
+      },
+      updatedAt: new Date().toISOString()
+    }
+
+    saveCrmData(data)
+    res.json({ success: true, company: data.companies[idx], enrichment: enriched })
+  } catch (err) {
+    console.error('Errore /api/crm/companies/:id/enrich:', err)
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // ─────────────────────────────────────────────────────────────
@@ -300,6 +807,10 @@ app.patch('/api/crm/invoices/:id/pay', (req, res) => {
       return res.status(404).json({ error: 'Fattura non trovata' })
     }
 
+    // Memorizza i valori precedenti per consentire l'annullamento del saldo
+    inv.previousDeposit = inv.deposit
+    inv.previousBalance = inv.balance
+    inv.previousStatus = inv.status
     inv.deposit = inv.amount
     inv.balance = 0
     inv.status = 'Saldato'
@@ -313,13 +824,51 @@ app.patch('/api/crm/invoices/:id/pay', (req, res) => {
   }
 })
 
+app.patch('/api/crm/invoices/:id/unpay', (req, res) => {
+  try {
+    const { id } = req.params
+    const crmData = getCrmData()
+    if (!crmData.invoices) crmData.invoices = []
+
+    const inv = crmData.invoices.find(i => String(i.id) === String(id) || i.number === id)
+    if (!inv) {
+      return res.status(404).json({ error: 'Fattura non trovata' })
+    }
+
+    // Ripristina lo stato precedente o calcola i valori coerenti
+    const prevBal = typeof inv.previousBalance === 'number' && inv.previousBalance > 0
+      ? inv.previousBalance
+      : Math.round(inv.amount * 0.5)
+    const prevDep = typeof inv.previousDeposit === 'number'
+      ? inv.previousDeposit
+      : Math.max(0, inv.amount - prevBal)
+    const prevStatus = inv.previousStatus && inv.previousStatus !== 'Saldato'
+      ? inv.previousStatus
+      : (prevBal > 0 ? 'In attesa saldo' : 'Emessa')
+
+    inv.deposit = prevDep
+    inv.balance = prevBal
+    inv.status = prevStatus
+    delete inv.paidAt
+    delete inv.previousDeposit
+    delete inv.previousBalance
+    delete inv.previousStatus
+
+    saveCrmData(crmData)
+    res.json({ success: true, invoice: inv, invoices: crmData.invoices })
+  } catch (err) {
+    console.error('Errore annullamento saldo fattura:', err)
+    res.status(500).json({ error: 'Errore interno aggiornamento fattura' })
+  }
+})
+
 // ─────────────────────────────────────────────────────────────
 // ENDPOINT ATTIVITÀ / NEXT ACTIONS
 // ─────────────────────────────────────────────────────────────
 
 app.post('/api/crm/activities', (req, res) => {
   try {
-    const { title, company, type, dueDate, dueTime, priority, notes, assignedTo } = req.body
+    const { title, company, type, dueDate, dueTime, priority, notes, assignedTo, attachments, reminder, automation } = req.body
     if (!title || !title.trim()) {
       return res.status(400).json({ error: 'Titolo attività obbligatorio' })
     }
@@ -331,18 +880,71 @@ app.post('/api/crm/activities', (req, res) => {
       title: title.trim(),
       company: company || 'Generale / Studio',
       type: type || 'commercial',
-      date: dueDate || new Date().toISOString().split('T')[0],
+      date: req.body.newDueDate || dueDate || new Date().toISOString().split('T')[0],
+      dueDate: req.body.newDueDate || dueDate || new Date().toISOString().split('T')[0],
       time: dueTime || '10:00',
       period: 'In programma',
       due: 'upcoming',
       priority: priority || 'medium',
-      status: 'pending',
+      status: req.body.status || 'pending',
       assignedTo: assignedTo || '',
       notes: notes || '',
+      attachments: Array.isArray(attachments) ? attachments : [],
+      checklist: Array.isArray(req.body.checklist) ? req.body.checklist : [],
+      reminder: reminder || {
+        enabled: true,
+        date: dueDate || new Date().toISOString().split('T')[0],
+        time: dueTime || '10:00',
+        advanceNotice: '15_min',
+        channel: 'dashboard_toast',
+        notified: false,
+      },
+      automation: automation || {
+        enabled: true,
+        cause: 'email',
+        causeLabel: 'Email (Ricezione / Risposta)',
+        causeDesc: 'Nuova email ricevuta o risposta dal referente',
+        effect: 'invia_calendario',
+        effectLabel: 'Invia calendario per presa appuntamento',
+        effectDesc: 'Invia link interattivo Google Calendar / Calendly DADO',
+        status: 'active',
+        lastTriggered: null,
+      },
       createdAt: new Date().toISOString()
     }
 
     crmData.nextActions.unshift(newActivity)
+
+    // Se l'attività ha uno stato rilevante (es. fermo o in_progress), sincronizzalo con l'azienda
+    if (crmData.companies && newActivity.company && (newActivity.status === 'fermo' || newActivity.status === 'in_progress')) {
+      const compName = (newActivity.company || '').trim().toLowerCase()
+      const compIdx = crmData.companies.findIndex(c =>
+        (c.name && c.name.trim().toLowerCase() === compName) ||
+        (compName.length > 3 && c.name && (c.name.toLowerCase().includes(compName) || compName.includes(c.name.toLowerCase())))
+      )
+      if (compIdx !== -1) {
+        const comp = crmData.companies[compIdx]
+        const statusLabel = newActivity.status === 'fermo' ? 'Fermo' : 'In corso'
+        const reason = req.body.statusReason || req.body.reason || ''
+        const newDueDate = req.body.newDueDate || newActivity.date || ''
+        comp.taskStatusUpdate = {
+          status: newActivity.status,
+          statusLabel,
+          taskTitle: newActivity.title,
+          taskId: newActivity.id,
+          reason,
+          newDueDate,
+          updatedAt: new Date().toISOString()
+        }
+        if (newDueDate) {
+          if (!comp.workSchedule) comp.workSchedule = {}
+          comp.workSchedule.nextDueDate = newDueDate
+          comp.workSchedule.datesFormatted = `Nuova scadenza: ${newDueDate}`
+        }
+        crmData.companies[compIdx] = comp
+      }
+    }
+
     saveCrmData(crmData)
     res.json({ success: true, activity: newActivity, nextActions: crmData.nextActions })
   } catch (err) {
@@ -354,7 +956,7 @@ app.post('/api/crm/activities', (req, res) => {
 app.patch('/api/crm/activities/:id', (req, res) => {
   try {
     const { id } = req.params
-    const updates = req.body
+    const updates = req.body || {}
     const crmData = getCrmData()
     if (!crmData.nextActions) crmData.nextActions = []
 
@@ -363,9 +965,62 @@ app.patch('/api/crm/activities/:id', (req, res) => {
       return res.status(404).json({ error: 'Attività non trovata' })
     }
 
+    if (updates.newDueDate) {
+      updates.date = updates.newDueDate
+      updates.dueDate = updates.newDueDate
+    }
+
     crmData.nextActions[idx] = { ...crmData.nextActions[idx], ...updates }
+    const updatedAct = crmData.nextActions[idx]
+
+    // Sincronizza lo stato del task con l'azienda collegata
+    let updatedCompany = null
+    if (crmData.companies && updatedAct.company) {
+      const compName = (updatedAct.company || '').trim().toLowerCase()
+      const compIdx = crmData.companies.findIndex(c => 
+        (updatedAct.companyId && c.id === updatedAct.companyId) ||
+        (c.name && c.name.trim().toLowerCase() === compName) ||
+        (compName.length > 3 && c.name && (c.name.toLowerCase().includes(compName) || compName.includes(c.name.toLowerCase())))
+      )
+
+      if (compIdx !== -1) {
+        const comp = crmData.companies[compIdx]
+        const statusLabel = 
+          updatedAct.status === 'fermo' ? 'Fermo' :
+          updatedAct.status === 'in_progress' ? 'In corso' :
+          updatedAct.status === 'completed' ? 'Completato' : 'In attesa'
+
+        const reason = updates.statusReason || updates.reason || (updatedAct.taskStatusUpdate && updatedAct.taskStatusUpdate.reason) || ''
+        const newDueDate = updates.newDueDate || (updatedAct.taskStatusUpdate && updatedAct.taskStatusUpdate.newDueDate) || ''
+
+        comp.taskStatusUpdate = {
+          status: updatedAct.status,
+          statusLabel,
+          taskTitle: updatedAct.title,
+          taskId: updatedAct.id,
+          reason: reason || comp.taskStatusUpdate?.reason || '',
+          newDueDate: newDueDate || comp.taskStatusUpdate?.newDueDate || '',
+          updatedAt: new Date().toISOString()
+        }
+
+        if (newDueDate) {
+          if (!comp.workSchedule) comp.workSchedule = {}
+          comp.workSchedule.nextDueDate = newDueDate
+          comp.workSchedule.datesFormatted = `Nuova scadenza: ${newDueDate}`
+        }
+
+        crmData.companies[compIdx] = comp
+        updatedCompany = comp
+      }
+    }
+
     saveCrmData(crmData)
-    res.json({ success: true, activity: crmData.nextActions[idx], nextActions: crmData.nextActions })
+    res.json({
+      success: true,
+      activity: crmData.nextActions[idx],
+      nextActions: crmData.nextActions,
+      updatedCompany
+    })
   } catch (err) {
     console.error('Errore aggiornamento attività:', err)
     res.status(500).json({ error: 'Errore interno aggiornamento attività' })
@@ -656,23 +1311,43 @@ A Milano oggi il tempo è prevalentemente sereno con temperature miti (intorno a
 }
 
 app.get('/api/ai/config', (req, res) => {
-  const currentKey = (process.env.OPENAI_API_KEY || '').trim()
-  const isRealKey = Boolean(currentKey && currentKey.startsWith('sk-'))
-  const maskedKey = isRealKey ? `${currentKey.slice(0, 7)}...${currentKey.slice(-4)}` : ''
-  const model = process.env.OPENAI_MODEL || (isRealKey ? 'gpt-4o' : 'llama3.2')
-  const disableOllama = process.env.DISABLE_OLLAMA === 'true'
+  const geminiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '').trim()
+  const hasGeminiKey = Boolean(geminiKey && geminiKey.length > 5)
+  const maskedGeminiKey = hasGeminiKey ? `${geminiKey.slice(0, 6)}...${geminiKey.slice(-4)}` : ''
+  const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+
+  const openaiKey = (process.env.OPENAI_API_KEY || '').trim()
+  const hasOpenaiKey = Boolean(openaiKey && openaiKey.startsWith('sk-'))
+  const maskedOpenaiKey = hasOpenaiKey ? `${openaiKey.slice(0, 7)}...${openaiKey.slice(-4)}` : ''
+  const openaiModel = process.env.OPENAI_MODEL || 'gpt-4o'
+
+  const hasKey = hasGeminiKey || hasOpenaiKey
+  const activeProvider = hasGeminiKey ? 'gemini' : (hasOpenaiKey ? 'openai' : 'local')
+
+  let currentEngine = 'Motore CRM Interno (DADO Intelligence)'
+  if (hasGeminiKey) {
+    currentEngine = `Google Gemini (${geminiModel})`
+  } else if (hasOpenaiKey) {
+    currentEngine = `OpenAI Cloud (${openaiModel})`
+  }
+
   res.json({
-    hasKey: isRealKey,
-    maskedKey,
-    model,
-    disableOllama,
-    currentEngine: isRealKey ? `OpenAI Cloud (${model})` : (disableOllama ? 'Motore CRM Interno' : 'Ollama Locale (llama3.2)')
+    hasKey,
+    hasGeminiKey,
+    hasOpenaiKey,
+    geminiKey: maskedGeminiKey,
+    geminiModel,
+    openaiKey: maskedOpenaiKey,
+    openaiModel,
+    model: hasGeminiKey ? geminiModel : openaiModel,
+    activeProvider,
+    currentEngine
   })
 })
 
 app.post('/api/ai/config', async (req, res) => {
   try {
-    const { apiKey, model, disableOllama } = req.body
+    const { apiKey, model, geminiApiKey, geminiModel, openaiApiKey, openaiModel } = req.body
     const envPath = path.join(rootDir, '.env')
     let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : ''
 
@@ -684,22 +1359,34 @@ app.post('/api/ai/config', async (req, res) => {
       }
     })
 
-    if (apiKey !== undefined && apiKey.trim() !== '') {
-      const cleanKey = apiKey.trim()
-      process.env.OPENAI_API_KEY = cleanKey
-      envVars['OPENAI_API_KEY'] = cleanKey
-      if (cleanKey.startsWith('sk-')) {
-        delete process.env.OPENAI_BASE_URL
-        delete envVars['OPENAI_BASE_URL']
-      }
+    // Rimozione definitiva di Ollama dall'ambiente
+    delete process.env.DISABLE_OLLAMA
+    delete envVars['DISABLE_OLLAMA']
+    delete process.env.OPENAI_BASE_URL
+    delete envVars['OPENAI_BASE_URL']
+
+    // Gestione Gemini API Key e Modello
+    const gKey = (geminiApiKey !== undefined ? geminiApiKey : (apiKey && !apiKey.startsWith('sk-') ? apiKey : '')).trim()
+    if (gKey) {
+      process.env.GEMINI_API_KEY = gKey
+      envVars['GEMINI_API_KEY'] = gKey
     }
-    if (model) {
-      process.env.OPENAI_MODEL = model
-      envVars['OPENAI_MODEL'] = model
+    const gModel = geminiModel || (model && model.startsWith('gemini-') ? model : undefined)
+    if (gModel) {
+      process.env.GEMINI_MODEL = gModel
+      envVars['GEMINI_MODEL'] = gModel
     }
-    if (disableOllama !== undefined) {
-      process.env.DISABLE_OLLAMA = String(disableOllama)
-      envVars['DISABLE_OLLAMA'] = String(disableOllama)
+
+    // Gestione OpenAI (opzionale come seconda scelta)
+    const oKey = (openaiApiKey !== undefined ? openaiApiKey : (apiKey && apiKey.startsWith('sk-') ? apiKey : '')).trim()
+    if (oKey) {
+      process.env.OPENAI_API_KEY = oKey
+      envVars['OPENAI_API_KEY'] = oKey
+    }
+    const oModel = openaiModel || (model && !model.startsWith('gemini-') ? model : undefined)
+    if (oModel) {
+      process.env.OPENAI_MODEL = oModel
+      envVars['OPENAI_MODEL'] = oModel
     }
 
     const newEnvStr = Object.entries(envVars).map(([k, v]) => `${k}=${v}`).join('\n') + '\n'
@@ -707,9 +1394,10 @@ app.post('/api/ai/config', async (req, res) => {
 
     res.json({
       success: true,
-      hasKey: Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-')),
-      model: process.env.OPENAI_MODEL || 'gpt-4o',
-      disableOllama: process.env.DISABLE_OLLAMA === 'true'
+      hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+      geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      hasOpenaiKey: Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-')),
+      openaiModel: process.env.OPENAI_MODEL || 'gpt-4o'
     })
   } catch (err) {
     res.status(500).json({ error: 'Errore salvataggio configurazione AI: ' + err.message })
@@ -718,29 +1406,17 @@ app.post('/api/ai/config', async (req, res) => {
 
 app.post('/api/ai/ask', async (req, res) => {
   try {
-    const userRole = (req.headers['x-user-role'] || '').toLowerCase()
-    const isDirectorOrAdmin = userRole.includes('director') || userRole.includes('admin') || userRole.includes('amministratore')
-    if (!isDirectorOrAdmin && (userRole === 'dipendente' || userRole === 'restricted')) {
-      return res.status(403).json({ error: 'Accesso negato: interrogazione OpenAI non consentita per questo profilo' })
-    }
-
     const { prompt } = req.body
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({ error: 'Prompt richiesto' })
     }
 
     const pLower = prompt.toLowerCase().trim()
-
     const crmData = getCrmData()
 
     // Controllo pattern cross-check per eventuale fallback
     const isCrossCheckQuery = 
-      /(?:controll[oi]\s+incrociat[oi]|audit|verific[ah]\s+incrociat[ah]|conflitt[oi]\s+attrezzatur|scostament[oi]\s+fattur|discrepanz|incroc(?:i|ia|iare|io|iamenti))/i.test(pLower) ||
-      ((pLower.includes('controll') || pLower.includes('verific') || pLower.includes('incroc') || pLower.includes('analizz') || pLower.includes('audit') || pLower.includes('scheda')) && 
-       (pLower.includes('contratt') || pLower.includes('fattur') || pLower.includes('shooting') || pLower.includes('attrezzatur') || pLower.includes('saldi') || pLower.includes('pagament') || pLower.includes('client'))) ||
-      (pLower.includes('contratt') && (pLower.includes('shoot') || pLower.includes('set')) && (pLower.includes('fattur') || pLower.includes('incass') || pLower.includes('saldi') || pLower.includes('econom') || pLower.includes('import'))) ||
-      (pLower.includes('contratt') && pLower.includes('fattur')) ||
-      (pLower.includes('shooting') && pLower.includes('attrezzatur'))
+      /(?:controll[oi]\s+incrociat[oi]|audit|verific[ah]\s+incrociat[ah]|conflitt[oi]\s+attrezzatur|scostament[oi]\s+fattur|discrepanz|incongruenz|anomali[ae]|incroc(?:i|ia|iare|io|iamenti))/i.test(pLower)
 
     // ── GESTIONE DIRETTA: ORARIO ATTUALE ──
     const isTimeQuery = pLower.includes('ora è') || pLower.includes('ore sono') || pLower.includes('orario attuale') || pLower.includes('che ora') || pLower.includes('dimmi l\'ora')
@@ -751,24 +1427,34 @@ app.post('/api/ai/ask', async (req, res) => {
       return res.json({
         answer: `⏰ **ORARIO ATTUALE DELLO STUDIO (FUSO ORARIO ITALIA / ROMA):**\nSono le ore **${timeStr}** di ${dateStr}.`,
         prompt,
+        usingGemini: false,
         usingOpenAi: false,
-        usingOllama: false,
         activeEngine: 'Orologio di Sistema Studio DADO',
         openAiError: null,
+        geminiError: null,
         timestamp: new Date().toISOString()
       })
     }
 
-    // Sintesi compatta ad alta densità per modelli LLM (evita saturazione token e velocizza Ollama da 30s a 1-2s)
-    const compactCompanies = (crmData.companies || []).map(c => ({
-      nome: c.name,
-      settore: c.sector,
-      referente: c.contactPerson ? `${c.contactPerson.name} (${c.contactPerson.role || ''}, ${c.contactPerson.email || ''})` : '',
-      contratto: c.contract ? `${c.contract.code} - €${c.contract.amount} (${c.contract.paymentStatus})` : '',
-      dateLavoro: c.workSchedule ? `${c.workSchedule.startDate} [${c.workSchedule.pattern || ''}] - ore: ${c.workSchedule.hours || ''}` : '',
-      attrezzatura: Array.isArray(c.equipmentAssigned) ? c.equipmentAssigned.map(e => e.name || e).join(', ') : '',
-      criticita: c.criticalIssues || ''
-    }))
+    // ── GESTIONE DIRETTA: REPORT SU COLLABORAZIONI / PERIODI ──
+    const collabIntent = detectCollaborationIntent(prompt)
+    if (collabIntent) {
+      const report = buildCollaborationReport(crmData, collabIntent)
+      return res.json({
+        answer: report.answer,
+        prompt,
+        usingGemini: false,
+        usingOpenAi: false,
+        activeEngine: 'Motore Report DADO (calcolo diretto sui dati del CRM)',
+        openAiError: null,
+        geminiError: null,
+        reportMeta: report.meta,
+        timestamp: new Date().toISOString()
+      })
+    }
+
+    // Sintesi compatta ad alta densità per modelli LLM
+    const compactCompanies = buildCompactCrm(crmData)
 
     const compactOpportunities = (crmData.opportunities || []).map(o => ({
       nome: o.title || o.name,
@@ -781,129 +1467,132 @@ app.post('/api/ai/ask', async (req, res) => {
 
     const compactInvoices = (crmData.invoices || []).map(i => ({
       num: i.number,
-      cliente: i.client,
-      data: i.date,
-      totale: `€${i.amount || 0}`,
+      cliente: i.companyName,
+      contratto: i.contractCode,
+      dataFattura: i.date,
+      shooting: i.shootingDates,
+      imponibile: `€${i.amount || 0}`,
       acconto: `€${i.deposit || 0}`,
-      saldo: `€${i.balanceDue || 0}`,
+      saldo: `€${i.balance || 0}`,
       stato: i.status,
       scadenza: i.dueDate
     }))
 
+    const askedPeriod = resolvePeriod(prompt)
+    const periodBlock = askedPeriod
+      ? `\nPERIODO RICHIESTO (calcolato dal sistema, NON ricalcolarlo): ${askedPeriod.label}, dal ${askedPeriod.start} al ${askedPeriod.end}.\nCOLLABORAZIONI IN QUESTO PERIODO (${buildCollaborations(crmData).filter(c => c.eventEnd >= askedPeriod.start && c.eventEnd <= askedPeriod.end && c.isDone).length} trovate; usa SOLO queste per rispondere sul periodo):\n${JSON.stringify(buildCollaborations(crmData).filter(c => c.eventEnd >= askedPeriod.start && c.eventEnd <= askedPeriod.end).map(c => ({ cliente: c.company, contratto: c.contractCode, shooting: c.shootingText, importo: c.amount, fattura: c.invoiceNumber, saldoAperto: c.balance, anomalie: c.anomalies })))}\n`
+      : ''
+
     const compactInventorySummary = `Parco Tecnico DADO Studio (43 voci operative):
-• Camere Cinema: Sony FX3 Cinema Line, Sony A7S III (4K ProRes, S-Cinetone)
-• Ottiche Sony GM: 24-70mm f/2.8 GM II, 70-200mm f/2.8 GM OSS II, 16-35mm f/2.8 GM, 50mm f/1.2 GM, 85mm f/1.4 GM, 35mm f/1.4 GM
+• Camere Cinema: Canon Cinema EOS C70, Canon EOS R5 C (4K ProRes, S-Cinetone)
+• Ottiche Canon RF: 24-70mm f/2.8 GM II, 70-200mm f/2.8 GM OSS II, 16-35mm f/2.8 GM, 50mm f/1.2 GM, 85mm f/1.4 GM, 35mm f/1.4 GM
 • Droni & Aereo: DJI Mavic 3 Cine (Apple ProRes 422 HQ, doppio radiocomando RC Pro, filtri ND)
 • Illuminazione & Limbo: Aputure 600d Pro, Aputure 300x Bi-Color, Amaran T4c, Softbox Light Dome 150, stativi C-Stand
 • Audio Professionale: Sennheiser MKH416 Shotgun, Radiomicrofoni Sennheiser AVX e DJI Mic 2
 • Stabilizzatori & Grip: DJI RS3 Pro Combo, Monitor/Registratore Atomos Ninja V+, schede CFexpress Type A, SSD Samsung T7 Shield`
 
-    // Sistema di istruzioni arricchito con ragionamento aperto e dati reali del CRM
-    const systemPrompt = `Sei l'Executive Producer, Senior Business Strategist e AI Intelligence di "DADO Creative Studio" (studio di produzione video corporate, spot TV, riprese con drone, fotografia moda e rendering 3D con base e limbo a Milano).
-Sei integrato direttamente nel nucleo del CRM dello studio e hai accesso in tempo reale ai dati dello studio:
+    // Sistema di istruzioni ad alta densità basato sui dati reali del CRM
+    const systemPrompt = `Sei l'Executive Producer, Senior Financial Strategist e AI Intelligence di "DADO Creative Studio" (studio di produzione audiovisiva corporate, spot TV broadcast, riprese con drone 4K, fotografia moda con limbo e rendering 3D con sede e set a Milano).
+Sei integrato direttamente nel nucleo del CRM dello studio e hai accesso in tempo reale all'intero database aziendale:
 
 DATA E ORA ATTUALE DI SISTEMA:
 ${new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome' })}
 
 ════════════════════════════════════════════════════════════════
-DATABASE AZIENDE & COMMESSE (${compactCompanies.length} clienti con referenti, contratti, giorni di lavoro, materiali, pagamenti e criticità):
-${JSON.stringify(compactCompanies)}
+DATABASE AZIENDE, REFERENTI, CONTRATTI, FATTURE, SET & CRITICITÀ:
+${JSON.stringify(compactCompanies, null, 1)}
 
-PIPELINE OPPORTUNITÀ (${compactOpportunities.length} trattative aperte):
+FATTURE ELETTRONICHE, ACCONTI & SALDI APERTI:
+${JSON.stringify(compactInvoices, null, 1)}
+
+PIPELINE TRATTATIVE & OPPORTUNITÀ COMMERCIALI:
 ${JSON.stringify(compactOpportunities)}
 
-PROSSIMI APPUNTAMENTI & SCADENZE:
-${JSON.stringify((crmData.nextActions || []).slice(0, 8))}
+PROSSIMI APPUNTAMENTI & SCADENZE OPERATIVE:
+${JSON.stringify((crmData.nextActions || []).slice(0, 10).map(a => `${a.title} per ${a.company} (${a.period || a.date})`))}
 
-INVENTARIO ATTREZZATURE STUDIO:
+PARCO ATTREZZATURE STUDIO DADO (43 VOCI OPERATIVE):
 ${compactInventorySummary}
-
-FATTURE E PAGAMENTI (${compactInvoices.length} fatture elettroniche con acconti e saldi):
-${JSON.stringify(compactInvoices)}
-
-EMAIL RECENTI SINCRONIZZATE:
-${JSON.stringify((crmData.emails || []).slice(0, 5).map(e => ({ from: e.from, subject: e.subject, date: e.date, snippet: (e.snippet || e.body || '').slice(0, 120) })))}
 ════════════════════════════════════════════════════════════════
 
-LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
-1. RAGIONAMENTO APERTO, SVILUPPATO ED ARTICOLATO:
-   Non limitarti a risposte preconfezionate o a banali elenchi puntati. Sviluppa un ragionamento commerciale e operativo profondo, entrando nel merito delle strategie di produzione, della psicologia di trattativa dei clienti e della gestione del rischio economico.
-2. CONTROLLI INCROCIATI TRA DATI DEL CRM (MISSIONE CARDINE ASSISTENTE):
-   L'utente usa questo assistente principalmente per effettuare CONTROLLI INCROCIATI tra le varie dimensioni dello studio DADO:
-   - Contratti firmati vs Fatturato emesso vs Incassi reali vs Saldi aperti (chi deve ancora pagare, discrepanze importi).
-   - Calendario delle date di shooting vs Attrezzature mobilitate (Sony FX3, Drone DJI Mavic 3 Cine, luci Aputure) vs Conflitti di disponibilità o buffer di ricarica.
-   - Clienti vs Commesse vs Pipeline trattative.
-   NON parlare MAI di meteo o clima (all'utente non interessa e non vuole previsioni meteo). Focalizzati al 100% sull'incrocio rigoroso dei dati aziendali, operativi e finanziari del CRM fornito sopra con cifre in euro, date e codici contratto precisi.
-3. ECCELLENZA LINGUISTICA, CONCORDANZA GRAMMATICALE E ACCORDO MORFOLOGICO IN ITALIANO (IMPERATIVO):
-   - Esprimiti in un italiano nativo, elegante, fluido, altamente professionale e privo di qualsiasi sgrammaticatura.
-   - ACCORDO MORFOLOGICO PERFETTO: Fai corrispondere SEMPRE con precisione millimetrica il genere (maschile/femminile) e il numero (singolare/plurale) di articoli, aggettivi e participi passati ai relativi sostantivi (es: "i contratti stipulati", "le fatture saldate", "l'attrezzatura impiegata", "i saldi ancora scoperti", "le commesse andate a set", "l'acconto versato").
-   - Nessuna ripetizione goffa, nessun termine generico o allucinazione: usa i nomi precisi delle aziende, i codici contratto reali e le cifre esatte in euro (€).
-   - Struttura le risposte con paragrafi chiari, tabelle comparative o elenchi puntati formattati in modo leggibile ed esecutivo.
-4. METODO DI TRATTARE I PREVENTIVI & NEGOZIAZIONE:
-   Se l'utente chiede come trattare i preventivi, fornisci un piano tattico personalizzato:
-   - Come condurre la trattativa con ciascun cliente (es. Officine Riva con preventivo da €9.200 in scadenza facendo leva sui 2 giorni di produzione e sul montaggio 4K ProRes; Solaris Energy per lo spot TV con diritti di messa in onda; Alpha Studio per i pacchetti convenzionati).
-   - Leve di valore: cessione diritti, velocità di consegna (48h), pacchetti continuativi, clausole su acconti e saldi.
-   - Difesa del prezzo contro le richieste di ribasso o sconti.
-5. PUNTI IN COMUNE & SINERGIE TRA AZIENDE:
-   Analizza in modo approfondito i cluster di clientela, le sovrapposizioni di attrezzatura (chi usa le stesse luci Aputure 600d, ottiche Sony GM o droni), i format di consegna (ProRes 422 vs 9:16 verticali), i flussi di lavoro comuni e le opportunità di cross-selling.
-6. NUMERO GIORNI DI LAVORO & CALENDARIO:
-   Estrai e incrocia con precisione i giorni e le ore effettive di lavoro dai campi workSchedule (es. "un giorno intero + un pomeriggio" per Riva, "2 giorni consecutivi" per Kroma, "2/3 ore all'alba" per Urban Mobility, "tramonto e golden hour" per Poggio Antico, "15 ore fino alle 02:30" per Vogue Events), calcolando la redditività giornaliera, i turni del team e i tempi necessari per la post-produzione.
-7. INSOLUTI & CODA DI PAGAMENTO:
-   Traccia con precisione i clienti con acconto versato ma saldo ancora aperto (es. Riva €5.200, Kroma €2.900, Beta Digital €2.800) e suggerisci azioni concrete di sollecito cordiale o sblocco delle consegne master legato al saldo.
-8. CADENZE TEMPORALI DEI LAVORI PER MESE (FONDAMENTALE):
-   Se l'utente chiede le cadenze temporali di ciascun lavoro per un mese specifico o in generale:
-   - Identifica con esattezza il mese richiesto e isola ciascun lavoro con le sue cadenze temporali effettive.
-   - Per ciascuna commessa del mese fornisci una scheda temporale completa: Nome azienda e settore, Data e Cadenza Temporale, Orari di set, Location, Deliverables e attrezzature, Valore economico e stato pagamenti, Intervallo di cadenza.
-   - Fornisci sempre il totale commesse e il volume d'affari complessivo del mese richiesto.
-9. CONFRONTO E RICERCA DEI CONTRATTI NEL CORSO DELL'ANNO:
-   Se l'utente chiede un confronto, ricerca o andamento dei contratti stipulati nel corso dell'anno 2026:
-   - Analizza l'evoluzione cronologica dei contratti stipulati: numero contratti (11 contratti firmati), valore totale (€ 56.900) e crescita del ticket medio.
-   - Fornisci il confronto dettagliato: Mese, Cliente, Codice Contratto, Importo (€), Stato del pagamento, Modalità di pagamento e Deliverables.
-   - Evidenzia la gestione del credito: € 46.000 incassati vs € 10.900 in attesa di saldo (Riva, Kroma, Beta Digital).
-10. INTERCONNESSIONE TOTALE & PRESENTAZIONE RELAZIONALE DEL CRM:
-    NON presentare mai dati isolati. Sei un sistema di Business Intelligence relazionale: devi SEMPRE presentare le informazioni collegandole organicamente tra loro in una visione integrata e completa:
-    - CLIENTE ➔ Referente, settore, canale di acquisizione
-    - CONTRATTO ➔ Codice contratto, data firma, termini
-    - INVOICE / FATTURA ➔ Numero fattura, imponibile, IVA 22%, acconto versato, saldo aperto da incassare, data scadenza, SDI/PEC
-    - CALENDARIO & SHOOTING ➔ Date di produzione, orari di set, location effettiva
-    - ATTREZZATURE MOBILITATE ➔ Telecamere (Sony FX3), ottiche GM, droni DJI, luci Aputure, stabilizzatori e audio
-    - CRITICITÀ & FEEDBACK ➔ Problemi riscontrati sul set e soluzione applicata da DADO Studio
-    - PROSSIMA AZIONE OPERATIVA ➔ Azione commerciale o di sollecito/consegna consigliata.
-11. STILE DI RISPOSTA:
-    Professionale, incisivo, altamente analitico, con sezioni tematiche chiare, numeri precisi (€, orari, date) e conclusioni operative immediatamente applicabili.
-12. GESTIONE DI RICHIESTE SU CLIENTI NON PRESENTI NEL CRM:
-    Se l'utente cerca esplicitamente un'azienda o persona che NON è registrata nel database interno del CRM:
-    - Spiega con naturalezza e brevità (1-2 frasi) che l'azienda non è attualmente presente nel CRM dello studio.
-13. CONTRATTI PER SHOOTING & FATTURATO (RICHIESTA SPECIFICA):
-    Se l'utente chiede informazioni su contratti per shooting e fatturato:
-    - Usa ESCLUSIVAMENTE i dati reali del CRM riportati sopra (11 contratti attivi, fatturato totale € 56.900, incassati € 46.000, saldi aperti € 10.900).
-    - NON USARE MAI segnaposto generici come "[Nome del cliente]" o "[Data di firma]".`
+${periodBlock}
+${GROUNDING_RULES}
+
+LINEE GUIDA DI RISPOSTA:
+1. RISPONDI ESATTAMENTE ALLA DOMANDA: se chiedono dati su un cliente (referente, contratto, compensi, attrezzature, criticità), rispondi direttamente e con cifre precise; se chiedono analisi incrociate, totale fatturato, saldi aperti o attrezzature, calcolali rigorosamente sui dati del database sopra fornito.
+2. DOMANDE GENERALI, TRADUZIONI, LINGUAGGI, PRODUTTIVITÀ: Se l'utente pone domande generali (es. traduzioni in inglese o altre lingue, formule, calcoli, scrittura testi o email, consigli tecnici su camere/video/set), rispondi direttamente, con la massima qualità e naturalezza come un eccellente assistente AI bilingue, senza forzare riferimenti al CRM se non pertinenti.
+3. FEDELTÀ ASSOLUTA AI DATI: ogni cifra (€), data, codice contratto o nome deve provenire con esattezza dai dati del database fornito sopra. Mai inventare dati aziendali.
+4. STILE: professionale, sintetico, elegante, chiaro e orientato all'operatività di uno studio di produzione.`
 
     let answer = ''
+    let usingGemini = false
     let usingOpenAi = false
-    let usingOllama = false
+    let geminiError = null
     let openAiError = null
     let activeEngine = 'NLP Interno'
 
-    // Verifica chiave OpenAI (da richiesta o da variabile d'ambiente .env)
+    // Rileva se la richiesta è linguistica/traduzione o di scrittura generale
+    const isTranslationQuery = /(?:come\s+si\s+(?:dice|traduce)|traduc[a-z]*|in\s+inglese|in\s+italiano|in\s+francese|in\s+spagnolo|in\s+tedesco|translation|translate)/i.test(prompt)
+    const isGeneralWritingOrProductivity = 
+      /(?:scrivi\s+(?:una|un|dei|delle|del|il|la)|redigi|bozza|correggi|formula|come\s+si\s+scrive|significato\s+di|cosa\s+significa|spiegami|come\s+funziona|quanto\s+fa|calcola)/i.test(pLower) &&
+      !/(?:crm|cliente|clienti|azienda|aziende|fattur|contratt|preventiv|shooting|saldo|acconto|incasso|attrezzatur|dado)/i.test(pLower)
+
+    const focusedAssistantInstruction = `Sei l'assistente AI intelligente, professionale e bilingue di DADO Creative Studio.
+Rispondi alla richiesta dell'utente con la massima precisione, naturalezza, accuratezza e chiarezza immediata.
+Per le traduzioni e le richieste linguistiche: fornisci la risposta migliore, più fluida e naturale (con alternative formali, colloquiali o contestuali pertinenti ed esempi d'uso pratici).
+Per la scrittura o calcoli: fornisci direttamente la soluzione o il testo pronto all'uso, con tono professionale ed elegante.`
+
+    const promptInstruction = (isTranslationQuery || isGeneralWritingOrProductivity) ? focusedAssistantInstruction : systemPrompt
+
+    // ── PRIORITÀ 1: GOOGLE GEMINI (Modello principale raccomandato: veloce, 1M context, collegato al DB) ──
+    const reqGeminiKey = (req.body.geminiApiKey || req.body.apiKey || '').trim()
+    const envGeminiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '').trim()
+    const activeGeminiKey = (reqGeminiKey && !reqGeminiKey.startsWith('sk-') && !reqGeminiKey.includes('ollama'))
+      ? reqGeminiKey
+      : ((envGeminiKey && !envGeminiKey.includes('ollama')) ? envGeminiKey : null)
+    const geminiModelToUse = req.body.geminiModel || req.body.model || process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+
+    if (activeGeminiKey) {
+      try {
+        console.log(`✨ Interrogazione Google Gemini con modello: ${geminiModelToUse}...`)
+        const ai = new GoogleGenAI({ apiKey: activeGeminiKey })
+        const response = await ai.models.generateContent({
+          model: geminiModelToUse,
+          contents: prompt,
+          config: {
+            systemInstruction: promptInstruction,
+            temperature: 0.2,
+          }
+        })
+        answer = response.text || ''
+        if (answer) {
+          usingGemini = true
+          activeEngine = `Google Gemini (${geminiModelToUse})`
+        }
+      } catch (geminiErr) {
+        console.warn('Google Gemini ha restituito un errore:', geminiErr.message)
+        geminiError = geminiErr.message
+      }
+    }
+
+    // ── PRIORITÀ 2: OPENAI CLOUD (Opzionale, se presente chiave API sk-...) ──
     const reqApiKey = (req.body.apiKey || '').trim()
     const envApiKey = (process.env.OPENAI_API_KEY || '').trim()
     const activeApiKey = reqApiKey.startsWith('sk-') ? reqApiKey : (envApiKey.startsWith('sk-') ? envApiKey : null)
     const isRealOpenAiKey = Boolean(activeApiKey)
     const modelToUse = req.body.model || process.env.OPENAI_MODEL || (isRealOpenAiKey ? 'gpt-4o' : 'gpt-4o-mini')
 
-    // ── PRIORITÀ 1: OPENAI CLOUD (Se presente chiave API reale fornita dall'utente) ──
-    if (isRealOpenAiKey) {
+    if (!answer && isRealOpenAiKey) {
       try {
         console.log(`🌐 Interrogazione OpenAI Cloud con modello: ${modelToUse}...`)
         const client = new OpenAI({ apiKey: activeApiKey })
         const completion = await client.chat.completions.create({
           model: modelToUse,
           messages: [
-            { role: 'system', content: systemPrompt },
+            { role: 'system', content: promptInstruction },
             { role: 'user', content: prompt }
           ],
-          temperature: 0.5,
+          temperature: 0.2,
           max_tokens: 1800,
         })
         answer = completion.choices[0]?.message?.content || ''
@@ -921,65 +1610,24 @@ LINEE GUIDA DI RAGIONAMENTO E RISPOSTA (FONDAMENTALI):
       }
     }
 
-    // ── PRIORITÀ 2: OLLAMA LOCALE (Solo se OpenAI non è attivo e Ollama non è stato disabilitato) ──
-    const isOllamaDisabled = process.env.DISABLE_OLLAMA === 'true' || req.body.disableOllama === true
-    if (!answer && !isOllamaDisabled && !isRealOpenAiKey) {
-      try {
-        const ollamaCheck = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(1000) })
-        if (ollamaCheck.ok) {
-          const tagsData = await ollamaCheck.json()
-          const availableModels = tagsData.models || []
-          if (availableModels.length > 0) {
-            const selectedModel = availableModels.find(m => m.name.includes('llama') || m.name.includes('mistral') || m.name.includes('qwen'))?.name || availableModels[0].name
-            console.log(`🦙 Interrogazione Ollama locale con modello: ${selectedModel}...`)
-
-            const ollamaRes = await fetch('http://127.0.0.1:11434/api/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              signal: AbortSignal.timeout(60000),
-              body: JSON.stringify({
-                model: selectedModel,
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content: prompt }
-                ],
-                stream: false,
-                options: { temperature: 0.7, num_ctx: 4096 }
-              })
-            })
-
-            if (ollamaRes.ok) {
-              const ollamaJson = await ollamaRes.json()
-              if (ollamaJson.message?.content) {
-                answer = ollamaJson.message.content
-                usingOllama = true
-                activeEngine = `Ollama Locale (${selectedModel})`
-              }
-            }
-          }
-        }
-      } catch (ollamaErr) {
-        console.warn('Ollama locale non attivo o non disponibile.')
-      }
-    }
-
-    // ── PRIORITÀ 3: MOTORE AUDIT & CONTROLLI INCROCIATI INTERNO DADO ──
+    // ── PRIORITÀ 3: MOTORE AUDIT & CONTROLLI INCROCIATI INTERNO DADO (FALLBACK DETERMINISTICO) ──
     if (!answer) {
       if (isCrossCheckQuery) {
         answer = runCrmCrossCheck(pLower, crmData)
         activeEngine = 'Motore Audit & Controlli Incrociati Studio DADO (Fallback)'
       } else {
         answer = await generateLocalCrmAnalysis(prompt, crmData)
-        activeEngine = 'Motore NLP Studio DADO (Fallback)'
+        activeEngine = 'Motore CRM Interno Studio DADO (Fallback)'
       }
     }
 
     res.json({ 
       answer, 
       prompt, 
+      usingGemini,
       usingOpenAi, 
-      usingOllama, 
       activeEngine, 
+      geminiError,
       openAiError, 
       timestamp: new Date().toISOString() 
     })
@@ -1013,7 +1661,7 @@ Posso supportarti nell'analisi strategica, commerciale e operativa dello studio 
 • 🏢 **Clienti & Partner**: anagrafiche, referenti diretti, contratti firmati e storico commesse.
 • 🧾 **Fatture & Flussi di Cassa**: imponibili, IVA 22%, acconti già versati e crediti con saldo aperto.
 • 📅 **Calendario & Shooting**: date di set, orari di produzione, location (Limbo DADO o trasferte) e cadenze temporali.
-• 🎥 **Inventario Attrezzature**: disponibilità di telecamere Sony FX3 Cinema Line, droni DJI, parco luci (Aputure/Nanlite) e ottiche GM.
+• 🎥 **Inventario Attrezzature**: disponibilità di telecamere Canon Cinema EOS C70, droni DJI, parco luci (Aputure/Nanlite) e ottiche GM.
 • 💼 **Pipeline Trattative**: opportunità commerciali in corso e strategie di negoziazione.
 
 Come posso esserti utile oggi?`
@@ -1107,7 +1755,7 @@ Sono le ore **${timeStr}** di ${dateStr}.`
 • 🏢 Monitoraggio contratti, clienti e preventivi
 • 🧾 Analisi flussi di cassa, acconti e saldi aperti
 • 📅 Calendario produzioni, orari di set e scadenze
-• 🎥 Disponibilità attrezzature (Sony FX3, lenti GM, drone Mavic 3, luci Aputure)
+• 🎥 Disponibilità attrezzature (Canon C70, lenti GM, drone Mavic 3, luci Aputure)
 
 Come posso esserti utile in questo momento?`
   }
@@ -1115,12 +1763,36 @@ Come posso esserti utile in questo momento?`
     return `Di nulla, è un piacere! Sono sempre qui a disposizione per qualunque analisi, controllo contabile o pianificazione operativa per DADO Studio. Buon lavoro sul set e in regia! 🎬`
   }
 
+  // ── 0-lingua. RICHIESTE DI TRADUZIONE & ASSISTENZA LINGUISTICA ──
+  const isTranslationRequest = /(?:come\s+si\s+(?:dice|traduce)|traduc[a-z]*|in\s+inglese|in\s+italiano|in\s+francese|in\s+spagnolo|in\s+tedesco|translation|translate)/i.test(prompt)
+  if (isTranslationRequest) {
+    if (p.includes('due ore') || p.includes('strada') || p.includes('lontan')) {
+      return `🇬🇧 **TRADUZIONE IN INGLESE:**
+Per esprimere **«lontano da due ore di strada»** in inglese, le forme più corrette e naturali sono:
+
+1. **«Two hours' drive away»** *(la forma più comune, naturale e idiomatica: "a due ore di guida/macchina da qui")*
+2. **«A two-hour drive from here»** *(un tragitto di due ore in auto)*
+3. **«Two hours away by car»** *(a due ore di distanza in macchina)*
+4. **«Over two hours' drive away»** *(se intendi oltre due ore di strada)*
+
+📌 **Esempi pratici di frase:**
+• *"The shooting location is two hours' drive away."* (La location di ripresa è lontana due ore di strada.)
+• *"We are about a two-hour drive from the studio."* (Siamo a circa due ore di strada dallo studio.)`
+    }
+
+    return `🇬🇧 **ASSISTENZA LINGUISTICA & TRADUZIONE:**
+Richiesta: "${prompt}"
+
+Con **Google Gemini (gemini-2.5-flash)** configurato nel CRM, le traduzioni di email, contratti esteri e testi tecnici vengono generate istantaneamente in tempo reale.
+Inserisci la tua chiave Gemini in **Configura AI** sulla dashboard per attivare la generazione neurale multilingue immediata!`
+  }
+
   // ── 0-servizi. SERVIZI E ATTIVITÀ DI DADO CREATIVE STUDIO ──
   if (p.includes('cosa fa dado') || p.includes('servizi offrite') || p.includes('servizi fa dado') || p.includes('chi siete') || p.includes('cosa produce dado')) {
     return `🎬 **DADO CREATIVE STUDIO - SERVIZI DI PRODUZIONE AUDIOVISIVA & CREATIVA:**
 ─────────────────────────────────────────────────────────────
 DADO Creative Studio è uno studio di produzione audiovisiva specializzato con sede e limbo a Milano:
-• 🎥 **Video Corporate & Industriali**: Riprese 4K HDR ProRes 422 con Sony FX3 Cinema Line e ottiche Sony G-Master.
+• 🎥 **Video Corporate & Industriali**: Riprese 4K HDR ProRes 422 con Canon Cinema EOS C70 e ottiche Canon RF L-series.
 • 🚁 **Riprese Aeree & Indoor**: Voli con drone DJI Mavic 3 Cine autorizzato per esterni e capannoni industriali.
 • 👗 **Fotografia Moda & Campagne ADV**: Set fotografici e video nel limbo ciclorama dello studio o on-location.
 • 📺 **Spot TV Broadcast & Digital**: Produzioni commerciali broadcast-grade con parco luci Aputure (600d/300x) e audio radio Sennheiser AVX.
@@ -1531,7 +2203,7 @@ ${mJobs.map((j, idx) => {
 
       const materials = (c.requestedMaterials && c.requestedMaterials.length > 0)
         ? c.requestedMaterials.slice(0, 4).join('\n     • ')
-        : 'Setup Cinema 4K Sony FX3 • Lenti Sony GM • Audio Wireless Sennheiser'
+        : 'Setup Cinema 4K Canon C70 • Lenti Canon RF L-series • Audio Wireless Sennheiser'
 
       return `🏢 ${idx + 1}. ${c.name.toUpperCase()} (${c.industry})
    ${statusBadge}
@@ -1574,7 +2246,7 @@ ${signedOnly.map((c, i) => `  ${i + 1}. ${c.name} (€ ${formatEur(c.compensatio
 • Valore complessivo generato: € ${formatEur(totalAmount)}
 • Incassato / Acconti versati: € ${formatEur(totalDeposit)} (${Math.round((totalDeposit / (totalAmount || 1)) * 100)}%)
 • Saldo residuo da incassare: € ${formatEur(totalBalance)} (${Math.round((totalBalance / (totalAmount || 1)) * 100)}%)
-• Dotazione tecnica impiegata: Sony FX3 Cinema Line, Lenti GM f/2.8, Drone DJI Mavic 3 Cine, Parco Luci Aputure e Radio microfoni Sennheiser AVX.
+• Dotazione tecnica impiegata: Canon Cinema EOS C70, Lenti GM f/2.8, Drone DJI Mavic 3 Cine, Parco Luci Aputure e Radio microfoni Sennheiser AVX.
 
 💡 Puoi chiedermi approfondimenti specifici su qualsiasi cliente (es. "Dettaglio Officine Riva"), sul calendario ("Cadenze temporali di settembre") o sui pagamenti in sospeso ("Quali sono i saldi aperti?").`
   }
@@ -1871,7 +2543,7 @@ ${sortedOpps.map((o, idx) => `${idx + 1}. € ${(o.value || 0).toLocaleString('i
   }
 
   // ── 2. DATI IN COMUNE TRA AZIENDE COLLABORATRICI ─────────────────
-  const isCommonDataPrompt = p.includes('comun') || p.includes('in comune') || p.includes('sinerg') || p.includes('affinit') || p.includes('sovrapposizion') || p.includes('condivid') || p.includes('condivision') || p.includes('incroc') || (p.includes('dati') && (p.includes('richiest') || p.includes('aziend')))
+  const isCommonDataPrompt = (p.includes('in comune') || p.includes('sinerg') || p.includes('affinit') || p.includes('sovrapposizion') || p.includes('condivid') || p.includes('condivision')) && (p.includes('dati') || p.includes('aziend') || p.includes('client') || p.includes('attrezzatur') || p.includes('progett') || p.includes('tecnolog'))
   if (isCommonDataPrompt) {
     // Calcolo dinamico delle sovrapposizioni tecniche e contrattuali
     const droneCompanies = companies.filter(c => (c.requestedMaterials || []).some(m => m.toLowerCase().includes('drone'))).map(c => c.name)
@@ -1892,7 +2564,7 @@ Scansione calcolata in tempo reale sul database del CRM DADO Creative Studio:
 • Drone DJI Mavic 3 Cine (${droneCompanies.length} aziende):
   ➔ ${droneCompanies.join(', ')}
   (Ottimizzazione: programmare le manutenzioni e ricariche batterie su un unico ciclo settimanale).
-• Sony FX3 Cinema Line (${fx3Companies.length} aziende):
+• Canon Cinema EOS C70 (${fx3Companies.length} aziende):
   ➔ ${fx3Companies.join(', ')}
   (Standardizzazione LUT e profili colore S-Log3/S-Cinetone identici).
 • Parco Luci Continue Aputure 600d / 300x (${aputureCompanies.length} aziende):
@@ -1925,7 +2597,7 @@ Scansione calcolata in tempo reale sul database del CRM DADO Creative Studio:
   }
 
   // ── 3. ELENCO & RICERCHE INTERNE TRA LE AZIENDE CON CUI COLLABORIAMO ──
-  const isAllCollabDirectoryQuery = p.includes('collabora') || p.includes('colabora') || p.includes('partner') || p.includes('elenco') || p.includes('tutte le aziende') || p.includes('tutti i clienti') || p.includes('chi sono i clienti') || p.includes('quali aziende') || p.includes('mostra aziende') || p.includes('lista clienti') || p.includes('lista aziende') || (p.includes('aziend') && (p.includes('nostr') || p.includes('intern') || p.includes('portafoglio') || p.includes('lavoriamo') || p.includes('collabor') || p.includes('colabor') || p.includes('tutt')))
+  const isAllCollabDirectoryQuery = (p.includes('collabora') || p.includes('colabora') || p.includes('partner') || p.includes('aziende') || p.includes('clienti')) && (p.includes('elenco') || p.includes('lista') || p.includes('tutti') || p.includes('tutte') || p.includes('quali') || p.includes('chi sono'))
   if (isAllCollabDirectoryQuery && matchedCompanies.length === 0) {
     const totalAmount = companies.reduce((sum, c) => sum + (c.compensation?.amount || 0), 0)
     return `🏢 DIRECTORY INTERNA CRM: AZIENDE CON CUI COLLABORIAMO (${companies.length} PARTNER ATTIVI)
@@ -1941,10 +2613,9 @@ ${companies.map((c, i) => `${i + 1}. ${c.name.toUpperCase()} (${c.industry})
 💡 Per approfondire una specifica azienda, digita ad esempio: "Dossier ${companies[0]?.name}" o "Confronto tra ${companies[0]?.name} e ${companies[1]?.name}".`
   }
 
-  // ── 4. RICERCA MIRATA PER PAROLA CHIAVE NEL CRM (Attrezzatura, città, referente, formato) ──
-  // Se l'utente cerca un termine tecnico (es. "drone", "sony", "reels", "milano", "bonifico", "4k")
-  const searchTerms = ['drone', 'sony', 'fx3', 'a7s', 'aputure', 'nanlite', 'sennheiser', 'gimbal', 'atomos', 'prores', 'reel', 'tiktok', 'milano', 'monza', 'veneto', 'toscana', 'bonifico', 'pec', 'acconto', 'saldo', 'intervista', '4k', 'limbo']
-  const matchedTerm = searchTerms.find(term => p.includes(term))
+  // ── 4. RICERCA MIRATA PER ATTREZZATURA O PAROLA CHIAVE NEL CRM ──
+  const searchTerms = ['drone', 'fx3', 'a7s', 'aputure', 'nanlite', 'sennheiser', 'gimbal', 'atomos', 'prores', 'limbo']
+  const matchedTerm = searchTerms.find(term => new RegExp(`\\b${term}\\b`, 'i').test(p))
   if (matchedTerm && matchedCompanies.length === 0) {
     const hits = companies.filter(c => {
       const mat = (c.requestedMaterials || []).join(' ').toLowerCase()
@@ -2155,7 +2826,16 @@ ${shootingCompanies.map((c, idx) => {
 
   // ── 7. INVOICE, FATTURAZIONE ELETTRONICA & GESTIONE CREDITI/INSOLUTI ──
   const isPendingOnlyQuery = p.includes('insolut') || p.includes('chi deve pagare') || p.includes('saldi aperti') || p.includes('saldo aperto') || p.includes('crediti in sospeso')
-  const isInvoiceQuery = isPendingOnlyQuery || p.includes('invoic') || p.includes('fattur') || p.includes('pagament') || p.includes('saldo') || p.includes('incass') || p.includes('crediti') || p.includes('iva') || p.includes('imponibil') || p.includes('accont')
+  const isInvoiceQuery = isPendingOnlyQuery || 
+    p.includes('invoic') || 
+    p.includes('fattur') || 
+    p.includes('pagament') || 
+    /\b(saldo|saldi)\b/i.test(p) || 
+    /\b(incasso|incassi)\b/i.test(p) || 
+    p.includes('crediti') || 
+    /\biva\b/i.test(p) || 
+    p.includes('imponibil') || 
+    /\b(acconto|acconti)\b/i.test(p)
   if (isInvoiceQuery) {
     const totalInvoicedNet = invoices.length > 0 ? invoices.reduce((s, i) => s + (i.amount || 0), 0) : companies.reduce((s, c) => s + (c.compensation?.amount || 0), 0)
     const totalVat = invoices.length > 0 ? invoices.reduce((s, i) => s + (i.vat || 0), 0) : Math.round(totalInvoicedNet * 0.22)
@@ -2219,7 +2899,11 @@ ${pendingInvoices.length > 0 ? pendingInvoices.map(i => `• ${i.companyName} ($
   }
 
   // ── 7-bis. INTERCONNESSIONE TOTALE DEL CRM: COLLEGA TUTTI I DATI TRA LORO ──
-  const isConnectAllQuery = p.includes('collega') || p.includes('interconnet') || p.includes('relazion') || p.includes('tutto sul crm') || p.includes('panoramica') || p.includes('quadro') || p.includes('insieme') || p.includes('mappa') || p.includes('incroc') || p.includes('connetti') || p.includes('presentami')
+  const isConnectAllQuery = 
+    p.includes('tutto sul crm') || 
+    p.includes('matrice relazionale') ||
+    ((p.includes('collega') || p.includes('interconnet') || p.includes('relazion') || p.includes('connetti') || p.includes('incroc')) && 
+     (p.includes('tutti i dati') || p.includes('tutto') || p.includes('dati') || p.includes('crm') || p.includes('aziend') || p.includes('client')))
   if (isConnectAllQuery) {
     const totalAmount = companies.reduce((s, c) => s + (c.compensation?.amount || 0), 0)
     const totalCollected = companies.reduce((s, c) => s + (c.compensation?.deposit || 0), 0)
@@ -2252,12 +2936,16 @@ ${companies.map((c, i) => {
 🎯 SINTESI GENERALE DELLO STUDIO:
 • Volume Complessivo Contrattualizzato: € ${totalAmount.toLocaleString('it-IT')}
 • Incassato Effettivo: € ${totalCollected.toLocaleString('it-IT')} | Crediti da Saldare: € ${totalPending.toLocaleString('it-IT')}
-• Attrezzature Top Mobilitate: Sony FX3 (8 set), Drone Mavic 3 Cine (4 set), Aputure 600d/300x (6 set), Lenti GM (11 set).
+• Attrezzature Top Mobilitate: Canon C70 (8 set), Drone Mavic 3 Cine (4 set), Aputure 600d/300x (6 set), Lenti GM (11 set).
 • Stato Commerciale: Tutte le commesse sono perfettamente tracciate e sincronizzate tra fatturazione, calendario e inventario.`
   }
 
   // ── 8. GIORNI DI LAVORO SUL SET & CARICO OPERATIVO ──────────────
-  if (p.includes('giorn') || p.includes('durata') || p.includes('ore') || p.includes('schedule') || p.includes('orari')) {
+  const isWorkScheduleAudit = 
+    ((p.includes('giornate') || p.includes('durata') || p.includes('orari') || p.includes('schedule')) && (p.includes('set') || p.includes('lavor') || p.includes('shoot') || p.includes('commess') || p.includes('produzion') || p.includes('carico'))) ||
+    (/\b(ore|giorni)\b/i.test(p) && /\b(lavoro|set|shooting|produzione|commessa|commesse|impegno|carico|operativ[oi])\b/i.test(p))
+
+  if (isWorkScheduleAudit) {
     const workDaysBreakdown = companies.map(c => ({
       name: c.name,
       schedule: c.workSchedule?.scheduleType || '1 giorno',
@@ -2338,7 +3026,7 @@ Posso supportarti con precisione su:
 • 🏢 **Clienti, contratti e preventivi** dello studio
 • 🧾 **Fatturazione, acconti e saldi aperti**
 • 📅 **Calendario, date e orari di shooting sul set**
-• 🎥 **Inventario tecnico** (telecamere Sony FX3, lenti GM, drone DJI Mavic 3 Cine, parco luci Aputure)
+• 🎥 **Inventario tecnico** (telecamere Canon C70, lenti GM, drone DJI Mavic 3 Cine, parco luci Aputure)
 • 🌤️ **Meteo in tempo reale** e condizioni per le riprese
 
 Fammi sapere se desideri approfondire uno di questi ambiti!`
@@ -2349,7 +3037,7 @@ Fammi sapere se desideri approfondire uno di questi ambiti!`
 // ─────────────────────────────────────────────────────────────
 app.get('/api/developer-notes', (req, res) => {
   try {
-    const notesFile = path.join(__dirname, 'data', 'developerNotes.json')
+    const notesFile = path.join(DATA_DIR, 'developerNotes.json')
     if (fs.existsSync(notesFile)) {
       const data = fs.readFileSync(notesFile, 'utf8')
       const notes = JSON.parse(data)
@@ -2364,17 +3052,17 @@ app.get('/api/developer-notes', (req, res) => {
 
 app.post('/api/developer-notes', async (req, res) => {
   try {
-    const userRole = (req.headers['x-user-role'] || '').toLowerCase()
-    if (userRole === 'dipendente' || userRole === 'restricted') {
-      return res.status(403).json({ error: 'Accesso negato: invio note sviluppatore disabilitato per il profilo Dipendente' })
-    }
-
-    const { note } = req.body
+    const { note, autoSend, isDeveloperNote, author } = req.body
     if (!note || !note.trim()) {
       return res.status(400).json({ error: 'Nota vuota' })
     }
 
-    const notesFile = path.join(__dirname, 'data', 'developerNotes.json')
+    const cleanNote = note.trim()
+    const isDevNote = Boolean(isDeveloperNote || autoSend)
+    const nowIso = new Date().toISOString()
+    const formattedDate = new Date().toLocaleString('it-IT')
+
+    const notesFile = path.join(DATA_DIR, 'developerNotes.json')
     let notes = []
     if (fs.existsSync(notesFile)) {
       try {
@@ -2384,18 +3072,50 @@ app.post('/api/developer-notes', async (req, res) => {
       }
     }
 
+    let subject = 'appunto'
+    let gmailMessageId = null
+    let emailSent = false
+
+    if (isDevNote) {
+      // Invio diretto all'email n.drea.t@gmail.com con oggetto "aggiornamento"
+      const recipient = 'n.drea.t@gmail.com'
+      subject = 'aggiornamento'
+      const emailBody = cleanNote
+      emailSent = true
+
+      const auth = getAuthenticatedClient()
+      if (auth) {
+        try {
+          const gmail = google.gmail({ version: 'v1', auth })
+          const raw = makeRawEmail(recipient, subject, emailBody)
+          const sendRes = await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: { raw }
+          })
+          gmailMessageId = sendRes.data.id || null
+          console.log(`✅ [GMAIL AUTO-SEND] Email con oggetto "${subject}" inviata con successo (ID: ${gmailMessageId})`)
+        } catch (mailErr) {
+          console.warn('Invio Gmail API nota sviluppatore:', mailErr.message)
+        }
+      }
+    }
+
     const newEntry = {
       id: Date.now().toString(),
-      recipient: 'n.drea.t@gmail.com',
-      note: note.trim(),
-      timestamp: new Date().toISOString(),
-      formattedDate: new Date().toLocaleString('it-IT')
+      subject,
+      note: cleanNote,
+      isDeveloperNote: isDevNote,
+      author: author || 'Utente CRM',
+      emailSent,
+      gmailMessageId,
+      timestamp: nowIso,
+      formattedDate
     }
     notes.unshift(newEntry)
     fs.writeFileSync(notesFile, JSON.stringify(notes, null, 2), 'utf8')
-    console.log(`📩 Nuova nota per lo sviluppatore (${newEntry.recipient}):`, newEntry.note)
+    console.log(`📩 Nuova nota [${isDevNote ? 'SVILUPPATORE' : 'APPUNTO'}]:`, newEntry.note)
 
-    res.json({ success: true, recipient: 'n.drea.t@gmail.com', entry: newEntry })
+    res.json({ success: true, emailSent, entry: newEntry })
   } catch (err) {
     console.error('Errore gestione nota sviluppatore:', err)
     res.status(500).json({ error: 'Errore interno nel salvataggio della nota' })
@@ -2405,11 +3125,10 @@ app.post('/api/developer-notes', async (req, res) => {
 app.delete('/api/developer-notes/:id', (req, res) => {
   try {
     const { id } = req.params
-    const notesFile = path.join(__dirname, 'data', 'developerNotes.json')
+    const notesFile = path.join(DATA_DIR, 'developerNotes.json')
     if (fs.existsSync(notesFile)) {
       const data = fs.readFileSync(notesFile, 'utf8')
       let notes = JSON.parse(data)
-      const prevCount = notes.length
       notes = notes.filter(n => String(n.id) !== String(id) && String(n.timestamp) !== String(id))
       fs.writeFileSync(notesFile, JSON.stringify(notes, null, 2), 'utf8')
       console.log(`🗑️ [DEVELOPER NOTES] Eliminata nota con ID ${id}. Rimanenti: ${notes.length}`)
@@ -2424,10 +3143,27 @@ app.delete('/api/developer-notes/:id', (req, res) => {
 
 app.delete('/api/developer-notes', (req, res) => {
   try {
-    const notesFile = path.join(__dirname, 'data', 'developerNotes.json')
-    fs.writeFileSync(notesFile, JSON.stringify([], null, 2), 'utf8')
-    console.log('🗑️ [DEVELOPER NOTES] Svuotate tutte le note.')
-    res.json({ success: true, cleared: true, count: 0 })
+    const { type } = req.query
+    const notesFile = path.join(DATA_DIR, 'developerNotes.json')
+    let notes = []
+    if (fs.existsSync(notesFile)) {
+      try {
+        notes = JSON.parse(fs.readFileSync(notesFile, 'utf8'))
+      } catch {
+        notes = []
+      }
+    }
+    const isDevItem = (n) => Boolean(n && (n.isDeveloperNote === true || (n.isDeveloperNote === undefined && (n.subject === 'aggiornamento' || n.autoSend === true || n.emailSent === true))))
+    if (type === 'regular') {
+      notes = notes.filter(n => isDevItem(n))
+    } else if (type === 'developer') {
+      notes = notes.filter(n => !isDevItem(n))
+    } else {
+      notes = []
+    }
+    fs.writeFileSync(notesFile, JSON.stringify(notes, null, 2), 'utf8')
+    console.log(`🗑️ [DEVELOPER NOTES] Svuotate note (filtro: ${type || 'all'}). Rimanenti: ${notes.length}`)
+    res.json({ success: true, cleared: true, count: notes.length })
   } catch (err) {
     console.error('Errore svuotamento note:', err)
     res.status(500).json({ error: 'Errore svuotamento note' })
@@ -2471,7 +3207,7 @@ async function handleOAuthCallback(req, res) {
   const { code, error } = req.query
   if (error) {
     console.error('Google OAuth error:', error)
-    return res.redirect(`http://localhost:3000/opportunities?google=error&msg=${encodeURIComponent(error)}`)
+    return res.redirect(`${PUBLIC_URL}/opportunities?google=error&msg=${encodeURIComponent(error)}`)
   }
   if (!code) {
     return res.status(400).send('Codice autorizzazione mancante.')
@@ -2480,8 +3216,8 @@ async function handleOAuthCallback(req, res) {
   // Identifica l'URI usato nella richiesta corrente
   const reqUrl = req.originalUrl.split('?')[0]
   const callbackUri = reqUrl.includes('oauth2callback')
-    ? 'http://localhost:3000/oauth2callback'
-    : 'http://localhost:3000/api/auth/callback/google'
+    ? `${PUBLIC_URL}/oauth2callback`
+    : `${PUBLIC_URL}/api/auth/callback/google`
 
   let oauth2Client = getOAuth2Client(callbackUri)
   if (!oauth2Client) {
@@ -2491,7 +3227,7 @@ async function handleOAuthCallback(req, res) {
   try {
     const { tokens } = await oauth2Client.getToken(code)
     fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokens, null, 2), 'utf-8')
-    const dataToken = path.join(__dirname, 'data/google_tokens.json')
+    const dataToken = path.join(DATA_DIR, 'google_tokens.json')
     fs.writeFileSync(dataToken, JSON.stringify(tokens, null, 2), 'utf-8')
     console.log('✅ [GMAIL AUTH] Token Google salvati con successo!')
 
@@ -2501,20 +3237,20 @@ async function handleOAuthCallback(req, res) {
     }, 1500)
 
     // Reindirizza l'utente a Opportunities con parametro di successo
-    res.redirect('http://localhost:3000/opportunities?google=connected')
+    res.redirect(`${PUBLIC_URL}/opportunities?google=connected`)
   } catch (err) {
     console.error('Errore scambio token Google:', err)
     // Tenta con l'altro URI prima di fallire
     try {
       const fallbackUri = callbackUri.includes('oauth2callback')
-        ? 'http://localhost:3000/api/auth/callback/google'
-        : 'http://localhost:3000/oauth2callback'
+        ? `${PUBLIC_URL}/api/auth/callback/google`
+        : `${PUBLIC_URL}/oauth2callback`
       const fallbackClient = getOAuth2Client(fallbackUri)
       const { tokens } = await fallbackClient.getToken(code)
       fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokens, null, 2), 'utf-8')
-      const dataToken = path.join(__dirname, 'data/google_tokens.json')
+      const dataToken = path.join(DATA_DIR, 'google_tokens.json')
       fs.writeFileSync(dataToken, JSON.stringify(tokens, null, 2), 'utf-8')
-      return res.redirect('http://localhost:3000/opportunities?google=connected')
+      return res.redirect(`${PUBLIC_URL}/opportunities?google=connected`)
     } catch (e2) {
       console.error('Fallback scambio token fallito:', e2)
       res.status(500).send('Errore autorizzazione Google: ' + err.message)
@@ -2557,7 +3293,7 @@ app.post('/api/auth/google/disconnect', (req, res) => {
     if (fs.existsSync(TOKEN_FILE)) {
       fs.unlinkSync(TOKEN_FILE)
     }
-    const dataToken = path.join(__dirname, 'data/google_tokens.json')
+    const dataToken = path.join(DATA_DIR, 'google_tokens.json')
     if (fs.existsSync(dataToken)) {
       fs.unlinkSync(dataToken)
     }
@@ -2653,6 +3389,279 @@ app.get('/api/pipeline/calendar/check', (req, res) => {
   }
 })
 
+// ── ADDESTRAMENTO ATTIVO & MODIFICA DETTAGLI EMAIL ESTRAZIONE AI (FEW-SHOT LEARNING) ──
+app.get('/api/pipeline/training-examples', (req, res) => {
+  try {
+    const list = getTrainingExamples()
+    res.json(list)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/pipeline/training-examples', (req, res) => {
+  try {
+    const result = saveTrainingExample(req.body)
+    res.json(result)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.delete('/api/pipeline/training-examples/:id', (req, res) => {
+  try {
+    const result = deleteTrainingExample(req.params.id)
+    res.json(result)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/pipeline/train-task', (req, res) => {
+  try {
+    const { 
+      activityId, 
+      company, 
+      contactName, 
+      contactRole, 
+      budget, 
+      need, 
+      timeline, 
+      priority, 
+      guidelines, 
+      customKeywords, 
+      notes 
+    } = req.body
+
+    const crmData = getCrmData()
+
+    // 1. Aggiorna il task nell'elenco nextActions se fornito activityId
+    let updatedTask = null
+    if (activityId && crmData.nextActions) {
+      const taskIdx = crmData.nextActions.findIndex(t => t.id === activityId)
+      if (taskIdx >= 0) {
+        const task = crmData.nextActions[taskIdx]
+        if (company) task.company = company
+        if (priority) task.priority = priority
+        if (!task.bant) task.bant = {}
+        if (budget) task.bant.budget = budget
+        if (contactName) task.bant.authority = `${contactName}${contactRole ? ` (${contactRole})` : ''}`
+        if (need) task.bant.need = need
+        if (timeline) task.bant.timeline = timeline
+        if (notes) task.notes = notes
+        task.trainedAt = new Date().toISOString()
+        updatedTask = task
+      }
+    }
+
+    // 2. Aggiorna l'azienda corrispondente se presente
+    if (company && crmData.companies) {
+      const comp = crmData.companies.find(c => c.name.toLowerCase() === company.toLowerCase())
+      if (comp) {
+        if (!comp.bant) comp.bant = {}
+        if (budget) {
+          comp.bant.budget = budget
+          const numBudget = parseInt(String(budget).replace(/[^0-9]/g, ''), 10)
+          if (numBudget && comp.compensation) comp.compensation.amount = numBudget
+        }
+        if (need) comp.bant.need = need
+        if (timeline) comp.bant.timeline = timeline
+        if (contactName && comp.contactPerson) {
+          comp.contactPerson.name = contactName
+          if (contactRole) comp.contactPerson.role = contactRole
+        }
+      }
+    }
+
+    // 3. Salva crmData
+    saveCrmData(crmData)
+
+    // 4. Salva o aggiorna l'esempio di addestramento (Few-Shot Rule)
+    const trainingExample = {
+      id: `train-${Date.now()}`,
+      company: company || 'Regola di Addestramento',
+      contactPerson: {
+        name: contactName || '',
+        role: contactRole || ''
+      },
+      bant: {
+        budget: budget || '',
+        need: need || '',
+        timeline: timeline || ''
+      },
+      priority: priority || 'week_1',
+      guidelines: guidelines || '',
+      customKeywords: Array.isArray(customKeywords) ? customKeywords : (typeof customKeywords === 'string' ? customKeywords.split(',').map(s => s.trim()).filter(Boolean) : []),
+      notes: notes || '',
+      updatedAt: new Date().toISOString()
+    }
+
+    const trainRes = saveTrainingExample(trainingExample)
+
+    res.json({
+      success: true,
+      message: 'Automazione AI addestrata con successo con le nuove regole!',
+      trainingExample: trainRes.item,
+      updatedTask
+    })
+  } catch (err) {
+    console.error('Errore train-task:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
+// ENDPOINT SISTEMA DOPPIO DI BACKUP (1: VAULT LOCALE + 2: CLOUD)
+// ─────────────────────────────────────────────────────────────
+
+app.get('/api/crm/backups/status', (req, res) => {
+  try {
+    const config = getBackupConfig()
+    const localBackups = listLocalBackups()
+    const cloudBackups = listCloudBackups()
+    const googleConnected = fs.existsSync(TOKEN_FILE)
+
+    res.json({
+      success: true,
+      config,
+      googleConnected,
+      localBackups,
+      cloudBackups,
+      summary: {
+        localCount: localBackups.length,
+        cloudCount: cloudBackups.length,
+        latestLocal: localBackups[0] || null,
+        latestCloud: cloudBackups[0] || null,
+      },
+    })
+  } catch (err) {
+    console.error('Errore status backup:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/crm/backups/local', (req, res) => {
+  try {
+    const { clientState = null, reason = 'manual_local' } = req.body || {}
+    const created = createLocalBackupSnapshot({ clientState, reason })
+    res.json({
+      success: true,
+      message: 'Backup Locale (#1) completato e verificato con firma SHA-256.',
+      backup: created,
+      localBackups: listLocalBackups(),
+    })
+  } catch (err) {
+    console.error('Errore creazione backup locale:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/crm/backups/cloud', async (req, res) => {
+  try {
+    const { clientState = null, reason = 'manual_cloud' } = req.body || {}
+    const oauth2Client = getAuthenticatedClient()
+    const created = await createCloudBackupSnapshot({
+      clientState,
+      reason,
+      oauth2Client,
+    })
+    res.json({
+      success: true,
+      message: `Backup su Cloud (#2) cifrato AES-256-GCM sincronizzato su ${created.cloudReplication?.primaryDestination || 'Cloud Vault'}.`,
+      backup: created,
+      cloudBackups: listCloudBackups(),
+    })
+  } catch (err) {
+    console.error('Errore creazione backup cloud:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/crm/backups/dual', async (req, res) => {
+  try {
+    const { clientState = null, reason = 'manual_dual_sync' } = req.body || {}
+    const localBackup = createLocalBackupSnapshot({ clientState, reason })
+    const cloudBackup = await createCloudBackupSnapshot({
+      clientState,
+      reason,
+      oauth2Client: getAuthenticatedClient(),
+    })
+    res.json({
+      success: true,
+      message: 'Doppio Backup (Sistema #1 Locale + Sistema #2 Cloud AES-256-GCM) eseguito con successo!',
+      localBackup,
+      cloudBackup,
+      localBackups: listLocalBackups(),
+      cloudBackups: listCloudBackups(),
+    })
+  } catch (err) {
+    console.error('Errore dual backup:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/api/crm/backups/download/:type/:id', (req, res) => {
+  try {
+    const { type, id } = req.params
+    const snapshot =
+      type === 'cloud' ? getCloudBackupDecryptedById(id) : getLocalBackupById(id)
+
+    if (!snapshot) {
+      return res.status(404).json({ error: 'Snapshot di backup non trovato.' })
+    }
+
+    const downloadFileName = `DADO-CRM-${type.toUpperCase()}-${id}.json`
+    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+    res.setHeader('Content-Disposition', `attachment; filename="${downloadFileName}"`)
+    res.send(JSON.stringify(snapshot, null, 2))
+  } catch (err) {
+    console.error('Errore download backup:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/crm/backups/restore', (req, res) => {
+  try {
+    const { type, id, snapshotPayload } = req.body || {}
+    let targetSnapshot = snapshotPayload || null
+
+    if (!targetSnapshot && id) {
+      targetSnapshot =
+        type === 'cloud' ? getCloudBackupDecryptedById(id) : getLocalBackupById(id)
+    }
+
+    if (!targetSnapshot) {
+      return res.status(400).json({ error: 'Specifica un ID di backup valido o carica un file snapshot JSON.' })
+    }
+
+    const result = restoreFromSnapshotObject(targetSnapshot)
+    res.json({
+      success: true,
+      message: `Ripristino completato con successo (punto di sicurezza pre-ripristino salvato: ${result.safetyBackupId}).`,
+      result,
+      localBackups: listLocalBackups(),
+      cloudBackups: listCloudBackups(),
+    })
+  } catch (err) {
+    console.error('Errore ripristino backup:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/crm/backups/config', (req, res) => {
+  try {
+    const updated = saveBackupConfig(req.body || {})
+    res.json({
+      success: true,
+      message: 'Configurazione dei 2 sistemi di backup aggiornata.',
+      config: updated,
+    })
+  } catch (err) {
+    console.error('Errore aggiornamento config backup:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // Fallback per Single Page Application (React Router - compatibile Express 5)
 app.use((req, res) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/oauth2callback')) {
@@ -2669,7 +3678,40 @@ app.use((req, res) => {
 // AVVIO SERVER & PIPELINE IN BACKGROUND
 // ─────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`🚀 DADO CRM Backend avviato su http://localhost:${PORT}`)
-  // Avvia la pipeline in background "a riflettori spenti" (ogni 60 secondi)
-  startBackgroundPipeline(60000)
+  console.log(`🚀 DADO CRM Backend avviato su http://localhost:${PORT} (URL pubblico: ${PUBLIC_URL})`)
+  // Indirizzi di rete locale, per aprire il CRM dal telefono (stessa rete Wi-Fi)
+  for (const list of Object.values(os.networkInterfaces())) {
+    for (const ni of list || []) {
+      if (ni.family === 'IPv4' && !ni.internal) {
+        console.log(`📱 Da telefono (stesso Wi-Fi): http://${ni.address}:${PORT}`)
+      }
+    }
+  }
+
+  // Inizializza i 2 sistemi di backup (Locale + Cloud) all'avvio e avvia il timer periodico (30 min)
+  ensureInitialDualBackups(getAuthenticatedClient())
+  setInterval(async () => {
+    try {
+      const cfg = getBackupConfig()
+      if (cfg.autoBackupEnabled) {
+        createLocalBackupSnapshot({ reason: 'scheduled_30m_local' })
+        if (cfg.cloudEnabled) {
+          await createCloudBackupSnapshot({
+            reason: 'scheduled_30m_cloud',
+            oauth2Client: getAuthenticatedClient(),
+          })
+        }
+      }
+    } catch (err) {
+      console.warn('Errore backup pianificato:', err.message)
+    }
+  }, 30 * 60 * 1000)
+
+  // Pipeline in background (ogni 60 secondi): solo se esplicitamente attivata.
+  // Di default Gmail e Gemini si usano solo premendo "Aggiorna".
+  if (ENABLE_AUTO_SYNC) {
+    startBackgroundPipeline(60000)
+  } else {
+    console.log('⏸️  Sincronizzazione automatica disattivata: Gmail/Gemini solo a richiesta (pulsante Aggiorna).')
+  }
 })

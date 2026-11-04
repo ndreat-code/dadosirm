@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDeviceMode } from '../context/DeviceModeContext'
 import {
   TrendingUp,
   TrendingDown,
@@ -12,6 +13,7 @@ import {
   Clock,
   XCircle,
   ArrowUpRight,
+  ArrowLeft,
   BarChart3,
   Layers,
   X,
@@ -52,10 +54,10 @@ const STATUS_CONFIG = {
   lost: {
     label: 'Trattative Perse',
     shortLabel: 'Perse',
-    color: '#f43f5e',
-    bg: 'rgba(244, 63, 94, 0.14)',
-    border: 'rgba(244, 63, 94, 0.45)',
-    glow: 'rgba(244, 63, 94, 0.25)',
+    color: '#000000',
+    bg: 'rgba(0, 0, 0, 0.6)',
+    border: 'rgba(71, 85, 105, 0.5)',
+    glow: 'rgba(0, 0, 0, 0.5)',
     icon: XCircle,
   },
 }
@@ -178,7 +180,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Limbo A confermato con kit luci Aputure 600d e ottiche 85mm GM.',
     materials: 'Aputure 600d Pro, Softbox Octa 120cm, Sony 85mm GM',
-    owner: 'Giulia'
+    owner: 'Laura'
   },
   {
     id: 'opp-sep-18-2',
@@ -310,7 +312,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Completata sessione etichette e bottiglie con luce naturale.',
     materials: 'Sony 85mm GM, Pannelli riflettenti',
-    owner: 'Giulia'
+    owner: 'Laura'
   },
   {
     id: 'opp-aug-20',
@@ -392,7 +394,7 @@ const INITIAL_OPPORTUNITIES = [
     stage: 'Contratto firmato',
     notes: 'Giornata intera 09:00 - 18:00 all\'atelier di Torino.',
     materials: 'Sony 85mm GM, Luci continue con lanterna',
-    owner: 'Giulia'
+    owner: 'Laura'
   },
   {
     id: 'opp-jun-18',
@@ -441,7 +443,7 @@ const INITIAL_OPPORTUNITIES = [
     date: '2026-05-12',
     company: 'Urban Mobility Bike',
     title: 'Spot Bici Elettrica 2026',
-    value: 1500,
+    value: 2500,
     status: 'won',
     stage: 'Contratto firmato',
     notes: 'Sessione alba 06:30 - 09:30 strade vuote CityLife Milano.',
@@ -461,7 +463,7 @@ const MONTHS_LIST = [
 export default function Opportunities() {
   const [opportunities, setOpportunities] = useState(() => {
     try {
-      const saved = localStorage.getItem('dado_opportunities_store_v4')
+      const saved = localStorage.getItem('dado_opportunities_store_v5')
       if (saved) return JSON.parse(saved)
     } catch (e) {
       // fallback
@@ -488,7 +490,7 @@ export default function Opportunities() {
   // Salva nello store locale
   useEffect(() => {
     try {
-      localStorage.setItem('dado_opportunities_store_v4', JSON.stringify(opportunities))
+      localStorage.setItem('dado_opportunities_store_v5', JSON.stringify(opportunities))
     } catch (e) {
       // ignore
     }
@@ -523,6 +525,20 @@ export default function Opportunities() {
     }
   }, [monthOpportunities])
 
+  // Fasi pipeline (colori della pipeline) per le trattative ancora aperte
+  const PHASES = [
+    { key: 'brief', label: 'Briefing', color: '#818cf8' },
+    { key: 'preventivo', label: 'Preventivo', color: '#fbbf24' },
+    { key: 'negoziazione', label: 'Negoziazione', color: '#f97316' },
+  ]
+  const phaseOf = (stage = '') => {
+    const t = stage.toLowerCase()
+    if (t.includes('negozi')) return 'negoziazione'
+    if (t.includes('bozza') || t.includes('definizione')) return 'brief'
+    if (t.includes('preventivo') || t.includes('budget') || t.includes('feedback')) return 'preventivo'
+    return 'brief'
+  }
+
   // Date in cui si sono verificate trattative nel corso del mese (ordinate cronologicamente)
   const datesData = useMemo(() => {
     const datesMap = {}
@@ -539,11 +555,15 @@ export default function Opportunities() {
           openCount: 0,
           wonCount: 0,
           lostCount: 0,
+          phases: { brief: { v: 0, c: 0 }, preventivo: { v: 0, c: 0 }, negoziazione: { v: 0, c: 0 } },
           items: []
         }
       }
       datesMap[d].items.push(o)
       if (o.status === 'open') {
+        const ph = datesMap[d].phases[phaseOf(o.stage)]
+        ph.v += (o.value || 0)
+        ph.c += 1
         datesMap[d].openValue += (o.value || 0)
         datesMap[d].openCount += 1
       } else if (o.status === 'won') {
@@ -748,14 +768,94 @@ export default function Opportunities() {
     }
   }
 
+  const navigate = useNavigate()
+  const { isMobileApp } = useDeviceMode()
   const currentMonthObj = MONTHS_LIST.find(m => m.key === selectedMonth) || MONTHS_LIST[0]
 
+  // Scroll orizzontale istogramma (touch + trascinamento dito/puntatore) e dissolvenza progressiva scala valori
+  const histogramScrollRef = useRef(null)
+  const histogramDragRef = useRef({ isDown: false, startX: 0, scrollLeft: 0, moved: false })
+  const [histogramScrollLeft, setHistogramScrollLeft] = useState(0)
+
+  useEffect(() => {
+    setHistogramScrollLeft(0)
+    if (histogramScrollRef.current) {
+      histogramScrollRef.current.scrollLeft = 0
+    }
+  }, [selectedMonth])
+
+  const handleHistogramPointerDown = (e) => {
+    e.stopPropagation()
+    const el = histogramScrollRef.current
+    if (!el) return
+    histogramDragRef.current = {
+      isDown: true,
+      startX: e.clientX ?? 0,
+      scrollLeft: el.scrollLeft,
+      moved: false,
+    }
+  }
+
+  const handleHistogramPointerMove = (e) => {
+    const drag = histogramDragRef.current
+    if (!drag.isDown) return
+    const el = histogramScrollRef.current
+    if (!el) return
+    const dx = (e.clientX ?? 0) - drag.startX
+    if (Math.abs(dx) > 4) {
+      drag.moved = true
+    }
+    el.scrollLeft = drag.scrollLeft - dx
+    setHistogramScrollLeft(el.scrollLeft)
+  }
+
+  const handleHistogramPointerUp = () => {
+    histogramDragRef.current.isDown = false
+  }
+
   return (
-    <div className="min-h-screen bg-[#111111] text-white p-6 md:p-8 flex flex-col gap-6 selection:bg-[#3b82f6]/30">
+    <div className={`h-full flex-1 min-h-0 overflow-y-auto bg-[#111111] text-white ${isMobileApp ? 'p-3.5' : 'p-6 md:p-8'} flex flex-col gap-5 [&>*]:shrink-0 selection:bg-[#3b82f6]/30 custom-popup-scrollbar`} style={{ fontFamily: '"Switzer", sans-serif' }}>
+
+      {/* ── BARRA DI NAVIGAZIONE RAPIDA NEXT ACTIONS ── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-bold text-white transition-all cursor-pointer"
+        >
+          <ArrowLeft size={15} className="text-[#a855f7]" />
+          <span>Torna alla Dashboard</span>
+        </button>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            to="/call-reports"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/15 transition-all"
+          >
+            1. Call Reports
+          </Link>
+          <Link
+            to="/leads"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/15 transition-all"
+          >
+            2. Leads
+          </Link>
+          <Link
+            to="/opportunities"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-md transition-all"
+            style={{
+              background: 'linear-gradient(180deg, #994cf4 0%, #9045f1 100%)',
+              boxShadow: '0 0 16px rgba(153, 76, 244, 0.45)',
+            }}
+          >
+            3. New Opportunities
+          </Link>
+        </div>
+      </div>
 
       {/* ── BANNER / TOAST NOTIFICA OAUTH GOOGLE ── */}
       {googleToast && (
-        <div className={`p-4 rounded-xl flex items-center justify-between text-xs font-mono font-bold shadow-lg animate-in slide-in-from-top duration-200 border ${
+        <div className={`p-4 rounded-xl flex items-center justify-between text-xs font-bold shadow-lg animate-in slide-in-from-top duration-200 border ${
           googleToast.type === 'success' 
             ? 'bg-[#10b981]/20 text-[#10b981] border-[#10b981]/50'
             : googleToast.type === 'error'
@@ -776,32 +876,48 @@ export default function Opportunities() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#3b82f6]">
+            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#a855f7]">
               <BarChart3 className="w-5 h-5" />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2" style={{ fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.03em' }}>
-                Pipeline Opportunità
+                New Opportunities & Pipeline Trattative
               </h1>
-              <p className="text-xs md:text-sm text-gray-400 font-mono mt-0.5">
-                <span>Istogramma trattative aperte, vinte e perse nel corso del mese</span>
+              <p className="text-xs md:text-sm text-gray-400 mt-0.5">
+                <span>Gestione nuove opportunità commerciali, preventivi inviati e istogramma trattative aperte, vinte e perse</span>
               </p>
             </div>
           </div>
         </div>
 
-        {/* Controlli: Selezione Mese & Aggiungi Trattativa */}
+        {/* Controlli: Bottone Nuova Opportunità + Selezione Mese */}
         <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-4 py-2 rounded-xl text-xs font-black text-white flex items-center gap-2 shadow-lg transition-all cursor-pointer hover:scale-[1.02]"
+            style={{
+              background: 'linear-gradient(180deg, #994cf4 0%, #9045f1 100%)',
+              boxShadow: '0 8px 24px -6px rgba(153, 76, 244, 0.5)',
+            }}
+          >
+            <Plus size={15} />
+            <span>Nuova Opportunità</span>
+          </button>
+
           {/* Selettore Mese */}
-          <div className="flex items-center bg-[#18181b] border border-white/10 rounded-lg p-1 shadow-sm">
-            <Calendar className="w-4 h-4 text-gray-400 ml-2 mr-1" />
+          <div
+            className="flex items-center bg-[#18181b] border-2 border-[#a855f7] rounded-xl px-3.5 py-1.5 shadow-[0_0_14px_rgba(168,85,247,0.38)] transition-all hover:border-[#c084fc]"
+          >
+            <Calendar className="w-[18px] h-[18px] text-[#c084fc] mr-2 shrink-0" />
             <select
               value={selectedMonth}
               onChange={(e) => {
                 setSelectedMonth(e.target.value)
                 setSelectedDateFilter(null)
               }}
-              className="bg-transparent text-xs font-bold text-white pr-2 py-1 focus:outline-none cursor-pointer"
+              className="bg-transparent text-[14.5px] font-bold text-white pr-2 py-0.5 focus:outline-none cursor-pointer tracking-tight"
+              style={{ fontFamily: '"Switzer", sans-serif' }}
             >
               {MONTHS_LIST.map(m => (
                 <option key={m.key} value={m.key} className="bg-[#18181b] text-white">
@@ -810,39 +926,6 @@ export default function Opportunities() {
               ))}
             </select>
           </div>
-
-          {/* Toggle Valore / Conteggio */}
-          <div className="flex items-center bg-[#18181b] border border-white/10 rounded-lg p-1 text-xs font-bold font-mono">
-            <button
-              onClick={() => setMetricMode('value')}
-              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                metricMode === 'value'
-                  ? 'bg-white/15 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              € Valore
-            </button>
-            <button
-              onClick={() => setMetricMode('count')}
-              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                metricMode === 'count'
-                  ? 'bg-white/15 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              # Quantità
-            </button>
-          </div>
-
-          {/* Tasto Nuova Trattativa */}
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg text-xs font-bold shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nuova Trattativa</span>
-          </button>
         </div>
       </div>
 
@@ -866,7 +949,7 @@ export default function Opportunities() {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-bold text-white tracking-tight" style={{ fontFamily: '"Switzer", sans-serif', letterSpacing: '-0.02em' }}>
-                  Pipeline Background
+                  Sincronizzazione Gmail
                 </span>
 
                 {/* Badge Stato Gmail */}
@@ -877,7 +960,7 @@ export default function Opportunities() {
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/40 font-semibold" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                    <span>⚠️ Feed Live Autonomo</span>
+                    <span>Non collegato</span>
                   </span>
                 )}
 
@@ -887,14 +970,10 @@ export default function Opportunities() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5 flex-wrap" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                <span>Inbound: {googleAuth.connected ? 'Gmail API Live' : 'Feed Background'}</span>
-                <span className="text-white/20">•</span>
-                <span>Analisi Semantica: {pipelineStatus?.activeEngine || 'OpenAI + NLP Fallback'}</span>
-                <span className="text-white/20">•</span>
-                <span className="text-gray-300">
-                  Ultimo scan: <strong className="text-white font-semibold">{pipelineStatus?.lastRun ? new Date(pipelineStatus.lastRun).toLocaleTimeString('it-IT') : 'In corso...'}</strong>
-                </span>
+              <p className="text-xs text-gray-400 mt-1 max-w-xl leading-relaxed" style={{ fontFamily: '"Switzer", sans-serif' }}>
+                {googleAuth.connected
+                  ? <>Le email in arrivo vengono lette per creare trattative e attività. Ultimo controllo: <strong className="text-white font-semibold">{pipelineStatus?.lastRun ? new Date(pipelineStatus.lastRun).toLocaleTimeString('it-IT') : 'in corso...'}</strong></>
+                  : 'Collega una casella Gmail per importare automaticamente richieste e preventivi. Finché non è collegata, questa pagina mostra dati di esempio.'}
               </p>
             </div>
           </div>
@@ -906,7 +985,7 @@ export default function Opportunities() {
               <button
                 type="button"
                 onClick={handleConnectGmail}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/90 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer border border-red-400/40"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer border border-[#3b82f6]/60"
                 style={{ fontFamily: '"Switzer", sans-serif' }}
                 title="Collega la tua casella Gmail per estrarre in tempo reale i preventivi e aggiornare il CRM"
               >
@@ -925,6 +1004,8 @@ export default function Opportunities() {
               </button>
             )}
 
+            {googleAuth.connected && (
+            <>
             <div className="flex items-center gap-2 bg-black/50 px-2.5 py-1.5 rounded-lg border border-white/10 text-xs" style={{ fontFamily: '"Switzer", sans-serif' }}>
               <span className="text-gray-400">Cicli:</span>
               <span className="text-[#3b82f6] font-bold">{pipelineStatus?.totalRuns ?? 0}</span>
@@ -958,6 +1039,8 @@ export default function Opportunities() {
               <Radio className="w-3.5 h-3.5 text-[#00ffaa]" />
               <span>Telemetria & Log</span>
             </button>
+            </>
+            )}
           </div>
         </div>
       </div>
@@ -986,7 +1069,7 @@ export default function Opportunities() {
             <span className="text-2xl md:text-3xl font-extrabold text-white leading-none" style={{ letterSpacing: '-0.03em' }}>
               € {(stats.open.value / 1000).toFixed(1)}k
             </span>
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#3b82f6]/15 text-[#3b82f6]">
+            <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#3b82f6]/15 text-[#3b82f6]">
               {stats.open.count} {stats.open.count === 1 ? 'deal' : 'deals'}
             </span>
           </div>
@@ -1017,7 +1100,7 @@ export default function Opportunities() {
             <span className="text-2xl md:text-3xl font-extrabold text-white leading-none" style={{ letterSpacing: '-0.03em' }}>
               € {(stats.won.value / 1000).toFixed(1)}k
             </span>
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#10b981]/15 text-[#10b981]">
+            <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#10b981]/15 text-[#10b981]">
               {stats.won.count} {stats.won.count === 1 ? 'deal' : 'deals'}
             </span>
           </div>
@@ -1030,25 +1113,25 @@ export default function Opportunities() {
         <div
           onClick={() => setStatusFilter(statusFilter === 'lost' ? 'all' : 'lost')}
           className={`p-4 rounded-xl border transition-all cursor-pointer select-none relative overflow-hidden group ${
-            statusFilter === 'lost' ? 'ring-2 ring-[#f43f5e]' : 'hover:border-white/20'
+            statusFilter === 'lost' ? 'ring-2 ring-white/60' : 'hover:border-white/20'
           }`}
           style={{
-            backgroundColor: '#20161a',
-            borderColor: STATUS_CONFIG.lost.border,
+            backgroundColor: '#0c0e12',
+            borderColor: statusFilter === 'lost' ? '#ffffff' : '#27272a',
             fontFamily: '"Switzer", sans-serif',
           }}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-[0.06em] text-[#f43f5e]">
+            <span className="text-xs font-bold uppercase tracking-[0.06em] text-slate-300">
               Trattative Perse
             </span>
-            <div className="w-2.5 h-2.5 rounded-full bg-[#f43f5e] shadow-sm shadow-[#f43f5e]/50" />
+            <div className="w-2.5 h-2.5 rounded-full bg-black border border-slate-500 shadow-sm" />
           </div>
           <div className="mt-2.5 flex items-baseline justify-between">
             <span className="text-2xl md:text-3xl font-extrabold text-white leading-none" style={{ letterSpacing: '-0.03em' }}>
               € {(stats.lost.value / 1000).toFixed(1)}k
             </span>
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#f43f5e]/15 text-[#f43f5e]">
+            <span className="text-xs font-bold px-2 py-0.5 rounded bg-black border border-slate-700 text-slate-200">
               {stats.lost.count} {stats.lost.count === 1 ? 'deal' : 'deals'}
             </span>
           </div>
@@ -1069,7 +1152,7 @@ export default function Opportunities() {
             <span className="text-2xl md:text-3xl font-extrabold text-white leading-none" style={{ letterSpacing: '-0.03em' }}>
               {stats.winRate}%
             </span>
-            <span className="text-xs font-mono font-bold text-gray-400">
+            <span className="text-xs font-bold text-gray-400">
               Tot: € {(stats.totalVal / 1000).toFixed(1)}k
             </span>
           </div>
@@ -1079,20 +1162,30 @@ export default function Opportunities() {
         </div>
       </div>
 
-      {/* ── SEZIONE ISTOGRAMMA CON LE DATE DEL MESE ───────────────────── */}
-      <div className="bg-[#18181b] border border-white/10 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col gap-4">
-
-        {/* Intestazione Istogramma & Legenda Tre Colori */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+      {/* ── SEZIONE ISTOGRAMMA CON LE DATE DEL MESE (NERO METALLIZZATO & CIFRE BIANCO PERLACEO) ───────────────────── */}
+      <div
+        className={`rounded-2xl ${isMobileApp ? 'p-4' : 'p-5 md:p-6'} flex flex-col gap-4`}
+        style={{
+          background: 'linear-gradient(145deg, #262930 0%, #16181d 48%, #0b0c0f 100%)',
+          border: '1px solid rgba(248, 246, 240, 0.18)',
+          boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -1px 0 rgba(0, 0, 0, 0.6), 0 16px 36px rgba(0, 0, 0, 0.6)',
+          fontFamily: '"Switzer", sans-serif'
+        }}
+      >
+        {/* Intestazione Istogramma & Legenda fasi pipeline */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-white/15 pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base md:text-lg font-bold text-white tracking-tight">
+              <h2
+                className="text-base md:text-lg font-bold tracking-tight"
+                style={{ color: '#f8f6f0' }}
+              >
                 Istogramma Distribuzione Date — {currentMonthObj.label}
               </h2>
               {selectedDateFilter && (
                 <button
                   onClick={() => setSelectedDateFilter(null)}
-                  className="flex items-center gap-1 text-[11px] bg-white/10 hover:bg-white/20 text-white px-2 py-0.5 rounded-full transition-colors font-mono cursor-pointer"
+                  className="flex items-center gap-1 text-[11px] font-semibold bg-white/15 hover:bg-white/25 text-[#f8f6f0] border border-[#f8f6f0]/30 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
                   title="Mostra tutte le date"
                 >
                   <span>Filtro: {selectedDateFilter.split('-')[2]} {currentMonthObj.short}</span>
@@ -1100,166 +1193,297 @@ export default function Opportunities() {
                 </button>
               )}
             </div>
-            <p className="text-xs text-gray-400 font-mono mt-0.5">
-              Clicca su una colonna data per isolare le relative trattative
+            <p className="text-xs text-slate-300/80 mt-0.5">
+              Scorri con il dito l'istogramma o tocca una colonna data per isolare le trattative
             </p>
           </div>
 
-          {/* Legenda 3 Colori */}
-          <div className="flex items-center gap-4 flex-wrap text-xs font-mono font-bold select-none">
-            <div
-              onClick={() => setStatusFilter(statusFilter === 'open' ? 'all' : 'open')}
-              className={`flex items-center gap-1.5 cursor-pointer transition-opacity ${
-                statusFilter !== 'all' && statusFilter !== 'open' ? 'opacity-30' : 'opacity-100'
-              }`}
-            >
-              <span className="w-3 h-3 rounded-sm bg-[#3b82f6] shadow-sm shadow-[#3b82f6]/40" />
-              <span className="text-gray-200">Aperte</span>
-            </div>
-
+          {/* Legenda: fasi pipeline delle trattative aperte + Vinte + Perse */}
+          <div className="flex items-center gap-x-4 gap-y-1.5 flex-wrap text-xs font-bold select-none">
+            {PHASES.map(ph => (
+              <div
+                key={ph.key}
+                onClick={() => setStatusFilter(statusFilter === 'open' ? 'all' : 'open')}
+                className={`flex items-center gap-1.5 cursor-pointer transition-opacity ${
+                  statusFilter !== 'all' && statusFilter !== 'open' ? 'opacity-30' : 'opacity-100'
+                }`}
+                title="Trattativa aperta in questa fase della pipeline"
+              >
+                <span className="w-3 h-3 rounded-sm border border-white/25" style={{ backgroundColor: ph.color }} />
+                <span style={{ color: '#f8f6f0' }}>{ph.label}</span>
+              </div>
+            ))}
             <div
               onClick={() => setStatusFilter(statusFilter === 'won' ? 'all' : 'won')}
               className={`flex items-center gap-1.5 cursor-pointer transition-opacity ${
                 statusFilter !== 'all' && statusFilter !== 'won' ? 'opacity-30' : 'opacity-100'
               }`}
             >
-              <span className="w-3 h-3 rounded-sm bg-[#10b981] shadow-sm shadow-[#10b981]/40" />
-              <span className="text-gray-200">Vinte</span>
+              <span className="w-3 h-3 rounded-sm bg-[#10b981] border border-white/25" />
+              <span style={{ color: '#f8f6f0' }}>Vinte</span>
             </div>
-
             <div
               onClick={() => setStatusFilter(statusFilter === 'lost' ? 'all' : 'lost')}
               className={`flex items-center gap-1.5 cursor-pointer transition-opacity ${
                 statusFilter !== 'all' && statusFilter !== 'lost' ? 'opacity-30' : 'opacity-100'
               }`}
             >
-              <span className="w-3 h-3 rounded-sm bg-[#f43f5e] shadow-sm shadow-[#f43f5e]/40" />
-              <span className="text-gray-200">Perse</span>
+              <span
+                className="w-3 h-3 rounded-sm bg-[#090a0d]"
+                style={{
+                  border: '1.5px solid #f8f6f0',
+                  boxShadow: '0 0 6px rgba(248, 246, 240, 0.45)'
+                }}
+              />
+              <span style={{ color: '#f8f6f0' }}>Perse</span>
             </div>
           </div>
         </div>
 
-        {/* Area Grafico Istogramma con Asse X (Date del Mese) */}
-        <div className="pt-4 pb-2">
+        {/* Area Grafico con 2cm di margine extra superiore per accogliere fino al 150% (€ 16.7k) */}
+        <div className="pt-2 pb-2">
           {datesData.length === 0 ? (
-            <div className="py-16 text-center text-gray-500 font-mono text-xs">
+            <div className="py-16 text-center text-slate-400 text-xs">
               Nessuna trattativa registrata per il mese di {currentMonthObj.label}.
             </div>
           ) : (
             <div className="relative">
+              <div
+                ref={histogramScrollRef}
+                onScroll={(e) => setHistogramScrollLeft(e.currentTarget.scrollLeft)}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchMove={(e) => e.stopPropagation()}
+                onMouseDown={handleHistogramPointerDown}
+                onMouseMove={handleHistogramPointerMove}
+                onMouseUp={handleHistogramPointerUp}
+                onMouseLeave={handleHistogramPointerUp}
+                className="overflow-x-auto pb-2 scrollbar-thin cursor-grab active:cursor-grabbing select-none"
+                style={{
+                  touchAction: 'pan-x pan-y',
+                  WebkitOverflowScrolling: 'touch',
+                }}
+              >
+                {/* Contenitore grafico: base 100% = 190px per valorizzare le fasce bassa/media e fascia €10k–€16.7k accorciata (100% -> 118%) */}
+                <div
+                  className="min-w-[680px] flex items-end justify-between gap-2.5 px-2 relative"
+                  style={{
+                    height: '190px',
+                    marginTop: '68px',
+                    marginBottom: '28px'
+                  }}
+                >
+                  {/* Linee di guida orizzontali calibrate sulle fasce di compenso (in modalità Valore) */}
+                  {metricMode === 'value' ? (
+                    <div className="absolute inset-0 pointer-events-none select-none z-0">
+                      {/* 118% -> € 16.7k (Fascia extra €10k–€16.7k accorciata) */}
+                      <div
+                        className="absolute inset-x-0 border-b border-dashed border-[#10b981]/45"
+                        style={{ bottom: '118%' }}
+                      />
 
-              {/* Linee di guida orizzontali */}
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-10 opacity-15">
-                <div className="border-b border-white w-full" />
-                <div className="border-b border-white w-full" />
-                <div className="border-b border-white w-full" />
-                <div className="border-b border-white w-full" />
-              </div>
+                      {/* 100% -> Fascia massima compenso singolo lavoro (€ 8–10k) */}
+                      <div
+                        className="absolute inset-x-0 border-b border-white/25"
+                        style={{ bottom: '100%' }}
+                      />
 
-              {/* Barre Istogramma a scorrimento orizzontale su schermi piccoli */}
-              <div className="overflow-x-auto pb-2 scrollbar-thin">
-                <div className="min-w-[620px] h-[240px] flex items-end justify-between gap-3 px-2 pt-6 pb-8 relative">
+                      {/* 78% -> Fascia media (€ 5.0k) */}
+                      <div
+                        className="absolute inset-x-0 border-b border-dashed border-white/20"
+                        style={{ bottom: '78%' }}
+                      />
+
+                      {/* 55% -> Fascia bassa (€ 2/3k) */}
+                      <div
+                        className="absolute inset-x-0 border-b border-dotted border-white/15"
+                        style={{ bottom: '55%' }}
+                      />
+
+                      {/* Base 0% */}
+                      <div className="absolute inset-x-0 bottom-0 border-b border-white/25" />
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                      <div className="border-b border-white/10 w-full" />
+                      <div className="border-b border-white/10 w-full" />
+                      <div className="border-b border-white/10 w-full" />
+                      <div className="border-b border-white/20 w-full" />
+                    </div>
+                  )}
+
+                  {/* Colonna scala laterale sinistra per le fasce di compenso: scompare progressivamente via via che si scorre l'istogramma */}
+                  {metricMode === 'value' && (() => {
+                    const fadeItem = (startPx, rangePx) => {
+                      const progress = Math.min(1, Math.max(0, (histogramScrollLeft - startPx) / rangePx))
+                      return {
+                        opacity: Number((1 - progress).toFixed(3)),
+                        transform: `translate3d(${-Math.round(progress * 26)}px, -50%, 0) scale(${(1 - progress * 0.12).toFixed(3)})`,
+                        transition: 'opacity 80ms linear, transform 80ms linear',
+                      }
+                    }
+                    const colProgress = Math.min(1, Math.max(0, histogramScrollLeft / 90))
+                    return (
+                      <div
+                        className="w-[116px] shrink-0 h-full relative select-none pointer-events-none z-10 mr-1"
+                        style={{
+                          opacity: Number((1 - colProgress).toFixed(3)),
+                        }}
+                      >
+                        <div className="absolute left-0" style={{ bottom: '118%', ...fadeItem(0, 48) }}>
+                          <span className="inline-block text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-[#0b0c0f]/90 border border-[#10b981]/45 whitespace-nowrap" style={{ color: '#f8f6f0' }}>
+                            Extra • € 16.7k
+                          </span>
+                        </div>
+                        <div className="absolute left-0" style={{ bottom: '100%', ...fadeItem(10, 52) }}>
+                          <span className="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#0b0c0f]/90 border border-white/20 whitespace-nowrap" style={{ color: '#f8f6f0' }}>
+                            Max • € 8–10k
+                          </span>
+                        </div>
+                        <div className="absolute left-0" style={{ bottom: '78%', ...fadeItem(20, 56) }}>
+                          <span className="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#0b0c0f]/90 border border-white/15 whitespace-nowrap" style={{ color: '#f8f6f0' }}>
+                            Media • € 5.0k
+                          </span>
+                        </div>
+                        <div className="absolute left-0" style={{ bottom: '55%', ...fadeItem(30, 60) }}>
+                          <span className="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[#0b0c0f]/85 border border-white/10 whitespace-nowrap" style={{ color: 'rgba(248, 246, 240, 0.85)' }}>
+                            Bassa • € 2–3k
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })()}
 
                   {datesData.map((d) => {
                     const isSelected = selectedDateFilter === d.date
                     const isHovered = hoveredDate === d.date
 
-                    // Altezze calcolate in % rispetto al massimo del mese
                     const valOpen = metricMode === 'value' ? d.openValue : d.openCount
                     const valWon = metricMode === 'value' ? d.wonValue : d.wonCount
                     const valLost = metricMode === 'value' ? d.lostValue : d.lostCount
 
-                    const heightOpen = Math.max(valOpen > 0 ? 8 : 0, Math.round((valOpen / maxHistogramValue) * 100))
-                    const heightWon = Math.max(valWon > 0 ? 8 : 0, Math.round((valWon / maxHistogramValue) * 100))
-                    const heightLost = Math.max(valLost > 0 ? 8 : 0, Math.round((valLost / maxHistogramValue) * 100))
-
+                    // Calcolo altezza barra con maggiore risalto per fascia bassa/media
+                    // e compressione (accorciamento) del tratto € 10k -> € 16.7k:
+                    // - Fascia bassa (€ 2k - € 3k): 48% -> 60%
+                    // - Fascia media (€ 3k - € 5k): 60% -> 78%
+                    // - Fascia alta (€ 5k - € 10k): 78% -> 100%
+                    // - Oltre € 10k fino a € 16.7k: accorciato da 100% a 118%
+                    const h = (v) => {
+                      if (v <= 0) return 0
+                      if (metricMode === 'value') {
+                        if (v <= 3000) {
+                          return Math.max(28, Math.round(24 + (v / 3000) * 36))
+                        }
+                        if (v <= 5000) {
+                          return Math.round(60 + ((v - 3000) / 2000) * 18)
+                        }
+                        if (v <= 10000) {
+                          return Math.round(78 + ((v - 5000) / 5000) * 22)
+                        }
+                        return Math.min(122, Math.round(100 + ((v - 10000) / (16700 - 10000)) * 18))
+                      }
+                      return Math.max(15, Math.round((v / maxHistogramValue) * 100))
+                    }
+                    const fmt = (v) => metricMode === 'value' ? `€${(v / 1000).toFixed(1)}k` : String(v)
                     const dayFormatted = `${String(d.day).padStart(2, '0')}`
+                    const dim = (key) => (statusFilter === 'all' || statusFilter === key ? 1 : 0.2)
+
+                    // Colonna singola con cifra in bianco perlaceo sopra
+                    const Bar = ({ value, height, opacity, title, children, style }) => (
+                      <div className="flex-1 relative" style={{ height: `${height}%`, opacity }} title={title}>
+                        {value > 0 && (
+                          <span
+                            className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 text-[12px] font-extrabold whitespace-nowrap leading-none z-20"
+                            style={{
+                              color: '#f8f6f0',
+                              textShadow: '0 1px 2px rgba(0, 0, 0, 0.95), 0 0 8px rgba(248, 246, 240, 0.28)'
+                            }}
+                          >
+                            {fmt(value)}
+                          </span>
+                        )}
+                        <div className="absolute inset-0 rounded-t-md overflow-hidden flex flex-col-reverse shadow-md" style={style}>
+                          {children}
+                        </div>
+                      </div>
+                    )
 
                     return (
                       <div
                         key={d.date}
                         onMouseEnter={() => setHoveredDate(d.date)}
                         onMouseLeave={() => setHoveredDate(null)}
-                        onClick={() => setSelectedDateFilter(isSelected ? null : d.date)}
-                        className={`flex-1 flex flex-col items-center justify-end h-full relative cursor-pointer group transition-all ${
+                        onClick={() => {
+                          if (histogramDragRef.current.moved) return
+                          setSelectedDateFilter(isSelected ? null : d.date)
+                        }}
+                        className={`flex-1 flex flex-col items-center justify-end h-full relative cursor-pointer group transition-all z-10 ${
                           isSelected ? 'scale-[1.03]' : ''
                         }`}
                       >
-                        {/* Tooltip fluttuante su hover */}
+                        {/* Tooltip su hover */}
                         {isHovered && (
-                          <div className="absolute -top-14 z-30 bg-[#1f242d] border border-white/20 rounded-lg py-1 px-2.5 shadow-2xl pointer-events-none whitespace-nowrap text-left animate-fadeIn">
-                            <span className="text-[10px] font-mono text-gray-300 block font-bold">
-                              Data: {dayFormatted} {currentMonthObj.short} 2026
+                          <div className="absolute -top-24 z-30 bg-[#1f242d] border border-white/25 rounded-lg py-1.5 px-2.5 shadow-2xl pointer-events-none whitespace-nowrap text-left animate-fadeIn">
+                            <span className="text-[11px] block font-bold" style={{ color: '#f8f6f0' }}>
+                              {dayFormatted} {currentMonthObj.short} 2026
                             </span>
-                            <div className="flex items-center gap-2 text-[10px] font-mono font-bold mt-0.5">
-                              {d.openCount > 0 && (
-                                <span className="text-[#3b82f6]">
-                                  {d.openCount} Aperte (€ {d.openValue.toLocaleString('it-IT')})
+                            <div className="flex flex-col gap-0.5 text-[11px] font-bold mt-0.5">
+                              {PHASES.filter(ph => d.phases[ph.key].c > 0).map(ph => (
+                                <span key={ph.key} style={{ color: ph.color }}>
+                                  {ph.label}: {d.phases[ph.key].c} (€ {d.phases[ph.key].v.toLocaleString('it-IT')})
                                 </span>
-                              )}
+                              ))}
                               {d.wonCount > 0 && (
-                                <span className="text-[#10b981]">
-                                  {d.wonCount} Vinte (€ {d.wonValue.toLocaleString('it-IT')})
-                                </span>
+                                <span className="text-[#10b981]">Vinte: {d.wonCount} (€ {d.wonValue.toLocaleString('it-IT')})</span>
                               )}
                               {d.lostCount > 0 && (
-                                <span className="text-[#f43f5e]">
-                                  {d.lostCount} Perse (€ {d.lostValue.toLocaleString('it-IT')})
-                                </span>
+                                <span style={{ color: '#f8f6f0' }}>Perse: {d.lostCount} (€ {d.lostValue.toLocaleString('it-IT')})</span>
                               )}
                             </div>
                           </div>
                         )}
 
-                        {/* Gruppo di 3 Barre dell'Istogramma (Aperte, Vinte, Perse) */}
+                        {/* Gruppo colonne: Aperte (a fasi) · Vinte · Perse */}
                         <div
-                          className={`w-full max-w-[48px] flex items-end justify-center gap-1 p-1 rounded-t-lg transition-colors ${
-                            isSelected ? 'bg-white/10 ring-1 ring-white/30' : 'group-hover:bg-white/5'
+                          className={`w-full max-w-[84px] flex items-end justify-center gap-1.5 p-1 rounded-t-lg transition-colors overflow-visible ${
+                            isSelected ? 'bg-white/15 ring-1 ring-[#f8f6f0]/50' : 'group-hover:bg-white/10'
                           }`}
                           style={{ height: '100%' }}
                         >
-                          {/* 1. Barra Aperte (Blu #3b82f6) */}
-                          <div
-                            className="flex-1 rounded-t transition-all relative overflow-hidden"
-                            style={{
-                              height: `${heightOpen}%`,
-                              backgroundColor: valOpen > 0 ? '#3b82f6' : 'transparent',
-                              boxShadow: valOpen > 0 ? '0 0 10px rgba(59, 130, 246, 0.3)' : 'none',
-                              opacity: statusFilter === 'all' || statusFilter === 'open' ? 1 : 0.15,
-                            }}
-                            title={`Aperte: € ${d.openValue.toLocaleString('it-IT')} (${d.openCount})`}
-                          />
-
-                          {/* 2. Barra Vinte (Smeraldo #10b981) */}
-                          <div
-                            className="flex-1 rounded-t transition-all relative overflow-hidden"
-                            style={{
-                              height: `${heightWon}%`,
-                              backgroundColor: valWon > 0 ? '#10b981' : 'transparent',
-                              boxShadow: valWon > 0 ? '0 0 10px rgba(16, 185, 129, 0.3)' : 'none',
-                              opacity: statusFilter === 'all' || statusFilter === 'won' ? 1 : 0.15,
-                            }}
-                            title={`Vinte: € ${d.wonValue.toLocaleString('it-IT')} (${d.wonCount})`}
-                          />
-
-                          {/* 3. Barra Perse (Lampone #f43f5e) */}
-                          <div
-                            className="flex-1 rounded-t transition-all relative overflow-hidden"
-                            style={{
-                              height: `${heightLost}%`,
-                              backgroundColor: valLost > 0 ? '#f43f5e' : 'transparent',
-                              boxShadow: valLost > 0 ? '0 0 10px rgba(244, 63, 94, 0.3)' : 'none',
-                              opacity: statusFilter === 'all' || statusFilter === 'lost' ? 1 : 0.15,
-                            }}
-                            title={`Perse: € ${d.lostValue.toLocaleString('it-IT')} (${d.lostCount})`}
-                          />
+                          {valOpen > 0 && (
+                            <Bar value={valOpen} height={h(valOpen)} opacity={dim('open')} title={`Aperte: € ${d.openValue.toLocaleString('it-IT')} (${d.openCount})`}>
+                              {PHASES.map(ph => {
+                                const pv = metricMode === 'value' ? d.phases[ph.key].v : d.phases[ph.key].c
+                                return pv > 0 ? <div key={ph.key} style={{ flexGrow: pv, backgroundColor: ph.color }} /> : null
+                              })}
+                            </Bar>
+                          )}
+                          {valWon > 0 && (
+                            <Bar value={valWon} height={h(valWon)} opacity={dim('won')} title={`Vinte: € ${d.wonValue.toLocaleString('it-IT')} (${d.wonCount})`} style={{ backgroundColor: '#10b981' }} />
+                          )}
+                          {valLost > 0 && (
+                            <Bar
+                              value={valLost}
+                              height={h(valLost)}
+                              opacity={dim('lost')}
+                              title={`Perse: € ${d.lostValue.toLocaleString('it-IT')} (${d.lostCount})`}
+                              style={{
+                                background: 'linear-gradient(180deg, #14161b 0%, #050507 100%)',
+                                border: '1.5px solid #f8f6f0',
+                                boxShadow: '0 0 10px rgba(248, 246, 240, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                              }}
+                            />
+                          )}
                         </div>
 
-                        {/* Etichetta Data Asse X (Giorno del mese) */}
+                        {/* Giorno in bianco perlaceo */}
                         <div
-                          className={`absolute -bottom-6 flex flex-col items-center select-none font-mono text-[11px] font-bold ${
-                            isSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'
-                          }`}
+                          className="absolute -bottom-6 flex flex-col items-center select-none text-[13px] font-extrabold"
+                          style={{
+                            color: isSelected ? '#ffffff' : '#f8f6f0',
+                            textShadow: isSelected
+                              ? '0 0 10px rgba(248, 246, 240, 0.65)'
+                              : '0 1px 2px rgba(0, 0, 0, 0.85), 0 0 6px rgba(248, 246, 240, 0.22)'
+                          }}
                         >
                           <span>{dayFormatted}</span>
                         </div>
@@ -1269,10 +1493,12 @@ export default function Opportunities() {
                 </div>
               </div>
 
-              {/* Dicitura Asse X */}
               <div className="text-center pt-2">
-                <span className="text-[11px] text-gray-500 font-mono uppercase tracking-widest">
-                  ── Date verificate nel corso di {currentMonthObj.label} ──
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-widest"
+                  style={{ color: 'rgba(248, 246, 240, 0.7)' }}
+                >
+                  Date verificate nel corso di {currentMonthObj.label}
                 </span>
               </div>
             </div>
@@ -1281,7 +1507,7 @@ export default function Opportunities() {
       </div>
 
       {/* ── TABELLA / DETTAGLIO TRATTATIVE VERIFICATE ─────────────────── */}
-      <div className="bg-[#18181b] border border-white/10 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col gap-4">
+      <div className={`bg-[#18181b] border border-white/10 rounded-2xl ${isMobileApp ? 'p-4' : 'p-5 md:p-6'} shadow-xl flex flex-col gap-4`}>
 
         {/* Filtri Elenco */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/10 pb-4">
@@ -1289,11 +1515,11 @@ export default function Opportunities() {
             <h3 className="text-base font-bold text-white tracking-tight">
               Dettaglio Trattative
             </h3>
-            <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold">
               {filteredList.length} trovate
             </span>
             {selectedDateFilter && (
-              <span className="text-xs font-mono text-[#3b82f6] font-bold">
+              <span className="text-xs text-[#3b82f6] font-bold">
                 (Filtro data: {selectedDateFilter.split('-')[2]} {currentMonthObj.short})
               </span>
             )}
@@ -1301,19 +1527,19 @@ export default function Opportunities() {
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* Input Ricerca */}
-            <div className="relative">
+            <div className="relative flex-1 min-w-[160px]">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cerca cliente, titolo o note..."
-                className="bg-[#111111] border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-[#3b82f6] w-56 font-mono"
+                className={`bg-[#111111] border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-[#3b82f6] ${isMobileApp ? 'w-full' : 'w-56'}`}
               />
             </div>
 
             {/* Filtri stato (Tutte / Aperte / Vinte / Perse) */}
-            <div className="flex items-center bg-[#111111] border border-white/10 rounded-lg p-0.5 text-xs font-mono font-bold">
+            <div className="flex items-center bg-[#111111] border border-white/10 rounded-lg p-0.5 text-xs font-bold">
               <button
                 onClick={() => setStatusFilter('all')}
                 className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
@@ -1341,7 +1567,7 @@ export default function Opportunities() {
               <button
                 onClick={() => setStatusFilter('lost')}
                 className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                  statusFilter === 'lost' ? 'bg-[#f43f5e]/20 text-[#f43f5e]' : 'text-gray-400 hover:text-[#f43f5e]'
+                  statusFilter === 'lost' ? 'bg-black text-white border border-slate-700 shadow-sm' : 'text-gray-400 hover:text-white'
                 }`}
               >
                 Perse
@@ -1352,11 +1578,11 @@ export default function Opportunities() {
 
         {/* Lista Trattative */}
         {filteredList.length === 0 ? (
-          <div className="py-12 text-center text-gray-500 font-mono text-xs">
+          <div className="py-12 text-center text-gray-500 text-xs">
             Nessuna trattativa trovata con i filtri correnti.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className={`grid ${isMobileApp ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-3`}>
             {filteredList.map((opp) => {
               const conf = STATUS_CONFIG[opp.status] || STATUS_CONFIG.open
               const IconComp = conf.icon
@@ -1375,14 +1601,14 @@ export default function Opportunities() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         {/* Data in cui si è verificata nel mese */}
-                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-white/10 text-gray-300 font-bold flex items-center gap-1">
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-white/10 text-gray-300 font-bold flex items-center gap-1">
                           <Calendar className="w-3 h-3 text-gray-400" />
                           {dayStr} {currentMonthObj.short} 2026
                         </span>
 
                         {/* Badge Stato con colore dedicato */}
                         <span
-                          className="text-[10px] font-mono uppercase font-black px-2 py-0.5 rounded flex items-center gap-1"
+                          className="text-[10px] uppercase font-black px-2 py-0.5 rounded flex items-center gap-1"
                           style={{
                             backgroundColor: conf.bg,
                             color: conf.color,
@@ -1393,7 +1619,7 @@ export default function Opportunities() {
                           {conf.shortLabel}
                         </span>
 
-                        <span className="text-[11px] font-mono text-gray-500">
+                        <span className="text-[11px] font-semibold text-gray-500">
                           {opp.stage}
                         </span>
                       </div>
@@ -1408,14 +1634,14 @@ export default function Opportunities() {
 
                     {/* Valore in Euro */}
                     <div className="text-right flex-shrink-0">
-                      <span className="text-base font-black font-mono text-white block">
+                      <span className="text-base font-black text-white block">
                         € {(opp.value || 0).toLocaleString('it-IT')}
                       </span>
                     </div>
                   </div>
 
                   {/* Note e dettagli trattativa */}
-                  <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-gray-400 font-mono">
+                  <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] font-semibold text-gray-400">
                     <span className="truncate max-w-[80%]">
                       {opp.notes || 'Nessuna nota aggiuntiva'}
                     </span>
@@ -1444,13 +1670,13 @@ export default function Opportunities() {
             <h3 className="text-lg font-bold text-white mb-1">
               Nuova Trattativa nel Mese
             </h3>
-            <p className="text-xs text-gray-400 font-mono mb-4">
+            <p className="text-xs text-gray-400 mb-4">
               Registra una trattativa per monitorarla nell'istogramma del mese
             </p>
 
             <form onSubmit={handleAddOpportunity} className="flex flex-col gap-3.5">
               <div>
-                <label className="text-xs font-mono text-gray-300 block mb-1">
+                <label className="text-xs text-gray-300 block mb-1">
                   Titolo Trattativa / Commessa *
                 </label>
                 <input
@@ -1465,7 +1691,7 @@ export default function Opportunities() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-mono text-gray-300 block mb-1">
+                  <label className="text-xs text-gray-300 block mb-1">
                     Azienda / Cliente *
                   </label>
                   <input
@@ -1479,7 +1705,7 @@ export default function Opportunities() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-mono text-gray-300 block mb-1">
+                  <label className="text-xs text-gray-300 block mb-1">
                     Valore Economico (€) *
                   </label>
                   <input
@@ -1490,20 +1716,20 @@ export default function Opportunities() {
                     value={newValue}
                     onChange={(e) => setNewValue(e.target.value)}
                     placeholder="Es. 7500"
-                    className="w-full bg-[#111111] border border-white/15 rounded-lg px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-[#3b82f6] font-mono"
+                    className="w-full bg-[#111111] border border-white/15 rounded-lg px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-[#3b82f6]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-mono text-gray-300 block mb-1">
+                  <label className="text-xs text-gray-300 block mb-1">
                     Stato Trattativa
                   </label>
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full bg-[#111111] border border-white/15 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#3b82f6] font-mono cursor-pointer"
+                    className="w-full bg-[#111111] border border-white/15 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#3b82f6] cursor-pointer"
                   >
                     <option value="open">Aperta (In trattativa)</option>
                     <option value="won">Vinta (Contratto chiuso)</option>
@@ -1512,7 +1738,7 @@ export default function Opportunities() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-mono text-gray-300 block mb-1">
+                  <label className="text-xs text-gray-300 block mb-1">
                     Data di Verifica nel Mese *
                   </label>
                   <input
@@ -1520,13 +1746,13 @@ export default function Opportunities() {
                     required
                     value={newDate}
                     onChange={(e) => setNewDate(e.target.value)}
-                    className="w-full bg-[#111111] border border-white/15 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#3b82f6] font-mono cursor-pointer"
+                    className="w-full bg-[#111111] border border-white/15 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#3b82f6] cursor-pointer"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-mono text-gray-300 block mb-1">
+                <label className="text-xs text-gray-300 block mb-1">
                   Note di Negoziazione / Esito
                 </label>
                 <textarea
@@ -1648,7 +1874,7 @@ export default function Opportunities() {
                   <div className="flex items-center gap-2 mt-2">
                     <span className="w-2 h-2 rounded-full bg-[#3b82f6]" />
                     <span className="font-bold text-white text-xs" style={{ fontFamily: '"Switzer", sans-serif' }}>
-                      Ogni {pipelineStatus?.intervalSeconds || 60}s (Silenzioso)
+                      {pipelineStatus?.autoSync === false ? 'Solo a richiesta (Aggiorna)' : `Ogni ${pipelineStatus?.intervalSeconds || 60}s (Silenzioso)`}
                     </span>
                   </div>
                 </div>

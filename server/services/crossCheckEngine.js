@@ -114,11 +114,11 @@ export function auditOperations(crmData) {
 
   // Mappatura utilizzo attrezzature chiave
   const gearUsage = {
-    'Sony FX3 Cinema Line': [],
-    'Sony A7S III': [],
+    'Canon Cinema EOS C70': [],
+    'Canon EOS R5 C': [],
     'Drone DJI Mavic 3 Cine': [],
-    'Sony GM 24-70mm f/2.8': [],
-    'Sony GM 70-200mm f/2.8': [],
+    'Canon RF 24-70mm f/2.8': [],
+    'Canon RF 70-200mm f/2.8': [],
     'Aputure 600d / 300x': [],
     'DJI RS3 Pro Gimbal': [],
     'Sennheiser AVX Wireless': []
@@ -126,11 +126,11 @@ export function auditOperations(crmData) {
 
   shootingSessions.forEach(session => {
     const matStr = session.materials.join(' ').toLowerCase()
-    if (matStr.includes('fx3')) gearUsage['Sony FX3 Cinema Line'].push({ company: session.company, dates: session.dates })
-    if (matStr.includes('a7s')) gearUsage['Sony A7S III'].push({ company: session.company, dates: session.dates })
+    if (matStr.includes('fx3')) gearUsage['Canon Cinema EOS C70'].push({ company: session.company, dates: session.dates })
+    if (matStr.includes('a7s')) gearUsage['Canon EOS R5 C'].push({ company: session.company, dates: session.dates })
     if (matStr.includes('drone') || matStr.includes('mavic')) gearUsage['Drone DJI Mavic 3 Cine'].push({ company: session.company, dates: session.dates })
-    if (matStr.includes('24-70')) gearUsage['Sony GM 24-70mm f/2.8'].push({ company: session.company, dates: session.dates })
-    if (matStr.includes('70-200')) gearUsage['Sony GM 70-200mm f/2.8'].push({ company: session.company, dates: session.dates })
+    if (matStr.includes('24-70')) gearUsage['Canon RF 24-70mm f/2.8'].push({ company: session.company, dates: session.dates })
+    if (matStr.includes('70-200')) gearUsage['Canon RF 70-200mm f/2.8'].push({ company: session.company, dates: session.dates })
     if (matStr.includes('aputure')) gearUsage['Aputure 600d / 300x'].push({ company: session.company, dates: session.dates })
     if (matStr.includes('rs3') || matStr.includes('gimbal')) gearUsage['DJI RS3 Pro Gimbal'].push({ company: session.company, dates: session.dates })
     if (matStr.includes('sennheiser') || matStr.includes('audio')) gearUsage['Sennheiser AVX Wireless'].push({ company: session.company, dates: session.dates })
@@ -142,7 +142,7 @@ export function auditOperations(crmData) {
       dateRange: '22 - 25 Settembre 2026',
       firstSet: 'Solaris Green Energy (22 Settembre • Milano)',
       secondSet: 'Officine Meccaniche Riva (24-25 Settembre • Monza)',
-      equipmentInvolved: 'Sony FX3/A7SIII, Lenti GM, DJI RS3 Pro, Drone Mavic 3 Cine',
+      equipmentInvolved: 'Canon C70/A7SIII, Lenti GM, DJI RS3 Pro, Drone Mavic 3 Cine',
       turnaroundHours: '36 ore',
       status: 'Conforme con buffer di ricarica e pulizia sensori verificato'
     }
@@ -247,7 +247,7 @@ Scansione delle relazioni interne tra Contratti, Fatture, Calendario, Inventario
 • Location: ${ws?.location || 'Studio DADO Limbo / On-site'}
 
 🎥 **4. ATTREZZATURE & DOTAZIONE MOBILITATA:**
-${(single.materials || []).map(m => `• ${m}`).join('\n') || '• Dotazione audiovisiva standard DADO Studio (Sony FX3 4K)'}
+${(single.materials || []).map(m => `• ${m}`).join('\n') || '• Dotazione audiovisiva standard DADO Studio (Canon C70 4K)'}
 
 🎯 **5. VERIFICA ANOMALIE & AZIONE OPERATIVA:**
 • Allineamento Documentale: ${inv ? '🟢 Contratto e Fattura collegati' : '🟡 In attesa emissione fattura'}
@@ -285,7 +285,7 @@ ${shootingCompanies.map((c, idx) => {
   const inv = (crmData.invoices || []).find(i => (i.companyName || '').toLowerCase().includes(c.name.toLowerCase()) || (i.number && contract.code && i.number.includes(contract.code.slice(-3))))
   const deposit = comp.deposit || (inv ? inv.deposit : (comp.status === 'Saldato' ? comp.amount : 0))
   const balance = comp.balance !== undefined ? comp.balance : (comp.status === 'Saldato' ? 0 : comp.amount - deposit)
-  const materials = Array.isArray(c.requestedMaterials) ? c.requestedMaterials.slice(0, 3).join(', ') : 'Kit Sony FX3 4K'
+  const materials = Array.isArray(c.requestedMaterials) ? c.requestedMaterials.slice(0, 3).join(', ') : 'Kit Canon C70 4K'
 
   return `${idx + 1}. **${c.name.toUpperCase()}** (${c.industry || 'B2B'})
    • 📄 **Contratto:** ${contract.code || 'In elaborazione'} • Importo: **€ ${formatEur(comp.amount)}** + IVA
@@ -296,7 +296,7 @@ ${shootingCompanies.map((c, idx) => {
 
 ═════════════════════════════════════════════════════════════
 ⚖️ **3. ANALISI INCROCIATA DEI SALDI APERTI (€ ${formatEur(totalShootingPending)}):**
-• **Officine Meccaniche Riva**: Saldo aperto **€ 5.200** (Set completato il 24-25 Sett. con Sony FX3 e Drone Mavic 3 ➔ svincolo master 4K condizionato al bonifico di saldo).
+• **Officine Meccaniche Riva**: Saldo aperto **€ 5.200** (Set completato il 24-25 Sett. con Canon C70 e Drone Mavic 3 ➔ svincolo master 4K condizionato al bonifico di saldo).
 • **Kroma Ceramiche**: Saldo aperto **€ 2.900** (Set in studio Limbo 21-22 Sett. ➔ emissione RIBA 60gg d.f.).
 • **Beta Digital Agency**: Saldo aperto **€ 2.800** (Set 27 Sett. ➔ scadenza concordata 30gg d.f. 2026-10-20).
 
@@ -337,7 +337,7 @@ Verifica delle disponibilità, sovrapposizioni e mobilitazione del parco tecnico
 • 🚁 **Drone DJI Mavic 3 Cine**:
   Impegnato per: Officine Riva (24-25 Sett.), Vogue Events (5 Sett.), Tenuta Poggio Antico (14 Ago.).
   ➔ *Disponibilità:* Libero per nuove date con preavviso di 48h per permessi ENAC/D-Flight.
-• 🎥 **Sony FX3 Cinema Line (Corpi Camera A/B)**:
+• 🎥 **Canon Cinema EOS C70 (Corpi Camera A/B)**:
   Impegnato per: Riva, Beta Digital, Vogue Events, Tenuta Poggio Antico, Nexura Tech.
   ➔ *Disponibilità:* Piena alternanza senza conflitti di orario nelle stesse giornate.
 • 💡 **Parco Luci Aputure 600d / 300x**:
@@ -369,7 +369,7 @@ Scansione complessiva di coerenza operativa, finanziaria e logistica del CRM:
 
 🎬 **2. CONTROLLO INCROCIATO OPERATIVO & INVENTARIO:**
 • Sessioni di shooting a calendario: **${ops.totalShootingSessions} produzioni monitorate**
-• Conflitti di sovrapposizione attrezzature: **0 conflitti rilevati** (tutte le uscite di Sony FX3 e Drone Mavic 3 Cine rispettano i tempi di rientro e manutenzione)
+• Conflitti di sovrapposizione attrezzature: **0 conflitti rilevati** (tutte le uscite di Canon C70 e Drone Mavic 3 Cine rispettano i tempi di rientro e manutenzione)
 • Logistica di set: transizioni tra Limbo e trasferte esterne con buffer minimo di sicurezza di 24-36h.
 
 💼 **3. INCROCIO COMMERCIALE & PIPELINE:**

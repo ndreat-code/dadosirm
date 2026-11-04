@@ -1,111 +1,130 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import {
+  hashPasswordSync,
+  verifyPasswordSync,
+  sanitizeUserPassword,
+} from '../utils/passwordCrypto'
 
 export const DEFAULT_USERS = [
-  {
-    id: 'usr-admin',
-    name: 'Andrea T. (Amministratore)',
-    email: 'admin@dadocreativestudio.com',
-    password: 'Admin2026!',
-    role: 'Super Amministratore',
-    badgeRole: 'Amministratore',
-    status: 'active',
-    accessType: 'admin',
-    permissions: {
-      dashboard: true,
-      companies: true,
-      activities: true,
-      calendar: true,
-      inventory: true,
-      leads: true,
-      ai: true,
-      devNotes: true,    // Abilitato a inviare note sviluppatore
-      askOpenAi: true,   // Abilitato a interrogare OpenAI
-      users: true,
+  sanitizeUserPassword(
+    {
+      id: 'usr-admin',
+      name: 'Andrea T. (Amministratore)',
+      email: 'admin@dadocreativestudio.com',
+      role: 'Super Amministratore',
+      badgeRole: 'Amministratore',
+      status: 'active',
+      accessType: 'admin',
+      permissions: {
+        dashboard: true,
+        companies: true,
+        activities: true,
+        calendar: true,
+        inventory: true,
+        leads: true,
+        ai: true,
+        devNotes: true,    // Abilitato a inviare note sviluppatore
+        askOpenAi: true,   // Abilitato a interrogare OpenAI
+        users: true,
+      },
+      lastLogin: 'Attivo ora',
     },
-    lastLogin: 'Attivo ora',
-  },
-  {
-    id: 'usr-dipendente',
-    name: 'Davide (Director)',
-    email: 'davide@dadocreativestudio.com',
-    password: 'Director2026!',
-    role: 'Director',
-    badgeRole: 'Director',
-    status: 'active',
-    accessType: 'restricted',
-    permissions: {
-      dashboard: true,   // DASHBOARD: ABILITATO PER DIRECTOR
-      companies: false,  // Non accede ad Aziende
-      activities: true,  // ATTIVITÀ: ABILITATO
-      calendar: true,    // CALENDARIO: ABILITATO
-      inventory: false,  // Non accede all'inventario
-      leads: true,       // LEADS & OPPORTUNITÀ: ABILITATO PER DIRECTOR
-      ai: false,         // Non accede ad AI
-      devNotes: false,   // BLOCCATO: Non può inviare note sviluppatore
-      askOpenAi: true,   // ABILITATO: Director può usare Ask OpenAI
-      users: true,       // ABILITATO: Può visualizzare Utenti & Permessi e switchare profilo
+    'Admin2026!',
+    '8f9a3c71b402e5d1'
+  ),
+  sanitizeUserPassword(
+    {
+      id: 'usr-dipendente',
+      name: 'Davide (Director)',
+      email: 'davide@dadocreativestudio.com',
+      role: 'Director',
+      badgeRole: 'Director',
+      status: 'active',
+      accessType: 'restricted',
+      permissions: {
+        dashboard: true,   // DASHBOARD: ABILITATO PER DIRECTOR
+        companies: true,   // AZIENDE & CONTRATTI: SEMPRE ABILITATO
+        activities: true,  // ATTIVITÀ: ABILITATO
+        calendar: true,    // CALENDARIO: ABILITATO
+        inventory: false,  // Non accede all'inventario
+        leads: true,       // LEADS & OPPORTUNITÀ: ABILITATO PER DIRECTOR
+        ai: false,         // Non accede ad AI
+        devNotes: true,    // ABILITATO: Invio note sviluppatore
+        askOpenAi: true,   // ABILITATO: Director può usare Ask OpenAI
+        users: true,       // ABILITATO: Può visualizzare Utenti & Permessi e switchare profilo
+      },
+      lastLogin: 'Attivo ora',
     },
-    lastLogin: 'Attivo ora',
-  },
-  {
-    id: 'usr-editor',
-    name: 'Marco B. (Video Editor)',
-    email: 'marco@dadocreativestudio.com',
-    password: 'Editor2026!',
-    role: 'Post-Produzione & Colorist',
-    badgeRole: 'Collaboratore',
-    status: 'active',
-    accessType: 'custom',
-    permissions: {
-      dashboard: false,
-      companies: false,
-      activities: true,
-      calendar: true,
-      inventory: true,
-      leads: false,
-      ai: false,
-      devNotes: false,
-      askOpenAi: false,
-      users: false,
+    'Director2026!',
+    '4c7e91a2d83f05b6'
+  ),
+  sanitizeUserPassword(
+    {
+      id: 'usr-editor',
+      name: 'Marco B. (Video Editor)',
+      email: 'marco@dadocreativestudio.com',
+      role: 'Post-Produzione & Colorist',
+      badgeRole: 'Collaboratore',
+      status: 'active',
+      accessType: 'custom',
+      permissions: {
+        dashboard: true,
+        companies: true,
+        activities: true,
+        calendar: true,
+        inventory: true,
+        leads: false,
+        ai: false,
+        devNotes: true,
+        askOpenAi: true,
+        users: false,
+      },
+      lastLogin: 'Ieri, 18:30',
     },
-    lastLogin: 'Ieri, 18:30',
-  },
-  {
-    id: 'usr-producer',
-    name: 'Giulia M. (Production Manager)',
-    email: 'giulia@dadocreativestudio.com',
-    password: 'Prod2026!',
-    role: 'Production Manager & Set Coordinator',
-    badgeRole: 'Collaboratore',
-    status: 'active',
-    accessType: 'custom',
-    permissions: {
-      dashboard: true,
-      companies: true,
-      activities: true,
-      calendar: true,
-      inventory: true,
-      leads: true,
-      ai: false,
-      devNotes: false,
-      askOpenAi: false,
-      users: false,
+    'Editor2026!',
+    '7a1b5d93e204f8c1'
+  ),
+  sanitizeUserPassword(
+    {
+      id: 'usr-producer',
+      name: 'Laura R. (Production Manager)',
+      email: 'laura@dadocreativestudio.com',
+      role: 'Production Manager & Set Coordinator',
+      badgeRole: 'Collaboratore',
+      status: 'active',
+      accessType: 'custom',
+      permissions: {
+        dashboard: true,
+        companies: true,
+        activities: true,
+        calendar: true,
+        inventory: true,
+        leads: true,
+        ai: false,
+        devNotes: true,
+        askOpenAi: true,
+        users: false,
+      },
+      lastLogin: '3 ore fa',
     },
-    lastLogin: '3 ore fa',
-  }
+    'Prod2026!',
+    '2e8d4f10a93c7b52'
+  ),
 ]
 
 const AuthContext = createContext(null)
 
-const USERS_STORAGE_KEY = 'dado_crm_users_v5'
-const ACTIVE_USER_ID_KEY = 'dado_crm_active_user_id_v5'
-const AUTH_STATUS_KEY = 'dado_crm_auth_status_v5'
+const USERS_STORAGE_KEY = 'dado_crm_users_v7'
+const ACTIVE_USER_ID_KEY = 'dado_crm_active_user_id_v6'
+const AUTH_STATUS_KEY = 'dado_crm_auth_status_v6'
 
 export function AuthProvider({ children }) {
   const [users, setUsers] = useState(() => {
     try {
       const saved =
         localStorage.getItem(USERS_STORAGE_KEY) ||
+        localStorage.getItem('dado_crm_users_v6') ||
+        localStorage.getItem('dado_crm_users_v5') ||
         localStorage.getItem('dado_crm_users_v4') ||
         localStorage.getItem('dado_crm_users_v3') ||
         localStorage.getItem('dado_crm_users_v2') ||
@@ -120,37 +139,67 @@ export function AuthProvider({ children }) {
           const merged = Array.from(map.values())
 
           return merged.map((u) => {
-            // Assicura che ogni utente abbia una password valida con simbolo
-            let pwd = u.password
-            if (!pwd) {
-              if (u.id === 'usr-admin') pwd = 'Admin2026!'
-              else if (u.id === 'usr-dipendente') pwd = 'Director2026!'
-              else pwd = 'DadoStudio2026!'
+            const fallbackPlain =
+              u.id === 'usr-admin'
+                ? 'Admin2026!'
+                : u.id === 'usr-dipendente'
+                ? 'Director2026!'
+                : u.id === 'usr-editor'
+                ? 'Editor2026!'
+                : u.id === 'usr-producer'
+                ? 'Prod2026!'
+                : 'DadoStudio2026!'
+
+            const fallbackSalt =
+              u.id === 'usr-admin'
+                ? '8f9a3c71b402e5d1'
+                : u.id === 'usr-dipendente'
+                ? '4c7e91a2d83f05b6'
+                : u.id === 'usr-editor'
+                ? '7a1b5d93e204f8c1'
+                : u.id === 'usr-producer'
+                ? '2e8d4f10a93c7b52'
+                : null
+
+            // Assicura che le voci Dashboard, Companies e Note Sviluppatore siano SEMPRE garantite e attive per tutti gli utenti
+            const basePermissions = {
+              ...u.permissions,
+              dashboard: true,
+              companies: true,
+              devNotes: true,
             }
 
-            if (u.id === 'usr-dipendente') {
-              return {
-                ...u,
-                password: pwd,
+            let normalizedUser = { ...u, permissions: basePermissions }
+
+            if (u.id === 'usr-producer') {
+              normalizedUser = {
+                ...normalizedUser,
+                name: 'Laura R. (Production Manager)',
+                email: 'laura@dadocreativestudio.com',
+                role: 'Production Manager & Set Coordinator',
+                permissions: basePermissions,
+              }
+            } else if (u.id === 'usr-dipendente') {
+              normalizedUser = {
+                ...normalizedUser,
                 name: u.name === 'Collaboratore (Dipendente)' ? 'Davide (Director)' : u.name.replace('Collaboratore', 'Davide').replace('(Dipendente)', '(Director)'),
                 role: (u.role === 'Dipendente Operativo' || u.role === 'Collaboratore') ? 'Director' : u.role,
                 badgeRole: (u.badgeRole === 'Dipendente' || u.badgeRole === 'Collaboratore') ? 'Director' : u.badgeRole,
                 email: u.email === 'dipendente@dadocreativestudio.com' ? 'davide@dadocreativestudio.com' : u.email,
                 permissions: {
-                  ...u.permissions,
+                  ...basePermissions,
                   dashboard: true,
+                  companies: true,
                   leads: true,
                   askOpenAi: true,
                   users: true,
                 },
               }
-            }
-            if (u.id === 'usr-admin') {
-              return {
-                ...u,
-                password: pwd,
+            } else if (u.id === 'usr-admin') {
+              normalizedUser = {
+                ...normalizedUser,
                 permissions: {
-                  ...u.permissions,
+                  ...basePermissions,
                   dashboard: true,
                   companies: true,
                   activities: true,
@@ -164,7 +213,9 @@ export function AuthProvider({ children }) {
                 },
               }
             }
-            return { ...u, password: pwd }
+
+            // ZERO PASSWORD IN CHIARO: converte eventuale password in passwordHash (pbkdf2$...) e rimuove il testo in chiaro
+            return sanitizeUserPassword(normalizedUser, fallbackPlain, fallbackSalt)
           })
         }
       }
@@ -194,10 +245,18 @@ export function AuthProvider({ children }) {
     return true // Default autenticato per preservare sessione attiva
   })
 
-  // Sincronizza modifiche utenti su localStorage
+  // Sincronizza modifiche utenti su localStorage (garantendo rimozione di qualsiasi campo password in chiaro)
   useEffect(() => {
     try {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users))
+      const safeUsers = users.map((u) => sanitizeUserPassword(u))
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(safeUsers))
+      // Rimuove vecchie chiavi legacy che potevano contenere password in chiaro
+      localStorage.removeItem('dado_crm_users_v6')
+      localStorage.removeItem('dado_crm_users_v5')
+      localStorage.removeItem('dado_crm_users_v4')
+      localStorage.removeItem('dado_crm_users_v3')
+      localStorage.removeItem('dado_crm_users_v2')
+      localStorage.removeItem('dado_crm_users')
     } catch (e) {
       console.warn('Errore salvataggio utenti:', e)
     }
@@ -225,12 +284,14 @@ export function AuthProvider({ children }) {
   const isDirector = currentUser.badgeRole === 'Director' || currentUser.role === 'Director' || currentUser.id === 'usr-dipendente'
   const isDipendente = currentUser.badgeRole === 'Dipendente' || isDirector || currentUser.accessType === 'restricted' || currentUser.id === 'usr-dipendente'
 
-  const canSendDevNotes = Boolean(currentUser.permissions?.devNotes)
-  const canAskOpenAI = Boolean(currentUser.permissions?.askOpenAi) || isDirector || isAdmin
+  const canSendDevNotes = true
+  const canAskOpenAI = true
 
   function canAccess(moduleName) {
     if (!currentUser) return false
     if (isAdmin) return true
+    if (moduleName === 'dashboard') return true // La voce Dashboard è SEMPRE accessibile a tutti gli utenti
+    if (moduleName === 'companies') return true // La voce Companies (Aziende & Contratti) è SEMPRE accessibile a tutti gli utenti
     if (moduleName === 'users') return true // La sezione Utenti & Permessi di Accesso è sempre consultabile
     return Boolean(currentUser.permissions?.[moduleName])
   }
@@ -246,12 +307,20 @@ export function AuthProvider({ children }) {
       return { success: false, error: 'Nessun utente trovato con questa email nel CRM.' }
     }
 
-    if (found.password && found.password !== password) {
+    const storedHash = found.passwordHash || found.password
+    if (storedHash && !verifyPasswordSync(password, storedHash)) {
       return { success: false, error: 'Password errata. Riprova con le credenziali corrette.' }
     }
 
     setActiveUserId(found.id)
     setIsAuthenticated(true)
+    try {
+      sessionStorage.removeItem('dado_smart_toast_dismissed')
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.__dadoSmartToastVisible = true
+      window.dispatchEvent(new CustomEvent('dado-smart-notification-login', { detail: { show: true } }))
+    }
     return { success: true, user: found }
   }
 
@@ -289,41 +358,42 @@ export function AuthProvider({ children }) {
       : isDirectorRole
       ? {
           dashboard: true,
-          companies: false,
+          companies: true,
           activities: true,
           calendar: true,
           inventory: false,
           leads: true,
           ai: false,
-          devNotes: false,
+          devNotes: true,
           askOpenAi: true,
           users: false,
         }
       : {
           dashboard: true,
-          companies: false,
+          companies: true,
           activities: true,
           calendar: true,
           inventory: false,
           leads: false,
           ai: false,
-          devNotes: false,
-          askOpenAi: false,
+          devNotes: true,
+          askOpenAi: true,
           users: false,
         }
 
-    const newUser = {
+    // Trasforma subito la password in codice crittografico irreversibile pbkdf2$... e non salva mai la password originale
+    const newUser = sanitizeUserPassword({
       id: 'usr-' + Date.now(),
       name: userData.name?.trim() || 'Nuovo Utente Studio',
       email: userData.email.trim(),
-      password: userData.password || 'DadoStudio2026!',
+      passwordHash: hashPasswordSync(userData.password || 'DadoStudio2026!'),
       role: roleName,
       badgeRole: roleName,
       status: 'active',
       accessType: isAdminRole ? 'admin' : 'restricted',
       permissions: userData.permissions || defaultPermissions,
       lastLogin: 'Registrato ora',
-    }
+    })
 
     setUsers((prev) => [newUser, ...prev])
     setActiveUserId(newUser.id)
@@ -340,11 +410,24 @@ export function AuthProvider({ children }) {
   }
 
   function updateUser(updatedUser) {
-    setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)))
+    setUsers((prev) =>
+      prev.map((u) => {
+        if (u.id !== updatedUser.id) return u
+        // Se l'amministratore ha impostato una nuova password (newPassword o password), la cifra subito in pbkdf2$...
+        // Altrimenti mantiene il passwordHash esistente senza mai salvare testo in chiaro
+        const merged = {
+          ...u,
+          ...updatedUser,
+          passwordHash: updatedUser.passwordHash || u.passwordHash,
+        }
+        return sanitizeUserPassword(merged)
+      })
+    )
   }
 
   function addUser(newUser) {
-    setUsers((prev) => [newUser, ...prev])
+    const safeNewUser = sanitizeUserPassword(newUser)
+    setUsers((prev) => [safeNewUser, ...prev])
   }
 
   function deleteUser(userId) {

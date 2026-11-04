@@ -103,10 +103,10 @@ export default function CameraShutter({ trigger, onMidpoint, duration = 650 }) {
           
           {/* Anello millimetrato scala diaframmi f/1.4 - f/16 */}
           <div className="absolute inset-6 rounded-full border border-white/10 flex items-center justify-center">
-            <div className="absolute top-2 text-[10px] font-mono tracking-widest text-[#00ffaa] font-bold">
+            <div className="absolute top-2 text-[10px] tracking-widest text-[#00ffaa] font-bold">
               f/1.4 ── 2.8 ── 5.6 ── 11 ── 16
             </div>
-            <div className="absolute bottom-2 text-[9px] font-mono tracking-wider text-white/50">
+            <div className="absolute bottom-2 text-[10px] font-semibold tracking-wider text-white/50">
               DADO CINE 50mm T1.2 • SONY E-MOUNT
             </div>
           </div>

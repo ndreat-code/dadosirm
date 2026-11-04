@@ -1,5 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, Fragment } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useDeviceMode } from '../context/DeviceModeContext'
+import PageTopBand from '../components/PageTopBand'
+import { RotateCcw, X as CloseIcon, Archive, Paperclip } from 'lucide-react'
 import Company3DIcon from '../components/Company3DIcon'
 import {
   Calendar,
@@ -23,10 +26,21 @@ import {
   Sparkles,
   Lock,
   X,
+  Zap,
+  RefreshCw,
+  ShieldCheck,
+  Users,
+  History,
+  Trash2,
+  Table,
+  LayoutList,
+  ChevronRight,
 } from 'lucide-react'
+import B2BEnrichmentModal from '../components/B2BEnrichmentModal'
+import HorizontalTableScroller from '../components/HorizontalTableScroller'
 
 // Helper per determinare lo stato di relazione / pagamento dell'azienda
-export function getCompanyRelationshipStatus(comp) {
+function getCompanyRelationshipStatus(comp) {
   if (comp.relationshipStatus) {
     switch (comp.relationshipStatus) {
       case 'lead_inbound':
@@ -70,7 +84,7 @@ export function getCompanyRelationshipStatus(comp) {
 }
 
 // Helper per determinare canale di ingresso, motivo del contatto e asset DADO
-export function getCompanyAcquisitionChannel(comp) {
+function getCompanyAcquisitionChannel(comp) {
   if (comp.acquisitionChannel) return comp.acquisitionChannel
   const ch = (comp.firstContact?.channel || '').toLowerCase()
   const name = (comp.name || '').toLowerCase()
@@ -127,7 +141,7 @@ export function getCompanyAcquisitionChannel(comp) {
 }
 
 // ── Acronimo B.A.N.T. con colori DADO in Switzer per sfondo chiaro ──
-export function BantLogoMark({ size = 'sm', bant = null }) {
+function BantLogoMark({ size = 'sm', bant = null }) {
   const isSm = size === 'sm'
   const hasB = bant ? bant.hasB : true
   const hasA = bant ? bant.hasA : true
@@ -146,21 +160,21 @@ export function BantLogoMark({ size = 'sm', bant = null }) {
       >
         B
       </span>
-      <span className="text-slate-400 text-xs font-black">·</span>
+      <span className="text-slate-400 text-[15px] font-black">·</span>
       {/* A • Authority */}
       <span
         className={`font-black ${isSm ? 'text-[14px]' : 'text-[17px]'} ${hasA ? 'text-[#dc2626]' : 'text-slate-300'} leading-none`}
       >
         A
       </span>
-      <span className="text-slate-400 text-xs font-black">·</span>
+      <span className="text-slate-400 text-[15px] font-black">·</span>
       {/* N • Need */}
       <span
         className={`font-black ${isSm ? 'text-[14px]' : 'text-[17px]'} ${hasN ? 'text-[#0284c7]' : 'text-slate-300'} leading-none`}
       >
         N
       </span>
-      <span className="text-slate-400 text-xs font-black">·</span>
+      <span className="text-slate-400 text-[15px] font-black">·</span>
       {/* T • Timeline */}
       <span
         className={`font-black ${isSm ? 'text-[14px]' : 'text-[17px]'} ${hasT ? 'text-[#d97706]' : 'text-slate-300'} leading-none`}
@@ -172,7 +186,7 @@ export function BantLogoMark({ size = 'sm', bant = null }) {
 }
 
 // Calcolo qualificazione B.A.N.T.
-export function getCompanyBant(comp) {
+function getCompanyBant(comp) {
   let budget = comp.bant?.budget
   let authority = comp.bant?.authority
   let need = comp.bant?.need
@@ -197,8 +211,8 @@ export function getCompanyBant(comp) {
   }
 
   if (need === undefined) {
-    if (comp.firstContact?.notes) {
-      need = comp.firstContact.notes
+    if (Array.isArray(comp.subjectRequests) && comp.subjectRequests.length > 0) {
+      need = comp.subjectRequests.join(' • ')
     } else if (comp.requestedMaterials?.length) {
       need = comp.requestedMaterials[0]
     } else {
@@ -248,7 +262,7 @@ export function getCompanyBant(comp) {
 }
 
 // ── Helper per formattare la data contratto in italiano (GG/MM/AAAA) ──
-export function formatContractDate(dateStr) {
+function formatContractDate(dateStr) {
   if (!dateStr) return '-'
   try {
     const parts = dateStr.split('T')[0].split('-')
@@ -264,7 +278,7 @@ export function formatContractDate(dateStr) {
 }
 
 // ── Dizionario Storico Contratti per Azienda (ordinati cronologicamente dal primo al più recente) ──
-export const KNOWN_CONTRACTS_HISTORY = {
+const KNOWN_CONTRACTS_HISTORY = {
   'comp-1': [
     {
       code: 'DADO-CTR-2026-079',
@@ -510,7 +524,7 @@ export const KNOWN_CONTRACTS_HISTORY = {
 }
 
 // ── Helper per estrarre lo storico contratti in ordine temporale dal primo al più recente ──
-export function getCompanyContractsHistory(comp) {
+function getCompanyContractsHistory(comp) {
   let list = []
   if (comp.contractsHistory && Array.isArray(comp.contractsHistory) && comp.contractsHistory.length > 0) {
     list = [...comp.contractsHistory]
@@ -538,17 +552,179 @@ export function getCompanyContractsHistory(comp) {
   return list
 }
 
+const MONDAY_GROUPS = [
+  {
+    id: 'lead_inbound',
+    title: 'LEAD & INBOUND',
+    emoji: '🎯',
+    color: '#0073ea',
+    bg: '#f0f7ff',
+    border: '#cce3fd',
+    tag: 'LEAD',
+    subtitle: 'Primo contatto & proposta commerciale',
+  },
+  {
+    id: 'in_attesa_risposta',
+    title: 'IN ATTESA RISPOSTA',
+    emoji: '🔄',
+    color: '#a25ddc',
+    bg: '#fbf7ff',
+    border: '#eedafc',
+    tag: 'IN ATTESA',
+    subtitle: 'Preventivo inviato / delibera cliente',
+  },
+  {
+    id: 'in_coda_pagamento',
+    title: 'IN CODA PAGAMENTO',
+    emoji: '⏳',
+    color: '#fdab3d',
+    bg: '#fffbf2',
+    border: '#fee8c4',
+    tag: 'ATTESA PAGAMENTO',
+    subtitle: 'Lavoro confermato, acconto o saldo in attesa',
+  },
+  {
+    id: 'lavoro_concluso',
+    title: 'LAVORO CONCLUSO',
+    emoji: '✅',
+    color: '#00c875',
+    bg: '#f2fcf7',
+    border: '#c3f5df',
+    tag: 'CONCLUSO',
+    subtitle: 'Commesse completate e saldate',
+  },
+]
+
+// Stili condivisi del form "Nuova Scheda Azienda": campi che non escono mai dal riquadro
+const NC_LABEL = 'block text-[12.5px] font-extrabold text-slate-600 uppercase tracking-wide mb-1 break-words'
+const NC_INPUT = 'w-full min-w-0 bg-white border border-slate-300 focus:border-[#0284c7] focus:ring-1 focus:ring-[#0284c7] rounded-lg px-3 py-2 text-[16px] text-slate-900 font-semibold placeholder:text-slate-400 placeholder:font-medium placeholder:text-[14px] outline-none'
+const NC_SECTION = 'rounded-xl border border-slate-200 bg-slate-50/70 p-3 sm:p-4'
+const NC_SECTION_TITLE = 'flex items-center gap-2 text-[12.5px] font-black uppercase tracking-wider text-[#0284c7] mb-3 pb-2 border-b border-sky-100'
+const NC_BADGE = 'w-5 h-5 rounded-full bg-[#0284c7] text-white text-[11px] font-black flex items-center justify-center shrink-0'
+
 export default function Companies() {
   const { isDipendente } = useAuth()
+  const { isMobileApp } = useDeviceMode()
   const [companies, setCompanies] = useState([])
+  // Schede rimosse (recuperabili): salvate in locale perché il server non ha un DELETE aziende
+  const [removedCompanies, setRemovedCompanies] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('dado_crm_removed_companies') || '[]') } catch { return [] }
+  })
+  const [showRemovedModal, setShowRemovedModal] = useState(false)
+  useEffect(() => {
+    localStorage.setItem('dado_crm_removed_companies', JSON.stringify(removedCompanies))
+  }, [removedCompanies])
+  const restoreCompany = (comp) => {
+    setRemovedCompanies(prev => prev.filter(c => c.id !== comp.id))
+    setCompanies(prev => prev.some(c => c.id === comp.id) ? prev : [comp, ...prev])
+  }
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterRelationship, setFilterRelationship] = useState('all')
   const [filterBant, setFilterBant] = useState('all')
   const [sortBy, setSortBy] = useState('recent') // 'recent' (default), 'compensation_desc', 'rating_desc'
   const [expandedId, setExpandedId] = useState(null)
+  const [viewMode, setViewMode] = useState('monday') // 'monday' (default) | 'cards'
+  const [collapsedGroups, setCollapsedGroups] = useState({})
+  const toggleGroupCollapse = (groupId) => {
+    setCollapsedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }))
+  }
   const [showAddModal, setShowAddModal] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
+  const [showEnrichModal, setShowEnrichModal] = useState(false)
+  const [enrichModalQuery, setEnrichModalQuery] = useState('')
+  const [enrichLoading, setEnrichLoading] = useState(false)
+  const [enrichFeedback, setEnrichFeedback] = useState(null)
+  const [enrichVatInput, setEnrichVatInput] = useState('')
+
+
+  const INITIAL_NEW_COMPANY_FORM = {
+    name: '',
+    piva: '',
+    fiscalCode: '',
+    industry: '',
+    contactPerson: '',
+    role: '',
+    email: '',
+    phone: '',
+    mobile: '',
+    address: '',
+    sdi: '',
+    pec: '',
+    amount: '8000',
+    deposit: '2500',
+    workDates: 'Da concordare',
+    scheduleType: 'Un giorno intero',
+    firstContactChannel: 'Inbound B2B Enrichment',
+    firstContactNotes: '',
+    materials: 'Shooting Video Corporate Stabilimento 4K, Spot ADV HDR Limbo Studio',
+    contractTerms: '30% acconto alla conferma, 70% a 30gg d.f.'
+  }
+
+  const [newCompanyForm, setNewCompanyForm] = useState(INITIAL_NEW_COMPANY_FORM)
+
+  async function handleAutoEnrichInForm(queryVal) {
+    const q = (queryVal || enrichVatInput || newCompanyForm.piva || newCompanyForm.name || '').trim()
+    if (!q) return
+    setEnrichLoading(true)
+    setEnrichFeedback(null)
+    try {
+      const res = await fetch('/api/crm/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q })
+      })
+      const data = await res.json()
+      if (res.ok && data.success && data.company) {
+        const c = data.company
+        setNewCompanyForm(prev => ({
+          ...prev,
+          name: c.legalName || c.brandName || prev.name,
+          piva: c.vatNumber || prev.piva,
+          fiscalCode: c.fiscalCode || prev.fiscalCode,
+          industry: c.atecoDescription ? `${c.atecoCode} - ${c.atecoDescription.split(' e ')[0]}` : prev.industry,
+          contactPerson: c.decisionMakers?.[0]?.name || prev.contactPerson,
+          role: c.decisionMakers?.[0]?.role || prev.role,
+          email: c.decisionMakers?.[0]?.email || prev.email,
+          phone: c.phone || prev.phone,
+          mobile: c.decisionMakers?.[0]?.mobile || prev.mobile,
+          address: c.legalAddress ? `${c.legalAddress.street}, ${c.legalAddress.zip} ${c.legalAddress.city} (${c.legalAddress.province})` : prev.address,
+          sdi: c.sdiCode || prev.sdi,
+          pec: c.pec || prev.pec,
+          amount: c.suggestedBudget ? String(c.suggestedBudget) : prev.amount,
+          deposit: c.suggestedBudget ? String(Math.round(c.suggestedBudget * 0.3)) : prev.deposit,
+          materials: (c.recommendedDadoServices || []).join(', '),
+          contractTerms: c.recommendedPaymentTerms || prev.contractTerms,
+          firstContactNotes: `Arricchito automaticamente tramite B2B Intelligence (${data.matchedSource}). Rating D&B: ${c.creditRating}. Paydex: ${c.paydexScore}. Fatturato: ${c.revenueRange}.`
+        }))
+        setEnrichFeedback(`✓ Scheda completata con successo! Fonte: ${data.matchedSource} (Rating D&B: ${c.creditRating})`)
+      } else {
+        setEnrichFeedback(`⚠️ ${data.error || 'Dati non trovati nei registri camerali'}`)
+      }
+    } catch (err) {
+      setEnrichFeedback(`⚠️ Errore durante l'arricchimento B2B: ${err.message}`)
+    } finally {
+      setEnrichLoading(false)
+    }
+  }
+
+  async function handleEnrichExistingCompany(comp) {
+    try {
+      const res = await fetch(`/api/crm/companies/${comp.id}/enrich`, {
+        method: 'PUT'
+      })
+      const data = await res.json()
+      if (res.ok && data.success && data.company) {
+        setCompanies(prev => prev.map(c => c.id === comp.id ? data.company : c))
+      } else {
+        setEnrichModalQuery(comp.piva || comp.name)
+        setShowEnrichModal(true)
+      }
+    } catch {
+      setEnrichModalQuery(comp.piva || comp.name)
+      setShowEnrichModal(true)
+    }
+  }
 
   function handleCopy(text, fieldKey, e) {
     if (e) e.stopPropagation()
@@ -568,7 +744,9 @@ export default function Companies() {
         if (res.ok) {
           const data = await res.json()
           if (data.companies && data.companies.length > 0) {
-            setCompanies(data.companies)
+            let removedIds = []
+            try { removedIds = JSON.parse(localStorage.getItem('dado_crm_removed_companies') || '[]').map(c => c.id) } catch { /* ignore */ }
+            setCompanies(data.companies.filter(c => !removedIds.includes(c.id)))
             setLoading(false)
             return
           }
@@ -579,6 +757,12 @@ export default function Companies() {
       setLoading(false)
     }
     loadCompanies()
+    window.addEventListener('dado-companies-updated', loadCompanies)
+    window.addEventListener('dado-activities-updated', loadCompanies)
+    return () => {
+      window.removeEventListener('dado-companies-updated', loadCompanies)
+      window.removeEventListener('dado-activities-updated', loadCompanies)
+    }
   }, [])
 
   // Filtro e ordinamento con lavori imminenti in primo piano
@@ -635,139 +819,641 @@ export default function Companies() {
     return list
   }, [companies, search, filterRelationship, filterBant, sortBy])
 
+  // Statistiche relazionali e conteggi per filtri rapidi metallizzati
+  const companyStats = useMemo(() => {
+    let lead = 0
+    let pending = 0
+    let payment = 0
+    let concluded = 0
+    for (const c of companies) {
+      const rel = getCompanyRelationshipStatus(c)
+      if (rel.key === 'lead_inbound') lead++
+      else if (rel.key === 'in_attesa_risposta') pending++
+      else if (rel.key === 'in_coda_pagamento') payment++
+      else if (rel.key === 'lavoro_concluso') concluded++
+    }
+    return {
+      all: companies.length,
+      lead_inbound: lead,
+      in_attesa_risposta: pending,
+      in_coda_pagamento: payment,
+      lavoro_concluso: concluded,
+    }
+  }, [companies])
+
+  const renderCompanyDetails = (comp, relStatus, bant, acq, contactEmail, contactPhone, contractsHistory, isDone) => (
+    <div className="flex flex-col gap-4 relative z-10 text-slate-800" style={{ fontFamily: '"Switzer", sans-serif' }}>
+      {/* ── I 3 RIQUADRI ORGANIZZATI ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-sm">
+        {/* Riquadro 1: Referente, Recapiti Diretti & Canale */}
+        <div className="flex flex-col justify-between min-w-0 bg-white/90 p-4 rounded-xl border border-sky-100 shadow-2xs">
+          <div>
+            <div className="text-[14px] font-black uppercase tracking-wider text-[#0284c7] flex items-center gap-1.5 mb-1.5">
+              <User className="w-3.5 h-3.5 text-[#0284c7]" />
+              <span>REFERENTE & INDIRIZZO EMAIL</span>
+            </div>
+            <div className="font-black text-slate-900 text-base md:text-[17px] truncate" title={comp.contactPerson?.name}>
+              {comp.contactPerson?.name || 'Referente non indicato'}
+            </div>
+            <div className="text-[14px] text-slate-600 truncate font-semibold mt-0.5">
+              {comp.contactPerson?.role || comp.contact?.role || 'Referente aziendale'}
+            </div>
+            {contactEmail && (
+              <div className="text-[13px] text-[#0284c7] font-bold truncate mt-1" title={contactEmail}>
+                ✉ {contactEmail}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between gap-1.5 mt-3 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              {contactEmail && (
+                <button
+                  type="button"
+                  onClick={(e) => handleCopy(contactEmail, `${comp.id}-email`, e)}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[13px] font-bold transition-all cursor-pointer border ${
+                    copiedField === `${comp.id}-email`
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                      : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
+                  }`}
+                  title={`Copia email: ${contactEmail}`}
+                >
+                  <Mail className="w-3 h-3 text-[#0284c7]" />
+                  <span>{copiedField === `${comp.id}-email` ? 'COPIATA' : 'COPIA MAIL'}</span>
+                </button>
+              )}
+              {contactPhone && (
+                <button
+                  type="button"
+                  onClick={(e) => handleCopy(contactPhone, `${comp.id}-phone`, e)}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[13px] font-bold transition-all cursor-pointer border ${
+                    copiedField === `${comp.id}-phone`
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                      : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
+                  }`}
+                  title={`Copia telefono: ${contactPhone}`}
+                >
+                  <Phone className="w-3 h-3 text-[#0284c7]" />
+                  <span>{copiedField === `${comp.id}-phone` ? 'COPIATO' : 'TEL'}</span>
+                </button>
+              )}
+            </div>
+
+            <span className="text-[13px] text-slate-500 font-medium truncate">
+              Canale: <strong className="text-slate-800 uppercase font-black">{acq?.shortChannel || 'INBOUND'}</strong>
+            </span>
+          </div>
+        </div>
+
+        {/* Riquadro 2: File allegati */}
+        <div className="flex flex-col justify-between min-w-0 bg-white/90 p-4 rounded-xl border border-sky-100 shadow-2xs">
+          <div>
+            <div className="text-[14px] font-black uppercase tracking-wider text-[#0284c7] flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Paperclip className="w-4 h-4 text-[#0284c7]" />
+                <span>ALLEGATI & CONTRATTI</span>
+              </div>
+              <span className="text-[12px] font-black px-2 py-0.5 rounded bg-sky-100 text-[#0369a1]">
+                {contractsHistory.length > 0
+                  ? `${contractsHistory.length} FILE`
+                  : 'NESSUN FILE'}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-1.5 max-h-[140px] overflow-y-auto pr-1 custom-popup-scrollbar">
+              {contractsHistory.length === 0 && (
+                <span className="text-[14px] text-slate-400 font-medium">Nessun file allegato</span>
+              )}
+              {contractsHistory.map((ctr, idx) => (
+                <div key={ctr.code || idx} className="py-0.5 text-[14px] flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <Paperclip className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="text-[13px] text-slate-700 font-semibold truncate" title={ctr.title}>{ctr.title}</span>
+                  </span>
+                  <span className="text-right shrink-0 flex items-center gap-2">
+                    <strong className="font-black text-slate-900 text-[14px]">
+                      {isDipendente ? '•••• €' : `€ ${(ctr.amount || 0).toLocaleString('it-IT')}`}
+                    </strong>
+                    <span
+                      className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded uppercase ${
+                        ctr.status === 'Firmato' || ctr.status === 'Saldato'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {ctr.status}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end mt-2 text-[13px]">
+            <span className="text-slate-500 font-bold">
+              Totale: <strong className="text-[#0284c7] font-black">{isDipendente ? '•••• €' : `€ ${contractsHistory.reduce((s, c) => s + (c.amount || 0), 0).toLocaleString('it-IT')}`}</strong>
+            </span>
+          </div>
+        </div>
+
+        {/* Riquadro 3: Contratto Attivo & Criticità */}
+        <div className="flex flex-col justify-between min-w-0 bg-white/90 p-4 rounded-xl border border-sky-100 shadow-2xs">
+          <div>
+            <div className="text-[14px] font-black uppercase tracking-wider text-[#0284c7] flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5" />
+                <span>DETTAGLI CONTRATTO</span>
+              </div>
+              <span className="flex items-center gap-1 text-amber-600 font-black text-[14px]">
+                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                <span>{comp.feedback?.rating ? comp.feedback.rating.toFixed(1) : '5.0'}</span>
+              </span>
+            </div>
+            <div className="font-bold text-slate-900 text-sm truncate" title={comp.contract?.fileName}>
+              {comp.contract?.fileName || comp.contract?.code || 'CTR-DADO-2026'}
+            </div>
+            <div className="text-[13px] text-slate-500 truncate mt-0.5 font-medium">
+              Stato: <strong className="text-slate-800 font-bold">{comp.contract?.status?.toUpperCase() || 'IN VALUTAZIONE'}</strong> • Formato: <strong className="text-slate-700 font-bold">{comp.contract?.digitalFormat || 'PDF'}</strong>
+            </div>
+            {comp.contract?.terms && (
+              <div className="text-[12px] text-slate-600 truncate mt-1 font-medium" title={comp.contract.terms}>
+                Clausole: <strong className="text-slate-800">{comp.contract.terms}</strong>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3 text-[13px] truncate">
+            {comp.issues?.isResolved === 'Risolto' ? (
+              <span className="text-emerald-700 font-black flex items-center gap-1">
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                <span>CRITICITÀ RISOLTA (100%)</span>
+              </span>
+            ) : (
+              <span className="text-slate-400 font-medium">Nessuna criticità emersa</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SEZIONE DETTAGLI APPROFONDITA (BANT, LOCATION, MATERIALI CANON C70, AGGIORNAMENTI EMAIL) ── */}
+      <div className="p-4 bg-white/95 rounded-xl border border-sky-100 shadow-2xs flex flex-col gap-4">
+        {/* Sezione B.A.N.T. Approfondita */}
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <BantLogoMark size="md" bant={bant} />
+              <strong className="text-sm font-black uppercase tracking-wider text-slate-900">
+                QUALIFICAZIONE COMMERCIALE B.A.N.T.
+              </strong>
+            </div>
+            {bant.isComplete ? (
+              <span className="text-[13px] text-emerald-700 font-extrabold bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+                🟢 4/4 PARAMETRI RILEVATI • LEAD QUALIFICATO
+              </span>
+            ) : (
+              <span className="text-[13px] text-amber-800 font-extrabold bg-amber-100 px-2.5 py-0.5 rounded border border-amber-300">
+                ⚠️ {4 - bant.score} PARAMETRI MANCANTI: {bant.missingLabel.toUpperCase()}
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[14px]">
+            {/* Budget */}
+            <div className="min-w-0 bg-slate-50/80 p-2.5 rounded-lg border border-slate-200/60">
+              <div className="text-xs font-black uppercase text-[#16a34a] flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <span className="w-4 h-4 rounded bg-[#16a34a]/10 flex items-center justify-center text-[#16a34a] font-black text-[12px]">B</span>
+                  <span>BUDGET</span>
+                </span>
+                {!bant.hasB && <strong className="text-[11px] bg-amber-100 text-amber-800 px-1 py-0.2 rounded">DA DEFINIRE</strong>}
+              </div>
+              <div className="text-[15px] font-black text-slate-900 mt-1">
+                {isDipendente ? (
+                  <span className="text-slate-400 font-bold text-xs tracking-wider" title="Budget riservato ad Amministratore">
+                    🔒 Riservato
+                  </span>
+                ) : (
+                  bant.budget
+                )}
+              </div>
+              <div className="text-[12px] text-slate-500 mt-0.5">
+                Capacità di spesa allocata per l'intervento
+              </div>
+            </div>
+
+            {/* Authority */}
+            <div className="min-w-0 bg-slate-50/80 p-2.5 rounded-lg border border-slate-200/60">
+              <div className="text-xs font-black uppercase text-[#dc2626] flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <span className="w-4 h-4 rounded bg-[#dc2626]/10 flex items-center justify-center text-[#dc2626] font-black text-[12px]">A</span>
+                  <span>AUTHORITY</span>
+                </span>
+                {!bant.hasA && <strong className="text-[11px] bg-amber-100 text-amber-800 px-1 py-0.2 rounded">DA VERIFICARE</strong>}
+              </div>
+              <div className="text-[15px] font-black text-slate-900 mt-1 truncate" title={bant.authority}>
+                {bant.authority}
+              </div>
+              <div className="text-[12px] text-slate-500 mt-0.5">
+                Referente decisionale con potere di firma
+              </div>
+            </div>
+
+            {/* Need */}
+            <div className="min-w-0 bg-slate-50/80 p-2.5 rounded-lg border border-slate-200/60">
+              <div className="text-xs font-black uppercase text-[#0284c7] flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <span className="w-4 h-4 rounded bg-[#0284c7]/10 flex items-center justify-center text-[#0284c7] font-black text-[12px]">N</span>
+                  <span>NEED</span>
+                </span>
+                {!bant.hasN && <strong className="text-[11px] bg-amber-100 text-amber-800 px-1 py-0.2 rounded">DA CHIARIRE</strong>}
+              </div>
+              <div className="text-[14px] font-bold text-slate-900 mt-1 line-clamp-2 leading-snug" title={bant.need}>
+                {bant.need}
+              </div>
+              <div className="text-[12px] text-slate-500 mt-0.5">
+                Esigenza operativa e output atteso
+              </div>
+            </div>
+
+            {/* Timeline */}
+            <div className="min-w-0 bg-slate-50/80 p-2.5 rounded-lg border border-slate-200/60">
+              <div className="text-xs font-black uppercase text-[#d97706] flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <span className="w-4 h-4 rounded bg-[#d97706]/10 flex items-center justify-center text-[#d97706] font-black text-[12px]">T</span>
+                  <span>TIMELINE</span>
+                </span>
+                {!bant.hasT && <strong className="text-[11px] bg-amber-100 text-amber-800 px-1 py-0.2 rounded">DA FISSARE</strong>}
+              </div>
+              <div className="text-[15px] font-black text-slate-900 mt-1">
+                {bant.timeline}
+              </div>
+              <div className="text-[12px] text-slate-500 mt-0.5">
+                Finestra temporale di erogazione
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Griglia 2 Colonne Aperta */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2 border-t border-slate-100">
+          {/* Colonna 1: Storico, Orari e Aggiornamenti Strutturati da Email */}
+          <div className="flex flex-col gap-3">
+            <div className="min-w-0">
+              <strong className="text-[13px] font-black uppercase text-[#0284c7] flex items-center gap-1.5 mb-1.5">
+                <Clock className="w-4 h-4" />
+                PROGRAMMAZIONE ORARI & LOCATION
+              </strong>
+              <div className="text-sm font-extrabold text-slate-900">
+                {comp.workSchedule?.datesFormatted || 'Date da calendarizzare'}
+              </div>
+              <div className="text-[13px] text-slate-600 font-semibold mt-1">
+                Tipologia: <strong>{comp.workSchedule?.scheduleType}</strong>
+              </div>
+              <div className="text-[13px] text-slate-600 mt-0.5">
+                Orari: <strong>{comp.workSchedule?.hours || 'Standard'}</strong>
+              </div>
+              {comp.workSchedule?.location && (
+                <div className="text-[13px] text-slate-600 mt-0.5">
+                  Location: <strong>{comp.workSchedule?.location}</strong>
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0 bg-sky-50/60 p-3 rounded-xl border border-sky-200/70">
+              <strong className="text-[13px] font-black uppercase text-[#0284c7] flex items-center gap-1.5 mb-2">
+                <Mail className="w-4 h-4" />
+                AGGIORNAMENTI ESTRATTI DA EMAIL (SENZA TESTO ALLEGATO)
+              </strong>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[13px]">
+                <div>
+                  <span className="text-slate-500 font-bold block text-[11px] uppercase">Indirizzo Email:</span>
+                  <strong className="text-slate-900 font-black truncate block">{contactEmail || comp.contact?.email || 'Non rilevato'}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold block text-[11px] uppercase">Referente:</span>
+                  <strong className="text-slate-900 font-black truncate block">{comp.contactPerson?.name || 'Referente'} ({comp.contactPerson?.role || 'Aziendale'})</strong>
+                </div>
+                <div className="sm:col-span-2">
+                  <span className="text-slate-500 font-bold block text-[11px] uppercase">Dettagli Contratto:</span>
+                  <strong className="text-slate-900 font-bold block">
+                    {comp.contract?.status || 'In valutazione'} — {comp.contract?.terms || comp.compensation?.status || '50% acconto / 50% saldo'}
+                  </strong>
+                </div>
+                <div className="sm:col-span-2">
+                  <span className="text-slate-500 font-bold block text-[11px] uppercase mb-1">Richieste da Oggetto Mail:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(Array.isArray(comp.subjectRequests) && comp.subjectRequests.length > 0
+                      ? comp.subjectRequests
+                      : comp.firstContact?.lastEmailSubject
+                      ? [comp.firstContact.lastEmailSubject]
+                      : (comp.requestedMaterials || []).slice(0, 2)
+                    ).map((req, rIdx) => (
+                      <span key={rIdx} className="px-2 py-0.5 bg-white border border-sky-200 text-[#0369a1] text-[12px] font-extrabold rounded-md">
+                        {req}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Colonna 2: Materiali Canon C70, Contratto e Dettaglio Finanziario */}
+          <div className="flex flex-col gap-3">
+            <div className="min-w-0">
+              <strong className="text-[13px] font-black uppercase text-[#0284c7] flex items-center gap-1.5 mb-1.5">
+                <Camera className="w-4 h-4" />
+                MATERIALI & OUTPUT RICHIESTI
+              </strong>
+              <div className="flex flex-wrap gap-1.5">
+                {comp.requestedMaterials?.map((item, i) => (
+                  <span
+                    key={i}
+                    className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-800 text-[13px] font-bold rounded-md"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center justify-between mb-1.5">
+                <strong className="text-[13px] font-black uppercase text-slate-900 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-[#0284c7]" />
+                  FILE ALLEGATI
+                </strong>
+                <span className="text-[12px] font-extrabold px-2 py-0.5 bg-sky-100 text-[#0369a1] rounded">
+                  {contractsHistory.length} FILE
+                </span>
+              </div>
+              <div className="flex flex-col gap-1.5 mt-1">
+                {contractsHistory.map((ctr, idx) => (
+                  <div key={ctr.code || idx} className="py-0.5 text-[13px]">
+                    <div className="flex items-center justify-between font-bold text-slate-900">
+                      <span className="flex items-center gap-1.5">
+                        <Paperclip className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="font-bold text-[13px]">{ctr.title}</span>
+                      </span>
+                      <span className="text-[#0284c7] font-black">{isDipendente ? '•••• €' : `€ ${(ctr.amount || 0).toLocaleString('it-IT')}`}</span>
+                    </div>
+                    {ctr.terms && (
+                      <div className="text-[12px] text-slate-500 mt-0.5">
+                        <strong>Termini:</strong> {ctr.terms}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Riga Inferiore: Feedback e Risoluzione Criticità */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2 border-t border-slate-100">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <strong className="text-[13px] font-black uppercase text-slate-800 flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                FEEDBACK SULLA COLLABORAZIONE
+              </strong>
+              <strong className="text-[13px] font-black text-slate-800">
+                ★ {comp.feedback?.rating} / 5.0
+              </strong>
+            </div>
+            <p className="text-[13px] text-slate-800 italic leading-relaxed">
+              "{comp.feedback?.notes}"
+            </p>
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <strong className="text-[13px] font-black uppercase text-emerald-800 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                GESTIONE CRITICITÀ
+              </strong>
+              <span className="text-[11px] font-extrabold px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded">
+                ✓ {comp.issues?.isResolved?.toUpperCase()}
+              </span>
+            </div>
+            <div className="text-[13px] text-slate-800 mb-0.5">
+              <strong>Criticità:</strong> {comp.issues?.description}
+            </div>
+            <div className="text-[13px] text-emerald-900 font-medium">
+              <strong>Soluzione adottata:</strong> {comp.issues?.resolution}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div
-      className="h-full min-h-screen md:min-h-0 flex flex-col flex-1 relative overflow-hidden"
+      className="h-full min-h-0 flex flex-col flex-1 relative overflow-hidden"
       style={{
         backgroundColor: 'transparent',
         fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
+      {/* ── BANDA SUPERIORE: Titolo "Companies" immerso nella banda scura (#2d3139), senza icona, più spessa di 0,3 cm rispetto alla dashboard ── */}
+      {/* ── BANDA SUPERIORE CON SFUMATURA ARMONIZZATA ALLO SFONDO DI COMPANIES ── */}
+      <PageTopBand title="Companies" theme="companies" thickDesktop={true} />
+
       {/* ── CANVAS AZZURRO TENUE (Angolo superiore sinistro retto a filo con la barra laterale) ── */}
       <div
-        className="h-full flex-1 rounded-tl-none rounded-bl-[48px] flex flex-col justify-between relative min-w-0 overflow-hidden"
+        className={`h-full flex-1 rounded-tl-none ${isMobileApp ? 'rounded-bl-[32px]' : 'rounded-bl-[48px]'} flex flex-col justify-between relative min-w-0 overflow-hidden`}
         style={{
           background: 'linear-gradient(180deg, #f0f8fd 0%, #e5f3fa 100%)',
           borderLeft: '1.5px solid #d4ebf9',
-          boxShadow: '-6px 0 24px rgba(0, 0, 0, 0.4)',
+          boxShadow: '-10px 14px 24px -6px rgba(0, 0, 0, 0.38)',
           borderTopLeftRadius: '0px',
         }}
       >
-        {/* ── AREA PRINCIPALE CON TESTATA AZ & CO ── */}
-        <div className="flex-1 min-h-0 px-4 md:px-7 py-3 overflow-y-auto">
+        {/* ── AREA PRINCIPALE: TESTATA E FILTRI IN STILE NOTION (COME TASKS) ── */}
+        <div className={`flex-1 min-h-0 ${isMobileApp ? 'px-2.5 py-2' : 'px-4 md:px-7 py-3'} overflow-y-auto`}>
 
-          {/* ── TESTATA IN SWITZER CON TITOLO AZ & CO E BADGE CONTRACTS ── */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 pb-3 border-b border-sky-200/80">
-            {/* Sinistra: Titolo e Badge CONTRACTS */}
-            <div className="flex-shrink-0">
-              <h1
-                className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5"
-                style={{ fontFamily: '"Switzer", sans-serif' }}
-              >
-                <span>Az & Co</span>
-                <span
-                  className="px-3.5 py-1 rounded-[6px] shadow-xs inline-flex items-center leading-none"
-                  style={{
-                    backgroundColor: 'rgba(26, 43, 76, 0.93)',
-                    border: '1px solid rgba(148, 163, 184, 0.25)',
+          {/* ── TOOLBAR NOTION STYLE (Sotto la banda superiore) ── */}
+          <div className={`${isMobileApp ? 'mb-2.5 pb-2' : 'mb-4 pb-3'} border-b border-slate-200`}>
+            <div className="flex items-center justify-between gap-1.5 flex-wrap">
+              {/* Sinistra: Pulsante aggiunta "+ New Company", B2B e Switcher Vista */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewCompanyForm(INITIAL_NEW_COMPANY_FORM)
+                    setEnrichVatInput('')
+                    setEnrichFeedback(null)
+                    setShowAddModal(true)
                   }}
+                  className={`flex items-center gap-1 ${isMobileApp ? 'px-2.5 py-1 text-[11.5px]' : 'px-3.5 py-1.5 text-[15px]'} bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg transition-all shadow-2xs active:scale-95 cursor-pointer`}
+                  title="Crea una nuova scheda azienda"
                 >
-                  <span
-                    className="text-[calc(1.5rem-5pt)] md:text-[calc(1.875rem-5pt)] font-black tracking-wider uppercase leading-none inline-flex items-center select-none"
-                    style={{
-                      background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 22%, #cbd5e1 48%, #94a3b8 72%, #cbd5e1 88%, #ffffff 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      filter: 'drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35)) drop-shadow(0 0 1px rgba(255, 255, 255, 0.5))',
-                    }}
-                  >
-                    contracts
-                  </span>
-                </span>
-              </h1>
-              <p className="text-xs text-slate-500 font-semibold mt-0.5 leading-normal">
-                Anagrafica clienti, accordi contrattuali e compensi
-              </p>
-            </div>
+                  <span>+ New Company</span>
+                </button>
 
-            {/* Centro: BARRA DI RICERCA CENTRATA */}
-            <div className="flex-1 flex justify-center px-2 min-w-0">
-              <div className="relative w-full max-w-[380px] sm:max-w-[440px] md:max-w-[480px]">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0284c7] stroke-[2.5] pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Cerca azienda, referente, telefono, contratto..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-white border-2 border-[#0284c7] hover:border-[#0369a1] focus:border-[#0369a1] focus:ring-2 focus:ring-[#0284c7]/20 rounded-full pl-10 pr-9 py-2.5 text-xs md:text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-bold shadow-xs transition-all leading-normal"
-                  style={{
-                    fontFamily: '"Switzer", sans-serif',
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEnrichModalQuery('')
+                    setShowEnrichModal(true)
                   }}
-                />
-                {search && (
+                  className={`flex items-center gap-1 ${isMobileApp ? 'px-2 py-1 text-[11.5px]' : 'px-2 py-1.5 text-[15px]'} font-semibold text-slate-600 hover:text-slate-900 rounded-md hover:bg-slate-200/60 transition-colors cursor-pointer`}
+                  title="Interroga database B2B (Atoka, LinkedIn, CCIAA, Dun & Bradstreet) tramite Partita IVA o Nome"
+                >
+                  <Zap className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{isMobileApp ? 'B2B' : 'B2B Enrichment'}</span>
+                </button>
+
+                {/* Riquadro Switcher Vista Monday Table vs Schede */}
+                <div className="inline-flex items-center p-0.5 bg-slate-200/80 rounded-lg border border-slate-300/80">
                   <button
                     type="button"
-                    onClick={() => setSearch('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0284c7] font-bold p-1 cursor-pointer transition-colors"
-                    title="Cancella ricerca"
+                    onClick={() => setViewMode('monday')}
+                    className={`flex items-center gap-1 ${isMobileApp ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-[13px]'} font-bold rounded-md transition-all cursor-pointer ${
+                      viewMode === 'monday'
+                        ? 'bg-white text-slate-900 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="Visualizza come righe orizzontali scrollabili indipendenti"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <Table className="w-3 h-3 text-blue-600" />
+                    <span>{isMobileApp ? 'Monday' : 'Tabella Monday'}</span>
                   </button>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('cards')}
+                    className={`flex items-center gap-1 ${isMobileApp ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-[13px]'} font-bold rounded-md transition-all cursor-pointer ${
+                      viewMode === 'cards'
+                        ? 'bg-white text-slate-900 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="Visualizza come schede classiche"
+                  >
+                    <LayoutList className="w-3 h-3 text-slate-600" />
+                    <span>Schede</span>
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Destra: Pulsante Nuova Azienda */}
-            {!isDipendente && (
-              <div className="flex items-center gap-2 flex-shrink-0">
+          {/* ── BARRA FILTRI NOTION STYLE: TAB DI STATO + VOCE RIMOSSE DALLA PARTE OPPOSTA A "TUTTE" + FILTRI RAPIDI + RICERCA ── */}
+          <div className={`${isMobileApp ? 'mb-3 space-y-2' : 'mb-4 space-y-2.5'}`}>
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200">
+              {/* Riga Classificazioni: Tutte / Lead / In attesa / Pagamento / Concluso + Rimosse dalla parte opposta a Tutte */}
+              <div className="flex items-center justify-between gap-1.5 flex-wrap w-full">
+                <div className="flex items-center gap-1 flex-wrap">
+                  {[
+                    { id: 'all', label: 'Tutte', dotColor: '#64748b', count: companyStats.all },
+                    { id: 'lead_inbound', label: isMobileApp ? 'Lead' : 'Lead & Inbound', dotColor: '#0284c7', count: companyStats.lead_inbound },
+                    { id: 'in_attesa_risposta', label: 'In attesa', dotColor: '#8b5cf6', count: companyStats.in_attesa_risposta },
+                    { id: 'in_coda_pagamento', label: isMobileApp ? 'Pagamento' : 'Coda pagamento', dotColor: '#f59e0b', count: companyStats.in_coda_pagamento },
+                    { id: 'lavoro_concluso', label: 'Concluso', dotColor: '#16a34a', count: companyStats.lavoro_concluso },
+                  ].map(f => {
+                    const isActive = filterRelationship === f.id
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFilterRelationship(prev => prev === f.id && f.id !== 'all' ? 'all' : f.id)}
+                        className={`flex items-center gap-1 ${isMobileApp ? 'px-2 py-1 text-[11.5px]' : 'px-2.5 py-1 text-[15px]'} font-semibold rounded-md transition-all cursor-pointer border ${
+                          isActive
+                            ? 'bg-white text-slate-900 shadow-2xs border-slate-200/90'
+                            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 border-transparent'
+                        }`}
+                        title={`Filtra ${f.label}`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: f.dotColor }} />
+                        <span>{f.label}</span>
+                        <span className={`${isMobileApp ? 'text-[10.5px]' : 'text-[13px]'} px-1 py-0.2 bg-slate-100 rounded text-slate-500 font-bold ml-0.5`}>
+                          {f.count}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Riquadro Rimosse con numero aggiornato posizionato dalla parte opposta al riquadro "Tutte" */}
                 <button
-                  onClick={() => setShowAddModal(true)}
-                  className="px-4 py-2.5 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer shrink-0"
-                  style={{ fontFamily: '"Switzer", sans-serif', fontWeight: 800 }}
+                  type="button"
+                  onClick={() => setShowRemovedModal(true)}
+                  className={`ml-auto flex items-center gap-1 ${isMobileApp ? 'px-2.5 py-1 text-[11.5px]' : 'px-2.5 py-1 text-[15px]'} font-semibold text-slate-600 hover:text-slate-900 rounded-md bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs transition-all cursor-pointer shrink-0`}
+                  title="Recupera le schede azienda rimosse"
                 >
-                  <Plus className="w-4 h-4 stroke-[3]" />
-                  <span>Nuova Azienda</span>
+                  <Archive className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span>Rimosse</span>
+                  <span className={`${isMobileApp ? 'text-[10.5px]' : 'text-[13px]'} px-1.5 py-0.2 bg-slate-100 rounded text-slate-700 font-bold ml-0.5`}>
+                    {removedCompanies.length}
+                  </span>
                 </button>
               </div>
-            )}
+
+              {/* Filtri rapidi e ricerca */}
+              <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                {/* Filtro B.A.N.T. */}
+                <div className="relative">
+                  <select
+                    value={filterBant}
+                    onChange={(e) => setFilterBant(e.target.value)}
+                    className={`appearance-none bg-white hover:bg-slate-50 border border-slate-200 rounded-md pl-2 pr-6 py-1 ${isMobileApp ? 'text-[12px]' : 'text-[15px]'} text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer shadow-2xs`}
+                  >
+                    <option value="all">🎯 {isMobileApp ? 'B.A.N.T.: Tutte' : 'Qualificazione: Tutte'}</option>
+                    <option value="complete">🟢 B.A.N.T. Completi (4/4)</option>
+                    <option value="incomplete">🟡 B.A.N.T. Incompleti</option>
+                  </select>
+                  <ChevronDown className="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+
+                {/* Ricerca */}
+                <div className={`relative ${isMobileApp ? 'flex-1 min-w-[130px]' : ''}`}>
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder={isMobileApp ? 'Cerca azienda...' : 'Cerca azienda, referente, contratto...'}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className={`bg-white hover:bg-slate-50 border border-slate-200 rounded-md pl-7 pr-6 py-1 ${isMobileApp ? 'text-[12px] w-full' : 'text-[15px] w-44 sm:w-60'} text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:bg-white transition-all shadow-2xs`}
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch('')}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                      title="Cancella ricerca"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Reset filtri */}
+                {(filterRelationship !== 'all' || filterBant !== 'all' || search) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFilterRelationship('all')
+                      setFilterBant('all')
+                      setSortBy('recent')
+                      setSearch('')
+                    }}
+                    className={`px-2 py-1 ${isMobileApp ? 'text-[12px]' : 'text-[15px]'} font-medium text-slate-600 hover:text-slate-900 rounded-md hover:bg-slate-200/60 transition-colors flex items-center gap-1 cursor-pointer`}
+                    title="Reimposta tutti i filtri"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>Reset</span>
+                  </button>
+                )}
+
+                {/* Contatore aziende visualizzate */}
+                <span className={`${isMobileApp ? 'text-[11.5px]' : 'text-[15px]'} font-medium text-slate-500 pl-1`}>
+                  <strong className="text-slate-800 font-bold">{filteredCompanies.length}</strong> / <strong className="text-slate-800 font-bold">{companies.length}</strong>
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Riga 2: Filtri rapidi traslati dall'altro lato della pagina (destra), forma rettangolare con angoli retti e finitura grigio metallizzato */}
-          <div className="w-full flex items-center justify-end gap-2 overflow-x-auto pb-0.5 mb-3.5 no-scrollbar text-xs">
-            {[
-              { id: 'lead_inbound', label: 'Lead & Inbound', emoji: '🎯' },
-              { id: 'in_attesa_risposta', label: 'In attesa', emoji: '🔄' },
-              { id: 'in_coda_pagamento', label: 'Coda pagamento', emoji: '⏳' },
-              { id: 'lavoro_concluso', label: 'Concluso', emoji: '✅' },
-            ].map(f => {
-              const isActive = filterRelationship === f.id
-              return (
-                <button
-                  key={f.id}
-                  onClick={() => setFilterRelationship(prev => prev === f.id ? 'all' : f.id)}
-                  className={`px-3.5 py-1.5 rounded-none text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap border select-none active:scale-95 ${
-                    isActive
-                      ? 'border-slate-800 text-white shadow-sm'
-                      : 'border-slate-400/80 text-slate-800 hover:brightness-95 hover:border-slate-500 shadow-xs'
-                  }`}
-                  style={{
-                    borderRadius: '0px',
-                    background: isActive
-                      ? 'linear-gradient(180deg, #64748b 0%, #475569 35%, #334155 75%, #1e293b 100%)'
-                      : 'linear-gradient(180deg, #f8fafc 0%, #e2e8f0 30%, #cbd5e1 70%, #94a3b8 100%)',
-                    boxShadow: isActive
-                      ? 'inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.2)'
-                      : 'inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.08)',
-                  }}
-                >
-                  <span className="text-xs leading-none">{f.emoji}</span>
-                  <span className="leading-none">{f.label}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* ── LISTA SCHEDE AZIENDE: CARDS CHIARE SU SFONDO AZZURRO TENUE (NO RIQUADRINI) ── */}
+          {/* ── LISTA SCHEDE AZIENDE: RIGHE INDIPENDENTI SCROLLABILI COL DITO O SCHEDE ── */}
           {loading ? (
             <div className="py-16 text-center text-slate-500 font-semibold text-sm">
               Caricamento database aziende in corso...
@@ -778,9 +1464,459 @@ export default function Companies() {
               <h3 className="text-base font-bold text-slate-800 mb-1">
                 Nessuna azienda trovata
               </h3>
-              <p className="text-slate-500 text-xs">
+              <p className="text-slate-500 text-[15px]">
                 Nessun risultato corrisponde alla ricerca corrente.
               </p>
+            </div>
+          ) : viewMode === 'monday' ? (
+            <div className="flex flex-col gap-5 pb-8">
+              {MONDAY_GROUPS.map((group) => {
+                const groupCompanies = filteredCompanies.filter(c => getCompanyRelationshipStatus(c).key === group.id)
+                if (filterRelationship !== 'all' && filterRelationship !== group.id) return null
+                const isCollapsed = collapsedGroups[group.id]
+                const totalAmount = groupCompanies.reduce((sum, c) => sum + (c.compensation?.amount || 0), 0)
+                const completeBantCount = groupCompanies.filter(c => getCompanyBant(c).isComplete).length
+
+                return (
+                  <div key={group.id} className="flex flex-col">
+                    {/* Header del Gruppo */}
+                    <div className="flex items-center justify-between mb-2 px-1 flex-wrap gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => toggleGroupCollapse(group.id)}
+                          className="p-1 rounded-md hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer flex items-center gap-1"
+                          title={isCollapsed ? 'Espandi gruppo' : 'Comprimi gruppo'}
+                        >
+                          {isCollapsed ? (
+                            <ChevronRight className="w-4 h-4 stroke-[3]" style={{ color: group.color }} />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 stroke-[3]" style={{ color: group.color }} />
+                          )}
+                          <span className={`${isMobileApp ? 'text-[14px]' : 'text-[17px]'} font-black uppercase tracking-tight`} style={{ color: group.color }}>
+                            {group.title}
+                          </span>
+                        </button>
+
+                        <span
+                          className={`${isMobileApp ? 'text-[11px] px-2 py-0.2' : 'text-[13px] px-2.5 py-0.5'} font-extrabold rounded-full`}
+                          style={{ backgroundColor: group.bg, color: group.color, border: `1px solid ${group.border}` }}
+                        >
+                          {groupCompanies.length} {groupCompanies.length === 1 ? 'azienda' : 'aziende'}
+                        </span>
+
+                        {group.subtitle && !isMobileApp && (
+                          <span className="text-[13px] text-slate-500 font-semibold hidden md:inline-block">
+                            — {group.subtitle}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className={`flex items-center gap-2 ${isMobileApp ? 'text-[11px]' : 'text-[13px]'} text-slate-500 font-semibold flex-wrap`}>
+                        {!isDipendente && (
+                          <span>
+                            Budget: <strong className="text-slate-900 font-black">€ {totalAmount.toLocaleString('it-IT')}</strong>
+                          </span>
+                        )}
+                        <span className="text-slate-300">•</span>
+                        <span>
+                          B.A.N.T.: <strong className="text-slate-900 font-black">{groupCompanies.length > 0 ? Math.round((completeBantCount / groupCompanies.length) * 100) : 0}%</strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Righe Azienda indipendenti: ciascuna riga scorre da sola col dito senza muovere le righe sottostanti */}
+                    {!isCollapsed && (
+                      <div className="flex flex-col gap-2.5">
+                        {groupCompanies.length === 0 ? (
+                          <div className="px-4 py-6 rounded-xl bg-white border border-slate-200/90 text-center text-slate-400 font-semibold text-[13px]">
+                            Nessuna azienda in questo stato.
+                          </div>
+                        ) : (
+                          groupCompanies.map((comp) => {
+                            const isExpanded = expandedId === comp.id
+                            const relStatus = getCompanyRelationshipStatus(comp)
+                            const bant = getCompanyBant(comp)
+                            const acq = getCompanyAcquisitionChannel(comp)
+                            const contactEmail = comp.contact?.directEmail || comp.contact?.email
+                            const contactPhone = comp.contact?.mobile || comp.contact?.phone
+                            const contractsHistory = getCompanyContractsHistory(comp)
+                            const isDone = relStatus.key === 'lavoro_concluso' || comp.compensation?.status === 'Saldato'
+
+                            return (
+                              <div
+                                key={comp.id}
+                                className={`rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden transition-colors ${
+                                  isDone ? 'bg-slate-50/70' : 'bg-white'
+                                }`}
+                                style={{ fontFamily: '"Switzer", sans-serif' }}
+                              >
+                                {/* Striscia orizzontale scorrevole ESCLUSIVA per questa singola azienda */}
+                                <div
+                                  onTouchStart={(e) => e.stopPropagation()}
+                                  onTouchMove={(e) => e.stopPropagation()}
+                                  onMouseDown={(e) => {
+                                    const tag = e.target.tagName.toLowerCase()
+                                    if (tag === 'button' || e.target.closest('button')) return
+                                    e.stopPropagation()
+                                    const el = e.currentTarget
+                                    el._dragStartX = e.clientX
+                                    el._dragScrollLeft = el.scrollLeft
+                                    el._isDraggingRow = true
+                                  }}
+                                  onMouseMove={(e) => {
+                                    const el = e.currentTarget
+                                    if (!el._isDraggingRow) return
+                                    const dx = e.clientX - el._dragStartX
+                                    el.scrollLeft = el._dragScrollLeft - dx
+                                  }}
+                                  onMouseUp={(e) => {
+                                    e.currentTarget._isDraggingRow = false
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget._isDraggingRow = false
+                                  }}
+                                  onScroll={(e) => {
+                                    const sl = e.currentTarget.scrollLeft
+                                    const firstBox = e.currentTarget.querySelector('[data-company-name-box="true"]')
+                                    if (firstBox) {
+                                      const fade = Math.max(0.12, 1 - sl / 150)
+                                      firstBox.style.opacity = String(fade.toFixed(2))
+                                    }
+                                  }}
+                                  className="overflow-x-auto flex items-stretch select-none cursor-grab active:cursor-grabbing no-scrollbar"
+                                  style={{
+                                    touchAction: 'pan-x pan-y',
+                                    WebkitOverflowScrolling: 'touch',
+                                  }}
+                                >
+                                  {/* 1. Casella Nome Azienda / Commessa (NON sticky: scorre via col dito per lasciare tutto lo spazio alle altre caselle accanto!) */}
+                                  <div
+                                    data-company-name-box="true"
+                                    className={`${
+                                      isMobileApp ? 'w-[205px] min-w-[205px] pl-3 pr-2.5 py-2.5' : 'w-[285px] min-w-[285px] pl-4 pr-3 py-3'
+                                    } shrink-0 border-r border-slate-200/90 relative flex flex-col justify-between bg-white transition-opacity duration-75`}
+                                  >
+                                    <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: group.color }} />
+                                    <div className="flex items-center justify-between gap-1 mb-1">
+                                      <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400">
+                                        Azienda / Commessa
+                                      </span>
+                                      <span className="text-[9.5px] font-bold text-sky-600/80">
+                                        Scorri ➔
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => setExpandedId(isExpanded ? null : comp.id)}
+                                        className="p-0.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer shrink-0"
+                                        title={isExpanded ? 'Chiudi dettagli' : 'Espandi scheda completa'}
+                                      >
+                                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5 stroke-[2.5] text-[#0284c7]" /> : <ChevronDown className="w-3.5 h-3.5 stroke-[2.5]" />}
+                                      </button>
+                                      <div className="min-w-0 flex-1">
+                                        <span className={`font-extrabold ${isMobileApp ? 'text-[13.5px]' : 'text-[15px]'} text-slate-900 tracking-tight block truncate`} title={comp.name}>
+                                          {comp.name}
+                                        </span>
+                                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                          <span className="px-1.5 py-0.2 bg-sky-50 text-[#0369a1] text-[10.5px] font-black rounded uppercase tracking-wide border border-sky-200">
+                                            {comp.industry}
+                                          </span>
+                                          {comp.piva ? (
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                setEnrichModalQuery(comp.piva)
+                                                setShowEnrichModal(true)
+                                              }}
+                                              className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 text-[10.5px] font-bold border border-purple-200 cursor-pointer"
+                                              title={`Partita IVA: ${comp.piva} - Apri Dossier Camerale B2B`}
+                                            >
+                                              <Zap className="w-2.5 h-2.5 fill-purple-600 text-purple-600" />
+                                              <span>P.IVA</span>
+                                            </button>
+                                          ) : null}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* 2. Casella Stato Relazione */}
+                                  <div className="w-[165px] min-w-[165px] shrink-0 px-3 py-2.5 border-r border-slate-100 flex flex-col justify-between">
+                                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-1 text-center">
+                                      Stato Relazione
+                                    </span>
+                                    <div
+                                      className="w-full py-1.5 px-2 rounded-md text-[11.5px] font-black uppercase text-center text-white shadow-2xs tracking-wider flex items-center justify-center gap-1.5 select-none my-auto"
+                                      style={{ backgroundColor: group.color }}
+                                    >
+                                      <span>{relStatus.emoji}</span>
+                                      <span>{relStatus.tag}</span>
+                                    </div>
+                                  </div>
+
+                                  {/* 3. Casella Prossimo Lavoro / Date Set */}
+                                  <div className="w-[235px] min-w-[235px] shrink-0 px-3 py-2.5 border-r border-slate-100 flex flex-col justify-between">
+                                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                      Prossimo Lavoro / Date Set
+                                    </span>
+                                    <div>
+                                      <div className="font-bold text-slate-900 text-[13px] truncate" title={comp.upcomingJob?.title || comp.workSchedule?.scheduleType}>
+                                        {comp.upcomingJob?.title || comp.workSchedule?.scheduleType || 'Shooting Video Corporate'}
+                                      </div>
+                                      <div className="text-[11.5px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5 truncate">
+                                        <Calendar className="w-3 h-3 text-[#0284c7] shrink-0" />
+                                        <span className="truncate">{comp.workSchedule?.datesFormatted || 'Da concordare'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* 4. Casella Retribuzione & Saldo */}
+                                  <div className="w-[180px] min-w-[180px] shrink-0 px-3 py-2.5 border-r border-slate-100 flex flex-col justify-between">
+                                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                      Retribuzione & Saldo
+                                    </span>
+                                    <div>
+                                      <div className="text-[14px] font-black text-[#0284c7]">
+                                        {isDipendente ? '•••• €' : `€ ${(comp.compensation?.amount || 0).toLocaleString('it-IT')}`}
+                                      </div>
+                                      <div className="text-[11px] font-bold text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                        <span
+                                          className={`px-1.5 py-0.2 rounded font-black text-[10px] uppercase ${
+                                            comp.compensation?.status === 'Saldato'
+                                              ? 'bg-[#dcfce7] text-[#15803d]'
+                                              : 'bg-slate-100 text-slate-700'
+                                          }`}
+                                        >
+                                          {comp.compensation?.status === 'Saldato' ? 'SALDATO' : 'ACCONTO'}
+                                        </span>
+                                        <span>
+                                          Saldo: <strong className="text-slate-700 font-bold">{isDipendente ? '•••• €' : `€ ${(comp.compensation?.balance || 0).toLocaleString('it-IT')}`}</strong>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* 5. Casella Referente Principale */}
+                                  <div className="w-[215px] min-w-[215px] shrink-0 px-3 py-2.5 border-r border-slate-100 flex flex-col justify-between">
+                                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                      Referente Principale
+                                    </span>
+                                    <div>
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-black text-[11px] flex items-center justify-center shrink-0">
+                                          {(comp.contactPerson?.name || 'R').charAt(0)}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                          <div className="font-bold text-slate-900 text-[12.5px] truncate" title={comp.contactPerson?.name}>
+                                            {comp.contactPerson?.name || 'Referente non indicato'}
+                                          </div>
+                                          <div className="text-[10.5px] text-slate-500 font-semibold truncate">
+                                            {comp.contactPerson?.role || comp.contact?.role || 'Referente'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1.5 mt-1">
+                                        {contactEmail && (
+                                          <button
+                                            type="button"
+                                            onClick={(e) => handleCopy(contactEmail, `${comp.id}-email`, e)}
+                                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold border cursor-pointer ${
+                                              copiedField === `${comp.id}-email`
+                                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                                : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
+                                            }`}
+                                            title={`Copia: ${contactEmail}`}
+                                          >
+                                            <Mail className="w-2.5 h-2.5 text-[#0284c7]" />
+                                            <span>{copiedField === `${comp.id}-email` ? 'COPIATA' : 'MAIL'}</span>
+                                          </button>
+                                        )}
+                                        {contactPhone && (
+                                          <button
+                                            type="button"
+                                            onClick={(e) => handleCopy(contactPhone, `${comp.id}-phone`, e)}
+                                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold border cursor-pointer ${
+                                              copiedField === `${comp.id}-phone`
+                                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                                : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
+                                            }`}
+                                            title={`Copia: ${contactPhone}`}
+                                          >
+                                            <Phone className="w-2.5 h-2.5 text-[#0284c7]" />
+                                            <span>{copiedField === `${comp.id}-phone` ? 'COPIATO' : 'TEL'}</span>
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* 6. Casella Canale & Origine */}
+                                  <div className="w-[180px] min-w-[180px] shrink-0 px-3 py-2.5 border-r border-slate-100 flex flex-col justify-between">
+                                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                      Canale & Origine
+                                    </span>
+                                    <div>
+                                      <span
+                                        className="inline-block px-2 py-0.5 rounded-[4px] text-[10.5px] font-black uppercase text-white shadow-2xs tracking-wide"
+                                        style={{ backgroundColor: acq.color }}
+                                      >
+                                        {acq.shortChannel}
+                                      </span>
+                                      <div className="text-[11px] text-slate-500 font-semibold mt-1 truncate" title={acq.reason}>
+                                        {acq.type}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* 7. Casella B.A.N.T. */}
+                                  <div className="w-[130px] min-w-[130px] shrink-0 px-3 py-2.5 border-r border-slate-100 flex flex-col justify-between items-center text-center">
+                                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                      B.A.N.T.
+                                    </span>
+                                    <div className="flex flex-col items-center justify-center gap-0.5">
+                                      <BantLogoMark size="sm" bant={bant} />
+                                      <span className="text-[10.5px] font-extrabold text-slate-500">
+                                        {bant.score}/4 Parametri
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* 8. Casella Contratto & Codice */}
+                                  <div className="w-[170px] min-w-[170px] shrink-0 px-3 py-2.5 border-r border-slate-100 flex flex-col justify-between">
+                                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                      Contratto & Codice
+                                    </span>
+                                    <div>
+                                      <div className="font-bold text-slate-800 text-[12px] truncate" title={comp.contract?.fileName}>
+                                        {comp.contract?.code || comp.contract?.fileName || 'DADO-CTR-2026'}
+                                      </div>
+                                      <div className="text-[11px] text-slate-500 font-semibold flex items-center gap-1.5 mt-0.5">
+                                        <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 font-extrabold text-[10px] uppercase">
+                                          {comp.contract?.status || 'FIRMATO'}
+                                        </span>
+                                        <span className="text-slate-400">•</span>
+                                        <span>{contractsHistory.length} file</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* 9. Casella Rating & Feedback */}
+                                  <div className="w-[140px] min-w-[140px] shrink-0 px-3 py-2.5 border-r border-slate-100 flex flex-col justify-between items-center text-center">
+                                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                      Rating & Feedback
+                                    </span>
+                                    <div>
+                                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 font-black text-[11.5px]">
+                                        <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                        <span>{(comp.feedback?.rating || 5.0).toFixed(1)}</span>
+                                      </div>
+                                      <div className="text-[10.5px] text-slate-500 truncate mt-0.5 italic max-w-[120px] mx-auto" title={comp.feedback?.notes}>
+                                        "{comp.feedback?.notes || 'Collaborazione attiva'}"
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* 10. Casella Azioni */}
+                                  <div className="w-[160px] min-w-[160px] shrink-0 px-3 py-2.5 flex flex-col justify-between items-center text-center">
+                                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                      Azioni
+                                    </span>
+                                    <div className="flex items-center justify-center gap-1.5 my-auto">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setCompanies(prev => prev.map(c => {
+                                            if (c.id !== comp.id) return c
+                                            const isCompleted = c.relationshipStatus === 'lavoro_concluso' || c.compensation?.status === 'Saldato'
+                                            return {
+                                              ...c,
+                                              relationshipStatus: isCompleted ? 'lead_inbound' : 'lavoro_concluso',
+                                              status: isCompleted ? 'In trattativa' : 'Concluso',
+                                              compensation: {
+                                                ...c.compensation,
+                                                status: isCompleted ? 'Acconto versato' : 'Saldato',
+                                                balance: isCompleted ? (c.compensation?.balance || 1000) : 0,
+                                              }
+                                            }
+                                          }))
+                                        }}
+                                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                          relStatus.key === 'lavoro_concluso'
+                                            ? 'border-slate-200 bg-white hover:bg-slate-100 text-slate-600'
+                                            : 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
+                                        }`}
+                                        title={relStatus.key === 'lavoro_concluso' ? 'Riapri relazione' : 'Segna come conclusa'}
+                                      >
+                                        <CheckCircle2 className={`w-3.5 h-3.5 ${relStatus.key === 'lavoro_concluso' ? 'text-slate-400' : 'text-[#16a34a]'}`} />
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => setExpandedId(isExpanded ? null : comp.id)}
+                                        className={`px-2 py-1 text-[11.5px] font-black uppercase rounded-lg border transition-all cursor-pointer flex items-center gap-1 ${
+                                          isExpanded
+                                            ? 'bg-[#0284c7] text-white border-[#0284c7]'
+                                            : 'bg-white hover:bg-sky-50 text-[#0284c7] border-sky-200'
+                                        }`}
+                                        title={isExpanded ? 'Chiudi dettagli' : 'Visualizza dettagli completi'}
+                                      >
+                                        <span>{isExpanded ? 'Chiudi' : 'Dettagli'}</span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          if (window.confirm(`Vuoi rimuovere la scheda aziendale di "${comp.name}" dal CRM?`)) {
+                                            setCompanies(prev => prev.filter(c => c.id !== comp.id))
+                                            setRemovedCompanies(prev => [comp, ...prev.filter(c => c.id !== comp.id)])
+                                          }
+                                        }}
+                                        className="p-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 transition-all cursor-pointer"
+                                        title="Rimuovi scheda dal CRM"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Dettagli Espansi Sub-Row sotto la singola azienda */}
+                                {isExpanded && (
+                                  <div className="bg-sky-50/60 border-t-2 border-sky-300 p-3.5 md:p-5 relative">
+                                    {isDone && (
+                                      <div
+                                        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden"
+                                        aria-hidden="true"
+                                      >
+                                        <span
+                                          className="font-black uppercase tracking-wider text-[#16a34a]/10 select-none leading-none text-center whitespace-nowrap"
+                                          style={{
+                                            fontSize: isMobileApp ? '48px' : '88px',
+                                            fontFamily: '"Switzer", sans-serif',
+                                            letterSpacing: '0.04em',
+                                          }}
+                                        >
+                                          CONCLUSO
+                                        </span>
+                                      </div>
+                                    )}
+                                    {renderCompanyDetails(comp, relStatus, bant, acq, contactEmail, contactPhone, contractsHistory, isDone)}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           ) : (
             <div className="flex flex-col gap-3 pb-8">
@@ -793,24 +1929,48 @@ export default function Companies() {
                 const contactPhone = comp.contact?.mobile || comp.contact?.phone
                 const contractsHistory = getCompanyContractsHistory(comp)
 
+                const isDone = relStatus.key === 'lavoro_concluso' || comp.compensation?.status === 'Saldato'
+                // Card in stile Notion/Tasks: bianca, bordo neutro, nessun colore di stato sul riquadro
+                const cardStyleClass = isDone
+                  ? 'bg-slate-50/70 border-slate-200/80 opacity-75 hover:opacity-100 shadow-2xs'
+                  : 'bg-white border-slate-200 hover:border-slate-300 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-xs'
+
                 return (
                   <div
                     key={comp.id}
-                    className="p-4 md:p-5 transition-all text-slate-800 relative bg-white rounded-2xl shadow-xs hover:shadow-md"
+                    className={`p-4 md:p-5 transition-all text-slate-800 relative rounded-xl overflow-hidden border ${cardStyleClass}`}
                     style={{
-                      border: isExpanded ? '2px solid #0284c7' : '1px solid #cce5f6',
-                      boxShadow: isExpanded ? '0 4px 20px rgba(2, 132, 199, 0.12)' : '0 2px 10px rgba(27, 183, 237, 0.06)',
+                      fontFamily: '"Switzer", sans-serif',
                     }}
                   >
+                    {/* Scritta a tutto riquadro CONCLUSO in trasparenza per le commesse concluse (raddoppiata a 88px) */}
+                    {isDone && (
+                      <div
+                        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden"
+                        aria-hidden="true"
+                      >
+                        <span
+                          className="font-black uppercase tracking-wider text-[#16a34a]/12 select-none leading-none text-center whitespace-nowrap"
+                          style={{
+                            fontSize: '88px',
+                            fontFamily: '"Switzer", sans-serif',
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          CONCLUSO
+                        </span>
+                      </div>
+                    )}
+
                     {/* ── 1. TESTATA SCHEDA: NOME AZIENDA, STATO, LAVORO IMMINENTE & RETRIBUZIONE ── */}
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-sky-100">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 relative z-10">
                       
-                      {/* Sinistra: Nome Grande Switzer, Settore, Badge di Stato e BANT */}
+                      {/* Sinistra: Nome Grande Switzer, Settore, Badge di Stato, BANT e P.IVA B2B */}
                       <div className="flex items-start sm:items-center gap-3">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h2
-                              className="text-xl md:text-2xl font-black text-slate-900 tracking-tight"
+                              className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight"
                               style={{ fontFamily: '"Switzer", sans-serif' }}
                             >
                               {comp.name}
@@ -818,14 +1978,14 @@ export default function Companies() {
 
                             {/* Settore con testo bold */}
                             <span
-                              className="px-2.5 py-1 bg-sky-50 text-[#0369a1] border border-sky-200 text-xs md:text-sm font-black rounded-lg uppercase tracking-wide"
+                              className="px-2.5 py-1 bg-sky-50 text-[#0369a1] border border-sky-200 text-[15px] md:text-sm font-black rounded-lg uppercase tracking-wide"
                             >
                               {comp.industry}
                             </span>
 
                             {/* Badge Stato Relazione & Pagamento in colori DADO su fondo chiaro */}
                             <span
-                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold"
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[15px] font-bold"
                               style={{
                                 backgroundColor: relStatus.bg,
                                 color: relStatus.color,
@@ -835,14 +1995,52 @@ export default function Companies() {
                               <span>{relStatus.emoji}</span>
                               <strong className="font-extrabold">{relStatus.tag}</strong>
                             </span>
+
+                            {/* B.A.N.T. Mark */}
+                            <BantLogoMark size="sm" bant={bant} />
+
+                            {/* Badge P.IVA & B2B Camerale (SENZA FONT-MONO) */}
+                            {comp.piva ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setEnrichModalQuery(comp.piva)
+                                  setShowEnrichModal(true)
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[15px] font-bold transition-all cursor-pointer"
+                                title={`Partita IVA: ${comp.piva} - Clicca per visualizzare dossier camerale completo B2B (Atoka, LinkedIn, D&B)`}
+                              >
+                                <Zap className="w-3 h-3 text-purple-600 fill-purple-600" />
+                                <span className="font-semibold">P.IVA {comp.piva}</span>
+                                {comp.creditRating && (
+                                  <span className="text-[13px] text-amber-700 bg-amber-100 px-1 rounded font-extrabold ml-0.5">
+                                    D&B {comp.creditRating.split(' ')[0]}
+                                  </span>
+                                )}
+                              </button>
+                            ) : !isDipendente ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEnrichExistingCompany(comp)
+                                }}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-50 hover:bg-purple-50 text-slate-600 hover:text-purple-700 border border-slate-200 hover:border-purple-300 text-[15px] font-bold transition-all cursor-pointer"
+                                title="Interroga Atoka, CCIAA e LinkedIn per arricchire automaticamente la scheda di questa azienda"
+                              >
+                                <Sparkles className="w-3 h-3 text-purple-600" />
+                                <span>Arricchisci B2B</span>
+                              </button>
+                            ) : null}
                           </div>
                         </div>
                       </div>
 
-                      {/* Destra: Retribuzione e Tasto Dettagli */}
-                      <div className="flex items-center justify-between lg:justify-end gap-5">
+                      {/* Destra: Retribuzione e Pulsanti Conseguenti Uno Sopra l'Altro (uguale a Tasks) */}
+                      <div className="flex items-center justify-between lg:justify-end gap-4 shrink-0">
                         <div className="text-left lg:text-right">
-                          <div className="text-[11px] uppercase text-slate-400 font-extrabold tracking-wider">
+                          <div className="text-[13px] uppercase text-slate-400 font-extrabold tracking-wider">
                             RETRIBUZIONE
                           </div>
                           <div
@@ -850,7 +2048,7 @@ export default function Companies() {
                           >
                             <strong>
                               {isDipendente ? (
-                                <span className="text-slate-400 font-mono text-base tracking-widest" title="Valore riservato ad Amministratore">
+                                <span className="text-slate-400 font-bold text-base tracking-widest" title="Valore riservato ad Amministratore">
                                   •••• €
                                 </span>
                               ) : (
@@ -860,10 +2058,10 @@ export default function Companies() {
                           </div>
                           <div className="mt-1">
                             <span
-                              className={`text-[11px] font-extrabold px-2 py-0.5 uppercase tracking-wide rounded-md ${
+                              className={`text-[13px] font-extrabold px-2 py-0.5 uppercase tracking-wide rounded-md ${
                                 comp.compensation?.status === 'Saldato'
                                   ? 'bg-[#dcfce7] text-[#15803d]'
-                                  : 'bg-[#ffedd5] text-[#c2410c]'
+                                  : 'bg-slate-100 text-slate-700'
                               }`}
                             >
                               <strong>{comp.compensation?.status === 'Saldato' ? 'SALDATO' : comp.compensation?.status?.toUpperCase()}</strong>
@@ -871,124 +2069,200 @@ export default function Companies() {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => setExpandedId(isExpanded ? null : comp.id)}
-                          className={`px-4 py-2 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer rounded-xl border ${
-                            isExpanded
-                              ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
-                              : 'bg-sky-50 hover:bg-sky-100 text-[#0284c7] border-sky-200'
-                          }`}
-                          style={{ fontFamily: '"Switzer", sans-serif' }}
-                        >
-                          <strong className="font-extrabold">{isExpanded ? 'CHIUDI' : 'DETTAGLI'}</strong>
-                          {isExpanded ? <ChevronUp className="w-4 h-4 stroke-[2.5]" /> : <ChevronDown className="w-4 h-4 stroke-[2.5]" />}
-                        </button>
+                        {/* Pulsanti Conseguenti Uno Sopra l'Altro (Allena AI, Completa, Rimuovi) + Tasto Dettagli */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-col items-stretch gap-1 shrink-0 min-w-[96px]">
+                            {/* 2. Completa */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setCompanies(prev => prev.map(c => {
+                                  if (c.id !== comp.id) return c
+                                  const isCompleted = c.relationshipStatus === 'lavoro_concluso' || c.compensation?.status === 'Saldato'
+                                  return {
+                                    ...c,
+                                    relationshipStatus: isCompleted ? 'lead_inbound' : 'lavoro_concluso',
+                                    status: isCompleted ? 'In trattativa' : 'Concluso',
+                                    compensation: {
+                                      ...c.compensation,
+                                      status: isCompleted ? 'Acconto versato' : 'Saldato',
+                                      balance: isCompleted ? (c.compensation?.balance || 1000) : 0,
+                                    }
+                                  }
+                                }))
+                              }}
+                              className={`w-full justify-center px-2 py-1 rounded-lg border text-[13px] font-black uppercase transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0 ${
+                                relStatus.key === 'lavoro_concluso'
+                                  ? 'border-slate-200 bg-white hover:bg-slate-100 text-slate-600'
+                                  : 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
+                              }`}
+                              title={relStatus.key === 'lavoro_concluso' ? 'Riapri relazione commerciale' : 'Segna collaborazione come conclusa'}
+                            >
+                              <CheckCircle2 className={`w-3.5 h-3.5 ${relStatus.key === 'lavoro_concluso' ? 'text-slate-400' : 'text-[#16a34a]'}`} />
+                              <span>{relStatus.key === 'lavoro_concluso' ? 'Riapri' : 'Completa'}</span>
+                            </button>
+
+                            {/* 3. Rimuovi */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (window.confirm(`Vuoi rimuovere la scheda aziendale di "${comp.name}" dal CRM?`)) {
+                                  setCompanies(prev => prev.filter(c => c.id !== comp.id))
+                                  setRemovedCompanies(prev => [comp, ...prev.filter(c => c.id !== comp.id)])
+                                }
+                              }}
+                              className="w-full justify-center px-2 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[13px] font-black uppercase transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
+                              title="Rimuovi scheda azienda dal CRM"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Rimuovi</span>
+                            </button>
+                          </div>
+
+                          {/* Tasto Dettagli / Chiudi */}
+                          <button
+                            onClick={() => setExpandedId(isExpanded ? null : comp.id)}
+                            className={`px-3.5 py-2.5 text-[15px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer rounded-xl border ${
+                              isExpanded
+                                ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
+                                : 'bg-white hover:bg-sky-50 text-[#0284c7] border-sky-200 shadow-2xs'
+                            }`}
+                            style={{ fontFamily: '"Switzer", sans-serif' }}
+                          >
+                            <span>{isExpanded ? 'CHIUDI' : 'DETTAGLI'}</span>
+                            {isExpanded ? <ChevronUp className="w-4 h-4 stroke-[2.5]" /> : <ChevronDown className="w-4 h-4 stroke-[2.5]" />}
+                          </button>
+                        </div>
                       </div>
 
                     </div>
 
-                    {/* ── 2. LAYOUT APERTO E FLUIDO A 3 COLONNE (SENZA RIQUADRO BANT) ── */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-3.5 text-sm">
+                    {/* Banner Stato Task Collegato (Fermo / In Corso) */}
+                    {comp.taskStatusUpdate && (
+                      <div className={`mt-3 p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs ${
+                        comp.taskStatusUpdate.status === 'fermo'
+                          ? 'bg-rose-50/90 border-rose-200 text-rose-900 shadow-2xs'
+                          : comp.taskStatusUpdate.status === 'in_progress'
+                          ? 'bg-sky-50/90 border-sky-200 text-sky-900 shadow-2xs'
+                          : 'bg-emerald-50/90 border-emerald-200 text-emerald-900 shadow-2xs'
+                      }`}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase text-white tracking-wider ${
+                            comp.taskStatusUpdate.status === 'fermo' ? 'bg-rose-600' :
+                            comp.taskStatusUpdate.status === 'in_progress' ? 'bg-[#0073ea]' : 'bg-emerald-600'
+                          }`}>
+                            TASK {comp.taskStatusUpdate.statusLabel}
+                          </span>
+                          <span className="font-extrabold text-slate-800">
+                            "{comp.taskStatusUpdate.taskTitle}"
+                          </span>
+                          {comp.taskStatusUpdate.reason && (
+                            <span className="text-slate-600 font-medium">
+                              — Motivo: <strong className="text-slate-900">{comp.taskStatusUpdate.reason}</strong>
+                            </span>
+                          )}
+                        </div>
+                        {comp.taskStatusUpdate.newDueDate && (
+                          <div className="flex items-center gap-1.5 shrink-0 px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800 font-bold text-[11px]">
+                            <Calendar className="w-3 h-3 text-[#0284c7]" />
+                            <span>Nuova Scadenza: <strong className="text-[#0284c7]">{comp.taskStatusUpdate.newDueDate}</strong></span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* ── 2. I 3 RIQUADRI ORGANIZZATI CON MISURE CALIBRATE ── */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4 relative z-10 text-sm">
                       
-                      {/* Sezione 1: Referente, Recapiti Diretti & Canale */}
-                      <div className="flex flex-col justify-between">
+                      {/* Riquadro 1: Referente, Recapiti Diretti & Canale */}
+                      <div className="flex flex-col justify-between min-w-0">
                         <div>
-                          <div className="text-xs font-black uppercase tracking-wider text-[#0284c7] flex items-center gap-1.5 mb-1.5">
-                            <User className="w-4 h-4" />
-                            <strong>REFERENTE & ACQUISIZIONE</strong>
+                          <div className="text-[15px] font-black uppercase tracking-wider text-[#0284c7] flex items-center gap-1.5 mb-1.5">
+                            <User className="w-3.5 h-3.5 text-[#0284c7]" />
+                            <span>REFERENTE & ACQUISIZIONE</span>
                           </div>
                           <div className="font-black text-slate-900 text-base md:text-[17px] truncate" title={comp.contactPerson?.name}>
                             {comp.contactPerson?.name || 'Referente non indicato'}
                           </div>
-                          <div className="text-xs md:text-sm text-slate-600 truncate font-semibold mt-0.5">
+                          <div className="text-[15px] md:text-sm text-slate-600 truncate font-semibold mt-0.5">
                             {comp.contactPerson?.role || comp.contact?.role || 'Referente aziendale'}
                           </div>
                         </div>
 
                         {/* Recapiti veloci con etichette corte in bold + Canale */}
-                        <div className="flex items-center justify-between gap-1.5 mt-2.5 pt-2 border-t border-sky-100/80 flex-wrap">
+                        <div className="flex items-center justify-between gap-1.5 mt-3 flex-wrap">
                           <div className="flex items-center gap-1.5">
                             {contactEmail && (
                               <button
                                 type="button"
                                 onClick={(e) => handleCopy(contactEmail, `${comp.id}-email`, e)}
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer border ${
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[15px] font-bold transition-all cursor-pointer border ${
                                   copiedField === `${comp.id}-email`
-                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold'
+                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                                     : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
                                 }`}
                                 title={`Copia email: ${contactEmail}`}
                               >
                                 <Mail className="w-3 h-3 text-[#0284c7]" />
-                                <strong>{copiedField === `${comp.id}-email` ? 'COPIATA' : 'MAIL'}</strong>
+                                <span>{copiedField === `${comp.id}-email` ? 'COPIATA' : 'MAIL'}</span>
                               </button>
                             )}
                             {contactPhone && (
                               <button
                                 type="button"
                                 onClick={(e) => handleCopy(contactPhone, `${comp.id}-phone`, e)}
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs transition-all cursor-pointer border ${
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[15px] font-bold transition-all cursor-pointer border ${
                                   copiedField === `${comp.id}-phone`
-                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold'
+                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                                     : 'bg-sky-50 hover:bg-sky-100 text-slate-700 border-sky-200'
                                 }`}
                                 title={`Copia telefono: ${contactPhone}`}
                               >
                                 <Phone className="w-3 h-3 text-[#0284c7]" />
-                                <strong>{copiedField === `${comp.id}-phone` ? 'COPIATO' : 'TEL'}</strong>
+                                <span>{copiedField === `${comp.id}-phone` ? 'COPIATO' : 'TEL'}</span>
                               </button>
                             )}
                           </div>
 
-                          <span className="text-xs text-slate-500 font-medium truncate">
-                            Canale: <strong className="text-slate-800 uppercase">{acq?.shortChannel || 'INBOUND'}</strong>
+                          <span className="text-[15px] text-slate-500 font-medium truncate">
+                            Canale: <strong className="text-slate-800 uppercase font-black">{acq?.shortChannel || 'INBOUND'}</strong>
                           </span>
                         </div>
                       </div>
 
-                      {/* Sezione 2: Riquadro Storico Contratti (in ordine temporale dal primo al più recente) */}
-                      <div className="flex flex-col justify-between pl-0 md:pl-4 md:border-l md:border-sky-100">
+                      {/* Riquadro 2: File allegati (nessun codice o data: conta che i file ci siano) */}
+                      <div className="flex flex-col justify-between min-w-0">
                         <div>
-                          <div className="text-xs font-black uppercase tracking-wider text-[#0284c7] flex items-center justify-between mb-1.5">
+                          <div className="text-[15px] font-black uppercase tracking-wider text-[#0284c7] flex items-center justify-between mb-1.5">
                             <div className="flex items-center gap-1.5">
-                              <FileText className="w-3.5 h-3.5 text-[#0284c7]" />
-                              <strong>STORICO CONTRATTI</strong>
+                              <Paperclip className="w-4 h-4 text-[#0284c7]" />
+                              <span>ALLEGATI</span>
                             </div>
-                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-sky-100 text-[#0369a1]">
-                              {contractsHistory.length} {contractsHistory.length === 1 ? 'CONTRATTO' : 'CONTRATTI'}
+                            <span className="text-[13px] font-black px-2 py-0.5 rounded bg-sky-100 text-[#0369a1]">
+                              {contractsHistory.length > 0
+                                ? `${contractsHistory.length} ${contractsHistory.length === 1 ? 'FILE' : 'FILE'}`
+                                : 'NESSUN FILE'}
                             </span>
                           </div>
 
-                          {/* Lista contratti ordinati cronologicamente: dal primo al più recente */}
-                          <div className="flex flex-col gap-1.5 max-h-[118px] overflow-y-auto pr-1">
+                          <div className="flex flex-col gap-1.5 max-h-[140px] overflow-y-auto pr-1 custom-popup-scrollbar">
+                            {contractsHistory.length === 0 && (
+                              <span className="text-[15px] text-slate-400 font-medium">Nessun file allegato</span>
+                            )}
                             {contractsHistory.map((ctr, idx) => (
-                              <div
-                                key={ctr.code || idx}
-                                className="p-1.5 rounded-lg bg-sky-50/70 border border-sky-100/90 text-xs flex items-center justify-between gap-2 hover:bg-sky-50 transition-colors"
-                              >
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="text-[10px] font-black px-1.5 py-0.2 rounded bg-sky-200/80 text-[#0369a1]">
-                                      {idx + 1}°
-                                    </span>
-                                    <strong className="font-extrabold text-slate-800 font-mono text-[11px] truncate">
-                                      {ctr.code}
-                                    </strong>
-                                    <span className="text-[10px] text-slate-400 font-medium">
-                                      {formatContractDate(ctr.date)}
-                                    </span>
-                                  </div>
-                                  <div className="text-[11px] text-slate-600 font-semibold truncate mt-0.5" title={ctr.title}>
-                                    {ctr.title}
-                                  </div>
-                                </div>
-
-                                <div className="text-right shrink-0 flex flex-col items-end">
-                                  <strong className="font-black text-slate-900 text-xs">
+                              <div key={ctr.code || idx} className="py-0.5 text-[15px] flex items-center justify-between gap-2">
+                                <span className="flex items-center gap-1.5 min-w-0 flex-1">
+                                  <Paperclip className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span className="text-[14px] text-slate-700 font-semibold truncate" title={ctr.title}>{ctr.title}</span>
+                                </span>
+                                <span className="text-right shrink-0 flex items-center gap-2">
+                                  <strong className="font-black text-slate-900 text-[15px]">
                                     {isDipendente ? '•••• €' : `€ ${(ctr.amount || 0).toLocaleString('it-IT')}`}
                                   </strong>
                                   <span
-                                    className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded uppercase mt-0.5 ${
+                                    className={`text-[12px] font-extrabold px-1.5 py-0.5 rounded uppercase ${
                                       ctr.status === 'Firmato' || ctr.status === 'Saldato'
                                         ? 'bg-emerald-100 text-emerald-800'
                                         : 'bg-amber-100 text-amber-800'
@@ -996,49 +2270,45 @@ export default function Companies() {
                                   >
                                     {ctr.status}
                                   </span>
-                                </div>
+                                </span>
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        {/* Footer riquadro Storico Contratti */}
-                        <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-sky-100/80 text-[11px]">
-                          <span className="text-slate-400 font-medium">
-                            1° Accordo: <strong className="text-slate-700">{formatContractDate(contractsHistory[0]?.date)}</strong>
-                          </span>
+                        <div className="flex items-center justify-end mt-2 text-[14px]">
                           <span className="text-slate-500 font-bold">
-                            Totale: <strong className="text-[#0284c7]">{isDipendente ? '•••• €' : `€ ${contractsHistory.reduce((s, c) => s + (c.amount || 0), 0).toLocaleString('it-IT')}`}</strong>
+                            Totale: <strong className="text-[#0284c7] font-black">{isDipendente ? '•••• €' : `€ ${contractsHistory.reduce((s, c) => s + (c.amount || 0), 0).toLocaleString('it-IT')}`}</strong>
                           </span>
                         </div>
                       </div>
 
-                      {/* Sezione 3: Contratto Attivo, Stato & Criticità */}
-                      <div className="flex flex-col justify-between pl-0 md:pl-4 md:border-l md:border-sky-100">
+                      {/* Riquadro 3: Contratto Attivo, Stato & Criticità */}
+                      <div className="flex flex-col justify-between min-w-0">
                         <div>
-                          <div className="text-xs font-black uppercase tracking-wider text-[#ea580c] flex items-center justify-between mb-1">
+                          <div className="text-[15px] font-black uppercase tracking-wider text-[#0284c7] flex items-center justify-between mb-1.5">
                             <div className="flex items-center gap-1.5">
                               <FileText className="w-3.5 h-3.5" />
-                              <strong>CONTRATTO ATTIVO</strong>
+                              <span>CONTRATTO ATTIVO</span>
                             </div>
-                            <span className="flex items-center gap-1 text-amber-600 font-black text-xs">
-                              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                              <strong>{comp.feedback?.rating ? comp.feedback.rating.toFixed(1) : '5.0'}</strong>
+                            <span className="flex items-center gap-1 text-amber-600 font-black text-[15px]">
+                              <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                              <span>{comp.feedback?.rating ? comp.feedback.rating.toFixed(1) : '5.0'}</span>
                             </span>
                           </div>
                           <div className="font-bold text-slate-900 text-sm truncate" title={comp.contract?.fileName}>
                             {comp.contract?.fileName || comp.contract?.code || 'CTR-DADO-2026'}
                           </div>
-                          <div className="text-xs text-slate-500 truncate mt-0.5">
-                            Formato: <strong className="text-slate-700">{comp.contract?.digitalFormat || 'PDF'}</strong> • <strong className="text-slate-700">{comp.contract?.status?.toUpperCase() || 'FIRMATO'}</strong>
+                          <div className="text-[15px] text-slate-500 truncate mt-0.5 font-medium">
+                            Formato: <strong className="text-slate-700 font-bold">{comp.contract?.digitalFormat || 'PDF'}</strong> • <strong className="text-slate-700 font-bold">{comp.contract?.status?.toUpperCase() || 'FIRMATO'}</strong>
                           </div>
                         </div>
 
-                        <div className="mt-2.5 pt-2 border-t border-sky-100/80 text-xs truncate">
+                        <div className="mt-3 text-[15px] truncate">
                           {comp.issues?.isResolved === 'Risolto' ? (
-                            <span className="text-emerald-700 font-bold flex items-center gap-1">
-                              <Check className="w-3 h-3 stroke-[3]" />
-                              <strong>CRITICITÀ RISOLTA (100%)</strong>
+                            <span className="text-emerald-700 font-black flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              <span>CRITICITÀ RISOLTA (100%)</span>
                             </span>
                           ) : (
                             <span className="text-slate-400 font-medium">Nessuna criticità emersa</span>
@@ -1050,11 +2320,11 @@ export default function Companies() {
 
                     {/* ── 3. DETTAGLI COMPLETI ESPANSI (IN SWITZER SU SFONDO CHIARO SENZA RIQUADRETTI DURI) ── */}
                     {isExpanded && (
-                      <div className="mt-4 pt-4 border-t border-sky-100 flex flex-col gap-4 animate-in fade-in duration-150 text-slate-800">
+                      <div className="mt-5 flex flex-col gap-4 animate-in fade-in duration-150 text-slate-800">
                         
                         {/* Sezione B.A.N.T. Approfondita */}
-                        <div className="p-4 rounded-xl bg-sky-50/70 border border-sky-200">
-                          <div className="flex items-center justify-between pb-2 mb-3 border-b border-sky-200/80 flex-wrap gap-2">
+                        <div className="flex flex-col">
+                          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                             <div className="flex items-center gap-2">
                               <BantLogoMark size="md" bant={bant} />
                               <strong className="text-sm font-black uppercase tracking-wider text-slate-900">
@@ -1062,87 +2332,87 @@ export default function Companies() {
                               </strong>
                             </div>
                             {bant.isComplete ? (
-                              <span className="text-xs text-emerald-700 font-extrabold bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+                              <span className="text-[15px] text-emerald-700 font-extrabold bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
                                 🟢 4/4 PARAMETRI RILEVATI • LEAD QUALIFICATO
                               </span>
                             ) : (
-                              <span className="text-xs text-amber-800 font-extrabold bg-amber-100 px-2.5 py-0.5 rounded border border-amber-300">
+                              <span className="text-[15px] text-amber-800 font-extrabold bg-amber-100 px-2.5 py-0.5 rounded border border-amber-300">
                                 ⚠️ {4 - bant.score} PARAMETRI MANCANTI: {bant.missingLabel.toUpperCase()}
                               </span>
                             )}
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[15px]">
                             {/* Budget */}
-                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
+                            <div className="min-w-0">
                               <div className="text-sm font-black uppercase text-[#16a34a] flex items-center justify-between">
                                 <span className="flex items-center gap-1.5">
-                                  <span className="w-5 h-5 rounded-md bg-[#16a34a]/10 flex items-center justify-center text-[#16a34a] font-black text-xs">B</span>
+                                  <span className="w-5 h-5 rounded-md bg-[#16a34a]/10 flex items-center justify-center text-[#16a34a] font-black text-[15px]">B</span>
                                   <span>BUDGET</span>
                                 </span>
-                                {!bant.hasB && <strong className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA DEFINIRE</strong>}
+                                {!bant.hasB && <strong className="text-[13px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA DEFINIRE</strong>}
                               </div>
                               <div className="text-base font-black text-slate-900 mt-1.5">
                                 {isDipendente ? (
-                                  <span className="text-slate-400 font-mono text-sm tracking-wider" title="Budget riservato ad Amministratore">
+                                  <span className="text-slate-400 font-bold text-sm tracking-wider" title="Budget riservato ad Amministratore">
                                     🔒 Riservato
                                   </span>
                                 ) : (
                                   bant.budget
                                 )}
                               </div>
-                              <div className="text-[11px] text-slate-500 mt-1">
+                              <div className="text-[14px] text-slate-500 mt-1">
                                 Capacità di spesa allocata per l'intervento
                               </div>
                             </div>
 
                             {/* Authority */}
-                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
+                            <div className="min-w-0">
                               <div className="text-sm font-black uppercase text-[#dc2626] flex items-center justify-between">
                                 <span className="flex items-center gap-1.5">
-                                  <span className="w-5 h-5 rounded-md bg-[#dc2626]/10 flex items-center justify-center text-[#dc2626] font-black text-xs">A</span>
+                                  <span className="w-5 h-5 rounded-md bg-[#dc2626]/10 flex items-center justify-center text-[#dc2626] font-black text-[15px]">A</span>
                                   <span>AUTHORITY</span>
                                 </span>
-                                {!bant.hasA && <strong className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA VERIFICARE</strong>}
+                                {!bant.hasA && <strong className="text-[13px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA VERIFICARE</strong>}
                               </div>
                               <div className="text-sm md:text-base font-black text-slate-900 mt-1.5 truncate" title={bant.authority}>
                                 {bant.authority}
                               </div>
-                              <div className="text-[11px] text-slate-500 mt-1">
+                              <div className="text-[14px] text-slate-500 mt-1">
                                 Referente decisionale con potere di firma
                               </div>
                             </div>
 
                             {/* Need */}
-                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
+                            <div className="min-w-0">
                               <div className="text-sm font-black uppercase text-[#0284c7] flex items-center justify-between">
                                 <span className="flex items-center gap-1.5">
-                                  <span className="w-5 h-5 rounded-md bg-[#0284c7]/10 flex items-center justify-center text-[#0284c7] font-black text-xs">N</span>
+                                  <span className="w-5 h-5 rounded-md bg-[#0284c7]/10 flex items-center justify-center text-[#0284c7] font-black text-[15px]">N</span>
                                   <span>NEED</span>
                                 </span>
-                                {!bant.hasN && <strong className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA CHIARIRE</strong>}
+                                {!bant.hasN && <strong className="text-[13px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA CHIARIRE</strong>}
                               </div>
-                              <div className="text-xs md:text-sm font-bold text-slate-900 mt-1.5 line-clamp-2 leading-relaxed" title={bant.need}>
+                              <div className="text-[15px] md:text-sm font-bold text-slate-900 mt-1.5 line-clamp-2 leading-relaxed" title={bant.need}>
                                 {bant.need}
                               </div>
-                              <div className="text-[11px] text-slate-500 mt-1">
+                              <div className="text-[14px] text-slate-500 mt-1">
                                 Esigenza operativa e output atteso
                               </div>
                             </div>
 
                             {/* Timeline */}
-                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
+                            <div className="min-w-0">
                               <div className="text-sm font-black uppercase text-[#d97706] flex items-center justify-between">
                                 <span className="flex items-center gap-1.5">
-                                  <span className="w-5 h-5 rounded-md bg-[#d97706]/10 flex items-center justify-center text-[#d97706] font-black text-xs">T</span>
+                                  <span className="w-5 h-5 rounded-md bg-[#d97706]/10 flex items-center justify-center text-[#d97706] font-black text-[15px]">T</span>
                                   <span>TIMELINE</span>
                                 </span>
-                                {!bant.hasT && <strong className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA FISSARE</strong>}
+                                {!bant.hasT && <strong className="text-[13px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">DA FISSARE</strong>}
                               </div>
                               <div className="text-sm md:text-base font-black text-slate-900 mt-1.5">
                                 {bant.timeline}
                               </div>
-                              <div className="text-[11px] text-slate-500 mt-1">
+                              <div className="text-[14px] text-slate-500 mt-1">
                                 Finestra temporale di erogazione
                               </div>
                             </div>
@@ -1150,49 +2420,74 @@ export default function Companies() {
                         </div>
 
                         {/* Griglia 2 Colonne Aperta */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           
                           {/* Colonna 1: Storico e Orari */}
                           <div className="flex flex-col gap-3">
-                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
-                              <strong className="text-xs font-black uppercase text-[#0284c7] flex items-center gap-1.5 mb-2">
+                            <div className="min-w-0">
+                              <strong className="text-[15px] font-black uppercase text-[#0284c7] flex items-center gap-1.5 mb-2">
                                 <Clock className="w-4 h-4" />
                                 PROGRAMMAZIONE ORARI & LOCATION
                               </strong>
                               <div className="text-sm font-extrabold text-slate-900">
                                 {comp.workSchedule?.datesFormatted || 'Date da calendarizzare'}
                               </div>
-                              <div className="text-xs text-slate-600 font-semibold mt-1">
+                              <div className="text-[15px] text-slate-600 font-semibold mt-1">
                                 Tipologia: <strong>{comp.workSchedule?.scheduleType}</strong>
                               </div>
-                              <div className="text-xs text-slate-600 mt-1">
+                              <div className="text-[15px] text-slate-600 mt-1">
                                 Orari: <strong>{comp.workSchedule?.hours || 'Standard'}</strong>
                               </div>
                               {comp.workSchedule?.location && (
-                                <div className="text-xs text-slate-600 mt-1">
+                                <div className="text-[15px] text-slate-600 mt-1">
                                   Location: <strong>{comp.workSchedule?.location}</strong>
                                 </div>
                               )}
                             </div>
 
-                            <div className="p-4 bg-white rounded-xl border border-sky-200 shadow-xs">
-                              <strong className="text-sm font-black uppercase text-[#d97706] flex items-center gap-1.5 mb-2">
-                                <Calendar className="w-4 h-4" />
-                                1° CONTATTO & ACQUISIZIONE
+                            <div className="min-w-0 bg-sky-50/60 p-3 rounded-xl border border-sky-200/70">
+                              <strong className="text-sm font-black uppercase text-[#0284c7] flex items-center gap-1.5 mb-2">
+                                <Mail className="w-4 h-4" />
+                                AGGIORNAMENTI ESTRATTI DA EMAIL (SENZA TESTO ALLEGATO)
                               </strong>
-                              <div className="text-sm text-slate-600 mb-2">
-                                Data: <strong className="text-slate-900 font-black text-sm">{comp.firstContact?.date}</strong> • Canale: <strong className="text-[#0284c7] font-black text-sm">{comp.firstContact?.channel}</strong>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[13px]">
+                                <div>
+                                  <span className="text-slate-500 font-bold block text-[11px] uppercase">Indirizzo Email:</span>
+                                  <strong className="text-slate-900 font-black truncate block">{contactEmail || comp.contact?.email || 'Non rilevato'}</strong>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 font-bold block text-[11px] uppercase">Referente:</span>
+                                  <strong className="text-slate-900 font-black truncate block">{comp.contactPerson?.name || 'Referente'} ({comp.contactPerson?.role || 'Aziendale'})</strong>
+                                </div>
+                                <div className="sm:col-span-2">
+                                  <span className="text-slate-500 font-bold block text-[11px] uppercase">Dettagli Contratto:</span>
+                                  <strong className="text-slate-900 font-bold block">
+                                    {comp.contract?.status || 'In valutazione'} — {comp.contract?.terms || comp.compensation?.status || '50% acconto / 50% saldo'}
+                                  </strong>
+                                </div>
+                                <div className="sm:col-span-2">
+                                  <span className="text-slate-500 font-bold block text-[11px] uppercase mb-1">Richieste da Oggetto Mail:</span>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {(Array.isArray(comp.subjectRequests) && comp.subjectRequests.length > 0
+                                      ? comp.subjectRequests
+                                      : comp.firstContact?.lastEmailSubject
+                                      ? [comp.firstContact.lastEmailSubject]
+                                      : (comp.requestedMaterials || []).slice(0, 2)
+                                    ).map((req, rIdx) => (
+                                      <span key={rIdx} className="px-2 py-0.5 bg-white border border-sky-200 text-[#0369a1] text-[12px] font-extrabold rounded-md">
+                                        {req}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
-                              <p className="text-sm text-slate-800 leading-relaxed font-semibold bg-slate-50 p-3 rounded-lg border border-slate-200">
-                                {comp.firstContact?.notes || 'Nessuna nota iniziale.'}
-                              </p>
                             </div>
                           </div>
 
                           {/* Colonna 2: Materiali, Contratto e Dettaglio Finanziario */}
                           <div className="flex flex-col gap-3">
-                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
-                              <strong className="text-xs font-black uppercase text-[#ea580c] flex items-center gap-1.5 mb-2">
+                            <div className="min-w-0">
+                              <strong className="text-[15px] font-black uppercase text-[#0284c7] flex items-center gap-1.5 mb-2">
                                 <Camera className="w-4 h-4" />
                                 MATERIALI & OUTPUT RICHIESTI
                               </strong>
@@ -1200,7 +2495,7 @@ export default function Companies() {
                                 {comp.requestedMaterials?.map((item, i) => (
                                   <span
                                     key={i}
-                                    className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-md"
+                                    className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-800 text-[15px] font-bold rounded-md"
                                   >
                                     {item}
                                   </span>
@@ -1208,30 +2503,28 @@ export default function Companies() {
                               </div>
                             </div>
 
-                            <div className="p-3.5 bg-white rounded-xl border border-sky-100 shadow-xs">
+                            <div className="min-w-0">
                               <div className="flex items-center justify-between mb-2">
-                                <strong className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
+                                <strong className="text-[15px] font-black uppercase text-slate-900 flex items-center gap-1.5">
                                   <FileText className="w-4 h-4 text-[#0284c7]" />
-                                  STORICO DETTAGLIATO CONTRATTI
+                                  FILE ALLEGATI
                                 </strong>
-                                <span className="text-[11px] font-extrabold px-2 py-0.5 bg-sky-100 text-[#0369a1] rounded">
-                                  {contractsHistory.length} {contractsHistory.length === 1 ? 'CONTRATTO' : 'CONTRATTI'}
+                                <span className="text-[14px] font-extrabold px-2 py-0.5 bg-sky-100 text-[#0369a1] rounded">
+                                  {contractsHistory.length} FILE
                                 </span>
                               </div>
                               <div className="flex flex-col gap-2 mt-1">
                                 {contractsHistory.map((ctr, idx) => (
-                                  <div key={ctr.code || idx} className="p-2 rounded-lg bg-sky-50/60 border border-sky-100 text-xs">
+                                  <div key={ctr.code || idx} className="py-0.5 text-[15px]">
                                     <div className="flex items-center justify-between font-bold text-slate-900">
                                       <span className="flex items-center gap-1.5">
-                                        <span className="px-1.5 py-0.2 rounded bg-sky-200 text-[#0369a1] text-[10px] font-black">{idx + 1}°</span>
-                                        <span className="font-mono text-[11px]">{ctr.code}</span>
-                                        <span className="text-slate-400 font-normal">({formatContractDate(ctr.date)})</span>
+                                        <Paperclip className="w-3.5 h-3.5 text-slate-400" />
+                                        <span className="font-bold text-[15px]">{ctr.title}</span>
                                       </span>
                                       <span className="text-[#0284c7] font-black">{isDipendente ? '•••• €' : `€ ${(ctr.amount || 0).toLocaleString('it-IT')}`}</span>
                                     </div>
-                                    <div className="text-slate-800 font-semibold mt-1">{ctr.title}</div>
                                     {ctr.terms && (
-                                      <div className="text-[11px] text-slate-500 mt-0.5">
+                                      <div className="text-[14px] text-slate-500 mt-0.5">
                                         <strong>Termini:</strong> {ctr.terms}
                                       </div>
                                     )}
@@ -1244,36 +2537,36 @@ export default function Companies() {
                         </div>
 
                         {/* Riga Inferiore: Feedback e Risoluzione Criticità */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-1">
-                          <div className="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-1">
+                          <div className="min-w-0">
                             <div className="flex items-center justify-between mb-1.5">
-                              <strong className="text-xs font-black uppercase text-amber-800 flex items-center gap-1.5">
+                              <strong className="text-[15px] font-black uppercase text-slate-800 flex items-center gap-1.5">
                                 <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                                 FEEDBACK SULLA COLLABORAZIONE
                               </strong>
-                              <strong className="text-xs font-black text-amber-800">
+                              <strong className="text-[15px] font-black text-slate-800">
                                 ★ {comp.feedback?.rating} / 5.0
                               </strong>
                             </div>
-                            <p className="text-xs text-slate-800 italic leading-relaxed">
+                            <p className="text-[15px] text-slate-800 italic leading-relaxed">
                               "{comp.feedback?.notes}"
                             </p>
                           </div>
 
-                          <div className="p-3.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl">
+                          <div className="min-w-0">
                             <div className="flex items-center justify-between mb-1.5">
-                              <strong className="text-xs font-black uppercase text-emerald-800 flex items-center gap-1.5">
+                              <strong className="text-[15px] font-black uppercase text-emerald-800 flex items-center gap-1.5">
                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                                 GESTIONE CRITICITÀ
                               </strong>
-                              <span className="text-[10px] font-extrabold px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded">
+                              <span className="text-[13px] font-extrabold px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded">
                                 ✓ {comp.issues?.isResolved?.toUpperCase()}
                               </span>
                             </div>
-                            <div className="text-xs text-slate-800 mb-1">
+                            <div className="text-[15px] text-slate-800 mb-1">
                               <strong>Criticità:</strong> {comp.issues?.description}
                             </div>
-                            <div className="text-xs text-emerald-900 font-medium">
+                            <div className="text-[15px] text-emerald-900 font-medium">
                               <strong>Soluzione adottata:</strong> {comp.issues?.resolution}
                             </div>
                           </div>
@@ -1292,155 +2585,427 @@ export default function Companies() {
 
       </div>
 
-      {/* ── MODAL AGGIUNGI NUOVA SCHEDA AZIENDA IN SWITZER E TEMA AZZURRO CHIARO ── */}
+      {/* ── MODAL AGGIUNGI NUOVA SCHEDA AZIENDA CON B2B DATA ENRICHMENT AUTOMATICO ── */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 h-dvh">
           <div
-            className="bg-white border border-sky-200 p-6 max-w-2xl w-full my-8 text-left shadow-2xl rounded-2xl relative text-slate-800"
+            className="bg-white border border-sky-200 max-w-3xl w-full max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] text-left shadow-2xl rounded-2xl relative text-slate-800 flex flex-col overflow-hidden"
             style={{ fontFamily: '"Switzer", sans-serif' }}
           >
-            <div className="flex items-center justify-between mb-4 border-b border-sky-100 pb-3">
-              <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                <Plus className="w-5 h-5 text-[#0284c7] stroke-[3]" />
-                Nuova Scheda Azienda & Collaborazione
-              </h3>
+            {/* Intestazione fissa */}
+            <div className="flex items-start justify-between gap-3 px-4 sm:px-6 py-3 border-b border-sky-100 flex-shrink-0 bg-white">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-sky-100 text-[#0284c7] flex items-center justify-center shrink-0">
+                  <Plus className="w-5 h-5 stroke-[3]" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-[17px] sm:text-lg font-black text-slate-900 leading-tight">
+                    Nuova Scheda Azienda
+                  </h3>
+                  <p className="text-[13px] text-slate-500 font-medium leading-snug mt-0.5">
+                    Compila a mano oppure usa l'arricchimento automatico dai registri camerali
+                  </p>
+                </div>
+              </div>
               <button
+                type="button"
                 onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg p-1 font-bold cursor-pointer"
+                aria-label="Chiudi"
+                className="w-9 h-9 shrink-0 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 text-lg font-bold cursor-pointer flex items-center justify-center"
               >
                 ✕
               </button>
             </div>
 
+            {/* Corpo scorrevole */}
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col gap-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+
+            {/* ── BOX DATA ENRICHMENT B2B AUTOMATICO (ATOKA, LINKEDIN, CCIAA, D&B) ── */}
+            <div className="p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-purple-900/5 via-sky-900/5 to-indigo-900/5 border border-purple-200/80 shadow-xs">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 mb-2.5">
+                <span className="font-black text-[14px] text-purple-900 flex items-center gap-1.5 uppercase tracking-wide min-w-0">
+                  <Zap className="w-4 h-4 text-purple-600 fill-purple-600 shrink-0" />
+                  <span>Arricchimento automatico</span>
+                </span>
+                <span className="text-[12px] text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full font-bold border border-purple-200 whitespace-nowrap">
+                  Atoka • LinkedIn • D&B • CCIAA
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  value={enrichVatInput}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setEnrichVatInput(val)
+                    // Se l'utente incolla o digita esattamente 11 cifre numeriche (Partita IVA), avvia arricchimento rapido
+                    const clean = val.replace(/[^0-9]/g, '')
+                    if (clean.length === 11) {
+                      handleAutoEnrichInForm(clean)
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleAutoEnrichInForm(enrichVatInput)
+                    }
+                  }}
+                  placeholder="Partita IVA (11 cifre) o ragione sociale"
+                  className="flex-1 min-w-0 w-full bg-white border border-purple-300 focus:border-purple-600 focus:ring-1 focus:ring-purple-600 rounded-lg px-3 py-2 text-[16px] font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-medium placeholder:text-[14px] outline-none"
+                />
+                <button
+                  type="button"
+                  disabled={enrichLoading}
+                  onClick={() => handleAutoEnrichInForm(enrichVatInput)}
+                  className="px-4 py-2.5 sm:py-2 w-full sm:w-auto justify-center bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-[15px] font-extrabold rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 shrink-0 whitespace-nowrap"
+                >
+                  {enrichLoading ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Interrogazione...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Arricchisci con AI</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {enrichFeedback && (
+                <div className={`mt-2 text-[13.5px] font-bold flex items-start gap-1.5 break-words ${enrichFeedback.startsWith('✓') ? 'text-emerald-700 bg-emerald-50 border border-emerald-200' : 'text-amber-800 bg-amber-50 border border-amber-200'} p-2 rounded-lg`}>
+                  {enrichFeedback.startsWith('✓') ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />}
+                  <span>{enrichFeedback}</span>
+                </div>
+              )}
+            </div>
+
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault()
-                const fd = new FormData(e.target)
                 const newCompany = {
                   id: 'comp-' + Date.now(),
-                  name: fd.get('name') || 'Nuova Azienda',
-                  industry: fd.get('industry') || 'Settore Creativo',
+                  name: newCompanyForm.name || 'Nuova Azienda',
+                  piva: newCompanyForm.piva || '',
+                  fiscalCode: newCompanyForm.fiscalCode || newCompanyForm.piva || '',
+                  industry: newCompanyForm.industry || 'Settore Creativo',
                   status: 'Attivo',
                   contactPerson: {
-                    name: fd.get('contactPerson') || 'Referente',
-                    role: fd.get('role') || 'Referente'
+                    name: newCompanyForm.contactPerson || 'Referente',
+                    role: newCompanyForm.role || 'Referente Direzione'
                   },
                   contact: {
-                    email: fd.get('email') || '',
-                    phone: fd.get('phone') || ''
+                    email: newCompanyForm.email || '',
+                    directEmail: newCompanyForm.email || '',
+                    phone: newCompanyForm.phone || '',
+                    mobile: newCompanyForm.mobile || ''
                   },
+                  legalAddress: newCompanyForm.address ? { street: newCompanyForm.address } : null,
+                  sdi: newCompanyForm.sdi || '0000000',
+                  pec: newCompanyForm.pec || '',
                   firstContact: {
                     date: new Date().toISOString().split('T')[0],
-                    channel: fd.get('firstContactChannel') || 'Inbound',
-                    notes: fd.get('firstContactNotes') || ''
+                    channel: newCompanyForm.firstContactChannel || 'Inbound',
+                    notes: newCompanyForm.firstContactNotes || 'Scheda registrata nel CRM DADO.'
                   },
-                  requestedMaterials: (fd.get('materials') || '').split(',').map(s => s.trim()).filter(Boolean),
+                  requestedMaterials: (newCompanyForm.materials || '').split(',').map(s => s.trim()).filter(Boolean),
                   contract: {
                     code: 'DADO-CTR-' + Date.now().toString().slice(-4),
-                    fileName: `Contratto_${(fd.get('name') || 'Azienda').replace(/\s+/g, '_')}_signed.pdf`,
+                    fileName: `Contratto_${(newCompanyForm.name || 'Azienda').replace(/\s+/g, '_')}_signed.pdf`,
                     digitalFormat: 'PDF firmato digitalmente',
                     status: 'Firmato',
                     signedDate: new Date().toISOString().split('T')[0],
-                    terms: fd.get('contractTerms') || 'Termini standard DADO Studio'
+                    terms: newCompanyForm.contractTerms || 'Termini standard DADO Studio'
                   },
                   contractsHistory: [
                     {
                       code: 'DADO-CTR-' + Date.now().toString().slice(-4),
                       date: new Date().toISOString().split('T')[0],
-                      title: `Contratto Iniziale - ${fd.get('name') || 'Nuova Azienda'}`,
-                      amount: parseFloat(fd.get('amount')) || 0,
+                      title: `Contratto Iniziale - ${newCompanyForm.name || 'Nuova Azienda'}`,
+                      amount: parseFloat(newCompanyForm.amount) || 0,
                       status: 'Firmato',
                       digitalFormat: 'PDF firmato digitalmente',
-                      terms: fd.get('contractTerms') || 'Termini standard DADO Studio'
+                      terms: newCompanyForm.contractTerms || 'Termini standard DADO Studio'
                     }
                   ],
                   workSchedule: {
-                    scheduleType: fd.get('scheduleType') || 'Un giorno intero',
-                    datesFormatted: fd.get('workDates') || 'Da concordare',
-                    hours: fd.get('workHours') || 'Standard',
+                    scheduleType: newCompanyForm.scheduleType || 'Un giorno intero',
+                    datesFormatted: newCompanyForm.workDates || 'Da concordare',
+                    hours: 'Standard',
                     recentDate: new Date().toISOString().split('T')[0]
                   },
                   feedback: {
-                    rating: parseFloat(fd.get('rating')) || 5.0,
-                    notes: fd.get('feedbackNotes') || 'Prima collaborazione completata.'
+                    rating: 5.0,
+                    notes: 'Prima collaborazione registrata con successo.'
                   },
                   compensation: {
-                    amount: parseFloat(fd.get('amount')) || 0,
-                    deposit: parseFloat(fd.get('deposit')) || 0,
-                    balance: (parseFloat(fd.get('amount')) || 0) - (parseFloat(fd.get('deposit')) || 0),
-                    status: (parseFloat(fd.get('amount')) || 0) === (parseFloat(fd.get('deposit')) || 0) ? 'Saldato' : 'Acconto versato',
-                    paymentMethod: 'Bonifico Bancario'
+                    amount: parseFloat(newCompanyForm.amount) || 0,
+                    deposit: parseFloat(newCompanyForm.deposit) || 0,
+                    balance: (parseFloat(newCompanyForm.amount) || 0) - (parseFloat(newCompanyForm.deposit) || 0),
+                    status: (parseFloat(newCompanyForm.amount) || 0) === (parseFloat(newCompanyForm.deposit) || 0) ? 'Saldato' : 'Acconto versato',
+                    paymentMethod: 'Bonifico Bancario 30gg d.f.'
                   },
                   issues: {
-                    hasIssue: !!fd.get('issueDescription'),
-                    description: fd.get('issueDescription') || 'Nessuna criticità emersa.',
+                    hasIssue: false,
+                    description: 'Nessuna criticità emersa.',
                     isResolved: 'Risolto',
-                    resolution: fd.get('issueResolution') || 'Collaborazione fluida senza intoppi.'
+                    resolution: 'Collaborazione fluida senza intoppi.'
                   },
                   lastContact: new Date().toISOString()
                 }
 
-                setCompanies([newCompany, ...companies])
+                try {
+                  const res = await fetch('/api/crm/companies', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newCompany)
+                  })
+                  const saved = await res.json()
+                  if (saved.success && saved.company) {
+                    setCompanies([saved.company, ...companies])
+                  } else {
+                    setCompanies([newCompany, ...companies])
+                  }
+                } catch {
+                  setCompanies([newCompany, ...companies])
+                }
+
                 setShowAddModal(false)
               }}
-              className="flex flex-col gap-3.5 text-xs text-slate-800"
+              id="new-company-form"
+              className="flex flex-col gap-3.5 text-[15px] text-slate-800"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Nome Azienda *</label>
-                  <input name="name" required placeholder="Es. Omega Fashion Milano" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
+              <section className={NC_SECTION}>
+                <h4 className={NC_SECTION_TITLE}><span className={NC_BADGE}>1</span>Dati azienda</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="min-w-0 sm:col-span-2">
+                    <label className={NC_LABEL}>Ragione sociale *</label>
+                    <input
+                      value={newCompanyForm.name}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, name: e.target.value })}
+                      required
+                      placeholder="Es. Officine Riva S.p.A."
+                      className={NC_INPUT}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <label className={NC_LABEL}>Partita IVA</label>
+                    <input
+                      value={newCompanyForm.piva}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, piva: e.target.value })}
+                      placeholder="11 cifre"
+                      className={NC_INPUT}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <label className={NC_LABEL}>Codice SDI</label>
+                    <input
+                      value={newCompanyForm.sdi}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, sdi: e.target.value })}
+                      placeholder="7 caratteri"
+                      className={NC_INPUT}
+                    />
+                  </div>
+                  <div className="min-w-0 sm:col-span-2">
+                    <label className={NC_LABEL}>Settore / ATECO</label>
+                    <input
+                      value={newCompanyForm.industry}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, industry: e.target.value })}
+                      placeholder="Es. 25.62.00 - Lavorazioni meccaniche"
+                      className={NC_INPUT}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Settore</label>
-                  <input name="industry" placeholder="Es. Moda & ADV" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
-                </div>
-              </div>
+              </section>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Referente e Ruolo</label>
-                  <input name="contactPerson" placeholder="Es. Laura Neri (Art Buyer)" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
+              <section className={NC_SECTION}>
+                <h4 className={NC_SECTION_TITLE}><span className={NC_BADGE}>2</span>Referente e contatti</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="min-w-0">
+                    <label className={NC_LABEL}>Referente principale</label>
+                    <input
+                      value={newCompanyForm.contactPerson}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, contactPerson: e.target.value })}
+                      placeholder="Es. Marco Riva"
+                      className={NC_INPUT}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <label className={NC_LABEL}>Ruolo in azienda</label>
+                    <input
+                      value={newCompanyForm.role}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, role: e.target.value })}
+                      placeholder="Es. Direttore Marketing"
+                      className={NC_INPUT}
+                    />
+                  </div>
+                  <div className="min-w-0 sm:col-span-2">
+                    <label className={NC_LABEL}>Email diretta</label>
+                    <input
+                      value={newCompanyForm.email}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, email: e.target.value })}
+                      placeholder="nome@azienda.it"
+                      className={NC_INPUT}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <label className={NC_LABEL}>Telefono sede</label>
+                    <input
+                      value={newCompanyForm.phone}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, phone: e.target.value })}
+                      placeholder="+39 02 000000"
+                      className={NC_INPUT}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <label className={NC_LABEL}>PEC</label>
+                    <input
+                      value={newCompanyForm.pec}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, pec: e.target.value })}
+                      placeholder="azienda@legalmail.it"
+                      className={NC_INPUT}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Email e Telefono</label>
-                  <input name="email" placeholder="laura@omega.it, +39 02 123456" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
-                </div>
-              </div>
+              </section>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Importo Totale (€)</label>
-                  <input name="amount" type="number" defaultValue="5000" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
+              <section className={NC_SECTION}>
+                <h4 className={NC_SECTION_TITLE}><span className={NC_BADGE}>3</span>Budget e tempi</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="min-w-0">
+                    <label className={NC_LABEL}>Budget previsto (€)</label>
+                    <input type="number"
+                      value={newCompanyForm.amount}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, amount: e.target.value })}
+                      inputMode="decimal"
+                      placeholder="0"
+                      className={NC_INPUT}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <label className={NC_LABEL}>Acconto versato (€)</label>
+                    <input type="number"
+                      value={newCompanyForm.deposit}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, deposit: e.target.value })}
+                      inputMode="decimal"
+                      placeholder="0"
+                      className={NC_INPUT}
+                    />
+                  </div>
+                  <div className="min-w-0 sm:col-span-2">
+                    <label className={NC_LABEL}>Date shooting / set</label>
+                    <input
+                      value={newCompanyForm.workDates}
+                      onChange={(e) => setNewCompanyForm({ ...newCompanyForm, workDates: e.target.value })}
+                      placeholder="Es. Entro 2 settimane"
+                      className={NC_INPUT}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Acconto Versato (€)</label>
-                  <input name="deposit" type="number" defaultValue="2500" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
-                </div>
-                <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Date Lavori</label>
-                  <input name="workDates" placeholder="Es. 15 e 16 Ottobre" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 font-semibold" />
-                </div>
-              </div>
+              </section>
 
-              <div className="flex justify-end gap-2.5 mt-3 pt-3 border-t border-sky-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg cursor-pointer"
-                >
-                  Annulla
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white font-extrabold rounded-lg shadow-xs cursor-pointer"
-                >
-                  Salva Scheda Azienda
-                </button>
-              </div>
+              <section className={NC_SECTION}>
+                <h4 className={NC_SECTION_TITLE}><span className={NC_BADGE}>4</span>Servizi</h4>
+                <div className="min-w-0">
+                  <label className={NC_LABEL}>Servizi DADO consigliati</label>
+                  <input
+                    value={newCompanyForm.materials}
+                    onChange={(e) => setNewCompanyForm({ ...newCompanyForm, materials: e.target.value })}
+                    placeholder="Es. Shooting video, Drone 4K"
+                    className={NC_INPUT}
+                  />
+                  <p className="text-[12.5px] text-slate-500 font-medium mt-1">Separa i servizi con una virgola.</p>
+                </div>
+              </section>
             </form>
+            </div>
+
+            {/* Pulsanti fissi in fondo, sempre visibili */}
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-2.5 px-4 sm:px-6 pt-3 pb-3 border-t border-sky-100 flex-shrink-0 bg-white" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg cursor-pointer text-[15px]"
+              >
+                Annulla
+              </button>
+              <button
+                type="submit"
+                form="new-company-form"
+                className="px-5 py-2.5 bg-[#0284c7] hover:bg-[#0369a1] text-white font-extrabold rounded-lg shadow-xs cursor-pointer flex items-center justify-center gap-1.5 text-[15px]"
+              >
+                <Check size={15} />
+                <span>Salva scheda azienda</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* ── MODALE COMPLETO B2B DATA ENRICHMENT & DOSSIER CAMERALE ── */}
+      {showRemovedModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 p-4" onClick={() => setShowRemovedModal(false)}>
+          <div className="w-full max-w-md bg-white rounded-xl border border-slate-200 shadow-xl p-5" onClick={(e) => e.stopPropagation()} style={{ fontFamily: '"Switzer", sans-serif' }}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-slate-900">Schede rimosse</h2>
+              <button type="button" onClick={() => setShowRemovedModal(false)} className="p-1 rounded-md hover:bg-slate-100 cursor-pointer">
+                <CloseIcon className="w-4 h-4 text-slate-500" />
+              </button>
+            </div>
+            {removedCompanies.length === 0 ? (
+              <p className="text-sm text-slate-500 py-6 text-center">Nessuna scheda rimossa.</p>
+            ) : (
+              <ul className="max-h-80 overflow-y-auto flex flex-col gap-2">
+                {removedCompanies.map(c => (
+                  <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-slate-200">
+                    <span className="text-sm font-semibold text-slate-800 truncate">{c.name}</span>
+                    <button type="button" onClick={() => restoreCompany(c)} className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-[15px] font-semibold cursor-pointer shrink-0">
+                      <RotateCcw className="w-3 h-3" /> Ripristina
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+      <B2BEnrichmentModal
+        isOpen={showEnrichModal}
+        onClose={() => setShowEnrichModal(false)}
+        initialQuery={enrichModalQuery}
+        onCompanyCreated={(newComp) => {
+          setCompanies(prev => [newComp, ...prev])
+        }}
+        onSelectCompany={(enrichment) => {
+          if (enrichment?.company) {
+            const c = enrichment.company
+            setNewCompanyForm(prev => ({
+              ...prev,
+              name: c.legalName || c.brandName || prev.name,
+              piva: c.vatNumber || prev.piva,
+              fiscalCode: c.fiscalCode || prev.fiscalCode,
+              industry: c.atecoDescription ? `${c.atecoCode} - ${c.atecoDescription.split(' e ')[0]}` : prev.industry,
+              contactPerson: c.decisionMakers?.[0]?.name || prev.contactPerson,
+              role: c.decisionMakers?.[0]?.role || prev.role,
+              email: c.decisionMakers?.[0]?.email || prev.email,
+              phone: c.phone || prev.phone,
+              mobile: c.decisionMakers?.[0]?.mobile || prev.mobile,
+              address: c.legalAddress ? `${c.legalAddress.street}, ${c.legalAddress.zip} ${c.legalAddress.city} (${c.legalAddress.province})` : prev.address,
+              sdi: c.sdiCode || prev.sdi,
+              pec: c.pec || prev.pec,
+              amount: c.suggestedBudget ? String(c.suggestedBudget) : prev.amount,
+              deposit: c.suggestedBudget ? String(Math.round(c.suggestedBudget * 0.3)) : prev.deposit,
+              materials: (c.recommendedDadoServices || []).join(', '),
+              contractTerms: c.recommendedPaymentTerms || prev.contractTerms,
+            }))
+            setShowAddModal(true)
+          }
+        }}
+      />
+
+      {/* ── MODALE ISTRUZIONI ALLENA AI (LAMPADINA) ── */}
 
     </div>
   )

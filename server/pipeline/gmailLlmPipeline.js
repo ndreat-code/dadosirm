@@ -2,14 +2,17 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import OpenAI from 'openai'
+import { GoogleGenAI } from '@google/genai'
 import { google } from 'googleapis'
+import { DATA_DIR, STATE_DIR, PUBLIC_URL, IS_PUBLIC_DEPLOY } from '../runtimeConfig.js'
+import { parseHtmlEmail, assessEmailSafety, plainHtmlMismatch, stripInvisibleChars } from '../services/emailSafety.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const ROOT_DIR = path.resolve(__dirname, '../..')
-const DATA_DIR = path.join(__dirname, '../data')
+const ROOT_DIR = STATE_DIR
 const CRM_DATA_FILE = path.join(DATA_DIR, 'crmData.json')
+const TRAINING_FILE = path.join(DATA_DIR, 'emailTrainingExamples.json')
 
 export function getCredentialsPath() {
   const rootCreds = path.join(ROOT_DIR, 'credentials.json')
@@ -42,7 +45,7 @@ let pipelineState = {
   generatedTasks: 0,
   generatedDrafts: 0,
   autoSentEmails: 0,
-  activeEngine: 'OpenAI (gpt-4o-mini) + Motore Semantico DADO Fallback',
+  activeEngine: 'Google Gemini (gemini-2.5-flash) + Motore Semantico DADO Fallback',
   logs: [],
   recentTasks: [],
   recentDrafts: [],
@@ -98,6 +101,53 @@ export function saveCrmData(data) {
   }
 }
 
+// Lettura e scrittura esempi di addestramento AI per poche istanze (Few-Shot Active Learning)
+export function getTrainingExamples() {
+  try {
+    if (fs.existsSync(TRAINING_FILE)) {
+      return JSON.parse(fs.readFileSync(TRAINING_FILE, 'utf-8'))
+    }
+  } catch (err) {
+    console.error('Errore lettura emailTrainingExamples.json:', err)
+  }
+  return []
+}
+
+export function saveTrainingExample(example) {
+  try {
+    const list = getTrainingExamples()
+    const id = example.id || `train-${Date.now()}`
+    const existingIdx = list.findIndex(e => e.id === id || (e.company && e.company.toLowerCase() === (example.company || '').toLowerCase()))
+    const item = {
+      ...example,
+      id,
+      updatedAt: new Date().toISOString()
+    }
+    if (existingIdx >= 0) {
+      list[existingIdx] = { ...list[existingIdx], ...item }
+    } else {
+      list.unshift(item)
+    }
+    fs.writeFileSync(TRAINING_FILE, JSON.stringify(list, null, 2), 'utf-8')
+    addLog('success', `Allena AI: salvata regola/esempio di addestramento per "${item.company || 'Regola Generale'}"`)
+    return { success: true, item, count: list.length }
+  } catch (err) {
+    console.error('Errore salvataggio training example:', err)
+    return { success: false, error: err.message }
+  }
+}
+
+export function deleteTrainingExample(id) {
+  try {
+    let list = getTrainingExamples()
+    list = list.filter(e => e.id !== id)
+    fs.writeFileSync(TRAINING_FILE, JSON.stringify(list, null, 2), 'utf-8')
+    return { success: true, count: list.length }
+  } catch (err) {
+    return { success: false, error: err.message }
+  }
+}
+
 // Client OAuth2 Google
 export function getAuthenticatedClient() {
   try {
@@ -109,7 +159,9 @@ export function getAuthenticatedClient() {
     const keys = rawCreds.web || rawCreds.installed
     if (!keys) return null
 
-    const redirectUri = keys.redirect_uris && keys.redirect_uris.includes('http://localhost:3000/oauth2callback')
+    const redirectUri = IS_PUBLIC_DEPLOY
+      ? `${PUBLIC_URL}/oauth2callback`
+      : keys.redirect_uris && keys.redirect_uris.includes('http://localhost:3000/oauth2callback')
       ? 'http://localhost:3000/oauth2callback'
       : (keys.redirect_uris && keys.redirect_uris[0] ? keys.redirect_uris[0] : 'http://localhost:3000/oauth2callback')
 
@@ -155,29 +207,51 @@ export function makeRawEmail(to, subject, body, from = 'me') {
     .replace(/=+$/, '')
 }
 
-// Estrazione ricorsiva del testo dell'email dal payload multipart di Gmail
-export function extractEmailBody(payload) {
-  if (!payload) return ''
-  let text = ''
+// Estrazione sicura del contenuto dell'email dal payload multipart di Gmail.
+// Restituisce SOLO il testo realmente visibile in `body`; il testo nascosto (colore = sfondo, font-size 0,
+// display:none, fuori schermo, commenti, caratteri Unicode invisibili) è tenuto separato in `hiddenText`
+// e non entra mai nel prompt dell'LLM né nelle regole di risposta automatica.
+export function extractEmailContent(payload) {
+  const plainParts = []
+  const htmlParts = []
 
-  if (payload.body && payload.body.data) {
-    text += Buffer.from(payload.body.data, 'base64').toString('utf-8')
-  }
-
-  if (payload.parts && payload.parts.length > 0) {
-    for (const part of payload.parts) {
-      if (part.mimeType === 'text/plain' && part.body && part.body.data) {
-        text += ' ' + Buffer.from(part.body.data, 'base64').toString('utf-8')
-      } else if (part.mimeType === 'text/html' && part.body && part.body.data && !text) {
-        const raw = Buffer.from(part.body.data, 'base64').toString('utf-8')
-        text += ' ' + raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
-      } else if (part.parts) {
-        text += ' ' + extractEmailBody(part)
-      }
+  const walk = (part) => {
+    if (!part) return
+    const mime = String(part.mimeType || '').toLowerCase()
+    if (part.body && part.body.data) {
+      const raw = Buffer.from(part.body.data, 'base64').toString('utf-8')
+      if (mime === 'text/html') htmlParts.push(raw)
+      else if (!mime.startsWith('multipart') && (mime === 'text/plain' || !mime)) plainParts.push(raw)
     }
+    ;(part.parts || []).forEach(walk)
   }
+  walk(payload)
 
-  return text.trim()
+  let htmlVisible = ''
+  let hiddenText = ''
+  let invisibleChars = 0
+  htmlParts.forEach(h => {
+    const parsed = parseHtmlEmail(h)
+    htmlVisible += (htmlVisible ? '\n' : '') + parsed.visible
+    hiddenText += (hiddenText ? ' ' : '') + parsed.hidden
+    invisibleChars += parsed.invisibleChars
+  })
+
+  const plainRaw = plainParts.join(' ')
+  const plainStripped = stripInvisibleChars(plainRaw)
+  invisibleChars += plainStripped.count
+  if (plainStripped.smuggled) hiddenText += (hiddenText ? ' ' : '') + plainStripped.smuggled
+
+  // Le persone vedono quasi sempre la versione HTML: se il testo semplice dice altro, è un segnale di allarme.
+  const htmlMismatch = Boolean(plainStripped.clean.trim() && htmlVisible && plainHtmlMismatch(plainStripped.clean, htmlVisible))
+
+  const body = (plainStripped.clean.trim() || htmlVisible).replace(/[ \t]+/g, ' ').trim()
+  return { body, hiddenText: hiddenText.trim(), htmlMismatch, invisibleChars }
+}
+
+// Compatibilità: restituisce solo il testo visibile
+export function extractEmailBody(payload) {
+  return extractEmailContent(payload).body
 }
 
 // ── CALENDARIO & VERIFICA IMPEGNI IN TEMPO REALE ──────────────
@@ -274,7 +348,8 @@ export async function fetchIncomingEmails() {
         const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject')?.value || '(Nessun oggetto)'
         const dateHeader = headers.find(h => h.name.toLowerCase() === 'date')?.value || new Date().toISOString()
         const snippet = details.data.snippet || ''
-        const body = extractEmailBody(details.data.payload) || snippet
+        const content = extractEmailContent(details.data.payload)
+        const body = content.body || (content.hiddenText ? '' : snippet)
 
         emails.push({
           id: m.id,
@@ -283,7 +358,10 @@ export async function fetchIncomingEmails() {
           subject: subjectHeader,
           date: dateHeader,
           snippet: snippet,
-          body: body
+          body: body,
+          hiddenText: content.hiddenText,
+          htmlMismatch: content.htmlMismatch,
+          invisibleChars: content.invisibleChars
         })
       }
 
@@ -356,29 +434,107 @@ export async function fetchIncomingEmails() {
 
 // ── 2. ANALISI SEMANTICA B.A.N.T. ─────────────────────────────
 export async function runSemanticLlmAnalysis(email) {
-  const prompt = `
-Analizza questa email in arrivo per il CRM di "DADO Creative Studio":
-Mittente: ${email.from}
-Oggetto: ${email.subject}
-Testo: ${email.body || email.snippet}
+  const trainingExamples = getTrainingExamples()
+  let trainingPromptBlock = ''
+  if (trainingExamples && trainingExamples.length > 0) {
+    trainingPromptBlock = `
+═════════════════════════════════════════════════════════════
+REGOLE ED ESEMPI DI APPRENDIMENTO CONVALIDATI DALL'OPERATORE:
+(Segui rigorosamente questi criteri di estrazione, parole chiave e priorità appresi dall'operatore):
+${trainingExamples.slice(0, 8).map((ex, idx) => `[Esempio ${idx + 1}]
+• Azienda: ${ex.company}
+• Referente: ${ex.contactPerson?.name || ''} (${ex.contactPerson?.role || ''})
+• Budget: ${ex.bant?.budget || 'Non specificato'}
+• Esigenza/Need: ${ex.bant?.need || ''}
+• Timeline/Date: ${ex.bant?.timeline || ''}
+• Priorità assegnata: ${ex.priority || 'week_1'}
+• Istruzione/Regola Fondamentale: ${ex.guidelines || ex.notes || 'Nessuna specifica'}
+• Parole Chiave: ${(ex.customKeywords || []).join(', ')}`).join('\n\n')}
+═════════════════════════════════════════════════════════════
+`
+  }
 
+  const emailMatch = (email.from || '').match(/<([^>]+)>/) || [null, email.from || '']
+  const cleanSenderEmail = (emailMatch[1] ? emailMatch[1] : email.from || '').trim().toLowerCase()
+  const senderDisplayName = (email.from || '').split('<')[0].replace(/"/g, '').trim()
+
+  // Estrazione richieste e dettagli contrattuali in base all'OGGETTO della mail (senza copiare il corpo del testo)
+  const subjectText = (email.subject || '').trim()
+  const subjectLower = subjectText.toLowerCase()
+  const text = `${subjectText} ${email.snippet || ''}`.toLowerCase()
+  const subjectRequests = subjectText
+    .split(/\s*(?:\+|\||\/| - | ed | e )\s*/i)
+    .map(s => s.trim())
+    .filter(s => s.length >= 3 && s.length <= 75)
+
+  let contractStatus = 'In valutazione'
+  let contractTerms = '50% acconto / 50% saldo a consegna'
+  if (subjectLower.includes('conferma') || subjectLower.includes('firmato') || subjectLower.includes('approvazione') || text.includes('deliberato')) {
+    contractStatus = 'Firmato / Approvato'
+  } else if (subjectLower.includes('clausol') || subjectLower.includes('revisione') || subjectLower.includes('contratto')) {
+    contractStatus = 'Revisione clausole contrattuali'
+    contractTerms = 'Ripartizione costi riprese / post-produzione e termini personalizzati'
+  } else if (subjectLower.includes('preventivo') || subjectLower.includes('quotazione')) {
+    contractStatus = 'Preventivo richiesto'
+  } else if (subjectLower.includes('call') || subjectLower.includes('appuntamento') || subjectLower.includes('sopralluogo')) {
+    contractStatus = 'In fase di briefing / Call'
+  }
+
+  const prompt = `
+Analizza i metadati di questa email per aggiornare i campi strutturati del CRM "DADO Creative Studio" (NON copiare il testo dell'email):
+Mittente: ${email.from}
+Indirizzo Email: ${cleanSenderEmail}
+Oggetto Email: ${email.subject}
+Dati chiave: ${email.snippet || ''}
+${trainingPromptBlock}
 Estrai in JSON:
 1. "company": Nome azienda cliente o prospect
-2. "contactPerson": { "name": Nome, "role": Ruolo dedotto }
-3. "phone": Telefono o null
-4. "industry": Settore
-5. "taskTitle": Azione operativa chiara (max 10 parole)
-6. "priority": "urgent_3d" | "week_1" | "weeks_2_3" | "month_1"
-7. "bant": { "budget": string, "authority": string, "need": string, "timeline": string }
-8. "summary": Sintesi esecutiva
+2. "senderEmail": Indirizzo email pulito del mittente
+3. "contactPerson": { "name": Nome referente, "role": Ruolo aziendale }
+4. "phone": Telefono o null
+5. "industry": Settore
+6. "taskTitle": Azione operativa sintetica basata sull'oggetto (max 8 parole)
+7. "priority": "urgent_3d" | "week_1" | "weeks_2_3" | "month_1"
+8. "subjectRequests": Array di richieste sintetiche estrapolate dall'oggetto della mail
+9. "contractDetails": { "status": Stato contratto, "amount": Importo numerico o stringa, "terms": Dettagli/clausole contrattuali }
+10. "bant": { "budget": string, "authority": string, "need": string, "timeline": string }
 `
 
-  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'dummy_key') {
+  // ── PRIORITÀ 1: GOOGLE GEMINI (gemini-2.5-flash) ──
+  const geminiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '').trim()
+  if (geminiKey && !geminiKey.includes('ollama')) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: geminiKey })
+      const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: prompt,
+        config: {
+          systemInstruction: 'Sei il motore di estrazione dati strutturati di DADO Creative Studio. Estrai solo campi sintetici (email, referente, dettagli contratto, richieste da oggetto) senza mai allegare il corpo testuale dell\'email. Rispondi SEMPRE e SOLO con un oggetto JSON valido.',
+          responseMimeType: 'application/json',
+          temperature: 0.1,
+        }
+      })
+      const respText = response.text || ''
+      const cleaned = respText.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim()
+      const parsed = JSON.parse(cleaned)
+      parsed.senderEmail = parsed.senderEmail || cleanSenderEmail
+      parsed.subjectRequests = Array.isArray(parsed.subjectRequests) && parsed.subjectRequests.length > 0 ? parsed.subjectRequests : subjectRequests
+      parsed.contractDetails = parsed.contractDetails || { status: contractStatus, amount: parsed.bant?.budget || 'Da definire', terms: contractTerms }
+      parsed.engineUsed = `Google Gemini (${modelName})`
+      return parsed
+    } catch (geminiErr) {
+      addLog('warning', `Google Gemini Pipeline fallback: ${geminiErr.message}. Verifica connettività/OpenAI.`)
+    }
+  }
+
+  // ── PRIORITÀ 2: OPENAI (Opzionale) ──
+  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'dummy_key' && process.env.OPENAI_API_KEY.startsWith('sk-')) {
     try {
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'Sei l\'assistente esecutivo CRM di DADO Creative Studio.' },
+          { role: 'system', content: 'Sei il motore di estrazione dati strutturati di DADO Creative Studio. Rispondi solo in JSON senza mai allegare il testo intero dell\'email.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.2,
@@ -387,25 +543,27 @@ Estrai in JSON:
       const raw = completion.choices[0]?.message?.content?.trim() || ''
       const cleaned = raw.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim()
       const parsed = JSON.parse(cleaned)
-      parsed.engineUsed = 'OpenAI (gpt-4o-mini)'
+      parsed.senderEmail = parsed.senderEmail || cleanSenderEmail
+      parsed.subjectRequests = Array.isArray(parsed.subjectRequests) && parsed.subjectRequests.length > 0 ? parsed.subjectRequests : subjectRequests
+      parsed.contractDetails = parsed.contractDetails || { status: contractStatus, amount: parsed.bant?.budget || 'Da definire', terms: contractTerms }
+      parsed.engineUsed = `OpenAI (${process.env.OPENAI_MODEL || 'gpt-4o-mini'})`
       return parsed
     } catch (err) {
       addLog('warning', `OpenAI API fallback: ${err.message}. Attivazione Motore Semantico DADO locale.`)
     }
   }
 
-  // Motore semantico rule-based
-  const text = `${email.subject} ${email.body || email.snippet}`.toLowerCase()
-  
+  // Motore semantico rule-based basato su Mittente, Oggetto e Indicatori Contrattuali
   let company = 'Cliente DADO'
-  if (text.includes('riva') || email.from.includes('riva')) company = 'Officine Meccaniche Riva'
-  else if (text.includes('solaris') || email.from.includes('solaris')) company = 'Solaris Green Energy'
-  else if (text.includes('alpha') || email.from.includes('alpha')) company = 'Alpha Studio Milano'
-  else if (text.includes('nextmedia') || email.from.includes('nextmedia')) company = 'NextMedia Agency'
-  else if (text.includes('fashion') || email.from.includes('fashion')) company = 'Fashion Brand Milano'
-  else if (text.includes('vogue')) company = 'Vogue Events & Wedding'
+  if (text.includes('riva') || cleanSenderEmail.includes('riva')) company = 'Officine Meccaniche Riva'
+  else if (text.includes('solaris') || cleanSenderEmail.includes('solaris')) company = 'Solaris Green Energy'
+  else if (text.includes('alpha') || cleanSenderEmail.includes('alpha')) company = 'Alpha Studio Milano'
+  else if (text.includes('nextmedia') || cleanSenderEmail.includes('nextmedia')) company = 'NextMedia Agency'
+  else if (text.includes('fashion') || cleanSenderEmail.includes('fashion')) company = 'Fashion Brand Milano'
+  else if (text.includes('vogue') || cleanSenderEmail.includes('vogue')) company = 'Vogue Events & Wedding'
+  else if (text.includes('kroma') || cleanSenderEmail.includes('kroma')) company = 'Kroma Ceramiche'
   else {
-    const domainMatch = email.from.match(/@([a-zA-Z0-9.-]+)/)
+    const domainMatch = cleanSenderEmail.match(/@([a-zA-Z0-9.-]+)/)
     if (domainMatch && !['gmail.com', 'yahoo.com', 'hotmail.com'].includes(domainMatch[1])) {
       company = domainMatch[1].split('.')[0].toUpperCase() + ' SpA'
     }
@@ -418,39 +576,45 @@ Estrai in JSON:
   else if (text.includes('un mese')) priority = 'month_1'
 
   const budgetMatch = text.match(/€\s?([0-9\.,]+)/) || text.match(/([0-9\.,]+)\s?(euro|€)/)
-  const budget = budgetMatch ? `€ ${budgetMatch[1]}` : (company.includes('Riva') ? '€ 9.200' : company.includes('Solaris') ? '€ 14.500' : 'Non specificato')
+  const budget = budgetMatch ? `€ ${budgetMatch[1].replace(/\.$/, '')}` : (company.includes('Riva') ? '€ 9.200' : company.includes('Solaris') ? '€ 14.500' : 'Da definire')
 
-  let authority = 'Referente aziendale'
-  if (text.includes('ing.') || text.includes('riva')) authority = 'Ing. Marco Riva (Managing Director)'
-  else if (text.includes('fontana')) authority = 'Elena Fontana (Direzione Marketing)'
-  else if (text.includes('rossi')) authority = 'Chiara Rossi (Studio Lead)'
-  else if (text.includes('moretti')) authority = 'Sara Moretti (Creative Partner)'
-  else if (text.includes('colombo')) authority = 'Matteo Colombo (Brand Manager)'
+  let authorityRole = 'Referente Aziendale'
+  if (text.includes('ing.') || text.includes('riva')) authorityRole = 'Managing Director'
+  else if (text.includes('fontana') || text.includes('direttore marketing')) authorityRole = 'Direzione Marketing'
+  else if (text.includes('rossi')) authorityRole = 'Studio Lead'
+  else if (text.includes('moretti')) authorityRole = 'Creative Partner'
+  else if (text.includes('colombo')) authorityRole = 'Brand Manager'
 
-  let need = 'Produzione contenuti audiovisivi'
-  if (text.includes('drone') || text.includes('stabilimento')) need = 'Shooting video corporate stabilimento con drone 4K'
-  else if (text.includes('call') || text.includes('appuntamento')) need = 'Pianificazione call tecnica e coordinamento studio'
-  else if (text.includes('info') || text.includes('showreel')) need = 'Richiesta portfolio e accordo di partnership'
-  else if (text.includes('storyboard') || text.includes('spot')) need = 'Revisione economica e contrattuale spot TV HDR'
+  const referentName = senderDisplayName || 'Referente Aziendale'
+  const authority = `${referentName} (${authorityRole})`
+
+  // Richiesta ricavata direttamente dall'oggetto della mail
+  const need = subjectRequests.length > 0
+    ? subjectRequests.join(' • ')
+    : (subjectText || 'Produzione contenuti audiovisivi')
 
   let timeline = priority === 'urgent_3d' ? 'Urgente entro 3 giorni' : 'Entro 1 settimana'
 
-  let taskTitle = `Follow-up con ${company}`
-  if (text.includes('deliberato') || text.includes('conferma shooting')) taskTitle = `Avvio produzione e piano riprese con ${company}`
-  else if (text.includes('call') || text.includes('appuntamento')) taskTitle = `Verifica disponibilità e conferma call per ${company}`
-  else if (text.includes('info') || text.includes('collab')) taskTitle = `Invio portfolio e presentazione commerciale a ${company}`
-  else if (text.includes('storyboard')) taskTitle = `Predisporre bozza preventivo dettagliato per ${company}`
-  else if (text.includes('non possiamo procedere')) taskTitle = `Archiviazione trattativa e riscontro cordiale a ${company}`
+  let taskTitle = `${subjectText || `Aggiornamento ${company}`}`
+  if (taskTitle.length > 68) taskTitle = taskTitle.slice(0, 65) + '...'
 
   return {
     company,
+    senderEmail: cleanSenderEmail,
     contactPerson: {
-      name: email.from.split('<')[0].replace(/"/g, '').trim() || authority,
-      role: authority
+      name: referentName,
+      role: authorityRole
     },
     industry: 'Produzione Audiovisiva & B2B',
     taskTitle,
     priority,
+    subjectRequests: subjectRequests.length > 0 ? subjectRequests : [need],
+    contractDetails: {
+      status: contractStatus,
+      amount: budget,
+      terms: contractTerms,
+      subjectRef: subjectText
+    },
     bant: {
       budget,
       authority,
@@ -458,8 +622,8 @@ Estrai in JSON:
       timeline
     },
     sentiment: text.includes('non possiamo procedere') ? 'lost_deal' : 'high_intent',
-    summary: `Richiesta rilevata da ${company} per ${need}. Budget: ${budget}.`,
-    engineUsed: 'Motore Semantico DADO NLP (Rule-Based Fallback)'
+    summary: `Oggetto: ${subjectText} • Referente: ${referentName} (${cleanSenderEmail})`,
+    engineUsed: 'Motore Estrazione Campi DADO (Basato su Oggetto & Intestazione)'
   }
 }
 
@@ -470,7 +634,7 @@ Estrai in JSON:
 // 3. Richieste contatto per info riguardo a servizi o collabs
 // TUTTO IL RESTO:
 // -> Butta giù la mail e SALVA NELLE BOZZE (senza invio automatico)
-export function evaluateEmailAction(email, analysis, company) {
+function evaluateEmailActionRaw(email, analysis, company) {
   const text = `${email.subject} ${email.body || email.snippet}`.toLowerCase()
   const clientName = analysis.contactPerson?.name || company?.contactPerson?.name || 'Gentile Referente'
   const companyName = analysis.company || company?.name || 'Azienda'
@@ -566,7 +730,7 @@ export function evaluateEmailAction(email, analysis, company) {
       autoSend: true,
       reason: 'Risposta immediata a richiesta informazioni servizi e opportunità di collaborazione',
       subject: `Presentazione servizi video e collaborazioni - DADO Creative Studio`,
-      body: `Gentile ${clientName},\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Sony FX3 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio`
+      body: `Gentile ${clientName},\n\ngrazie per averci contattato e per l'interesse nei confronti di DADO Creative Studio!\n\nSiamo una casa di produzione specializzata in:\n• Spot ADV e digital campaign ad alto impatto emotivo\n• Video corporate industriali in 4K HDR con Canon C70 e ottiche cinema prime\n• Riprese aeree professionali con drone DJI Mavic 3 Cine (piloti autorizzati ENAC)\n• Post-produzione avanzata, color grading DaVinci Resolve Studio e sound design\n\nPotete consultare il nostro portfolio e lo showreel aggiornato al link: https://dadostudio.it/portfolio\n\nSiamo a completa disposizione per una call conoscitiva per valutare la collaborazione e studiare insieme il format più adatto.\n\nA presto,\nTeam DADO Creative Studio`
     }
   }
 
@@ -582,6 +746,29 @@ export function evaluateEmailAction(email, analysis, company) {
   }
 }
 
+// ── POLITICA DI SICUREZZA SULL'INVIO AUTOMATICO ──────────────────
+// Le regole sopra decidono QUALE risposta preparare; questa decide SE può partire senza una persona.
+//  1. Conferme di accordo/budget (positive o negative) impegnano lo studio: sempre in bozza, mai inviate in automatico.
+//  2. Email sospette (testo nascosto, frasi di iniezione, plain/HTML discordanti, Unicode invisibile): sempre in bozza
+//     con avviso di revisione obbligatoria e motivi registrati nel record per l'audit.
+export function evaluateEmailAction(email, analysis, company) {
+  const action = evaluateEmailActionRaw(email, analysis, company)
+  const safety = assessEmailSafety(email)
+  const result = { ...action, securityLevel: safety.level, securityFlags: safety.reasons }
+
+  if (action.autoSend && action.category === 'DEAL_CONFIRMATION') {
+    result.autoSend = false
+    result.reason = `Conferma di trattativa/accordo: richiede approvazione manuale, nessun invio automatico per impegni commerciali. (${action.reason})`
+  }
+
+  if (safety.suspicious) {
+    result.autoSend = false
+    result.reason = `⚠️ REVISIONE OBBLIGATORIA — email sospetta: ${safety.reasons.join(' ')}`
+  }
+
+  return result
+}
+
 // ── 4. COLLEGAMENTO E INGESTIONE NELLE API DEL CRM ─────────────
 export async function ingestIntoCrm(email, analysis) {
   const crmData = getCrmData()
@@ -592,7 +779,13 @@ export async function ingestIntoCrm(email, analysis) {
   const senderEmail = emailMatch[1] ? emailMatch[1].trim().toLowerCase() : email.from.trim().toLowerCase()
   const domain = senderEmail.split('@')[1] || ''
 
-  // 1. Registra email in crmData.emails
+  // 0. Valutazione di sicurezza (testo nascosto, frasi di iniezione, plain/HTML discordanti)
+  const safety = assessEmailSafety(email)
+  if (safety.suspicious) {
+    addLog('warning', `[SICUREZZA 🛡️] Email sospetta da ${email.from} (rischio ${safety.level.toUpperCase()}): ${safety.reasons.join(' ')} — nessun invio automatico, nessuna modifica automatica ai dati del CRM.`)
+  }
+
+  // 1. Registra solo i metadati strutturati dell'email in crmData.emails (SENZA allegare il testo completo)
   const emailExists = crmData.emails.some(e => e.id === email.id)
   if (!emailExists) {
     crmData.emails.unshift({
@@ -601,16 +794,27 @@ export async function ingestIntoCrm(email, analysis) {
       senderEmail,
       company: analysis.company,
       subject: email.subject,
-      snippet: (email.snippet || email.body.substring(0, 160)) + '...',
-      body: email.body,
       date: email.date,
-      aiSummary: analysis.summary,
+      contactPerson: analysis.contactPerson || {
+        name: email.from.split('<')[0].replace(/"/g, '').trim() || 'Referente Aziendale',
+        role: 'Referente Commerciale'
+      },
+      contractDetails: analysis.contractDetails || {
+        status: 'In valutazione',
+        amount: analysis.bant?.budget || 'Da definire',
+        terms: '50% acconto / 50% saldo a consegna',
+        subjectRef: email.subject
+      },
+      subjectRequests: analysis.subjectRequests || [email.subject],
       bant: analysis.bant,
-      priority: analysis.priority
+      priority: analysis.priority,
+      securityLevel: safety.level,
+      securityFlags: safety.reasons,
+      hiddenTextPreview: safety.hiddenPreview || undefined
     })
   }
 
-  // 2. Trova o crea azienda corrispondente
+  // 2. Trova o crea azienda corrispondente e aggiorna SOLO i campi strutturati (email, referente, contratto, richieste da oggetto)
   let matchedCompany = crmData.companies.find(c => {
     const cEmail = (c.contact?.email || '').toLowerCase()
     const cDirectEmail = (c.contact?.directEmail || '').toLowerCase()
@@ -627,14 +831,63 @@ export async function ingestIntoCrm(email, analysis) {
 
   if (matchedCompany) {
     matchedCompany.lastContact = new Date().toISOString()
-    if (analysis.bant) {
-      if (!matchedCompany.bant) matchedCompany.bant = {}
-      if (analysis.bant.budget && analysis.bant.budget !== 'Non specificato') matchedCompany.bant.budget = analysis.bant.budget
-      if (analysis.bant.authority && !['Referente da verificare', 'Non specificato'].includes(analysis.bant.authority)) matchedCompany.bant.authority = analysis.bant.authority
-      if (analysis.bant.need && !['Esigenza da approfondire', 'Non specificato'].includes(analysis.bant.need)) matchedCompany.bant.need = analysis.bant.need
-      if (analysis.bant.timeline && !['Scadenza da concordare', 'Non specificato'].includes(analysis.bant.timeline)) matchedCompany.bant.timeline = analysis.bant.timeline
+    if (!safety.suspicious) {
+      // 2a. Aggiornamento Indirizzo Email
+      if (!matchedCompany.contact) matchedCompany.contact = {}
+      if (senderEmail) {
+        matchedCompany.contact.directEmail = senderEmail
+        if (!matchedCompany.contact.email) matchedCompany.contact.email = senderEmail
+      }
+      if (analysis.phone) {
+        matchedCompany.contact.phone = analysis.phone
+      }
+
+      // 2b. Aggiornamento Referente
+      if (analysis.contactPerson?.name) {
+        matchedCompany.contactPerson = {
+          name: analysis.contactPerson.name,
+          role: analysis.contactPerson.role || matchedCompany.contactPerson?.role || 'Referente Aziendale'
+        }
+      }
+
+      // 2c. Aggiornamento Dettagli Contratto
+      if (!matchedCompany.contract) matchedCompany.contract = {}
+      if (analysis.contractDetails?.status) {
+        matchedCompany.contract.status = analysis.contractDetails.status
+      }
+      if (analysis.contractDetails?.terms) {
+        matchedCompany.contract.terms = analysis.contractDetails.terms
+      }
+      matchedCompany.contract.lastSubject = email.subject
+
+      const parsedAmount = parseInt(String(analysis.contractDetails?.amount || analysis.bant?.budget || '').replace(/[^0-9]/g, ''), 10)
+      if (parsedAmount > 0) {
+        if (!matchedCompany.compensation) matchedCompany.compensation = {}
+        matchedCompany.compensation.amount = parsedAmount
+      }
+
+      // 2d. Aggiornamento Richieste in base all'Oggetto della Mail (senza allegare testo dell'email)
+      if (Array.isArray(analysis.subjectRequests) && analysis.subjectRequests.length > 0) {
+        const existingReqs = Array.isArray(matchedCompany.requestedMaterials) ? matchedCompany.requestedMaterials : []
+        const mergedReqs = [...new Set([...analysis.subjectRequests, ...existingReqs])].slice(0, 6)
+        matchedCompany.requestedMaterials = mergedReqs
+      }
+
+      if (matchedCompany.firstContact) {
+        matchedCompany.firstContact.lastEmailSubject = email.subject
+        delete matchedCompany.firstContact.notes
+      }
+
+      // 2e. Aggiornamento sintetico B.A.N.T.
+      if (analysis.bant) {
+        if (!matchedCompany.bant) matchedCompany.bant = {}
+        if (analysis.bant.budget && analysis.bant.budget !== 'Non specificato') matchedCompany.bant.budget = analysis.bant.budget
+        if (analysis.bant.authority && !['Referente da verificare', 'Non specificato'].includes(analysis.bant.authority)) matchedCompany.bant.authority = analysis.bant.authority
+        if (analysis.bant.need && !['Esigenza da approfondire', 'Non specificato'].includes(analysis.bant.need)) matchedCompany.bant.need = analysis.bant.need
+        if (analysis.bant.timeline && !['Scadenza da concordare', 'Non specificato'].includes(analysis.bant.timeline)) matchedCompany.bant.timeline = analysis.bant.timeline
+      }
     }
-  } else if (analysis.company && analysis.company !== 'Cliente DADO' && analysis.company !== 'Sconosciuto') {
+  } else if (!safety.suspicious && analysis.company && analysis.company !== 'Cliente DADO' && analysis.company !== 'Sconosciuto') {
     matchedCompany = {
       id: `comp-${Date.now()}`,
       name: analysis.company,
@@ -655,14 +908,18 @@ export async function ingestIntoCrm(email, analysis) {
       firstContact: {
         date: new Date().toISOString().split('T')[0],
         channel: 'Inbound Gmail Automatico',
-        notes: analysis.summary || email.subject
+        lastEmailSubject: email.subject
       },
-      requestedMaterials: [analysis.bant?.need || 'Produzione contenuti audiovisivi'],
+      requestedMaterials: Array.isArray(analysis.subjectRequests) && analysis.subjectRequests.length > 0
+        ? analysis.subjectRequests
+        : [email.subject || 'Produzione contenuti audiovisivi'],
       contract: {
         code: `DADO-INB-${Date.now().toString().slice(-4)}`,
         fileName: 'Richiesta_Preventivo_Inbound.pdf',
         digitalFormat: 'PDF Preventivo',
-        status: 'In elaborazione'
+        status: analysis.contractDetails?.status || 'In elaborazione',
+        terms: analysis.contractDetails?.terms || '50% acconto / 50% saldo a consegna',
+        lastSubject: email.subject
       },
       workSchedule: {
         scheduleType: analysis.bant?.timeline || 'Da concordare',
@@ -670,7 +927,7 @@ export async function ingestIntoCrm(email, analysis) {
         recentDate: new Date().toISOString().split('T')[0]
       },
       compensation: {
-        amount: parseInt(String(analysis.bant?.budget || '').replace(/[^0-9]/g, ''), 10) || 5000,
+        amount: parseInt(String(analysis.contractDetails?.amount || analysis.bant?.budget || '').replace(/[^0-9]/g, ''), 10) || 5000,
         status: 'In attesa preventivo'
       },
       bant: {
@@ -682,7 +939,7 @@ export async function ingestIntoCrm(email, analysis) {
       lastContact: new Date().toISOString()
     }
     crmData.companies.unshift(matchedCompany)
-    addLog('success', `Nuova azienda acquisita da automazione: "${matchedCompany.name}" [B.A.N.T.]`)
+    addLog('success', `Nuova azienda acquisita da automazione: "${matchedCompany.name}" [Campi strutturati estratti]`)
   }
 
   // 3. Valuta Azione Email (Invio selettivo vs Salvataggio in Bozze)
@@ -695,13 +952,14 @@ export async function ingestIntoCrm(email, analysis) {
     company: matchedCompany ? matchedCompany.name : analysis.company,
     recipient: senderEmail,
     subject: emailAction.subject,
-    body: emailAction.body,
     category: emailAction.category,
     subType: emailAction.subType,
     autoSend: emailAction.autoSend,
     reason: emailAction.reason,
     status: emailAction.autoSend ? 'sent' : 'draft',
     requiresReview: !emailAction.autoSend,
+    securityLevel: emailAction.securityLevel || 'ok',
+    securityFlags: emailAction.securityFlags || [],
     createdAt: new Date().toISOString(),
     sentAt: emailAction.autoSend ? new Date().toISOString() : null
   }
@@ -762,7 +1020,7 @@ export async function ingestIntoCrm(email, analysis) {
     crmData.drafts.unshift(draftRecord)
   }
 
-  // 4. PREPARAZIONE TASKS RICHIESTE POST AGGIORNAMENTO DATI CRM
+  // 4. PREPARAZIONE TASKS RICHIESTE POST AGGIORNAMENTO DATI CRM (SENZA allegare il testo dell'email)
   const taskExists = crmData.nextActions.some(t => 
     t.company === (matchedCompany ? matchedCompany.name : analysis.company) && 
     t.title.toLowerCase().trim() === analysis.taskTitle.toLowerCase().trim()
@@ -772,8 +1030,9 @@ export async function ingestIntoCrm(email, analysis) {
   if (!taskExists) {
     // Checklist operativa personalizzata per la task
     const checklist = [
-      'Verificare dati e parametri B.A.N.T. aggiornati nel CRM',
-      'Controllo impegni a calendario e slot liberi completato',
+      ...(safety.suspicious ? [`⚠️ EMAIL SOSPETTA (rischio ${safety.level.toUpperCase()}): ${safety.reasons.join(' ')} Verificare il mittente prima di qualsiasi azione.`] : []),
+      'Verificare referente, indirizzo email e dettagli contrattuali aggiornati',
+      'Controllo richieste specifiche estrapolate dall\'oggetto della mail',
       emailAction.autoSend 
         ? `Email automatica inviata con successo (${emailAction.reason})` 
         : 'Revisionare bozza email salvata nelle Bozze prima dell\'invio',
@@ -793,9 +1052,17 @@ export async function ingestIntoCrm(email, analysis) {
       priority: analysis.priority || 'week_1',
       completed: false,
       status: 'pending',
+      senderEmail,
+      contactPerson: analysis.contactPerson || matchedCompany?.contactPerson,
+      contractDetails: analysis.contractDetails || {
+        status: matchedCompany?.contract?.status || 'In valutazione',
+        amount: analysis.bant?.budget || 'Da definire',
+        terms: matchedCompany?.contract?.terms || '50% acconto / 50% saldo a consegna'
+      },
+      subjectRequests: analysis.subjectRequests || [email.subject],
+      originEmailSubject: email.subject,
       bant: analysis.bant,
       source: email.source === 'gmail_live' ? 'gmail_live' : 'gmail_llm_pipeline',
-      notes: `${analysis.summary} [From: ${email.from}]`,
       checklist,
       draftId: draftRecord.id,
       emailStatus: emailAction.autoSend ? 'auto_sent' : 'draft_saved',
@@ -957,6 +1224,7 @@ export function getPipelineStatus() {
   const tokenPath = getTokenPath()
   return {
     ...pipelineState,
+    autoSync: timerInstance !== null,
     gmailConnected: Boolean(auth),
     hasTokens: fs.existsSync(tokenPath),
     hasOpenAiKey: Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'dummy_key'),
