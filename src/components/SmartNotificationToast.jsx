@@ -177,25 +177,8 @@ function loadScheduleState(initialPathname = '/') {
   const onCrm = isCrmRoute(initialPathname)
   const after14 = isAfter14(now)
 
-  try {
-    const raw = localStorage.getItem(DADO_TOAST_SCHEDULE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (parsed && parsed.date === today) {
-        const firstDashboardCompleted = Boolean(parsed.firstDashboardCompleted)
-        const crmTriggeredDashboard = Boolean(parsed.crmTriggeredDashboard) || (onCrm && after14)
-        return {
-          date: today,
-          firstDashboardShown: Boolean(parsed.firstDashboardShown) || (onDash && !firstDashboardCompleted),
-          firstDashboardCompleted,
-          crmTriggeredDashboard,
-          crmPopupActive: onCrm && after14 ? true : Boolean(parsed.crmPopupActive),
-          crmReappearedOnDashboard:
-            Boolean(parsed.crmReappearedOnDashboard) || (onDash && crmTriggeredDashboard),
-        }
-      }
-    }
-  } catch {}
+  // Ad ogni apertura del CRM (anche da link pubblico) lo stato riparte da zero:
+  // la finestra aggiornamenti compare sempre all'ingresso in Dashboard.
 
   // Nuovo giorno (dopo le 00:00) o primo ingresso assoluto della giornata
   return {
@@ -214,7 +197,7 @@ function saveScheduleState(state) {
   } catch {}
 }
 
-export default function SmartNotificationToast() {
+export default function SmartNotificationToast({ mobile = false }) {
   const navigate = useNavigate()
   const location = useLocation()
   // Slot nella Dashboard (spazio libero accanto a "Go get it today"); se assente → fixed in alto a destra
@@ -476,11 +459,11 @@ export default function SmartNotificationToast() {
       setSlotEl(null)
       return undefined
     }
-    const find = () => setSlotEl(document.getElementById('dado-toast-slot'))
+    const find = () => setSlotEl(document.getElementById(mobile ? 'dado-toast-mobile-slot' : 'dado-toast-slot'))
     find()
     const id = setInterval(find, 250)
     return () => clearInterval(id)
-  }, [location.pathname, isDash])
+  }, [location.pathname, isDash, mobile])
 
   // ESC chiude la notifica; tasti direzionali (← → ↑ ↓) sfogliano le notifiche
   useEffect(() => {
@@ -505,14 +488,16 @@ export default function SmartNotificationToast() {
   const toast = (
     <div
       className={
-        slotEl
+        mobile
+          ? 'absolute top-1 left-1 right-1 z-[70] pointer-events-auto select-none animate-fadeIn'
+          : slotEl
           ? 'absolute top-0 left-0 z-[60] pointer-events-auto select-none animate-fadeIn'
           : 'fixed top-4 right-4 z-50 pointer-events-auto select-none animate-fadeIn'
       }
       style={{
         // Nello slot occupa lo spazio reso disponibile dall'accorciamento di Calendar Week; altrove larghezza fissa
-        width: slotEl ? '440px' : '500px',
-        height: slotEl ? 'calc(4cm - 12px)' : 'auto',
+        width: mobile ? 'auto' : slotEl ? '440px' : '500px',
+        height: mobile ? 'auto' : slotEl ? 'calc(4cm - 12px)' : 'auto',
         maxWidth: 'calc(100vw - 2rem)',
         fontFamily: '"Switzer", sans-serif'
       }}
@@ -538,6 +523,14 @@ export default function SmartNotificationToast() {
           }}
         />
 
+        {/* Promemoria chiusura in alto */}
+        <div
+          className="w-full flex-shrink-0 text-center text-[10.5px] font-bold tracking-wide text-teal-100 bg-teal-950/80 border-b border-teal-400/40 leading-none py-[3px]"
+          style={{ fontFamily: '"Switzer", sans-serif' }}
+        >
+          Premi ESC per chiudere la finestra
+        </div>
+
         {/* ── LATO DESTRO DELIMITATO: Bordo verticale luminescente per staccare nettamente il pop-up ── */}
         <div
           className="absolute top-0 right-0 bottom-0 w-[4px] pointer-events-none z-30"
@@ -547,7 +540,7 @@ export default function SmartNotificationToast() {
           }}
         />
 
-        <div className="px-2.5 pt-1.5 pb-2 flex flex-col flex-1 min-h-0 justify-between">
+        <div className="px-2.5 pt-1 pb-1 flex flex-col flex-1 min-h-0 justify-between">
           <div className="min-h-0">
             {/* Header con Badge Squadrato e Tasto Chiudi (senza countdown numerico) */}
             <div className="flex items-center justify-between gap-1.5">
@@ -573,7 +566,7 @@ export default function SmartNotificationToast() {
             </div>
 
             {/* Titolo e Dettagli */}
-            <h4 className="text-[16px] font-bold text-white tracking-tight leading-snug mt-1.5 line-clamp-1">
+            <h4 className="text-[16px] font-bold text-white tracking-tight leading-snug mt-0.5 line-clamp-1">
               {currentNotif.title}
             </h4>
             <p className="text-[13px] text-teal-100 mt-0.5 leading-snug line-clamp-1 font-medium">
@@ -583,7 +576,7 @@ export default function SmartNotificationToast() {
 
           <div>
             {/* Azioni Rapide con Bordi Quadrati */}
-            <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-teal-800/80">
+            <div className="flex items-center justify-between gap-3 pt-1 border-t border-teal-800/80">
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <button
                   type="button"
@@ -591,7 +584,7 @@ export default function SmartNotificationToast() {
                     handleClose()
                     if (currentNotif.link) navigate(currentNotif.link)
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-bold transition-all cursor-pointer hover:brightness-110 active:scale-95 shadow-sm rounded-none whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-3 py-1 text-[13px] font-bold transition-all cursor-pointer hover:brightness-110 active:scale-95 shadow-sm rounded-none whitespace-nowrap"
                   style={{
                     background: 'linear-gradient(135deg, #0d9488 0%, #10b981 100%)',
                     color: '#ffffff',
@@ -614,7 +607,7 @@ export default function SmartNotificationToast() {
                 }}
               >
                 <span
-                  className="text-[12.5px] font-bold text-slate-100 tracking-tight whitespace-nowrap"
+                  className={`${mobile ? 'hidden ' : ''}text-[12.5px] font-bold text-slate-100 tracking-tight whitespace-nowrap`}
                   style={{ fontFamily: '"Switzer", sans-serif' }}
                 >
                   tasti
@@ -632,7 +625,7 @@ export default function SmartNotificationToast() {
                   ←
                 </button>
                 <span
-                  className="text-[12.5px] font-bold text-slate-100 tracking-tight whitespace-nowrap"
+                  className={`${mobile ? 'hidden ' : ''}text-[12.5px] font-bold text-slate-100 tracking-tight whitespace-nowrap`}
                   style={{ fontFamily: '"Switzer", sans-serif' }}
                 >
                   e
@@ -650,7 +643,7 @@ export default function SmartNotificationToast() {
                   →
                 </button>
                 <span
-                  className="text-[12.5px] font-bold text-slate-100 tracking-tight whitespace-nowrap"
+                  className={`${mobile ? 'hidden ' : ''}text-[12.5px] font-bold text-slate-100 tracking-tight whitespace-nowrap`}
                   style={{ fontFamily: '"Switzer", sans-serif' }}
                 >
                   per muoverti

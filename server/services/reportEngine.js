@@ -208,6 +208,33 @@ export function detectCollaborationIntent(prompt, now = new Date()) {
 
 // ───────────────────────── Costruzione delle collaborazioni ─────────────────────────
 
+const WEEKDAYS_IT = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato']
+/** Elenco puntuale dei giorni di lavoro: "giovedì 24/09/2026, venerdì 25/09/2026". */
+export function formatWorkDays(isoDates) {
+  return (isoDates || []).filter(Boolean).map(iso => {
+    const [y, m, d] = iso.split('-').map(Number)
+    const wd = WEEKDAYS_IT[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
+    return `${wd} ${fmtDate(iso)}`
+  }).join(', ')
+}
+
+/** Giorni di lavoro di uno specifico contratto: prima la fattura collegata, poi la scheda cliente. */
+export function workDaysForContract(company, contract, invoices = []) {
+  const inv = invoices.find(i => i.contractCode === contract.code)
+  let dates = inv ? parseItalianDates(inv.shootingDates) : []
+  let hours = ''
+  if (!dates.length) {
+    const ws = company.workSchedule || {}
+    const signed = (company.contractsHistory || []).filter(h => /firmat/i.test(h.status || ''))
+    const last = signed.length ? signed[signed.length - 1].code : null
+    if (ws.recentDate && last === contract.code && ws.recentDate >= (contract.date || '')) {
+      dates = parseItalianDates(ws.datesFormatted).length ? parseItalianDates(ws.datesFormatted) : [ws.recentDate]
+      hours = ws.hours || ''
+    }
+  }
+  return dates.length ? `${formatWorkDays(dates)}${hours ? ` (${hours})` : ''}` : 'giorni di lavoro non registrati nel CRM'
+}
+
 const normName = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 
 function findCompany(companies, { id, name }) {
@@ -313,6 +340,7 @@ export function buildCollaborations(crmData, now = new Date()) {
       location: invoice?.location || company?.workSchedule?.location || '',
       materials: Array.isArray(invoice?.materials) ? invoice.materials : [],
       shootingText: invoice?.shootingDates || company?.workSchedule?.datesFormatted || '',
+      workDays: dates,
       eventStart,
       eventEnd,
       dateSource,
@@ -350,7 +378,7 @@ export function buildCollaborations(crmData, now = new Date()) {
 function renderItem(it, idx) {
   const lines = []
   lines.push(`**${idx}. ${it.company}**${it.contractTitle ? ` — ${it.contractTitle}` : ''}`)
-  lines.push(`• 📅 Shooting: **${it.shootingText || fmtDate(it.eventEnd)}** _(fonte: ${it.dateSource})_${it.location ? ` • 📍 ${it.location}` : ''}`)
+  lines.push(`• 📅 Giorni di lavoro: **${formatWorkDays(it.workDays) || it.shootingText || fmtDate(it.eventEnd)}** _(fonte: ${it.dateSource})_${it.location ? ` • 📍 ${it.location}` : ''}`)
   lines.push(`• 📄 Contratto: ${it.contractCode ? `**${it.contractCode}**` : 'non indicato'}${it.contractSigned ? ` firmato il ${fmtDate(it.contractSigned)}` : ''} • Imponibile: **€ ${eur(it.amount)}**`)
   if (it.invoiceNumber) {
     lines.push(`• 🧾 Fattura ${it.invoiceNumber} del ${fmtDate(it.invoiceDate)} • Incassato: **€ ${eur(it.deposit)}** • Saldo aperto: **€ ${eur(it.balance)}** (${it.paymentStatus || 'stato non indicato'})`)
@@ -486,7 +514,7 @@ export function buildCompactCrm(crmData) {
   const invoices = crmData.invoices || []
   return (crmData.companies || []).map(c => {
     const contratti = (c.contractsHistory || []).map(h => 
-      `${h.code} (€${eur(h.amount)}, ${h.status}, firmato ${fmtDate(h.date) || h.date})`
+      `${h.code} (€${eur(h.amount)}, ${h.status}, registrato/firmato il ${fmtDate(h.date) || h.date}; GIORNI DI LAVORO: ${workDaysForContract(c, h, invoices.filter(i => i.companyId === c.id || (i.companyName && normName(i.companyName) === normName(c.name))))})`
     ).join(' | ')
     const inv = invoices.filter(i => i.companyId === c.id || (i.companyName && normName(i.companyName) === normName(c.name)))
     const fatture = inv.map(i => 
@@ -517,4 +545,4 @@ export const GROUNDING_RULES = `REGOLE VINCOLANTI DI AFFIDABILITÀ:
 4. Indica sempre il codice contratto o il numero fattura a supporto di ogni affermazione economica.
 5. Se due dati si contraddicono, segnalalo senza scegliere arbitrariamente quale sia giusto.
 6. Se la domanda è ambigua (es. data di firma o data di shooting), dichiara il criterio che hai usato.
-7. Non parlare di meteo. Rispondi in italiano corretto, con accordo di genere e numero.`
+7. Quando elenchi contratti o collaborazioni indica SEMPRE le date specifiche dei giorni di lavoro (giorno della settimana e data completa, come nel campo GIORNI DI LAVORO), distinte dalla data di firma/registrazione del contratto; non limitarti al mese. Se i giorni non sono registrati, dillo. Non parlare di meteo. Rispondi in italiano corretto, con accordo di genere e numero.`

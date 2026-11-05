@@ -23,6 +23,19 @@ import {
   PhoneOutgoing,
 } from 'lucide-react'
 
+// Punti fondamentali: quelli inseriti a mano, altrimenti ricavati dai dati del verbale
+function getKeyPoints(rep) {
+  if (Array.isArray(rep.keyPoints) && rep.keyPoints.length) return rep.keyPoints
+  const pts = String(rep.summary || '')
+    .split(/(?<=[.!?])\s+/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+  if (rep.estimatedBudget) pts.push(`Budget stimato: € ${Number(rep.estimatedBudget).toLocaleString('it-IT')}`)
+  if (rep.equipmentDiscussed) pts.push(`Attrezzatura discussa: ${rep.equipmentDiscussed}`)
+  if (rep.nextStep) pts.push(`Prossimo passo: ${rep.nextStep}${rep.nextActionDate ? ` (entro il ${rep.nextActionDate})` : ''}`)
+  return pts
+}
+
 const INITIAL_CALL_REPORTS = [
   {
     id: 'cr-101',
@@ -45,7 +58,7 @@ const INITIAL_CALL_REPORTS = [
     equipmentDiscussed: 'RED V-Raptor 8K VV, Set Lenti Cooke Panchro, Kit Astera Titan Tube, Limbo Studio A',
     nextStep: 'Blocco date Sala Pose Limbo A (23–25 Ottobre) e invio conferma ordine firmata.',
     nextActionDate: '22/10/2026',
-    owner: 'Andrea T.',
+    owner: 'AleAmministratore',
   },
   {
     id: 'cr-102',
@@ -68,7 +81,7 @@ const INITIAL_CALL_REPORTS = [
     equipmentDiscussed: 'Sony FX6, Drone FPV Cinewhoop 4K, Drone DJI Inspire 3, Slider Motorizzato Edelkrone',
     nextStep: 'Inviare revisione preventivo comprensivo di piano di volo ENAC e assicurazione set industriale.',
     nextActionDate: '21/10/2026',
-    owner: 'Davide (Director)',
+    owner: 'AleAmministratore',
   },
   {
     id: 'cr-103',
@@ -114,7 +127,7 @@ const INITIAL_CALL_REPORTS = [
     equipmentDiscussed: 'Hasselblad X2D 100C, Broncolor Siros 800S, Stazione Workstation Rendering 3D',
     nextStep: 'Call di chiusura budget con l’ufficio acquisti fissata per mercoledì prossimo.',
     nextActionDate: '25/10/2026',
-    owner: 'Andrea T.',
+    owner: 'AleAmministratore',
   },
   {
     id: 'cr-105',
@@ -137,7 +150,7 @@ const INITIAL_CALL_REPORTS = [
     equipmentDiscussed: 'Sony Burano / FX6, DJI Mavic 3 Pro Cine, Gimbal DJI RS4 Pro, Kit Luci Calde Nanlite',
     nextStep: 'Preparare proposta creativa con 2 opzioni di budget (1 giornata vs 2 giornate con modelli).',
     nextActionDate: '22/10/2026',
-    owner: 'Davide (Director)',
+    owner: 'AleAmministratore',
   },
   {
     id: 'cr-106',
@@ -196,6 +209,7 @@ const STORAGE_KEY = 'dado_call_reports_v1'
 export default function CallReports() {
   const navigate = useNavigate()
 
+  const [transcriptDraft, setTranscriptDraft] = useState('')
   const [reports, setReports] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
@@ -284,7 +298,9 @@ export default function CallReports() {
       nextActionDate:
         newForm.nextActionDate.trim() ||
         new Date(Date.now() + 3 * 86400000).toLocaleDateString('it-IT'),
-      owner: 'Andrea T.',
+      owner: 'AleAmministratore',
+      transcript: (newForm.transcript || '').trim(),
+      keyPoints: (newForm.keyPointsText || '').split('\n').map((t) => t.trim()).filter(Boolean),
     }
     setReports((prev) => [created, ...prev])
     setShowNewModal(false)
@@ -303,7 +319,17 @@ export default function CallReports() {
       equipmentDiscussed: '',
       nextStep: '',
       nextActionDate: '',
+      transcript: '',
+      keyPointsText: '',
     })
+  }
+
+  const saveTranscript = (id) => {
+    const text = transcriptDraft.trim()
+    if (!text) return
+    setReports((prev) => prev.map((x) => (x.id === id ? { ...x, transcript: text } : x)))
+    setSelectedReport((prev) => (prev && prev.id === id ? { ...prev, transcript: text } : prev))
+    setTranscriptDraft('')
   }
 
   return (
@@ -617,6 +643,48 @@ export default function CallReports() {
                 <p className="text-sm text-white/90 leading-relaxed">{selectedReport.summary}</p>
               </div>
 
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3.5">
+                <div className="text-[10px] font-bold uppercase text-white/40 mb-2">
+                  Punti fondamentali della call
+                </div>
+                <ul className="space-y-1.5 list-disc pl-4 text-xs text-white/90 leading-relaxed">
+                  {getKeyPoints(selectedReport).map((pt, i) => (
+                    <li key={i}>{pt}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3.5">
+                <div className="text-[10px] font-bold uppercase text-white/40 mb-2">
+                  Trascrizione della call
+                </div>
+                {selectedReport.transcript ? (
+                  <p className="text-xs text-white/85 leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto" style={{ overflowWrap: 'anywhere' }}>
+                    {selectedReport.transcript}
+                  </p>
+                ) : (
+                  <div>
+                    <p className="text-[11px] text-white/50 mb-2">
+                      Nessuna trascrizione salvata per questa call. Incolla qui il testo per archiviarlo.
+                    </p>
+                    <textarea
+                      rows={4}
+                      value={transcriptDraft}
+                      onChange={(e) => setTranscriptDraft(e.target.value)}
+                      placeholder="Incolla la trascrizione della call..."
+                      className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/15 text-white text-xs focus:outline-hidden focus:border-[#fc6e28]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => saveTranscript(selectedReport.id)}
+                      className="mt-2 px-3.5 py-1.5 rounded-xl bg-[#fc6e28] hover:bg-[#ff8142] text-white text-xs font-black cursor-pointer"
+                    >
+                      Salva trascrizione
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white/5 border border-white/10 rounded-xl p-3">
                   <div className="text-[10px] font-bold uppercase text-white/40">Canale & Durata</div>
@@ -781,6 +849,30 @@ export default function CallReports() {
                   placeholder="Riassumi i punti chiave emersi durante la call..."
                   value={newForm.summary}
                   onChange={(e) => setNewForm({ ...newForm, summary: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/15 text-white focus:outline-hidden focus:border-[#fc6e28]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-white/60 uppercase mb-1">
+                  Punti fondamentali (uno per riga, facoltativo)
+                </label>
+                <textarea
+                  rows={3}
+                  value={newForm.keyPointsText || ''}
+                  onChange={(e) => setNewForm({ ...newForm, keyPointsText: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/15 text-white focus:outline-hidden focus:border-[#fc6e28]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-white/60 uppercase mb-1">
+                  Trascrizione della call (facoltativa)
+                </label>
+                <textarea
+                  rows={4}
+                  value={newForm.transcript || ''}
+                  onChange={(e) => setNewForm({ ...newForm, transcript: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/15 text-white focus:outline-hidden focus:border-[#fc6e28]"
                 />
               </div>

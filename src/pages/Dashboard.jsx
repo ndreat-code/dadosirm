@@ -1120,7 +1120,7 @@ const ACTIVE_CLIENTS_DOSSIER = [
     phone: "+39 02 334455",
     firstContact: {
       date: "24/02/2026",
-      channel: "LinkedIn InMail a Davide",
+      channel: "LinkedIn InMail a AleAmministratore",
       notes: "Richiesta per fornitura continuativa pacchetti vertical video per un'applicazione bancaria under-35."
     },
     lastEmail: {
@@ -1291,7 +1291,7 @@ const ACTIVE_CLIENTS_DOSSIER = [
       email: "andrea.pieri@poggioantico.wine",
       subject: "Selezione scatti etichette Brunello Riserva e ringraziamenti",
       date: "20/09/2026 09:15",
-      snippet: "Caro Davide, le foto delle bottiglie con luce radente calda sono spettacolari. I nostri importatori di New York sono rimasti entusiasti della resa visiva."
+      snippet: "Caro AleAmministratore, le foto delle bottiglie con luce radente calda sono spettacolari. I nostri importatori di New York sono rimasti entusiasti della resa visiva."
     },
     contract: {
       code: "DADO-CTR-2026-051",
@@ -1411,7 +1411,7 @@ const ACTIVE_CLIENTS_DOSSIER = [
       email: "j.bonomi@urbanmobility.eu",
       subject: "Report metriche campagna social e clip video gravel bike",
       date: "10/09/2026 12:40",
-      snippet: "Ciao Davide, la clip dinamica dell'e-bike all'alba a CityLife sta performando benissimo sulle ads Meta. Ottima illuminazione naturale e stabilità della camera."
+      snippet: "Ciao AleAmministratore, la clip dinamica dell'e-bike all'alba a CityLife sta performando benissimo sulle ads Meta. Ottima illuminazione naturale e stabilità della camera."
     },
     contract: {
       code: "DADO-CTR-2026-024",
@@ -2825,6 +2825,8 @@ export default function Dashboard() {
     <div className="h-full w-full bg-transparent flex flex-col flex-1 relative overflow-hidden min-h-0">
       {/* ── Banda Superiore: unita alla barra laterale sinistra (#2d3139) e sfumata senza alcuno stacco sullo sfondo Dashboard ── */}
       <PageTopBand title="" theme="dashboard" thickDesktop={false} />
+      {/* Slot notifica smart (mobile): subito sotto la banda del logo */}
+      <div id="dado-toast-mobile-slot" className="relative z-[70] h-0 w-full" />
 
       {/* Canvas Principale armonizzato (sotto la banda superiore, unificato alla barra laterale sinistra, arrotondato in basso a sinistra) */}
       <div

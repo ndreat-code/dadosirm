@@ -5,7 +5,6 @@ import UserSwitchMenu from '../components/UserSwitchMenu'
 import DeveloperNotesSearchBar from '../components/DeveloperNotesSearchBar.pc'
 import ConcentricRingsKpi from '../components/ConcentricRingsKpi.pc'
 import CollaboratorsModal from '../components/CollaboratorsModal'
-import { GovernanceSpecchiettoCard, GovernanceComplianceModal } from '../components/GovernanceComplianceWidget'
 import { getCurrentWeekDays, getCurrentMonthName, getTodayIso, getTomorrowIso, getCurrentWeekSundayIso, formatDayLong } from '../utils/dateUtils'
 import { getCalendarDayData } from '../utils/calendarData'
 import { useAuth } from '../context/AuthContext'
@@ -1111,7 +1110,7 @@ const ACTIVE_CLIENTS_DOSSIER = [
     phone: "+39 02 334455",
     firstContact: {
       date: "24/02/2026",
-      channel: "LinkedIn InMail a Davide",
+      channel: "LinkedIn InMail a AleAmministratore",
       notes: "Richiesta per fornitura continuativa pacchetti vertical video per un'applicazione bancaria under-35."
     },
     lastEmail: {
@@ -1282,7 +1281,7 @@ const ACTIVE_CLIENTS_DOSSIER = [
       email: "andrea.pieri@poggioantico.wine",
       subject: "Selezione scatti etichette Brunello Riserva e ringraziamenti",
       date: "20/09/2026 09:15",
-      snippet: "Caro Davide, le foto delle bottiglie con luce radente calda sono spettacolari. I nostri importatori di New York sono rimasti entusiasti della resa visiva."
+      snippet: "Caro AleAmministratore, le foto delle bottiglie con luce radente calda sono spettacolari. I nostri importatori di New York sono rimasti entusiasti della resa visiva."
     },
     contract: {
       code: "DADO-CTR-2026-051",
@@ -1402,7 +1401,7 @@ const ACTIVE_CLIENTS_DOSSIER = [
       email: "j.bonomi@urbanmobility.eu",
       subject: "Report metriche campagna social e clip video gravel bike",
       date: "10/09/2026 12:40",
-      snippet: "Ciao Davide, la clip dinamica dell'e-bike all'alba a CityLife sta performando benissimo sulle ads Meta. Ottima illuminazione naturale e stabilità della camera."
+      snippet: "Ciao AleAmministratore, la clip dinamica dell'e-bike all'alba a CityLife sta performando benissimo sulle ads Meta. Ottima illuminazione naturale e stabilità della camera."
     },
     contract: {
       code: "DADO-CTR-2026-024",
@@ -2498,7 +2497,6 @@ export default function Dashboard() {
 
   // Configurazione API Key e Modello AI (Google Gemini principale)
   const [showAiConfigModal, setShowAiConfigModal] = useState(false)
-  const [showGovernanceModal, setShowGovernanceModal] = useState(false)
   const [aiConfig, setAiConfig] = useState({ hasKey: false, hasGeminiKey: false, geminiKey: '', geminiModel: 'gemini-2.5-flash', model: 'gemini-2.5-flash', currentEngine: 'Motore CRM Interno' })
   const [inputGeminiKey, setInputGeminiKey] = useState('')
   const [inputModel, setInputModel] = useState('gemini-2.5-flash')
@@ -3008,14 +3006,6 @@ export default function Dashboard() {
                     subSize="12px"
                   />
                 </div>
-              </div>
-
-              {/* Specchietto Cliccabile 3cm x 4cm Governance & Compliance per il Direttore */}
-              <div
-                className="flex items-center justify-center flex-shrink-0 my-1.5"
-                style={{ width: '185px', height: '3cm' }}
-              >
-                <GovernanceSpecchiettoCard onClick={() => setShowGovernanceModal(true)} />
               </div>
 
               {/* 3. Card INVOICE — Posizionata sul fondo di Colonna 1 */}
@@ -5375,12 +5365,6 @@ export default function Dashboard() {
             .catch(() => {})
         }}
         onCountChange={(cnt) => setCollaboratorsCount(cnt)}
-      />
-
-      {/* Modale Dossier Esecutivo 4 Pagine Governance & Compliance per il Direttore */}
-      <GovernanceComplianceModal
-        isOpen={showGovernanceModal}
-        onClose={() => setShowGovernanceModal(false)}
       />
 
       </div>

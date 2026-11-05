@@ -143,7 +143,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="es. admin@dadocreativestudio.com"
+                placeholder="es. aleamministratore@gmail.com"
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                 required
               />
@@ -202,7 +202,7 @@ export default function Login() {
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
-                onClick={() => handleDirectLogin('admin@dadocreativestudio.com', 'Admin2026!')}
+                onClick={() => handleDirectLogin('aleamministratore@gmail.com', 'Admin2026!')}
                 className="p-3 rounded-xl bg-slate-800/90 hover:bg-cyan-950/50 border border-slate-700 hover:border-cyan-400 text-left transition-all cursor-pointer group shadow-sm hover:shadow-[0_0_14px_rgba(0,210,255,0.2)]"
               >
                 <div className="text-[12px] font-bold text-cyan-300 flex items-center justify-between">
@@ -216,7 +216,7 @@ export default function Login() {
 
               <button
                 type="button"
-                onClick={() => handleDirectLogin('davide@dadocreativestudio.com', 'Director2026!')}
+                onClick={() => handleDirectLogin('aleamministratore+direttore@gmail.com', 'Director2026!')}
                 className="p-3 rounded-xl bg-slate-800/90 hover:bg-amber-950/50 border border-slate-700 hover:border-amber-400 text-left transition-all cursor-pointer group shadow-sm hover:shadow-[0_0_14px_rgba(245,158,11,0.2)]"
               >
                 <div className="text-[12px] font-bold text-amber-300 flex items-center justify-between">

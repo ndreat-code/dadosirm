@@ -346,8 +346,8 @@ async function tryUploadToGoogleCloudVault(oauth2Client, cloudPackage, snapshotM
     ].join('\r\n')
 
     const mimeMessage = [
-      'From: "DADO CRM Cloud Backup" <backup-vault@dadocreativestudio.com>',
-      'To: "DADO CRM Cloud Backup" <backup-vault@dadocreativestudio.com>',
+      'From: "DADO CRM Cloud Backup" <backup-vault@esempio.it>',
+      'To: "DADO CRM Cloud Backup" <backup-vault@esempio.it>',
       `Subject: =?UTF-8?B?${Buffer.from(subject, 'utf-8').toString('base64')}?=`,
       'MIME-Version: 1.0',
       'Content-Type: text/plain; charset="UTF-8"',

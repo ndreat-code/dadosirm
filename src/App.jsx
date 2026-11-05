@@ -138,7 +138,7 @@ function CrmRoutes({ ActiveDashboard, isMobileApp }) {
   return (
     <main className="flex-1 h-full min-h-0 overflow-hidden bg-transparent flex flex-col relative">
       {/* Notifica Smart con bordi quadrati per 5 secondi in alto a destra (solo PC) */}
-      {!isMobileApp && <SmartNotificationToast />}
+      <SmartNotificationToast mobile={isMobileApp} />
       <Routes>
         <Route
           path="/"

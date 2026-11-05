@@ -269,13 +269,13 @@ export function GovernanceSpecchiettoCard({ onClick }) {
   )
 }
 
-export function GovernanceComplianceModal({ isOpen, onClose }) {
+export function GovernanceComplianceModal({ isOpen, onClose, embedded = false }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [viewAllPages, setViewAllPages] = useState(false)
   const [showBackupCenter, setShowBackupCenter] = useState(false)
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen || embedded) return
     const handleKey = (e) => {
       if (e.key === 'Escape') onClose?.()
       if (!viewAllPages && e.key === 'ArrowRight') {
@@ -287,7 +287,7 @@ export function GovernanceComplianceModal({ isOpen, onClose }) {
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [isOpen, viewAllPages, onClose])
+  }, [isOpen, viewAllPages, onClose, embedded])
 
   if (!isOpen) return null
 
@@ -297,12 +297,12 @@ export function GovernanceComplianceModal({ isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
-      onClick={onClose}
+      className={embedded ? 'w-full' : 'fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn'}
+      onClick={embedded ? undefined : onClose}
       style={{ fontFamily: '"Switzer", sans-serif' }}
     >
       <div
-        className="w-[96vw] max-w-[1040px] h-[92vh] max-h-[92vh] bg-slate-900 rounded-3xl border-2 border-sky-400/70 shadow-2xl flex flex-col overflow-hidden"
+        className={embedded ? 'w-full max-w-[1040px] h-[78vh] bg-slate-900 rounded-2xl border border-sky-400/50 shadow-xl flex flex-col overflow-hidden' : 'w-[96vw] max-w-[1040px] h-[92vh] max-h-[92vh] bg-slate-900 rounded-3xl border-2 border-sky-400/70 shadow-2xl flex flex-col overflow-hidden'}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Barra Superiore del Dossier Sfogliabile */}
@@ -382,14 +382,14 @@ export function GovernanceComplianceModal({ isOpen, onClose }) {
               <span>Stampa / PDF</span>
             </a>
 
-            <button
+            {!embedded && <button
               type="button"
               onClick={onClose}
               className="w-8 h-8 rounded-full bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer ml-1"
               title="Chiudi (ESC)"
             >
               <X size={16} />
-            </button>
+            </button>}
           </div>
         </div>
 

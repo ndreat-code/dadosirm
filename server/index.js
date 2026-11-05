@@ -32,6 +32,7 @@ import {
   buildCollaborationReport,
   buildCollaborations,
   buildCompactCrm,
+  workDaysForContract,
   resolvePeriod,
   GROUNDING_RULES
 } from './services/reportEngine.js'
@@ -2158,6 +2159,13 @@ ${mJobs.map((j, idx) => {
 
     const formatEur = (n) => (Math.round(n || 0)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
+    // Giorni di lavoro puntuali per ciascun contratto (giorno della settimana + data completa)
+    const contractWorkDays = (c) => {
+      const compInvoices = invoices.filter(i => i.companyId === c.id || (i.companyName && i.companyName.toLowerCase() === c.name.toLowerCase()))
+      const list = (c.contractsHistory || []).map(h => `${h.code} → ${workDaysForContract(c, h, compInvoices)}`)
+      return list.length ? list.join('\n      - ') : (c.workSchedule?.datesFormatted || 'Entro 1 settimana')
+    }
+
     const getCompanySortDate = (c) => c.workSchedule?.recentDate || c.contract?.signedDate || c.firstContact?.date || '2026-01-01'
     const sortedCompanies = [...companies].sort((a, b) => getCompanySortDate(b).localeCompare(getCompanySortDate(a)))
     const targetCollabs = sortedCompanies.slice(0, collabLimit)
@@ -2214,7 +2222,8 @@ ${mJobs.map((j, idx) => {
    • 🧾 Quadro Economico: € ${formatEur(c.compensation?.amount)} + IVA (${c.compensation?.paymentMethod || 'Bonifico Bancario'})
      ${billingDetail}
      ${inv ? `• Fattura Elettronica: ${inv.number} (SDI: ${inv.sdi || 'M5UXCR1'} • PEC: ${inv.pec || 'N/D'})` : '• Fattura: In emissione al completamento degli output'}
-   • 📅 Calendario & Set: ${c.workSchedule?.datesFormatted || 'Entro 1 settimana'}
+   • 📅 Giorni di lavoro per contratto:
+      - ${contractWorkDays(c)}
      - Cadenza & Orari: ${c.workSchedule?.scheduleType || 'Standard'} ${c.workSchedule?.hours ? `(${c.workSchedule.hours})` : ''}
      - Location: ${c.workSchedule?.location || 'Studio DADO Milano / On-site'}
    • 🎥 Attrezzature Mobilitate:
@@ -2239,7 +2248,7 @@ ${cardsText}
 ═════════════════════════════════════════════════════════════
 💡 FOCUS PRODUZIONI ESEGUITE SUL SET (CONTRATTI FIRMATI):
 Qualora l'interesse sia specificamente rivolto alle ultime ${collabLimit} commesse con contratto regolarmente sottoscritto ed eseguito in produzione a Settembre 2026:
-${signedOnly.map((c, i) => `  ${i + 1}. ${c.name} (€ ${formatEur(c.compensation?.amount)} - Set: ${c.workSchedule?.datesFormatted || 'Settembre 2026'}) • Contratto: ${c.contract?.code} [${c.compensation?.status === 'Saldato' ? 'Saldato 100%' : `Saldo residuo € ${formatEur(c.compensation?.balance)}`}]`).join('\n')}
+${signedOnly.map((c, i) => `  ${i + 1}. ${c.name} (€ ${formatEur(c.compensation?.amount)} - Giorni di lavoro: ${contractWorkDays(c).replace(/\n\s*- /g, '; ')}) • Contratto: ${c.contract?.code} [${c.compensation?.status === 'Saldato' ? 'Saldato 100%' : `Saldo residuo € ${formatEur(c.compensation?.balance)}`}]`).join('\n')}
 
 ═════════════════════════════════════════════════════════════
 📈 SINTESI ECONOMICA & FLUSSI DELLE ULTIME ${collabLimit} COLLABORAZIONI:

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
+import { GovernanceComplianceModal } from '../components/GovernanceComplianceWidget'
 import { useAuth } from '../context/AuthContext'
 import {
+  ShieldCheck,
   Sparkles,
   Bot,
   Mail,
@@ -55,7 +57,7 @@ export const DEFAULT_TASK_RULES = [
     triggerLabel: "Dall'invio del preventivo commerciale",
     delayDays: 3,
     actionTask: "Crea un promemoria per richiamare il lead dopo 3 giorni dall'invio del preventivo",
-    assignedTo: 'Davide (Director)',
+    assignedTo: 'AleAmministratore',
     category: 'commercial',
     priority: 'Alta',
     active: true,
@@ -67,7 +69,7 @@ export const DEFAULT_TASK_RULES = [
     triggerLabel: 'Dalla registrazione nuovo lead inbound',
     delayDays: 1,
     actionTask: 'Contatto telefonico di qualifica requisiti B.A.N.T. e budget indicativo',
-    assignedTo: 'Andrea T. (Amministratore)',
+    assignedTo: 'AleAmministratore',
     category: 'commercial',
     priority: 'Alta',
     active: true,
@@ -217,7 +219,7 @@ export default function Settings() {
     trigger: 'quote_sent',
     delayDays: 3,
     actionTask: "Crea un promemoria per richiamare il lead dopo 3 giorni dall'invio del preventivo",
-    assignedTo: 'Davide (Director)',
+    assignedTo: 'AleAmministratore',
     category: 'commercial',
     priority: 'Alta',
   })
@@ -240,7 +242,7 @@ export default function Settings() {
   const [settings, setSettings] = useState(() => {
     const defaultSettings = {
       // 1. Google Workspace
-      googleAccount: 'info@dadocreativestudio.com',
+      googleAccount: 'info@esempio.it',
       gmailSync: true,
       gdriveSync: true,
       gdriveFolder: 'DADO Studio/Clienti 2026/Contratti',
@@ -270,7 +272,7 @@ export default function Settings() {
       notifyContractsSigned: true,
       notifyPaymentReceived: true,
       backupFrequency: 'Settimanale su Drive',
-      webhookUrl: 'https://api.dadocreativestudio.com/webhook/crm-sync',
+      webhookUrl: 'https://api.esempio.it/webhook/crm-sync',
       taskRules: DEFAULT_TASK_RULES,
     }
 
@@ -361,7 +363,7 @@ export default function Settings() {
       triggerLabel: triggerLabels[newRuleForm.trigger] || "Dall'evento commerciale",
       delayDays: Number(newRuleForm.delayDays) || 3,
       actionTask: newRuleForm.actionTask.trim(),
-      assignedTo: newRuleForm.assignedTo || 'Davide (Director)',
+      assignedTo: newRuleForm.assignedTo || 'AleAmministratore',
       category: newRuleForm.category || 'commercial',
       priority: newRuleForm.priority || 'Alta',
       active: true
@@ -378,7 +380,7 @@ export default function Settings() {
       trigger: 'quote_sent',
       delayDays: 3,
       actionTask: "Crea un promemoria per richiamare il lead dopo 3 giorni dall'invio del preventivo",
-      assignedTo: 'Davide (Director)',
+      assignedTo: 'AleAmministratore',
       category: 'commercial',
       priority: 'Alta',
     })
@@ -397,7 +399,7 @@ export default function Settings() {
           company: 'Lead da Preventivo (Test Regola)',
           priority: rule.priority?.toLowerCase() === 'alta' ? 'high' : rule.priority?.toLowerCase() === 'bassa' ? 'low' : 'medium',
           category: rule.category || 'commercial',
-          assignedTo: rule.assignedTo || 'Davide (Director)',
+          assignedTo: rule.assignedTo || 'AleAmministratore',
           due: `Tra ${rule.delayDays} giorni`,
           period: `Tra ${rule.delayDays} giorni`,
           notes: `Generato automaticamente dalla regola: "${rule.title}" (Trigger: ${rule.triggerLabel})`,
@@ -554,6 +556,7 @@ export default function Settings() {
     { id: 'b2b_enrichment', label: 'B2B Data Enrichment', icon: Zap, secret: true },
     { id: 'pipeline', label: 'Fasi Pipeline & Forecasting', icon: TrendingUp, secret: true },
     { id: 'notifications', label: 'Notifiche & Task Automatici', icon: Bell, secret: true },
+    { id: 'governance', label: 'Governance & Policy AI', icon: ShieldCheck, secret: true },
   ]
 
   // Rimuove completamente le schede segrete per il profilo dipendente
@@ -670,6 +673,10 @@ export default function Settings() {
           {/* ═════════════════════════════════════════════════════════════════ */}
           {/* TAB 1: GOOGLE WORKSPACE (GMAIL, DRIVE, CALENDAR)                  */}
           {/* ═════════════════════════════════════════════════════════════════ */}
+          {activeTab === 'governance' && (
+            <GovernanceComplianceModal embedded isOpen />
+          )}
+
           {activeTab === 'google_ai' && (
             isDipendente ? (
               <SecretAccessDenied
@@ -1621,8 +1628,7 @@ export default function Settings() {
                             onChange={e => setNewRuleForm({ ...newRuleForm, assignedTo: e.target.value })}
                             className="w-full bg-[#121722] border border-[#222c3d] px-3.5 py-2 text-xs text-slate-100 rounded-lg focus:outline-none focus:border-[#00ff66] cursor-pointer"
                           >
-                            <option value="Davide (Director)">Davide (Director)</option>
-                            <option value="Andrea T. (Amministratore)">Andrea T. (Amministratore)</option>
+                            <option value="AleAmministratore">AleAmministratore</option>
                             <option value="Marco B. (Video Editor)">Marco B. (Video Editor)</option>
                             <option value="Sara V. (Fotografa Set)">Sara V. (Fotografa Set)</option>
                             <option value="Staff Studio">Staff Studio (Generico)</option>
@@ -1784,8 +1790,7 @@ export default function Settings() {
                                   onChange={e => updateRuleParam(rule.id, 'assignedTo', e.target.value)}
                                   className="bg-[#06080c] border border-[#222c3d] hover:border-[#00ff66] text-xs font-bold text-slate-100 rounded-lg px-2.5 py-1 focus:outline-none cursor-pointer"
                                 >
-                                  <option value="Davide (Director)">Davide (Director)</option>
-                                  <option value="Andrea T. (Amministratore)">Andrea T. (Amministratore)</option>
+                                  <option value="AleAmministratore">AleAmministratore</option>
                                   <option value="Marco B. (Video Editor)">Marco B. (Video Editor)</option>
                                   <option value="Sara V. (Fotografa Set)">Sara V. (Fotografa Set)</option>
                                   <option value="Staff Studio">Staff Studio</option>

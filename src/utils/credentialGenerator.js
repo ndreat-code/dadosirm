@@ -38,7 +38,7 @@ export function generateRandomPassword(length = 12) {
   }
 }
 
-export function generateRandomEmail(name = '', domain = 'dadocreativestudio.com') {
+export function generateRandomEmail(name = '', domain = 'esempio.it') {
   if (name && name.trim()) {
     const clean = name
       .toLowerCase()

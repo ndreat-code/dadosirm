@@ -9,8 +9,8 @@ export const DEFAULT_USERS = [
   sanitizeUserPassword(
     {
       id: 'usr-admin',
-      name: 'Andrea T. (Amministratore)',
-      email: 'admin@dadocreativestudio.com',
+      name: 'AleAmministratore',
+      email: 'aleamministratore@gmail.com',
       role: 'Super Amministratore',
       badgeRole: 'Amministratore',
       status: 'active',
@@ -35,8 +35,8 @@ export const DEFAULT_USERS = [
   sanitizeUserPassword(
     {
       id: 'usr-dipendente',
-      name: 'Davide (Director)',
-      email: 'davide@dadocreativestudio.com',
+      name: 'AleAmministratore',
+      email: 'aleamministratore+direttore@gmail.com',
       role: 'Director',
       badgeRole: 'Director',
       status: 'active',
@@ -62,7 +62,7 @@ export const DEFAULT_USERS = [
     {
       id: 'usr-editor',
       name: 'Marco B. (Video Editor)',
-      email: 'marco@dadocreativestudio.com',
+      email: 'marco@esempio.it',
       role: 'Post-Produzione & Colorist',
       badgeRole: 'Collaboratore',
       status: 'active',
@@ -88,7 +88,7 @@ export const DEFAULT_USERS = [
     {
       id: 'usr-producer',
       name: 'Laura R. (Production Manager)',
-      email: 'laura@dadocreativestudio.com',
+      email: 'laura@esempio.it',
       role: 'Production Manager & Set Coordinator',
       badgeRole: 'Collaboratore',
       status: 'active',
@@ -175,17 +175,17 @@ export function AuthProvider({ children }) {
               normalizedUser = {
                 ...normalizedUser,
                 name: 'Laura R. (Production Manager)',
-                email: 'laura@dadocreativestudio.com',
+                email: 'laura@esempio.it',
                 role: 'Production Manager & Set Coordinator',
                 permissions: basePermissions,
               }
             } else if (u.id === 'usr-dipendente') {
               normalizedUser = {
                 ...normalizedUser,
-                name: u.name === 'Collaboratore (Dipendente)' ? 'Davide (Director)' : u.name.replace('Collaboratore', 'Davide').replace('(Dipendente)', '(Director)'),
+                name: 'AleAmministratore',
                 role: (u.role === 'Dipendente Operativo' || u.role === 'Collaboratore') ? 'Director' : u.role,
                 badgeRole: (u.badgeRole === 'Dipendente' || u.badgeRole === 'Collaboratore') ? 'Director' : u.badgeRole,
-                email: u.email === 'dipendente@dadocreativestudio.com' ? 'davide@dadocreativestudio.com' : u.email,
+                email: 'aleamministratore+direttore@gmail.com',
                 permissions: {
                   ...basePermissions,
                   dashboard: true,
@@ -198,6 +198,8 @@ export function AuthProvider({ children }) {
             } else if (u.id === 'usr-admin') {
               normalizedUser = {
                 ...normalizedUser,
+                name: 'AleAmministratore',
+                email: 'aleamministratore@gmail.com',
                 permissions: {
                   ...basePermissions,
                   dashboard: true,
